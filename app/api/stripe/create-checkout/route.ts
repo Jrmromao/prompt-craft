@@ -44,7 +44,7 @@ export async function POST(req: Request) {
             ],
             mode: 'subscription',
             success_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard`,
-            cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/settings/billing?canceled=true`,
+            // cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/settings/billing?canceled=true`,
             metadata: {
                 clerkUserId: userId,       // Clerk user ID
                 userId: user.id,           // Your database user ID

@@ -5,6 +5,8 @@ import { ptBR } from '@clerk/localizations'
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import {Providers} from "@/components/Providers";
 import { Analytics } from "@vercel/analytics/next"
+import { ThemeProvider } from "@/components/ThemeProvider";
+import { Toaster } from '@/components/ui/toaster';
 
 const inter = Inter({subsets: ["latin"]})
 
@@ -20,12 +22,15 @@ export default function RootLayout({
 }) {
     return (
         <ClerkProvider localization={ptBR}>
-            <html lang="pt-BR">
+            <html lang="en" suppressHydrationWarning>
             <body
                 className={`${inter.className} flex flex-col min-h-screen bg-gradient-to-br from-indigo-100 via-white to-purple-100`}>
             <Providers>
-                {children}
-                <Analytics />
+                <ThemeProvider>
+                  {children}
+                  <Analytics />
+                  <Toaster />
+                </ThemeProvider>
             </Providers>
             <SpeedInsights />
             </body>

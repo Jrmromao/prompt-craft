@@ -22,6 +22,7 @@ model User {
 
   prompts        Prompt[]
   creditHistory  CreditHistory[]
+  promptTemplates PromptTemplate[]
 }
 
 model Plan {
@@ -59,6 +60,22 @@ model CreditHistory {
   type        CreditType
   description String?
   createdAt   DateTime @default(now())
+
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model PromptTemplate {
+  id          String   @id @default(cuid())
+  user        User     @relation(fields: [userId], references: [id])
+  userId      String
+  name        String
+  description String?
+  content     String   // The prompt template content
+  isPublic    Boolean  @default(false)
+  tags        String[] // Array of tags for categorization
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   @@index([userId])
   @@index([createdAt])

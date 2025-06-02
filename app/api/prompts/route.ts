@@ -1,0 +1,47 @@
+import { NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
+
+export async function GET(req: Request) {
+  try {
+    const prompts = await prisma.promptTemplate.findMany({
+      where: {
+        isPublic: true
+      },
+      orderBy: {
+        createdAt: 'desc'
+      }
+    });
+
+    return NextResponse.json(prompts);
+  } catch (error) {
+    console.error('[PROMPTS_GET]', error);
+    return new NextResponse('Internal Error', { status: 500 });
+  }
+}
+
+export async function POST(req: Request) {
+  try {
+    const body = await req.json();
+    const { name, description, content, isPublic, tags } = body;
+
+    if (!name || !content) {
+      return new NextResponse('Missing required fields', { status: 400 });
+    }
+
+    const prompt = await prisma.promptTemplate?.create({
+      data: {
+        name,
+        description,
+        content,
+        isPublic: isPublic || false,
+        tags: tags || [],
+        userId: 'public-user' // Using a default public user ID
+      }
+    });
+
+    return NextResponse.json(prompt);
+  } catch (error) {
+    console.error('[PROMPTS_POST]', error);
+    return new NextResponse('Internal Error', { status: 500 });
+  }
+} 

@@ -17,13 +17,19 @@ interface UsageData {
 
 interface UsageChartProps {
   userId: string;
+  usageData?: UsageData[];
 }
 
-export function UsageChart({ userId }: UsageChartProps) {
-  const [data, setData] = useState<UsageData[]>([]);
-  const [loading, setLoading] = useState(true);
+export function UsageChart({ userId, usageData }: UsageChartProps) {
+  const [data, setData] = useState<UsageData[]>(usageData || []);
+  const [loading, setLoading] = useState(!usageData);
 
   useEffect(() => {
+    if (usageData) {
+      setData(usageData);
+      setLoading(false);
+      return;
+    }
     async function fetchUsageData() {
       try {
         const response = await fetch(`/api/user/usage?userId=${userId}`);
@@ -35,9 +41,8 @@ export function UsageChart({ userId }: UsageChartProps) {
         setLoading(false);
       }
     }
-
     fetchUsageData();
-  }, [userId]);
+  }, [userId, usageData]);
 
   if (loading) {
     return <div>Loading usage data...</div>;

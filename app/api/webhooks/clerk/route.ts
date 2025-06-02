@@ -2,7 +2,7 @@ import {NextResponse} from 'next/server';
 import {Webhook} from 'svix';
 import {WebhookEvent, clerkClient} from '@clerk/nextjs/server';
 import {Prisma} from '@prisma/client';
-import {prisma} from "@/app/db";
+import {prisma} from "@/lib/prisma";
 import S3Service from "@/services/S3Service";
 
 // Constants for security configurations
@@ -61,31 +61,23 @@ async function createOrUpdateUser(clerkUserId: string, email: string, firstName:
     const fullName = `${sanitizedFirstName} ${sanitizedLastName}`.trim() || 'User';
 
     try {
-        // Use a transaction to ensure atomicity
-        await prisma.$transaction(async (tx) => {
-            await tx.user.upsert({
-                where: { clerkId },
-                update: {
-                    email,
-                    fullName,
-                    updatedAt: new Date(),
-                },
-                create: {
-                    clerkId,
-                    email,
-                    fullName
-                },
-            });
-        }, {
-            timeout: 5000, // 5 second timeout for the transaction
+        await prisma.user.upsert({
+            where: { clerkId: clerkUserId },
+            update: {
+                email,
+                name: fullName,
+                updatedAt: new Date(),
+            },
+            create: {
+                clerkId: clerkUserId,
+                email,
+                name: fullName,
+            },
         });
-
-        // Log success without exposing full user details
-        console.log(`User operation successful for clerk ID: ${clerkUserId.substring(0, 8)}...`);
+        console.log(`User upserted for clerk ID: ${clerkUserId.substring(0, 8)}...`);
         return true;
     } catch (error) {
         if (error instanceof Prisma.PrismaClientKnownRequestError) {
-            // Handle unique constraint violations (error.code === 'P2002')
             console.error(`Database error processing user: ${error.code}`);
         } else {
             console.error('Error in user operation:', typeof error === 'object' ? (error as Error).message : 'Unknown error');

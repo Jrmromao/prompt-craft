@@ -20,14 +20,17 @@ interface UserMetadata {
 // Public routes that don't require authentication
 const PUBLIC_ROUTES = createRouteMatcher([
     '/',
-    '/dashboard',
+    // '/prompts',
+    // '/prompts/:promptId',
+    // '/templates',
+    // '/templates/:templateId',
+    // '/dashboard',
     '/api/webhooks/(.*)',
     '/sign-in(.*)',
     '/sign-up(.*)',
     '/pricing',
     '/about',
     '/contact',
-    '/settings/billing(.*)',
     '/onboarding(.*)',
     '/api/onboarding(.*)',
 ]);
@@ -78,10 +81,10 @@ export default clerkMiddleware(async (auth, req: NextRequest) => {
         // }
 
         // If user is neither admin nor has active subscription, redirect to billing
-        if (!isAdmin && !hasActiveSubscription) {
-            console.log(`Redirecting user ${userId} to billing: No active subscription`);
-            return NextResponse.redirect(new URL('/settings/billing?required=true', req.url));
-        }
+        // if (!isAdmin && !hasActiveSubscription) {
+        //     console.log(`Redirecting user ${userId} to billing: No active subscription`);
+        //     return NextResponse.redirect(new URL('/settings/billing?required=true', req.url));
+        // }
 
         // All checks passed, continue to protected route
         return NextResponse.next();

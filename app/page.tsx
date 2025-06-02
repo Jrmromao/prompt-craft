@@ -1,8 +1,9 @@
 'use client'
 import React, { useState, useEffect } from 'react';
-import { ChevronRight, Sparkles, Zap, Users, Target, ArrowRight, Check, Star, Play, Menu, X } from 'lucide-react';
+import { ChevronRight, Sparkles, Zap, Users, Target, ArrowRight, Check, Star, Play, Menu, X, Sun, Moon } from 'lucide-react';
 import Head from 'next/head';
 import Script from 'next/script';
+import { useTheme } from '@/components/ThemeProvider';
 
 // SEO metadata
 const metadata = {
@@ -36,6 +37,7 @@ const PromptCraftLanding = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const { theme, toggleTheme } = useTheme();
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -202,11 +204,22 @@ const PromptCraftLanding = () => {
         />
       </Head>
 
-      <div className="min-h-screen bg-black text-white relative">
+      <div className={`min-h-screen relative transition-colors duration-300 bg-white text-gray-900 dark:bg-black dark:text-white`}>
+        {/* Light/Dark Mode Toggle */}
+        <div className="fixed top-4 right-4 z-50">
+          <button
+            onClick={toggleTheme}
+            className="rounded-full p-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-md hover:scale-110 transition-transform"
+            aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+          >
+            {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+          </button>
+        </div>
+
         <AnimatedBackground />
         
         {/* Navigation */}
-        <header className="fixed top-0 w-full z-50 bg-black/80 backdrop-blur-xl border-b border-gray-800/50">
+        <header className="fixed top-0 w-full z-50 bg-white/90 dark:bg-black/90 backdrop-blur-xl border-b border-gray-200 dark:border-gray-800">
           <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between items-center py-4">
               <div className="flex items-center space-x-3">
@@ -217,15 +230,15 @@ const PromptCraftLanding = () => {
                   PromptCraft
                 </span>
               </div>
-              
               <div className="hidden md:flex items-center space-x-8">
-                <a href="#features" className="hover:text-purple-400 transition-colors" aria-label="Features section">Features</a>
-                <a href="#pricing" className="hover:text-purple-400 transition-colors" aria-label="Pricing section">Pricing</a>
-                <a href="#testimonials" className="hover:text-purple-400 transition-colors" aria-label="Customer reviews">Reviews</a>
-                <button className="text-gray-300 hover:text-white transition-colors" aria-label="Sign in to your account">Sign In</button>
-                <GradientButton aria-label="Get started with PromptCraft">Get Started</GradientButton>
+                <a href="#features" className="hover:text-purple-500 dark:hover:text-purple-300 transition-colors" aria-label="Features section">Features</a>
+                <a href="#pricing" className="hover:text-purple-500 dark:hover:text-purple-300 transition-colors" aria-label="Pricing section">Pricing</a>
+                <a href="#testimonials" className="hover:text-purple-500 dark:hover:text-purple-300 transition-colors" aria-label="Customer reviews">Reviews</a>
+                <a href="/sign-in" className="text-gray-700 dark:text-gray-200 hover:text-purple-600 dark:hover:text-purple-300 transition-colors font-semibold" aria-label="Sign in to your account">Sign In</a>
+                <a href="/sign-up" className="ml-2">
+                  <GradientButton aria-label="Get started with PromptCraft">Sign Up</GradientButton>
+                </a>
               </div>
-
               <button 
                 className="md:hidden"
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -236,16 +249,17 @@ const PromptCraftLanding = () => {
               </button>
             </div>
           </nav>
-
           {/* Mobile Menu */}
           {isMenuOpen && (
-            <div className="md:hidden bg-black/95 backdrop-blur-xl border-t border-gray-800" role="navigation" aria-label="Mobile menu">
+            <div className="md:hidden bg-white/95 dark:bg-black/95 backdrop-blur-xl border-t border-gray-200 dark:border-gray-800" role="navigation" aria-label="Mobile menu">
               <div className="px-4 py-6 space-y-4">
-                <a href="#features" className="block hover:text-purple-400 transition-colors" aria-label="Features section">Features</a>
-                <a href="#pricing" className="block hover:text-purple-400 transition-colors" aria-label="Pricing section">Pricing</a>
-                <a href="#testimonials" className="block hover:text-purple-400 transition-colors" aria-label="Customer reviews">Reviews</a>
-                <button className="block text-gray-300 hover:text-white transition-colors" aria-label="Sign in to your account">Sign In</button>
-                <GradientButton className="w-full" aria-label="Get started with PromptCraft">Get Started</GradientButton>
+                <a href="#features" className="block hover:text-purple-500 dark:hover:text-purple-300 transition-colors" aria-label="Features section">Features</a>
+                <a href="#pricing" className="block hover:text-purple-500 dark:hover:text-purple-300 transition-colors" aria-label="Pricing section">Pricing</a>
+                <a href="#testimonials" className="block hover:text-purple-500 dark:hover:text-purple-300 transition-colors" aria-label="Customer reviews">Reviews</a>
+                <a href="/sign-in" className="block text-gray-700 dark:text-gray-200 hover:text-purple-600 dark:hover:text-purple-300 transition-colors font-semibold" aria-label="Sign in to your account">Sign In</a>
+                <a href="/sign-up" className="block">
+                  <GradientButton className="w-full" aria-label="Get started with PromptCraft">Sign Up</GradientButton>
+                </a>
               </div>
             </div>
           )}
@@ -256,9 +270,9 @@ const PromptCraftLanding = () => {
           <section className="relative pt-32 pb-20 px-4 sm:px-6 lg:px-8" aria-labelledby="hero-heading">
             <div className="max-w-7xl mx-auto text-center">
               <FloatingCard>
-                <div className="inline-flex items-center gap-2 bg-purple-500/10 border border-purple-500/20 rounded-full px-4 py-2 mb-8">
+                <div className="inline-flex items-center gap-2 bg-purple-100/40 dark:bg-purple-500/10 border border-purple-200 dark:border-purple-500/20 rounded-full px-4 py-2 mb-8">
                   <Sparkles className="w-4 h-4 text-purple-400" aria-hidden="true" />
-                  <span className="text-sm text-purple-300">AI-Powered Prompt Generation</span>
+                  <span className="text-sm text-purple-700 dark:text-purple-300">AI-Powered Prompt Generation</span>
                 </div>
               </FloatingCard>
 
@@ -274,7 +288,7 @@ const PromptCraftLanding = () => {
               </FloatingCard>
 
               <FloatingCard delay={0.4}>
-                <p className="text-xl text-gray-300 mb-8 max-w-3xl mx-auto leading-relaxed">
+                <p className="text-xl text-gray-600 dark:text-gray-300 mb-8 max-w-3xl mx-auto leading-relaxed">
                   Transform your ideas into detailed, effective prompts with our AI-powered platform. 
                   Perfect for content creators, marketers, and AI enthusiasts.
                 </p>
@@ -282,13 +296,15 @@ const PromptCraftLanding = () => {
 
               <FloatingCard delay={0.6}>
                 <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
-                  <GradientButton className="text-lg px-12 py-4">
-                    Start Creating Free <ArrowRight className="w-5 h-5 ml-2" />
-                  </GradientButton>
-                  <button className="flex items-center gap-2 text-gray-300 hover:text-white transition-colors">
+                  <a href="/sign-up">
+                    <GradientButton className="text-lg px-12 py-4">
+                      Get Started Free <ArrowRight className="w-5 h-5 ml-2" />
+                    </GradientButton>
+                  </a>
+                  <a href="/sign-in" className="flex items-center gap-2 text-gray-700 dark:text-gray-200 hover:text-purple-600 dark:hover:text-purple-300 transition-colors font-semibold">
                     <Play className="w-5 h-5" />
-                    Watch Demo
-                  </button>
+                    Sign In
+                  </a>
                 </div>
               </FloatingCard>
 
@@ -304,7 +320,7 @@ const PromptCraftLanding = () => {
                       <div className="text-4xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent mb-2">
                         {stat.number}
                       </div>
-                      <div className="text-gray-400">{stat.label}</div>
+                      <div className="text-gray-600 dark:text-gray-400">{stat.label}</div>
                     </div>
                   ))}
                 </div>
@@ -322,7 +338,7 @@ const PromptCraftLanding = () => {
                     Every Creator
                   </span>
                 </h2>
-                <p className="text-xl text-gray-300 max-w-3xl mx-auto">
+                <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
                   Everything you need to create, refine, and optimize your prompts for maximum impact
                 </p>
               </div>
@@ -330,12 +346,12 @@ const PromptCraftLanding = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
                 {features.map((feature, index) => (
                   <FloatingCard key={index} delay={index * 0.1}>
-                    <div className="bg-gray-900/50 backdrop-blur-sm border border-gray-800 rounded-2xl p-6 hover:border-purple-500/50 transition-all duration-300 group hover:-translate-y-2">
+                    <div className="bg-gray-100 dark:bg-gray-900/50 backdrop-blur-sm border border-gray-200 dark:border-gray-800 rounded-2xl p-6 hover:border-purple-500/50 transition-all duration-300 group hover:-translate-y-2">
                       <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                         {feature.icon}
                       </div>
-                      <h3 className="text-xl font-semibold mb-3">{feature.title}</h3>
-                      <p className="text-gray-400">{feature.description}</p>
+                      <h3 className="text-xl font-semibold mb-3 text-gray-900 dark:text-white">{feature.title}</h3>
+                      <p className="text-gray-600 dark:text-gray-300">{feature.description}</p>
                     </div>
                   </FloatingCard>
                 ))}
@@ -353,16 +369,16 @@ const PromptCraftLanding = () => {
                     Pricing
                   </span>
                 </h2>
-                <p className="text-xl text-gray-300">Choose the perfect plan for your needs</p>
+                <p className="text-xl text-gray-600 dark:text-gray-300">Choose the perfect plan for your needs</p>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
                 {pricingPlans.map((plan, index) => (
                   <FloatingCard key={index} delay={index * 0.1}>
-                    <div className={`relative bg-gray-900/50 backdrop-blur-sm border rounded-2xl p-8 transition-all duration-300 hover:-translate-y-2 ${
+                    <div className={`relative bg-gray-100 dark:bg-gray-900/50 backdrop-blur-sm border rounded-2xl p-8 transition-all duration-300 hover:-translate-y-2 ${
                       plan.popular 
                         ? 'border-purple-500 ring-2 ring-purple-500/20' 
-                        : 'border-gray-800 hover:border-purple-500/50'
+                        : 'border-gray-200 dark:border-gray-800 hover:border-purple-500/50'
                     }`}>
                       {plan.popular && (
                         <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
@@ -373,19 +389,19 @@ const PromptCraftLanding = () => {
                       )}
                       
                       <div className="text-center mb-6">
-                        <h3 className="text-2xl font-bold mb-2">{plan.name}</h3>
+                        <h3 className="text-2xl font-bold mb-2 text-gray-900 dark:text-white">{plan.name}</h3>
                         <div className="flex items-baseline justify-center mb-2">
-                          <span className="text-5xl font-bold">{plan.price}</span>
-                          <span className="text-gray-400 ml-1">{plan.period}</span>
+                          <span className="text-5xl font-bold text-gray-900 dark:text-white">{plan.price}</span>
+                          <span className="text-gray-600 dark:text-gray-300 ml-1">{plan.period}</span>
                         </div>
-                        <p className="text-gray-400">{plan.description}</p>
+                        <p className="text-gray-600 dark:text-gray-300">{plan.description}</p>
                       </div>
 
                       <ul className="space-y-3 mb-8">
                         {plan.features.map((feature, featureIndex) => (
                           <li key={featureIndex} className="flex items-center gap-3">
                             <Check className="w-5 h-5 text-green-500 flex-shrink-0" />
-                            <span className="text-gray-300">{feature}</span>
+                            <span className="text-gray-700 dark:text-gray-200">{feature}</span>
                           </li>
                         ))}
                       </ul>
@@ -411,13 +427,13 @@ const PromptCraftLanding = () => {
               </h2>
 
               <div className="relative">
-                <div className="bg-gray-900/50 backdrop-blur-sm border border-gray-800 rounded-2xl p-8 mb-8">
+                <div className="bg-gray-100 dark:bg-gray-900/50 backdrop-blur-sm border border-gray-200 dark:border-gray-800 rounded-2xl p-8 mb-8">
                   <div className="flex justify-center mb-4">
                     {[...Array(5)].map((_, i) => (
                       <Star key={i} className="w-5 h-5 text-yellow-400 fill-current" />
                     ))}
                   </div>
-                  <p className="text-xl text-gray-300 mb-6 leading-relaxed">
+                  <p className="text-xl text-gray-600 dark:text-gray-300 mb-6 leading-relaxed">
                     "{testimonials[currentTestimonial].content}"
                   </p>
                   <div className="flex items-center justify-center gap-4">
@@ -425,8 +441,8 @@ const PromptCraftLanding = () => {
                       {testimonials[currentTestimonial].avatar}
                     </div>
                     <div className="text-left">
-                      <div className="font-semibold">{testimonials[currentTestimonial].name}</div>
-                      <div className="text-gray-400 text-sm">
+                      <div className="font-semibold text-gray-900 dark:text-white">{testimonials[currentTestimonial].name}</div>
+                      <div className="text-gray-600 dark:text-gray-400 text-sm">
                         {testimonials[currentTestimonial].role} at {testimonials[currentTestimonial].company}
                       </div>
                     </div>
@@ -438,7 +454,7 @@ const PromptCraftLanding = () => {
                     <button
                       key={index}
                       className={`w-3 h-3 rounded-full transition-colors ${
-                        index === currentTestimonial ? 'bg-purple-500' : 'bg-gray-600'
+                        index === currentTestimonial ? 'bg-purple-500' : 'bg-gray-400 dark:bg-gray-600'
                       }`}
                       onClick={() => setCurrentTestimonial(index)}
                     />
@@ -451,14 +467,14 @@ const PromptCraftLanding = () => {
           {/* CTA Section */}
           <section className="py-20 px-4 sm:px-6 lg:px-8" aria-labelledby="cta-heading">
             <div className="max-w-4xl mx-auto text-center">
-              <div className="bg-gradient-to-r from-purple-900/50 to-pink-900/50 backdrop-blur-sm border border-purple-500/20 rounded-3xl p-12">
+              <div className="bg-gradient-to-r from-purple-900/50 to-pink-900/50 dark:from-purple-900/80 dark:to-pink-900/80 backdrop-blur-sm border border-purple-500/20 rounded-3xl p-12">
                 <h2 id="cta-heading" className="text-4xl md:text-5xl font-bold mb-6">
                   Ready to Transform Your
                   <span className="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent ml-3">
                     Prompt Game?
                   </span>
                 </h2>
-                <p className="text-xl text-gray-300 mb-8">
+                <p className="text-xl text-gray-600 dark:text-gray-300 mb-8">
                   Join thousands of creators who are already generating better prompts with PromptCraft
                 </p>
                 <GradientButton className="text-lg px-12 py-4">
@@ -469,7 +485,7 @@ const PromptCraftLanding = () => {
           </section>
 
           {/* Footer */}
-          <footer className="border-t border-gray-800 py-12 px-4 sm:px-6 lg:px-8" role="contentinfo">
+          <footer className="border-t border-gray-200 dark:border-gray-800 py-12 px-4 sm:px-6 lg:px-8" role="contentinfo">
             <div className="max-w-7xl mx-auto">
               <div className="flex flex-col md:flex-row justify-between items-center">
                 <div className="flex items-center space-x-3 mb-4 md:mb-0">
@@ -480,13 +496,13 @@ const PromptCraftLanding = () => {
                     PromptCraft
                   </span>
                 </div>
-                <nav className="flex items-center space-x-6 text-gray-400" aria-label="Footer navigation">
-                  <a href="/privacy" className="hover:text-white transition-colors">Privacy</a>
-                  <a href="/terms" className="hover:text-white transition-colors">Terms</a>
-                  <a href="/support" className="hover:text-white transition-colors">Support</a>
+                <nav className="flex items-center space-x-6 text-gray-600 dark:text-gray-400" aria-label="Footer navigation">
+                  <a href="/privacy" className="hover:text-purple-500 dark:hover:text-purple-300 transition-colors">Privacy</a>
+                  <a href="/terms" className="hover:text-purple-500 dark:hover:text-purple-300 transition-colors">Terms</a>
+                  <a href="/support" className="hover:text-purple-500 dark:hover:text-purple-300 transition-colors">Support</a>
                 </nav>
               </div>
-              <div className="mt-8 pt-8 border-t border-gray-800 text-center text-gray-400">
+              <div className="mt-8 pt-8 border-t border-gray-200 dark:border-gray-800 text-center text-gray-600 dark:text-gray-400">
                 <p>&copy; {new Date().getFullYear()} PromptCraft. All rights reserved.</p>
               </div>
             </div>

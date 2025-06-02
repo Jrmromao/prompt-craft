@@ -1,9 +1,22 @@
+'use client'
 import { SignUp } from "@clerk/nextjs";
-import { Sparkles } from "lucide-react";
+import { Sparkles, Sun, Moon } from "lucide-react";
+import { useTheme } from "@/components/ThemeProvider";
 
 export default function SignUpPage() {
+    const { theme, toggleTheme } = useTheme();
     return (
-        <div className="min-h-screen flex items-center justify-center bg-black text-white relative">
+        <div className={`min-h-screen flex items-center justify-center relative transition-colors duration-300 bg-white text-gray-900 dark:bg-black dark:text-white`}>
+            {/* Light/Dark Mode Toggle */}
+            <div className="fixed top-4 right-4 z-50">
+                <button
+                    onClick={toggleTheme}
+                    className="rounded-full p-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-md hover:scale-110 transition-transform"
+                    aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+                >
+                    {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+                </button>
+            </div>
             {/* Animated Background */}
             <div className="fixed inset-0 overflow-hidden pointer-events-none">
                 <div className="absolute w-96 h-96 bg-purple-500/10 rounded-full blur-3xl animate-pulse" />
@@ -18,9 +31,9 @@ export default function SignUpPage() {
                         <Sparkles className="w-6 h-6 text-white" />
                     </div>
                     {/* Pill Badge */}
-                    <div className="inline-flex items-center gap-2 bg-[#18122B] border border-purple-800 rounded-full px-4 py-1 mb-6 shadow-sm">
+                    <div className="inline-flex items-center gap-2 bg-purple-100/40 dark:bg-[#18122B] border border-purple-200 dark:border-purple-800 rounded-full px-4 py-1 mb-6 shadow-sm">
                         <Sparkles className="w-4 h-4 text-purple-400" />
-                        <span className="text-sm text-purple-200 font-medium">AI-Powered Prompt Generation</span>
+                        <span className="text-sm text-purple-700 dark:text-purple-200 font-medium">AI-Powered Prompt Generation</span>
                     </div>
                 </div>
 
@@ -29,12 +42,12 @@ export default function SignUpPage() {
                     Create your account<br />
                     <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-purple-400 bg-clip-text text-transparent">PromptCraft</span>
                 </h1>
-                <p className="text-gray-300 text-center mb-8 text-base font-normal">
+                <p className="text-gray-600 dark:text-gray-300 text-center mb-8 text-base font-normal">
                     Sign up and start creating amazing prompts
                 </p>
 
                 {/* Glassmorphism Card */}
-                <div className="w-full bg-[#18122B]/80 border border-[#2A1A4D] rounded-2xl shadow-xl backdrop-blur-md p-6 mb-6">
+                <div className="w-full bg-gray-100/80 dark:bg-[#18122B]/80 border border-purple-200 dark:border-[#2A1A4D] rounded-2xl shadow-xl backdrop-blur-md p-6 mb-6">
                     <SignUp
                         appearance={{
                             elements: {
@@ -44,20 +57,20 @@ export default function SignUpPage() {
                                 headerTitle: "hidden",
                                 headerSubtitle: "hidden",
                                 header: "hidden",
-                                formFieldLabel: "text-gray-300",
-                                formFieldInput: "border-gray-700 bg-[#18122B] text-white focus:border-purple-500 focus:ring-purple-500/20",
-                                footerActionLink: "text-purple-400 hover:text-purple-300 font-semibold",
-                                identityPreview: "bg-gray-800/50 border-gray-700",
-                                identityPreviewText: "text-gray-300",
-                                identityPreviewEditButton: "text-purple-400 hover:text-purple-300",
-                                formFieldAction: "text-purple-400 hover:text-purple-300",
-                                formFieldErrorText: "text-red-400",
-                                formFieldSuccessText: "text-green-400",
+                                formFieldLabel: "text-gray-700 dark:text-gray-300",
+                                formFieldInput: "border-gray-300 dark:border-gray-700 bg-white dark:bg-[#18122B] text-gray-900 dark:text-white focus:border-purple-500 focus:ring-purple-500/20",
+                                footerActionLink: "text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 font-semibold",
+                                identityPreview: "bg-gray-100 dark:bg-gray-800/50 border-gray-300 dark:border-gray-700",
+                                identityPreviewText: "text-gray-700 dark:text-gray-300",
+                                identityPreviewEditButton: "text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300",
+                                formFieldAction: "text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300",
+                                formFieldErrorText: "text-red-500 dark:text-red-400",
+                                formFieldSuccessText: "text-green-500 dark:text-green-400",
                                 footer: "hidden",
-                                alertText: "text-gray-300/80",
-                                socialButtonsBlockButton: "border-gray-700 hover:bg-gray-800/50",
-                                socialButtonsBlockButtonText: "text-gray-300",
-                                otpCodeFieldInput: "border-gray-700 bg-[#18122B] text-white",
+                                alertText: "text-gray-700/80 dark:text-gray-300/80",
+                                socialButtonsBlockButton: "border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800/50",
+                                socialButtonsBlockButtonText: "text-gray-700 dark:text-gray-300",
+                                otpCodeFieldInput: "border-gray-300 dark:border-gray-700 bg-white dark:bg-[#18122B] text-gray-900 dark:text-white",
                             },
                             variables: {
                                 borderRadius: '16px',
@@ -67,14 +80,13 @@ export default function SignUpPage() {
                         routing="path"
                         path="/sign-up"
                         signInUrl="/sign-in"
-                        redirectUrl="/dashboard"
                     />
                 </div>
 
                 <div className="mt-2 text-center">
-                    <p className="text-gray-400 text-sm">
+                    <p className="text-gray-600 dark:text-gray-400 text-sm">
                         Already have an account?{' '}
-                        <a href="/sign-in" className="text-purple-400 hover:text-pink-400 font-semibold">
+                        <a href="/sign-in" className="text-purple-600 dark:text-purple-400 hover:text-pink-600 dark:hover:text-pink-400 font-semibold">
                             Sign in
                         </a>
                     </p>

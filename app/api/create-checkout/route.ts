@@ -28,7 +28,7 @@ export async function POST(req: Request) {
 
         // Get user from your database
         const user = await prisma.user.findUnique({
-            where: { clerkUserId: userId },
+            where: { clerkId: userId },
         });
 
         if (!user) {
@@ -44,8 +44,8 @@ export async function POST(req: Request) {
                 },
             ],
             mode: 'subscription',
-            success_url: `${process.env.NEXT_PUBLIC_APP_URL}/settings/billing?success=true`,
-            cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/settings/billing?canceled=true`,
+            // success_url: `${process.env.NEXT_PUBLIC_APP_URL}/settings/billing?success=true`,
+            // cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/settings/billing?canceled=true`,
             metadata: {
                 clerkUserId: userId,       // Clerk user ID
                 userId: user.id,           // Your database user ID
