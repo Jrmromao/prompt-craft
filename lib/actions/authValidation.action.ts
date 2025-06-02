@@ -28,38 +28,16 @@ export async function validateAuthentication(): Promise<AuthResult> {
             }
         }
 
-        // Get user's practice information
-        // const userPractice = await prisma.practiceMember.findFirst({
-        //     where: {
-        //         userId: user.id,
-        //         status: 'ACTIVE'
-        //     },
-        //     select: {
-        //         id: true,
-        //         practiceId: true,
-        //         role: true,
-        //         practice: {
-        //             select: {
-        //                 id: true,
-        //                 name: true
-        //             }
-        //         }
-        //     }
-        // })
-        //
-        // if (!userPractice) {
-        //     return {
-        //         success: false,
-        //         error: "No active practice found for user",
-        //         user,
-        //         practice: null
-        //     }
-        // }
-
         // Return success with user and practice data
         return {
             success: true,
-            user,
+            user: {
+                id: user.id,
+                email: user.emailAddresses[0]?.emailAddress || "",
+                name: user.firstName && user.lastName 
+                    ? `${user.firstName} ${user.lastName}`
+                    : user.username || "User",
+            },
             practice: {},
             error: null
         }

@@ -1,4 +1,4 @@
-import type { PromptPayload } from '@/types/ai';
+import { PromptPayload } from '@/types/ai';
 
 // Example: PromptPayload type
 // interface PromptPayload {
@@ -15,40 +15,60 @@ import type { PromptPayload } from '@/types/ai';
 //   includeStructure?: boolean;
 // }
 
-export async function sendPromptToLLM(payload: PromptPayload): Promise<any> {
-  // Build the JSON payload for the LLM
-  const llmPayload = {
-    prompt: payload.content,
-    meta: {
-      name: payload.name,
-      description: payload.description,
-      tags: payload.tags,
-      tone: payload.tone,
-      format: payload.format,
-      wordCount: payload.wordCount,
-      targetAudience: payload.targetAudience,
-      includeExamples: payload.includeExamples,
-      includeKeywords: payload.includeKeywords,
-      includeStructure: payload.includeStructure,
-    },
-  };
+export async function sendPromptToLLM(payload: PromptPayload) {
+  try {
+    const response = await fetch('/api/ai/generate', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
 
-  // Replace with your LLM endpoint
-  const endpoint = process.env.LLM_API_URL || 'https://api.openai.com/v1/chat/completions';
+    if (!response.ok) {
+      throw new Error('Failed to generate content');
+    }
 
-  // Example: using OpenAI API (adjust as needed)
-  const response = await fetch(endpoint, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${process.env.LLM_API_KEY}`,
-    },
-    body: JSON.stringify(llmPayload),
-  });
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error generating content:', error);
+    throw error;
+  }
+}
 
-  if (!response.ok) {
-    throw new Error('Failed to get response from LLM');
+export async function generateTextPrompt(payload: PromptPayload) {
+  if (payload.promptType !== 'text') {
+    throw new Error('Invalid prompt type for text generation');
   }
 
-  return response.json();
+  // Add text-specific processing here
+  return sendPromptToLLM(payload);
+}
+
+export async function generateImagePrompt(payload: PromptPayload) {
+  if (payload.promptType !== 'image') {
+    throw new Error('Invalid prompt type for image generation');
+  }
+
+  // Add image-specific processing here
+  return sendPromptToLLM(payload);
+}
+
+export async function generateVideoPrompt(payload: PromptPayload) {
+  if (payload.promptType !== 'video') {
+    throw new Error('Invalid prompt type for video generation');
+  }
+
+  // Add video-specific processing here
+  return sendPromptToLLM(payload);
+}
+
+export async function generateMusicPrompt(payload: PromptPayload) {
+  if (payload.promptType !== 'music') {
+    throw new Error('Invalid prompt type for music generation');
+  }
+
+  // Add music-specific processing here
+  return sendPromptToLLM(payload);
 } 

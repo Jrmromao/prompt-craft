@@ -1,0 +1,34 @@
+import { NextResponse } from 'next/server';
+import { auth } from '@clerk/nextjs/server';
+import { CreditService } from '@/lib/services/creditService';
+import { SubscriptionService } from '@/lib/services/subscriptionService';
+
+export async function GET() {
+  try {
+    const { userId } = await auth();
+    if (!userId) {
+      return new NextResponse('Unauthorized', { status: 401 });
+    }
+
+    const creditService = CreditService.getInstance();
+    const subscriptionService = SubscriptionService.getInstance();
+
+    // Get credit usage
+    const creditUsage = await creditService.getCreditUsage(userId);
+
+    // Get subscription status
+    const subscription = await subscriptionService.getSubscriptionDetails(userId);
+    const isPro = subscription.tier === 'PRO' && subscription.status === 'ACTIVE';
+
+    return NextResponse.json({
+      ...creditUsage,
+      isPro,
+    });
+  } catch (error) {
+    console.error('Error fetching credit status:', error);
+    return NextResponse.json(
+      { error: 'Failed to fetch credit status' },
+      { status: 500 }
+    );
+  }
+} 

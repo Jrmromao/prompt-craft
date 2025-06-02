@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { ChevronRight, Sparkles, Zap, Users, Target, ArrowRight, Check, Star, Play, Menu, X, Sun, Moon } from 'lucide-react';
 import Head from 'next/head';
 import Script from 'next/script';
-import { useTheme } from '@/components/ThemeProvider';
+import { useTheme } from 'next-themes';
 
 // SEO metadata
 const metadata = {
@@ -37,7 +37,7 @@ const PromptCraftLanding = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
-  const { theme, toggleTheme } = useTheme();
+  const { theme, setTheme } = useTheme();
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -208,7 +208,7 @@ const PromptCraftLanding = () => {
         {/* Light/Dark Mode Toggle */}
         <div className="fixed top-4 right-4 z-50">
           <button
-            onClick={toggleTheme}
+            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
             className="rounded-full p-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-md hover:scale-110 transition-transform"
             aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
           >

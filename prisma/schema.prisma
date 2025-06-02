@@ -8,48 +8,87 @@ datasource db {
 }
 
 model User {
-  id             String   @id @default(cuid())
-  clerkId        String   @unique
-  email          String   @unique
-  name           String?
-  role           Role     @default(FREE)
-  planId         String?  // nullable for free users
-  plan           Plan?    @relation(fields: [planId], references: [id])
-  credits        Int      @default(0)  // Available credits
-  lastPromptAt   DateTime?
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  id                String   @id @default(cuid())
+  clerkId          String   @unique
+  email            String   @unique
+  name             String?
+  role             Role     @default(FREE)
+  credits          Int      @default(10)  // Free tier starts with 10 credits
+  creditCap        Int      @default(10)  // Maximum credits allowed for tier
+  lastCreditReset  DateTime @default(now())
+  stripeCustomerId String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 
-  prompts        Prompt[]
-  creditHistory  CreditHistory[]
-  promptTemplates PromptTemplate[]
+  prompts          Prompt[]
+  creditHistory    CreditHistory[]
+  subscription     Subscription?
+  promptGenerations PromptGeneration[]
+  promptTemplates  PromptTemplate[]
 }
 
 model Plan {
-  id            String   @id @default(cuid())
-  name          String   @unique
-  monthlyCredits Int     // Credits per month
-  stripePriceId String   @unique
-  price         Int      // in cents, e.g., 900 = $9
-  features      String[] // Array of feature strings
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id              String   @id @default(cuid())
+  name            String   @unique
+  description     String
+  price           Float
+  credits         Int
+  period          Period
+  isActive        Boolean  @default(true)
+  stripeProductId String    @unique
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
-  User User[]
+  subscriptions   Subscription[]
+}
+
+model Subscription {
+  id                    String    @id @default(cuid())
+  userId                String    @unique
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  planId                String
+  plan                  Plan      @relation(fields: [planId], references: [id])
+  stripeCustomerId      String    @unique
+  stripeSubscriptionId  String    @unique
+  status                SubscriptionStatus
+  currentPeriodStart    DateTime
+  currentPeriodEnd      DateTime
+  cancelAtPeriodEnd     Boolean   @default(false)
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@index([userId])
+  @@index([planId])
+  @@index([stripeCustomerId])
+  @@index([stripeSubscriptionId])
 }
 
 model Prompt {
   id          String   @id @default(cuid())
-  user        User     @relation(fields: [userId], references: [id])
-  userId      String
-  input       String
-  output      String
-  model       String   // Which AI model was used (e.g., "gpt-4", "gpt-3.5-turbo")
-  creditsUsed Int      // Credits used for this prompt
+  name        String
+  description String?
+  content     String
+  isPublic    Boolean  @default(false)
+  promptType  String   // 'text' | 'image' | 'video' | 'music'
+  metadata    Json?    // Store type-specific metadata
   createdAt   DateTime @default(now())
-  
+  updatedAt   DateTime @updatedAt
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  tags        Tag[]    @relation("PromptToTag")
+
   @@index([userId])
-  @@index([createdAt])
+  @@index([promptType])
+}
+
+model Tag {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  prompts   Prompt[] @relation("PromptToTag")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([name])
 }
 
 model CreditHistory {
@@ -81,16 +120,52 @@ model PromptTemplate {
   @@index([createdAt])
 }
 
+model PromptGeneration {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  promptType  String
+  input       String
+  output      String
+  creditsUsed Int
+  createdAt   DateTime @default(now())
+
+  @@index([userId])
+  @@index([promptType])
+  @@index([createdAt])
+}
+
 enum Role {
   FREE
+  LITE
   PRO
-  ADMIN
+}
+
+enum PlanType {
+  FREE
+  LITE
+  PRO
+}
+
+enum Period {
+  WEEKLY
+  MONTHLY
 }
 
 enum CreditType {
-  PURCHASE
-  MONTHLY_RENEWAL
+  INITIAL
+  SUBSCRIPTION
   USAGE
-  BONUS
+  TOP_UP
   REFUND
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  PAST_DUE
+  CANCELED
+  UNPAID
+  TRIALING
+  INCOMPLETE
+  INCOMPLETE_EXPIRED
 }

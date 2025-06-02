@@ -1,16 +1,16 @@
 'use client'
 import { SignIn } from "@clerk/nextjs";
 import { Sparkles, Sun, Moon } from "lucide-react";
-import { useTheme } from "@/components/ThemeProvider";
+import { useTheme } from "next-themes";
 
 export default function SignInPage() {
-    const { theme, toggleTheme } = useTheme();
+    const { theme, setTheme } = useTheme();
     return (
         <div className={`min-h-screen flex items-center justify-center relative transition-colors duration-300 bg-white text-gray-900 dark:bg-black dark:text-white`}>
             {/* Light/Dark Mode Toggle */}
             <div className="fixed top-4 right-4 z-50">
                 <button
-                    onClick={toggleTheme}
+                    onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
                     className="rounded-full p-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-md hover:scale-110 transition-transform"
                     aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
                 >

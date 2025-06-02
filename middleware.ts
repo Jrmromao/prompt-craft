@@ -1,10 +1,9 @@
 import { NextResponse } from 'next/server';
-import { clerkMiddleware, createRouteMatcher, clerkClient } from '@clerk/nextjs/server';
 import type { NextRequest } from 'next/server';
-import {Role} from "@/utils/constants";
+import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
+import { Role } from "@/utils/constants";
 
 // Define custom session claims type
-
 interface UserMetadata {
     role: string;
     onboarded: boolean;
@@ -20,11 +19,6 @@ interface UserMetadata {
 // Public routes that don't require authentication
 const PUBLIC_ROUTES = createRouteMatcher([
     '/',
-    // '/prompts',
-    // '/prompts/:promptId',
-    // '/templates',
-    // '/templates/:templateId',
-    // '/dashboard',
     '/api/webhooks/(.*)',
     '/sign-in(.*)',
     '/sign-up(.*)',
@@ -33,6 +27,13 @@ const PUBLIC_ROUTES = createRouteMatcher([
     '/contact',
     '/onboarding(.*)',
     '/api/onboarding(.*)',
+]);
+
+// Routes that require Pro subscription
+const PRO_ONLY_ROUTES = createRouteMatcher([
+    '/api/ai/generate/advanced',
+    '/api/ai/generate/gpt4',
+    '/api/ai/generate/claude',
 ]);
 
 export default clerkMiddleware(async (auth, req: NextRequest) => {
@@ -45,11 +46,25 @@ export default clerkMiddleware(async (auth, req: NextRequest) => {
 
     // Authenticate the request
     const { userId, sessionClaims, redirectToSignIn } = await auth();
-    const clerkUser = await clerkClient()
 
     // Redirect to sign-in if not authenticated
     if (!userId) {
         return redirectToSignIn({ returnBackUrl: req.url });
+    }
+
+    // Check if user is trying to access Pro-only routes
+    if (PRO_ONLY_ROUTES(req)) {
+        const metadata = sessionClaims?.metadata as unknown as UserMetadata;
+        const isPro = metadata?.role === Role.PRO || 
+                     (metadata?.subscription?.status === 'active' && 
+                      metadata?.subscription?.tier === 'PRO');
+
+        if (!isPro) {
+            return NextResponse.json({
+                error: 'This feature requires a Pro subscription',
+                upgradeRequired: true,
+            }, { status: 403 });
+        }
     }
 
     // API routes (except webhooks) should be accessible to authenticated users
@@ -59,42 +74,23 @@ export default clerkMiddleware(async (auth, req: NextRequest) => {
 
     // Check subscription status for protected routes
     try {
-
-        const user = await clerkUser.users.getUser(userId);
-
-        if (!user) {
-            throw new Error("Failed to retrieve user data");
-        }
-
-        const metadata = user?.privateMetadata as unknown as UserMetadata;
+        const metadata = sessionClaims?.metadata as unknown as UserMetadata;
 
         // Check if user is an admin or has an active subscription
-        const isAdmin = metadata?.role ===  Role.ADMIN;
+        const isAdmin = metadata?.role === Role.ADMIN;
         const hasActiveSubscription =
-            metadata?.subscription?.status ===  'active' &&
+            metadata?.subscription?.status === 'active' &&
             ['PRO', 'pro'].includes(metadata?.subscription?.tier || '');
-
-        // Check if user needs to complete onboarding
-        // if (!metadata?.onboarded && !path.startsWith('/onboarding')) {
-        //     console.log(`Redirecting user ${userId} to onboarding: Not completed`);
-        //     return NextResponse.redirect(new URL('/onboarding', req.url));
-        // }
-
-        // If user is neither admin nor has active subscription, redirect to billing
-        // if (!isAdmin && !hasActiveSubscription) {
-        //     console.log(`Redirecting user ${userId} to billing: No active subscription`);
-        //     return NextResponse.redirect(new URL('/settings/billing?required=true', req.url));
-        // }
 
         // All checks passed, continue to protected route
         return NextResponse.next();
     } catch (error) {
         console.error('Error in subscription middleware:', error);
-        // Log the error but don't expose details to the client
         return NextResponse.redirect(new URL('/error?code=middleware_error', req.url));
     }
 });
 
+// Export config for Clerk middleware
 export const config = {
     matcher: ['/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)'],
 };

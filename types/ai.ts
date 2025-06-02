@@ -1,8 +1,9 @@
 export interface PromptPayload {
   name: string;
-  description?: string;
+  description: string;
   content: string;
-  tags?: string[];
+  isPublic: boolean;
+  tags: string[];
   tone?: string;
   format?: string;
   wordCount?: string;
@@ -10,4 +11,13 @@ export interface PromptPayload {
   includeExamples?: boolean;
   includeKeywords?: boolean;
   includeStructure?: boolean;
+  promptType: 'text' | 'image' | 'video' | 'music';
+  style?: string;
+  resolution?: string;
+  palette?: string;
+  duration?: string;
+  genre?: string;
+  mood?: string;
+  length?: string;
+  instruments?: string;
 } 
