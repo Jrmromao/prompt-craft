@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
@@ -22,11 +22,7 @@ interface Template {
   createdAt: string;
 }
 
-export default function TemplateDetailPage({
-  params
-}: {
-  params: { templateId: string }
-}) {
+export function TemplateDetailClient({ templateId }: { templateId: string }) {
   const router = useRouter();
   const { theme } = useTheme();
   const { toast } = useToast();
@@ -42,11 +38,12 @@ export default function TemplateDetailPage({
 
   useEffect(() => {
     fetchTemplate();
-  }, [params.templateId]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [templateId]);
 
   const fetchTemplate = async () => {
     try {
-      const response = await fetch(`/api/templates/${params.templateId}`);
+      const response = await fetch(`/api/templates/${templateId}`);
       if (!response.ok) {
         throw new Error('Failed to fetch template');
       }
@@ -75,7 +72,7 @@ export default function TemplateDetailPage({
     setIsLoading(true);
 
     try {
-      const response = await fetch(`/api/templates/${params.templateId}`, {
+      const response = await fetch(`/api/templates/${templateId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -115,7 +112,7 @@ export default function TemplateDetailPage({
     setIsLoading(true);
 
     try {
-      const response = await fetch(`/api/templates/${params.templateId}`, {
+      const response = await fetch(`/api/templates/${templateId}`, {
         method: 'DELETE',
       });
 

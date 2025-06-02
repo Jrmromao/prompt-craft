@@ -12,6 +12,11 @@ interface MutationContext {
     previousData: unknown;
 }
 
+type ActionResponse<T> = {
+    data: T;
+    error: string | null;
+}
+
 interface UseGenericQueryOptions<T>
     extends Omit<UseQueryOptions<T[], Error>, "queryKey" | "queryFn"> {
     onClose?: () => void;

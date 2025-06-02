@@ -1,4 +1,4 @@
-import { Prisma, UserRole } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 import { prisma } from '@/app/db';
 
 // Helper function to validate user ID format
@@ -45,9 +45,9 @@ export async function createOrUpdateUser(
     try {
         await prisma.user.create({
             data: {
-                clerkUserId,
+                clerkId: clerkUserId,
                 email,
-                fullName
+                name: fullName
             },
         });
 

@@ -474,25 +474,25 @@ export async function POST(req: Request) {
                 const periodStart = new Date(subscription.current_period_start * 1000);
                 const periodEnd = new Date(subscription.current_period_end * 1000);
 
-                await prisma.subscription.upsert({
-                    where: { userId },
-                    update: {
-                        tier: 'PRO',
-                        status: 'ACTIVE',
-                        paymentId: subscriptionId,
-                        currentPeriodStart: periodStart,
-                        currentPeriodEnd: periodEnd,
-                        updatedAt: new Date()
-                    },
-                    create: {
-                        userId,
-                        tier: 'PRO',
-                        status: 'ACTIVE',
-                        paymentId: subscriptionId,
-                        currentPeriodStart: periodStart,
-                        currentPeriodEnd: periodEnd
-                    },
-                });
+                // await prisma.subscription.upsert({
+                //     where: { userId },
+                //     update: {
+                //         tier: 'PRO',
+                //         status: 'ACTIVE',
+                //         paymentId: subscriptionId,
+                //         currentPeriodStart: periodStart,
+                //         currentPeriodEnd: periodEnd,
+                //         updatedAt: new Date()
+                //     },
+                //     create: {
+                //         userId,
+                //         tier: 'PRO',
+                //         status: 'ACTIVE',
+                //         paymentId: subscriptionId,
+                //         currentPeriodStart: periodStart,
+                //         currentPeriodEnd: periodEnd
+                //     },
+                // });
 
                 console.log(`Subscription created/updated for user ${userId}`);
                 break;
