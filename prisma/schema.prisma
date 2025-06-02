@@ -1,0 +1,79 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             String   @id @default(cuid())
+  clerkId        String   @unique
+  email          String   @unique
+  name           String?
+  role           Role     @default(FREE)
+  planId         String?  // nullable for free users
+  plan           Plan?    @relation(fields: [planId], references: [id])
+  credits        Int      @default(0)  // Available credits
+  lastPromptAt   DateTime?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  prompts        Prompt[]
+  creditHistory  CreditHistory[]
+}
+
+model Plan {
+  id            String   @id @default(cuid())
+  name          String   @unique
+  monthlyCredits Int     // Credits per month
+  stripePriceId String   @unique
+  price         Int      // in cents, e.g., 900 = $9
+  features      String[] // Array of feature strings
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  User User[]
+}
+
+model Prompt {
+  id          String   @id @default(cuid())
+  user        User     @relation(fields: [userId], references: [id])
+  userId      String
+  input       String
+  output      String
+  model       String   // Which AI model was used (e.g., "gpt-4", "gpt-3.5-turbo")
+  creditsUsed Int      // Credits used for this prompt
+  createdAt   DateTime @default(now())
+  
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model CreditHistory {
+  id          String   @id @default(cuid())
+  user        User     @relation(fields: [userId], references: [id])
+  userId      String
+  amount      Int      // Positive for additions, negative for usage
+  type        CreditType
+  description String?
+  createdAt   DateTime @default(now())
+
+  @@index([userId])
+  @@index([createdAt])
+}
+
+enum Role {
+  FREE
+  PRO
+  ADMIN
+}
+
+enum CreditType {
+  PURCHASE
+  MONTHLY_RENEWAL
+  USAGE
+  BONUS
+  REFUND
+}
