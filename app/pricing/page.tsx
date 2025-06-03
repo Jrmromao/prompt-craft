@@ -7,6 +7,7 @@ import { Check, Sparkles, ArrowLeft, Loader2, CheckCircle2 } from 'lucide-react'
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { useUser } from '@clerk/nextjs';
+import { format } from 'date-fns';
 
 interface UserPlan {
   name: string;
@@ -16,7 +17,7 @@ interface UserPlan {
 
 const plans = [
   {
-    name: 'Free',
+    name: 'FREE',
     description: 'Perfect for trying out PromptCraft',
     price: 0,
     credits: 10,
@@ -30,7 +31,7 @@ const plans = [
     popular: false,
   },
   {
-    name: 'Lite',
+    name: 'LITE',
     description: 'For regular users who need more power',
     price: 3,
     credits: 250,
@@ -45,7 +46,7 @@ const plans = [
     popular: true,
   },
   {
-    name: 'Pro',
+    name: 'PRO',
     description: 'For power users and professionals',
     price: 12,
     credits: 1500,
@@ -97,7 +98,7 @@ export default function PricingPage() {
 
     setIsLoading(planName);
     try {
-      const response = await fetch('/api/subscription/create', {
+      const response = await fetch('/api/stripe/create-checkout', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -105,9 +106,10 @@ export default function PricingPage() {
         body: JSON.stringify({ plan: planName }),
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to create subscription');
-      }
+      console.log(response);
+      // if (!response.ok) {
+      //   throw new Error('Failed to create subscription');
+      // }
 
       const data = await response.json();
       
@@ -153,7 +155,7 @@ export default function PricingPage() {
                 Current Plan: {currentPlan.name}
                 {currentPlan.periodEnd && (
                   <span className="text-sm ml-2">
-                    (Renews {new Date(currentPlan.periodEnd).toLocaleDateString()})
+                    (Renews {format(new Date(currentPlan.periodEnd), 'yyyy-MM-dd')})
                   </span>
                 )}
               </span>
@@ -190,7 +192,7 @@ export default function PricingPage() {
                       ${plan.price}
                     </span>
                     <span className="text-gray-600 dark:text-gray-300">
-                      {plan.price > 0 ? (plan.name === 'Lite' ? '/week' : '/month') : ''}
+                      {plan.price > 0 ? (plan.name === 'LITE' ? '/week' : '/month') : ''}
                     </span>
                   </div>
                   <ul className="space-y-3">

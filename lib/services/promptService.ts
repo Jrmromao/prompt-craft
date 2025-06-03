@@ -19,7 +19,7 @@ interface Prompt {
 export class PromptService {
   private static instance: PromptService;
   private readonly PROMPT_LIMITS: Record<Role, number> = {
-    [Role.FREE]: 0,
+    [Role.FREE]: 10,
     [Role.LITE]: 50,
     [Role.PRO]: Infinity,
     [Role.ADMIN]: Infinity,
@@ -46,21 +46,30 @@ export class PromptService {
       tags?: string[];
     }
   ): Promise<Prompt> {
+
+    console.log('\n\n\n\n/nuserId', userId);
+
     // Check user's prompt limit
     const user = await prisma.user.findUnique({
-      where: { id: userId },
+      where: { clerkId: userId },
       select: { role: true },
     });
+
 
     if (!user) {
       throw new Error('User not found');
     }
+
+    console.log('\n\n\nuserId', user);
 
     const promptLimit = this.PROMPT_LIMITS[user.role as Role];
     if (promptLimit !== Infinity) {
       const promptCount = await prisma.prompt.count({
         where: { userId },
       });
+
+      console.log('\n\n\npromptCount', promptCount);
+      console.log('\n\n\npromptLimit', promptLimit);
 
       if (promptCount >= promptLimit) {
         throw new Error(`You have reached your prompt limit of ${promptLimit}. Please upgrade to save more prompts.`);

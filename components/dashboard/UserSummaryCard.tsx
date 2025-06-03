@@ -3,6 +3,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CreditCard, Zap, Calendar } from "lucide-react";
 import Link from "next/link";
+import { format } from 'date-fns';
 
 interface UserSummaryCardProps {
   user: UserWithPlan;
@@ -35,7 +36,7 @@ export function UserSummaryCard({ user }: UserSummaryCardProps) {
           <div className="flex items-center gap-2">
             <Calendar className="w-5 h-5 text-muted-foreground" />
             <span className="text-muted-foreground">
-              Next reset: {nextReset.toLocaleDateString()}
+              Next reset: {format(nextReset, 'yyyy-MM-dd')}
             </span>
           </div>
         </div>

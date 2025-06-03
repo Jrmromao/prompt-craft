@@ -9,6 +9,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
+import { format } from 'date-fns';
 
 interface UsageData {
   date: string;
@@ -57,11 +58,11 @@ export function UsageChart({ userId, usageData }: UsageChartProps) {
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis
               dataKey="date"
-              tickFormatter={(date) => new Date(date).toLocaleDateString()}
+              tickFormatter={(date) => format(new Date(date), 'yyyy-MM-dd')}
             />
             <YAxis />
             <Tooltip
-              labelFormatter={(date) => new Date(date).toLocaleDateString()}
+              labelFormatter={(date) => format(new Date(date), 'yyyy-MM-dd')}
               formatter={(value: number) => [`${value} credits`, "Credits Used"]}
             />
             <Bar dataKey="credits" fill="#8884d8" />

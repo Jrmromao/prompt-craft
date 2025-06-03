@@ -156,21 +156,20 @@ export class DashboardService {
     };
   }
 
-  public async getRecentPrompts(clerkId: string): Promise<SerializablePrompt[]> {
+  public async getRecentPrompts(clerkId: string): Promise<any[]> {
     const user = await this.getUser(clerkId);
-    
-    const prompts = await prisma.prompt.findMany({
+    const promptGenerations = await prisma.promptGeneration.findMany({
       where: { userId: user.id },
       orderBy: { createdAt: "desc" },
-      take: 5,
+      take: 10,
     });
-
-    return prompts.map(prompt => ({
-      ...prompt,
-      createdAt: prompt.createdAt.toISOString(),
-      updatedAt: prompt.updatedAt.toISOString(),
-      description: prompt.description || "",
-      metadata: prompt.metadata || {}
+    return promptGenerations.map((gen) => ({
+      id: gen.id,
+      input: gen.input,
+      output: gen.output,
+      model: gen.promptType, // treat promptType as model for now
+      creditsUsed: gen.creditsUsed,
+      createdAt: gen.createdAt.toISOString(),
     }));
   }
 

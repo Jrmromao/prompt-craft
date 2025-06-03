@@ -15,22 +15,34 @@ import { PromptPayload } from '@/types/ai';
 //   includeStructure?: boolean;
 // }
 
-export async function sendPromptToLLM(payload: PromptPayload) {
+export async function sendPromptToLLM(payload: PromptPayload, model?: string) {
   try {
     const response = await fetch('/api/ai/generate', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(payload),
+      body: JSON.stringify({
+        prompt: payload.content,
+        model: model || 'deepseek',
+        maxTokens: 1000,
+        temperature: 0.7,
+      }),
     });
 
     if (!response.ok) {
-      throw new Error('Failed to generate content');
+      const errorData = await response.json();
+      if (errorData.error === 'Insufficient credits') {
+        throw new Error('Insufficient credits. Please purchase more credits to continue.');
+      }
+      if (errorData.upgradeRequired) {
+        throw new Error('This feature requires a Pro subscription. Please upgrade to continue.');
+      }
+      throw new Error(errorData.error || 'Failed to generate content');
     }
 
     const data = await response.json();
-    return data;
+    return data.text;
   } catch (error) {
     console.error('Error generating content:', error);
     throw error;

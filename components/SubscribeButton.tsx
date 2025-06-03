@@ -19,7 +19,7 @@ export function SubscribeButton({ className, priceId }: SubscribeButtonProps) {
             setError(null);
 
             // Call the API route to create a checkout session
-            const response = await fetch('/api/stripe/create-checkout', {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/stripe/create-checkout`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

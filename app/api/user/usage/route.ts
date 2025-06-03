@@ -30,7 +30,7 @@ export async function GET(request: Request) {
   const sevenDaysAgo = new Date();
   sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
-  const prompts = await prisma.prompt.findMany({
+  const generations = await prisma.promptGeneration.findMany({
     where: {
       userId: targetUserId,
       createdAt: {
@@ -46,10 +46,10 @@ export async function GET(request: Request) {
     },
   });
 
-  // Group prompts by date and sum credits
-  const usageByDate = prompts.reduce((acc: Record<string, number>, prompt: PromptUsage) => {
-    const date = prompt.createdAt.toISOString().split("T")[0];
-    acc[date] = (acc[date] || 0) + prompt.creditsUsed;
+  // Group generations by date and sum credits
+  const usageByDate = generations.reduce((acc: Record<string, number>, gen: PromptUsage) => {
+    const date = gen.createdAt.toISOString().split("T")[0];
+    acc[date] = (acc[date] || 0) + gen.creditsUsed;
     return acc;
   }, {});
 

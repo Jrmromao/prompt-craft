@@ -34,7 +34,7 @@ export class AIService {
       where: { id: userId },
       select: { role: true },
     });
-    return user?.role || Role.FREE;
+    return (user?.role as Role) || Role.FREE;
   }
 
   private async validateModelAccess(userId: string, model: AIModel): Promise<boolean> {

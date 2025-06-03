@@ -43,8 +43,8 @@ export function PromptsClient({ mode }: PromptsClientProps) {
           prompts={[]}
           isLoading={false}
           onSave={savePrompt}
-          onEdit={() => {}}
-          onDelete={() => {}}
+          onEdit={updatePrompt}
+          onDelete={deletePrompt}
           mode="create"
         />
       </div>

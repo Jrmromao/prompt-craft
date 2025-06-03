@@ -18,7 +18,7 @@ export async function GET() {
 
     // Get subscription status
     const subscription = await subscriptionService.getSubscriptionDetails(userId);
-    const isPro = subscription.tier === 'PRO' && subscription.status === 'ACTIVE';
+    const isPro = subscription.planName === 'PRO' && subscription.status === 'ACTIVE';
 
     return NextResponse.json({
       ...creditUsage,

@@ -23,12 +23,14 @@ export class CreditService {
     [Role.FREE]: 10,
     [Role.LITE]: 1500,
     [Role.PRO]: 5000,
+    [Role.ADMIN]: 5000,
   };
 
   private readonly CREDIT_ALLOCATIONS = {
     [Role.FREE]: 10,
     [Role.LITE]: 250,
     [Role.PRO]: 1500,
+    [Role.ADMIN]: 1500,
   };
 
   private constructor() {}
@@ -48,8 +50,8 @@ export class CreditService {
         role: true,
         subscription: {
           select: {
-            periodEnd: true,
-            period: true,
+            cancelAtPeriodEnd: true,
+            currentPeriodStart: true,
           },
         },
       },
@@ -69,7 +71,7 @@ export class CreditService {
       requiredCredits,
       missingCredits,
       creditCap,
-      periodEnd: user.subscription?.periodEnd || undefined,
+      periodEnd: user.subscription?.currentPeriodStart || undefined,
     };
   }
 
@@ -80,8 +82,9 @@ export class CreditService {
         role: true,
         subscription: {
           select: {
-            period: true,
-            periodEnd: true,
+            currentPeriodEnd: true,
+            currentPeriodStart: true,
+            cancelAtPeriodEnd: true,
           },
         },
       },
@@ -92,44 +95,41 @@ export class CreditService {
     }
 
     const role = user.role as Role;
-    const period = user.subscription?.period || Period.WEEKLY;
-    const currentPeriodEnd = user.subscription?.periodEnd || new Date();
+    const currentPeriodEnd = user.subscription?.currentPeriodEnd || new Date();
 
-    // Calculate next period end
-    const nextPeriodEnd = period === Period.WEEKLY
-      ? addDays(currentPeriodEnd, 7)
-      : addMonths(currentPeriodEnd, 1);
+    // Calculate next period end (example: weekly)
+    const nextPeriodEnd = addDays(currentPeriodEnd, 7);
 
     // Calculate new credit balance
     const newBalance = this.CREDIT_ALLOCATIONS[role];
 
-    // Update user credits and period end
+    // Update user credits and subscription period end
     await prisma.user.update({
       where: { id: userId },
       data: {
         credits: newBalance,
         subscription: {
           update: {
-            periodEnd: nextPeriodEnd,
+            currentPeriodEnd: nextPeriodEnd,
           },
         },
       },
     });
 
     // Record credit reset transaction
-    await prisma.creditTransaction.create({
+    await prisma.creditHistory.create({
       data: {
         userId,
         amount: newBalance,
         type: CreditType.SUBSCRIPTION,
-        description: `${period} credit reset`,
+        description: `credit reset`,
       },
     });
 
     return {
       newBalance,
       resetDate: nextPeriodEnd,
-      periodType: period as Period,
+      periodType: Period.WEEKLY,
     };
   }
 
@@ -163,10 +163,10 @@ export class CreditService {
     });
 
     // Record credit transaction
-    await prisma.creditTransaction.create({
+    await prisma.creditHistory.create({
       data: {
         userId,
-        amount,
+        amount: amount,
         type,
         description: description || `${type} credit addition`,
       },
@@ -207,7 +207,7 @@ export class CreditService {
     });
 
     // Record credit transaction
-    await prisma.creditTransaction.create({
+    await prisma.creditHistory.create({
       data: {
         userId,
         amount: -amount,
@@ -232,7 +232,7 @@ export class CreditService {
         role: true,
         subscription: {
           select: {
-            periodEnd: true,
+            currentPeriodEnd: true,
           },
         },
       },
@@ -250,7 +250,7 @@ export class CreditService {
       used,
       total,
       percentage,
-      periodEnd: user.subscription?.periodEnd || new Date(),
+      periodEnd: user.subscription?.currentPeriodEnd || new Date(),
     };
   }
 } 

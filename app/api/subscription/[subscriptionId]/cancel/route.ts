@@ -1,23 +1,23 @@
 import { NextResponse } from 'next/server';
-import { auth } from '@clerk/nextjs';
+import { auth, currentUser } from '@clerk/nextjs/server';
 import { prisma } from '@/lib/prisma';
 import Stripe from 'stripe';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2023-10-16',
+  apiVersion: '2025-02-24.acacia',
 });
 
 export async function POST(
   req: Request,
-  { params }: { params: { subscriptionId: string } }
-) {
+  context: { params: Promise<{ subscriptionId: string }> }
+): Promise<Response> {
   try {
-    const { userId } = auth();
+    const { userId } = await auth();
     if (!userId) {
-      return new NextResponse('Unauthorized', { status: 401 });
+      return new Response('Unauthorized', { status: 401 });
     }
 
-    const { subscriptionId } = params;
+    const { subscriptionId } = await context.params;
 
     // Get subscription from database
     const subscription = await prisma.subscription.findUnique({
@@ -26,12 +26,12 @@ export async function POST(
     });
 
     if (!subscription) {
-      return new NextResponse('Subscription not found', { status: 404 });
+      return new Response('Subscription not found', { status: 404 });
     }
 
     // Verify ownership
     if (subscription.user.clerkId !== userId) {
-      return new NextResponse('Unauthorized', { status: 401 });
+      return new Response('Unauthorized', { status: 401 });
     }
 
     // Cancel subscription in Stripe
@@ -45,9 +45,9 @@ export async function POST(
       data: { cancelAtPeriodEnd: true },
     });
 
-    return new NextResponse(null, { status: 204 });
+    return new Response(null, { status: 204 });
   } catch (error) {
     console.error('Error canceling subscription:', error);
-    return new NextResponse('Internal Server Error', { status: 500 });
+    return new Response('Internal Server Error', { status: 500 });
   }
 } 

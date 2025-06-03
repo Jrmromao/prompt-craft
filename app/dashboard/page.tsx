@@ -2,6 +2,8 @@ import { DashboardClient } from "@/components/dashboard/DashboardClient";
 import { validateAuthentication } from "@/lib/actions/authValidation.action";
 import { redirect } from "next/navigation";
 import { DashboardService } from "@/lib/services/dashboardService";
+import { NavBar } from "@/components/layout/NavBar";
+import { auth, currentUser } from "@clerk/nextjs/server";
 
 // Types for serializable props
 interface SerializableUserWithPlan {
@@ -28,6 +30,8 @@ interface SerializableUserWithPlan {
   updatedAt: string;
   creditCap: number;
   lastCreditReset: string;
+  imageUrl?: string;
+  stripeCustomerId?: string;
 }
 
 interface SerializablePrompt {
@@ -53,8 +57,10 @@ interface SerializableCreditHistory {
 }
 
 export default async function DashboardPage() {
-  const auth = await validateAuthentication();
-  if (!auth.success) {
+  // const auth = await validateAuthentication();
+  const clerkUser = await currentUser();
+
+  if (!clerkUser) {
     redirect("/sign-in?redirect_url=/dashboard");
   }
 
@@ -62,19 +68,44 @@ export default async function DashboardPage() {
 
   try {
     const [user, prompts, creditHistory, usageData] = await Promise.all([
-      dashboardService.getUserData(auth.user.id),
-      dashboardService.getRecentPrompts(auth.user.id),
-      dashboardService.getCreditHistory(auth.user.id),
-      dashboardService.getUsageData(auth.user.id),
+      dashboardService.getUserData(clerkUser.id),
+      dashboardService.getRecentPrompts(clerkUser.id),
+      dashboardService.getCreditHistory(clerkUser.id),
+      dashboardService.getUsageData(clerkUser.id),
     ]);
 
+    const navUser = clerkUser
+      ? {
+          name: [clerkUser.firstName, clerkUser.lastName].filter(Boolean).join(' ') || clerkUser.username || 'User',
+          email: clerkUser.emailAddresses?.[0]?.emailAddress || '',
+          imageUrl: clerkUser.imageUrl,
+        }
+      : { name: 'Guest', email: '' };
+
     return (
-      <DashboardClient
-        user={user}
-        prompts={prompts}
-        creditHistory={creditHistory}
-        usageData={usageData}
-      />
+      <>
+        <NavBar user={navUser} />
+        <DashboardClient
+          user={{
+            name: user.name || "User",
+            email: user.email,
+            imageUrl: (user as any).imageUrl || "",
+            id: user.id,
+            clerkId: user.clerkId,
+            credits: user.credits,
+            plan: user.plan,
+            role: user.role,
+            createdAt: user.createdAt,
+            updatedAt: user.updatedAt,
+            creditCap: user.creditCap,
+            lastCreditReset: user.lastCreditReset,
+            stripeCustomerId: (user as any).stripeCustomerId || "",
+          }}
+          prompts={prompts}
+          creditHistory={creditHistory}
+          usageData={usageData}
+        />
+      </>
     );
   } catch (error) {
     console.error("Error loading dashboard data:", error);

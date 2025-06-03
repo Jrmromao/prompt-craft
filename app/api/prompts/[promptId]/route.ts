@@ -4,19 +4,20 @@ import { PromptService } from '@/lib/services/promptService';
 
 export async function GET(
   req: Request,
-  { params }: { params: { promptId: string } }
-) {
+  context: { params: Promise<{ promptId: string }> }
+): Promise<Response> {
   try {
     const { userId } = await auth();
     if (!userId) {
-      return new NextResponse('Unauthorized', { status: 401 });
+      return new Response('Unauthorized', { status: 401 });
     }
 
+    const { promptId } = await context.params;
     const promptService = PromptService.getInstance();
-    const prompt = await promptService.getPrompt(params.promptId);
+    const prompt = await promptService.getPrompt(promptId);
 
     if (!prompt) {
-      return NextResponse.json(
+      return Response.json(
         { error: 'Prompt not found' },
         { status: 404 }
       );
@@ -24,16 +25,16 @@ export async function GET(
 
     // Check if user has access to the prompt
     if (prompt.userId !== userId && !prompt.isPublic) {
-      return NextResponse.json(
+      return Response.json(
         { error: 'Unauthorized to access this prompt' },
         { status: 403 }
       );
     }
 
-    return NextResponse.json(prompt);
+    return Response.json(prompt);
   } catch (error) {
     console.error('Error fetching prompt:', error);
-    return NextResponse.json(
+    return Response.json(
       { error: 'Failed to fetch prompt' },
       { status: 500 }
     );
@@ -42,20 +43,21 @@ export async function GET(
 
 export async function PATCH(
   req: Request,
-  { params }: { params: { promptId: string } }
-) {
+  context: { params: Promise<{ promptId: string }> }
+): Promise<Response> {
   try {
     const { userId } = await auth();
     if (!userId) {
-      return new NextResponse('Unauthorized', { status: 401 });
+      return new Response('Unauthorized', { status: 401 });
     }
 
+    const { promptId } = await context.params;
     const body = await req.json();
     const { title, content, isPublic, tags } = body;
 
     const promptService = PromptService.getInstance();
     const prompt = await promptService.updatePrompt(
-      params.promptId,
+      promptId,
       userId,
       {
         ...(title && { title }),
@@ -65,10 +67,10 @@ export async function PATCH(
       }
     );
 
-    return NextResponse.json(prompt);
+    return Response.json(prompt);
   } catch (error) {
     console.error('Error updating prompt:', error);
-    return NextResponse.json(
+    return Response.json(
       { error: 'Failed to update prompt' },
       { status: 500 }
     );
@@ -77,21 +79,22 @@ export async function PATCH(
 
 export async function DELETE(
   req: Request,
-  { params }: { params: { promptId: string } }
-) {
+  context: { params: Promise<{ promptId: string }> }
+): Promise<Response> {
   try {
     const { userId } = await auth();
     if (!userId) {
-      return new NextResponse('Unauthorized', { status: 401 });
+      return new Response('Unauthorized', { status: 401 });
     }
 
+    const { promptId } = await context.params;
     const promptService = PromptService.getInstance();
-    await promptService.deletePrompt(params.promptId, userId);
+    await promptService.deletePrompt(promptId, userId);
 
-    return new NextResponse(null, { status: 204 });
+    return new Response(null, { status: 204 });
   } catch (error) {
     console.error('Error deleting prompt:', error);
-    return NextResponse.json(
+    return Response.json(
       { error: 'Failed to delete prompt' },
       { status: 500 }
     );

@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/components/ui/use-toast';
 import { Loader2 } from 'lucide-react';
+import { format } from 'date-fns';
 
 export default function BillingPage() {
   const router = useRouter();
@@ -114,7 +115,7 @@ export default function BillingPage() {
                 <div>
                   <p className="text-sm font-medium">Next Billing Date</p>
                   <p className="text-sm text-muted-foreground">
-                    {new Date(subscription.currentPeriodEnd).toLocaleDateString()}
+                    {format(new Date(subscription.currentPeriodEnd), 'yyyy-MM-dd')}
                   </p>
                 </div>
                 <div>

@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { prisma } from '@/lib/prisma';
 import { AIService } from '@/lib/services/aiService';
-import { checkCreditBalance } from '@/lib/services/creditService';
+import { CreditService } from '@/lib/services/creditService';
 
 export async function POST(req: Request) {
   try {
@@ -29,7 +29,7 @@ export async function POST(req: Request) {
 
     // Check credit balance
     const requiredCredits = Math.ceil(maxTokens / 100); // 1 credit = 100 tokens
-    const creditCheck = await checkCreditBalance(user.id, requiredCredits);
+    const creditCheck = await CreditService.getInstance().checkCreditBalance(user.id, requiredCredits);
 
     if (!creditCheck.hasEnoughCredits) {
       return NextResponse.json({
@@ -48,6 +48,8 @@ export async function POST(req: Request) {
       maxTokens,
       temperature,
     });
+
+    
 
     // Deduct credits
     await prisma.user.update({

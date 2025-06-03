@@ -25,6 +25,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { NavBar, NavBarUser } from '@/components/layout/NavBar';
+import { useRouter } from "next/navigation";
 
 // Types for serializable props
 interface SerializableUserWithPlan {
@@ -46,25 +48,25 @@ interface SerializableUserWithPlan {
     type: string;
     period: string;
     isActive: boolean;
+    description?: string;
+    stripeProductId?: string;
   } | null;
   role: string;
   createdAt: string;
   updatedAt: string;
   creditCap: number;
   lastCreditReset: string;
+  stripeCustomerId: string;
 }
 
-interface SerializablePrompt {
+// PromptGeneration type for dashboard recent prompts
+interface PromptGeneration {
   id: string;
-  name: string;
-  content: string;
-  metadata: any;
-  promptType: string;
-  description: string;
-  isPublic: boolean;
-  userId: string;
+  input: string;
+  output: string;
+  model: string;
+  creditsUsed: number;
   createdAt: string;
-  updatedAt: string;
 }
 
 interface SerializableCreditHistory {
@@ -78,7 +80,7 @@ interface SerializableCreditHistory {
 
 interface DashboardClientProps {
   user: SerializableUserWithPlan;
-  prompts: SerializablePrompt[];
+  prompts: PromptGeneration[];
   creditHistory: SerializableCreditHistory[];
   usageData?: { date: string; credits: number }[];
 }
@@ -121,71 +123,10 @@ function ThemeToggle() {
   );
 }
 
-function NavBar({ user }: { user: SerializableUserWithPlan }) {
-  const { signOut } = useClerk();
-  const userInitials = user.name?.split(' ').map(n => n[0]).join('').toUpperCase() || 'U';
-
-  return (
-    <nav className="sticky top-0 z-50 w-full border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
-      <div className="container mx-auto px-4">
-        <div className="flex h-16 items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Link href="/dashboard" className="flex items-center gap-2">
-              <Sparkles className="w-6 h-6 text-purple-500" />
-              <span className="text-xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-                PromptCraft
-              </span>
-            </Link>
-          </div>
-
-          <div className="flex items-center gap-4">
-            <ThemeToggle />
-
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage src={user.imageUrl} alt={user.name} />
-                    <AvatarFallback>{userInitials}</AvatarFallback>
-                  </Avatar>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56" align="end" forceMount>
-                <DropdownMenuLabel className="font-normal">
-                  <div className="flex flex-col space-y-1">
-                    <p className="text-sm font-medium leading-none">{user.name}</p>
-                    <p className="text-xs leading-none text-muted-foreground">
-                      {user.email}
-                    </p>
-                  </div>
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <Link href="/profile" className="cursor-pointer">
-                    <User className="w-4 h-4 mr-2" />
-                    Profile
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  className="cursor-pointer text-red-600 dark:text-red-400"
-                  onClick={() => signOut()}
-                >
-                  <LogOut className="w-4 h-4 mr-2" />
-                  Sign out
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        </div>
-      </div>
-    </nav>
-  );
-}
-
 function PromptActionsCard({ user }: { user: SerializableUserWithPlan }) {
   const isFreeTier = user.role === 'FREE';
   const [isCreateDialogOpen, setIsCreateDialogOpen] = React.useState(false);
-
+  const router = useRouter();
   return (
     <Card className="border-gray-200 dark:border-gray-800">
       <CardHeader>
@@ -203,11 +144,12 @@ function PromptActionsCard({ user }: { user: SerializableUserWithPlan }) {
         {isFreeTier ? (
           <>
             <Button 
-              onClick={() => setIsCreateDialogOpen(true)}
+              onClick={() => router.push('/prompts/create')}
               className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white"
             >
               <Plus className="w-4 h-4 mr-2" />
               Create New Prompt
+            
             </Button>
             <Button 
               asChild 
@@ -230,7 +172,7 @@ function PromptActionsCard({ user }: { user: SerializableUserWithPlan }) {
               asChild 
               className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white"
             >
-              <Link href="/prompts">
+              <Link href="/prompts/create">
                 <Plus className="w-4 h-4 mr-2" />
                 Create New Prompt
               </Link>
@@ -267,23 +209,24 @@ export function DashboardClient({ user, prompts, creditHistory, usageData }: Das
           updatedAt: new Date(user.plan.updatedAt),
           type: user.plan.type as PlanType,
           period: user.plan.period as Period,
+          description: user.plan.description || "",
+          stripeProductId: user.plan.stripeProductId || "",
         }
       : null,
+    stripeCustomerId: user.stripeCustomerId,
   };
-  const hydratedPrompts = prompts.map((p) => ({
-    ...p,
-    createdAt: new Date(p.createdAt),
-    updatedAt: new Date(p.updatedAt),
-  }));
   const hydratedCreditHistory = creditHistory.map((h) => ({
     ...h,
     createdAt: new Date(h.createdAt),
     type: h.type as CreditType,
   }));
 
+  const router = useRouter();
+
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <NavBar user={user} />
+    
       <div className="container mx-auto px-4 py-8 space-y-8">
         <Suspense fallback={<div>Loading...</div>}>
           <UserSummaryCard user={hydratedUser} />
@@ -292,12 +235,12 @@ export function DashboardClient({ user, prompts, creditHistory, usageData }: Das
         {/* Prompt Actions Section */}
         <PromptActionsCard user={user} />
 
-        {/* Prompt Templates Section */}
-        <PromptTemplatesCard />
+        {/* Prompt Templates Section
+        <PromptTemplatesCard /> */}
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           <Suspense fallback={<div>Loading...</div>}>
-            <RecentPromptsTable prompts={hydratedPrompts} />
+            <RecentPromptsTable prompts={prompts} />
           </Suspense>
 
           <Suspense fallback={<div>Loading...</div>}>

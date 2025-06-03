@@ -1,10 +1,11 @@
 import { prisma } from '@/lib/prisma';
-import { Role, PlanType, Period, SubscriptionStatus } from '@/utils/constants';
+import { Role } from '@/utils/constants';
+import { SubscriptionStatus, PlanType, Period } from '@prisma/client';
 import { addDays, addMonths, isAfter } from 'date-fns';
 
 interface SubscriptionDetails {
   status: SubscriptionStatus;
-  tier: PlanType;
+  planName: string;
   period: Period;
   periodEnd: Date;
   autoRenew: boolean;
@@ -36,61 +37,74 @@ export class SubscriptionService {
       where: { id: userId },
       select: {
         subscription: {
-          select: {
-            status: true,
-            tier: true,
-            period: true,
-            periodEnd: true,
-            autoRenew: true,
+          include: {
+            plan: true,
           },
         },
       },
     });
 
-    if (!user?.subscription) {
+    if (!user?.subscription || !user.subscription.plan) {
       return {
         status: SubscriptionStatus.INCOMPLETE,
-        tier: PlanType.FREE,
-        period: Period.WEEKLY,
+        planName: 'FREE',
+        period: Period.MONTHLY,
         periodEnd: new Date(),
         autoRenew: false,
       };
     }
 
-    return user.subscription as SubscriptionDetails;
+    const sub = user.subscription;
+    return {
+      status: sub.status,
+      planName: sub.plan.name,
+      period: sub.plan.period,
+      periodEnd: sub.currentPeriodEnd,
+      autoRenew: !sub.cancelAtPeriodEnd,
+    };
   }
 
   public async createSubscription(
     userId: string,
-    tier: PlanType,
-    period: Period,
+    planId: string,
     autoRenew: boolean = true
   ): Promise<SubscriptionDetails> {
+    const plan = await prisma.plan.findUnique({ where: { id: planId } });
+    if (!plan) throw new Error('Plan not found');
     const now = new Date();
-    const periodEnd = period === Period.WEEKLY
+    const periodEnd = plan.period === Period.WEEKLY
       ? addDays(now, 7)
       : addMonths(now, 1);
 
     const subscription = await prisma.subscription.create({
       data: {
         userId,
-        tier,
-        period,
+        planId,
         status: SubscriptionStatus.ACTIVE,
-        periodEnd,
-        autoRenew,
+        currentPeriodStart: now,
+        currentPeriodEnd: periodEnd,
+        cancelAtPeriodEnd: !autoRenew,
+        stripeCustomerId: '', // set as needed
+        stripeSubscriptionId: '', // set as needed
       },
+      include: { plan: true },
     });
 
-    // Update user role based on subscription tier
+    // Update user role based on plan
     await prisma.user.update({
       where: { id: userId },
       data: {
-        role: tier === PlanType.PRO ? Role.PRO : Role.LITE,
+        role: subscription.plan.name === 'PRO' ? Role.PRO : subscription.plan.name === 'LITE' ? Role.LITE : Role.FREE,
       },
     });
 
-    return subscription as SubscriptionDetails;
+    return {
+      status: subscription.status,
+      planName: subscription.plan.name,
+      period: subscription.plan.period,
+      periodEnd: subscription.currentPeriodEnd,
+      autoRenew: !subscription.cancelAtPeriodEnd,
+    };
   }
 
   public async cancelSubscription(userId: string): Promise<SubscriptionDetails> {
@@ -98,8 +112,9 @@ export class SubscriptionService {
       where: { userId },
       data: {
         status: SubscriptionStatus.CANCELED,
-        autoRenew: false,
+        cancelAtPeriodEnd: true,
       },
+      include: { plan: true },
     });
 
     // Update user role to FREE after cancellation
@@ -110,29 +125,45 @@ export class SubscriptionService {
       },
     });
 
-    return subscription as SubscriptionDetails;
+    return {
+      status: subscription.status,
+      planName: subscription.plan.name,
+      period: subscription.plan.period,
+      periodEnd: subscription.currentPeriodEnd,
+      autoRenew: !subscription.cancelAtPeriodEnd,
+    };
   }
 
   public async updateSubscription(
     userId: string,
-    updates: Partial<SubscriptionDetails>
+    updates: Partial<{ planId: string; status: SubscriptionStatus; currentPeriodEnd: Date; cancelAtPeriodEnd: boolean; }>
   ): Promise<SubscriptionDetails> {
     const subscription = await prisma.subscription.update({
       where: { userId },
       data: updates,
+      include: { plan: true },
     });
 
-    // Update user role if tier changes
-    if (updates.tier) {
-      await prisma.user.update({
-        where: { id: userId },
-        data: {
-          role: updates.tier === PlanType.PRO ? Role.PRO : Role.LITE,
-        },
-      });
+    // Update user role if plan changes
+    if (updates.planId) {
+      const plan = await prisma.plan.findUnique({ where: { id: updates.planId } });
+      if (plan) {
+        await prisma.user.update({
+          where: { id: userId },
+          data: {
+            role: plan.name === 'PRO' ? Role.PRO : plan.name === 'LITE' ? Role.LITE : Role.FREE,
+          },
+        });
+      }
     }
 
-    return subscription as SubscriptionDetails;
+    return {
+      status: subscription.status,
+      planName: subscription.plan.name,
+      period: subscription.plan.period,
+      periodEnd: subscription.currentPeriodEnd,
+      autoRenew: !subscription.cancelAtPeriodEnd,
+    };
   }
 
   public async checkSubscriptionStatus(userId: string): Promise<{
@@ -163,30 +194,47 @@ export class SubscriptionService {
   }
 
   public async processRenewal(userId: string): Promise<SubscriptionDetails> {
-    const subscription = await this.getSubscriptionDetails(userId);
+    const subscription = await prisma.subscription.findUnique({
+      where: { userId },
+      include: { plan: true },
+    });
+    if (!subscription) throw new Error('Subscription not found');
     const now = new Date();
 
     if (subscription.status !== SubscriptionStatus.ACTIVE) {
       throw new Error('Subscription is not active');
     }
 
-    if (!isAfter(subscription.periodEnd, now)) {
+    if (!isAfter(subscription.currentPeriodEnd, now)) {
       // Calculate new period end
-      const newPeriodEnd = subscription.period === Period.WEEKLY
+      const newPeriodEnd = subscription.plan.period === Period.WEEKLY
         ? addDays(now, 7)
         : addMonths(now, 1);
 
       // Update subscription
       return this.updateSubscription(userId, {
-        periodEnd: newPeriodEnd,
+        currentPeriodEnd: newPeriodEnd,
         status: SubscriptionStatus.ACTIVE,
       });
     }
 
-    return subscription;
+    return {
+      status: subscription.status,
+      planName: subscription.plan.name,
+      period: subscription.plan.period,
+      periodEnd: subscription.currentPeriodEnd,
+      autoRenew: !subscription.cancelAtPeriodEnd,
+    };
   }
 
-  public getPricing(tier: PlanType, period: Period): number {
-    return this.PRICING[tier][period] || 0;
+  public getPricing(planName: PlanType, period: Period): number {
+    // Find the plan by name and period
+    if (planName === PlanType.LITE) {
+      return period === Period.WEEKLY ? this.PRICING[PlanType.LITE].weekly : this.PRICING[PlanType.LITE].monthly;
+    }
+    if (planName === PlanType.PRO) {
+      return this.PRICING[PlanType.PRO].monthly;
+    }
+    return 0;
   }
 } 

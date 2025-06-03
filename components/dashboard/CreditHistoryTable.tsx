@@ -1,68 +1,87 @@
-import { CreditHistory, CreditType } from "@/types/prisma";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { useEffect, useState } from "react";
+import { TableWithPagination } from "@/components/table/TableWithPagination";
 import { Badge } from "@/components/ui/badge";
+import { format } from 'date-fns';
 
-interface CreditHistoryTableProps {
-  history: CreditHistory[];
-}
-
-const creditTypeColors: Record<CreditType, string> = {
+const creditTypeColors: { [key: string]: string } = {
   PURCHASE: "bg-green-100 text-green-800",
   MONTHLY_RENEWAL: "bg-blue-100 text-blue-800",
   USAGE: "bg-red-100 text-red-800",
   BONUS: "bg-purple-100 text-purple-800",
   REFUND: "bg-yellow-100 text-yellow-800",
+  INITIAL: "bg-gray-100 text-gray-800",
 };
 
-const creditTypeLabels: Record<CreditType, string> = {
+const creditTypeLabels: { [key: string]: string } = {
   PURCHASE: "Purchase",
   MONTHLY_RENEWAL: "Monthly Renewal",
   USAGE: "Usage",
   BONUS: "Bonus",
   REFUND: "Refund",
+  INITIAL: "Initial",
 };
 
-export function CreditHistoryTable({ history }: CreditHistoryTableProps) {
+export function CreditHistoryTable() {
+  const [data, setData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchHistory() {
+      setLoading(true);
+      try {
+        const res = await fetch("/api/credits/history");
+        if (!res.ok) throw new Error("Failed to fetch credit history");
+        const json = await res.json();
+        setData(json);
+      } catch (e) {
+        setData([]);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchHistory();
+  }, []);
+
+  const columns = [
+    {
+      accessorKey: "type",
+      header: "Type",
+      cell: ({ row }: any) => (
+        <Badge className={`rounded-full px-3 py-1 font-semibold text-xs shadow-sm ${creditTypeColors[row.original.type as string]}`}>{creditTypeLabels[row.original.type as string]}</Badge>
+      ),
+    },
+    {
+      accessorKey: "amount",
+      header: "Amount",
+      cell: ({ row }: any) => (
+        <span className={`font-mono text-base text-right block ${row.original.amount > 0 ? "text-green-600" : "text-red-600"}`}>{row.original.amount > 0 ? "+" : ""}{row.original.amount}</span>
+      ),
+    },
+    {
+      accessorKey: "description",
+      header: "Description",
+      cell: ({ row }: any) => (
+        <span className="text-gray-700 dark:text-gray-200">{row.original.description}</span>
+      ),
+    },
+    {
+      accessorKey: "createdAt",
+      header: "Date",
+      cell: ({ row }: any) => (
+        <span className="text-gray-500 dark:text-gray-400 font-mono text-sm">{format(new Date(row.original.createdAt), 'yyyy-MM-dd')}</span>
+      ),
+    },
+  ];
+
+  if (loading) {
+    return <div className="p-6 text-center text-gray-400">Loading credit history...</div>;
+  }
+
   return (
-    <div className="space-y-4">
-      <h2 className="text-2xl font-bold">Credit History</h2>
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Type</TableHead>
-              <TableHead>Amount</TableHead>
-              <TableHead>Description</TableHead>
-              <TableHead>Date</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {history.map((entry) => (
-              <TableRow key={entry.id}>
-                <TableCell>
-                  <Badge className={creditTypeColors[entry.type]}>
-                    {creditTypeLabels[entry.type]}
-                  </Badge>
-                </TableCell>
-                <TableCell className={entry.amount > 0 ? "text-green-600" : "text-red-600"}>
-                  {entry.amount > 0 ? "+" : ""}{entry.amount}
-                </TableCell>
-                <TableCell>{entry.description}</TableCell>
-                <TableCell>
-                  {new Date(entry.createdAt).toLocaleDateString()}
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
-    </div>
+    <TableWithPagination
+      columns={columns}
+      data={data}
+      title="Credit History"
+    />
   );
 } 

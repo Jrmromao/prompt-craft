@@ -1,3 +1,5 @@
+export type PromptType = 'text' | 'image' | 'video' | 'music' | 'software';
+
 export interface PromptPayload {
   name: string;
   description: string;
@@ -11,7 +13,7 @@ export interface PromptPayload {
   includeExamples?: boolean;
   includeKeywords?: boolean;
   includeStructure?: boolean;
-  promptType: 'text' | 'image' | 'video' | 'music';
+  promptType: PromptType;
   style?: string;
   resolution?: string;
   palette?: string;

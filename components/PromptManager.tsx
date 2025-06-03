@@ -35,7 +35,7 @@ interface PromptManagerProps {
     description?: string;
     content: string;
     isPublic: boolean;
-    promptType?: 'text' | 'image' | 'video' | 'music';
+    promptType?: 'text' | 'image' | 'video' | 'music' | 'software';
     metadata?: any;
     tags: string[];
   }) => Promise<void>;
@@ -57,7 +57,7 @@ export function PromptManager({
   const [description, setDescription] = React.useState('');
   const [content, setContent] = React.useState('');
   const [isPublic, setIsPublic] = React.useState(false);
-  const [promptType, setPromptType] = React.useState<'text' | 'image' | 'video' | 'music'>('text');
+  const [promptType, setPromptType] = React.useState<'text' | 'image' | 'video' | 'music' | 'software'>('text');
   const [tags, setTags] = React.useState<string[]>([]);
   const [newTag, setNewTag] = React.useState('');
   const [editingPrompt, setEditingPrompt] = React.useState<Prompt | null>(null);

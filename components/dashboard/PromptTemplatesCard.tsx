@@ -2,6 +2,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Plus, Edit, Trash2, FileText } from "lucide-react";
 import React, { useState } from "react";
+import { format } from 'date-fns';
 
 interface PromptTemplate {
   id: string;
@@ -51,7 +52,7 @@ export function PromptTemplatesCard() {
             <div>
               <div className="font-semibold text-lg text-purple-900 dark:text-purple-100 mb-1">{template.title}</div>
               <div className="text-gray-700 dark:text-gray-300 text-sm mb-1">{template.description}</div>
-              <div className="text-xs text-gray-500 dark:text-gray-400">Last updated: {template.updatedAt.toLocaleDateString()}</div>
+              <div className="text-xs text-gray-500 dark:text-gray-400">Last updated: {format(new Date(template.updatedAt), 'yyyy-MM-dd')}</div>
             </div>
             <div className="flex gap-2">
               <Button size="icon" variant="ghost" className="hover:bg-purple-100 dark:hover:bg-purple-900">

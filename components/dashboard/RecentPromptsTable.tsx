@@ -1,36 +1,32 @@
-import { Prompt } from "@/types/prisma";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  ColumnDef,
-  flexRender,
-  getCoreRowModel,
-  useReactTable,
-  getPaginationRowModel,
-} from "@tanstack/react-table";
+import { TableWithPagination } from "@/components/table/TableWithPagination";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useState } from "react";
+import { format } from 'date-fns';
+
+// PromptGeneration type for dashboard recent prompts
+interface PromptGeneration {
+  id: string;
+  input: string;
+  output: string;
+  model: string;
+  creditsUsed: number;
+  createdAt: string;
+}
 
 interface RecentPromptsTableProps {
-  prompts: Prompt[];
+  prompts: PromptGeneration[];
 }
 
 export function RecentPromptsTable({ prompts }: RecentPromptsTableProps) {
-  const [selectedPrompt, setSelectedPrompt] = useState<Prompt | null>(null);
+  const [selectedPrompt, setSelectedPrompt] = useState<PromptGeneration | null>(null);
 
-  const columns: ColumnDef<Prompt>[] = [
+  const columns = [
     {
       accessorKey: "input",
       header: "Input",
-      cell: ({ row }) => (
-        <div className="max-w-[300px] truncate">
+      cell: ({ row }: any) => (
+        <div className="max-w-[220px] truncate" title={row.original.input}>
           {row.original.input}
         </div>
       ),
@@ -38,23 +34,27 @@ export function RecentPromptsTable({ prompts }: RecentPromptsTableProps) {
     {
       accessorKey: "model",
       header: "Model",
+      cell: ({ row }: any) => (
+        <span className="font-mono text-xs text-gray-700 dark:text-gray-300">{row.original.model}</span>
+      ),
     },
     {
       accessorKey: "creditsUsed",
       header: "Credits",
+      cell: ({ row }: any) => (
+        <span className="font-semibold text-purple-700 dark:text-purple-300">{row.original.creditsUsed}</span>
+      ),
     },
     {
       accessorKey: "createdAt",
       header: "Date",
-      cell: ({ row }) => (
-        <div>
-          {new Date(row.original.createdAt).toLocaleDateString()}
-        </div>
+      cell: ({ row }: any) => (
+        <div>{format(new Date(row.original.createdAt), 'yyyy-MM-dd')}</div>
       ),
     },
     {
       id: "actions",
-      cell: ({ row }) => (
+      cell: ({ row }: any) => (
         <Button
           variant="ghost"
           onClick={() => setSelectedPrompt(row.original)}
@@ -65,83 +65,32 @@ export function RecentPromptsTable({ prompts }: RecentPromptsTableProps) {
     },
   ];
 
-  const table = useReactTable({
-    data: prompts,
-    columns,
-    getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-  });
-
   return (
-    <div className="space-y-4">
-      <h2 className="text-2xl font-bold">Recent Prompts</h2>
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id}>
-                    {flexRender(
-                      header.column.columnDef.header,
-                      header.getContext()
-                    )}
-                  </TableHead>
-                ))}
-              </TableRow>
-            ))}
-          </TableHeader>
-          <TableBody>
-            {table.getRowModel().rows.map((row) => (
-              <TableRow key={row.id}>
-                {row.getVisibleCells().map((cell) => (
-                  <TableCell key={cell.id}>
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </TableCell>
-                ))}
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
-      <div className="flex items-center justify-end space-x-2">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => table.previousPage()}
-          disabled={!table.getCanPreviousPage()}
-        >
-          Previous
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => table.nextPage()}
-          disabled={!table.getCanNextPage()}
-        >
-          Next
-        </Button>
-      </div>
-
-      <Dialog open={!!selectedPrompt} onOpenChange={() => setSelectedPrompt(null)}>
-        <DialogContent className="max-w-3xl">
-          <DialogHeader>
-            <DialogTitle>Prompt Details</DialogTitle>
-          </DialogHeader>
-          {selectedPrompt && (
-            <div className="space-y-4">
-              <div>
-                <h3 className="font-semibold">Input:</h3>
-                <p className="whitespace-pre-wrap">{selectedPrompt.input}</p>
+    <TableWithPagination
+      columns={columns}
+      data={prompts}
+      title="Recent Prompts"
+      renderDialog={(row, setRow) => (
+        <Dialog open={!!row} onOpenChange={() => setRow(null)}>
+          <DialogContent className="max-w-3xl">
+            <DialogHeader>
+              <DialogTitle>Prompt Details</DialogTitle>
+            </DialogHeader>
+            {row && (
+              <div className="space-y-4">
+                <div>
+                  <h3 className="font-semibold">Input:</h3>
+                  <p className="whitespace-pre-wrap" title={row.input}>{row.input}</p>
+                </div>
+                <div>
+                  <h3 className="font-semibold">Output:</h3>
+                  <p className="whitespace-pre-wrap" title={row.output}>{row.output}</p>
+                </div>
               </div>
-              <div>
-                <h3 className="font-semibold">Output:</h3>
-                <p className="whitespace-pre-wrap">{selectedPrompt.output}</p>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
-    </div>
+            )}
+          </DialogContent>
+        </Dialog>
+      )}
+    />
   );
 } 
