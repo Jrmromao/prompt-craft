@@ -13,6 +13,7 @@ interface Prompt {
   metadata: any | null;
   tags: { id: string; name: string }[];
   createdAt: Date;
+  userId: string;
 }
 
 interface UsePromptsOptions {

@@ -15,7 +15,8 @@ model User {
   clerkId           String             @unique
   credits           Int                @default(10)
   name              String?
-  role              Role               @default(FREE)
+  role              Role               @default(USER)
+  planType          PlanType           @default(FREE)
   creditCap         Int                @default(10)
   lastCreditReset   DateTime           @default(now())
   stripeCustomerId  String?
@@ -137,9 +138,8 @@ model PromptGeneration {
 }
 
 enum Role {
-  FREE
-  LITE
-  PRO
+  USER
+  ADMIN
 }
 
 enum PlanType {

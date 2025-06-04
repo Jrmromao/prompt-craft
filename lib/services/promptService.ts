@@ -16,6 +16,7 @@ interface Prompt {
   tags: { id: string; name: string }[];
   isApproved: boolean;
   upvotes: number;
+  slug: string;
 }
 
 export class PromptService {
@@ -78,13 +79,23 @@ export class PromptService {
       }
     }
 
+    // Generate a unique slug for the prompt
+    const { aiSlugify } = await import('./slugService');
+    let baseSlug = await aiSlugify(data.name, data.description || '');
+    let uniqueSlug = baseSlug;
+    let i = 1;
+    while (await prisma.prompt.findFirst({ where: { slug: uniqueSlug } })) {
+      uniqueSlug = `${baseSlug}-${i}`;
+      i++;
+    }
+
     // Create or find tags
     const tagOperations = (data.tags || []).map(tagName => ({
       where: { name: tagName },
       create: { name: tagName },
     }));
 
-    // Create prompt with tags
+    // Create prompt with tags and unique slug
     const prompt = await prisma.prompt.create({
       data: {
         userId,
@@ -94,6 +105,7 @@ export class PromptService {
         isPublic: data.isPublic || false,
         promptType: data.promptType || 'text',
         metadata: data.metadata || null,
+        slug: uniqueSlug,
         tags: {
           connectOrCreate: tagOperations,
         },

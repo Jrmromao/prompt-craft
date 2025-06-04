@@ -3,6 +3,7 @@ import { PromptManager } from '@/components/PromptManager';
 import { usePrompts } from '@/hooks/usePrompts';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
+import { useAuth } from '@clerk/nextjs';
 
 type PromptsClientProps = {
   mode: 'create' | 'full';
@@ -17,6 +18,7 @@ export function PromptsClient({ mode }: PromptsClientProps) {
     updatePrompt,
     deletePrompt,
   } = usePrompts();
+  const { userId } = useAuth();
 
   if (error) {
     return (
@@ -60,6 +62,7 @@ export function PromptsClient({ mode }: PromptsClientProps) {
         onEdit={updatePrompt}
         onDelete={deletePrompt}
         mode="full"
+        currentUserId={typeof userId === 'string' ? userId : undefined}
       />
     </div>
   );
