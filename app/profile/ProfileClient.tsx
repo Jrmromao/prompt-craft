@@ -15,19 +15,20 @@ import { ProfileForm } from "./profile-form";
 import { Role, PlanType } from "@prisma/client";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import useSWR from "swr";
 
 const Sheet = dynamic(() => import("@/components/ui/sheet").then(mod => mod.Sheet), { ssr: false });
 const SheetContent = dynamic(() => import("@/components/ui/sheet").then(mod => mod.SheetContent), { ssr: false });
 
 const accountOptions = [
-  { label: "Profile", icon: User, href: "/profile" },
-  { label: "Usage", icon: BarChart2, href: "/profile/usage" },
-  { label: "Billing", icon: BillingIcon, href: "/profile/billing" },
-  { label: "Settings", icon: Settings, href: "/profile/settings" },
+  { label: "Overview", icon: User, href: "overview" },
+  { label: "Usage", icon: BarChart2, href: "usage" },
+  { label: "Billing", icon: BillingIcon, href: "billing" },
+  { label: "Settings", icon: Settings, href: "settings" },
 ];
 const workspaceOptions = [
-  { label: "My Prompts", icon: FileText, href: "/profile/prompts" },
+  { label: "My Prompts", icon: FileText, href: "prompts" },
 ];
 
 export interface ProfileClientProps {
@@ -48,7 +49,11 @@ export function ProfileClient({ user, currentPath }: ProfileClientProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { signOut } = useClerk();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const creditPercentage = (user.credits / user.creditCap) * 100;
+
+  // Determine active tab from query param
+  const tab = searchParams.get("tab") || "overview";
 
   // Simulate status (in real app, fetch from subscription)
   const status: "active" | "trial" | "suspended" = "active";
@@ -57,6 +62,12 @@ export function ProfileClient({ user, currentPath }: ProfileClientProps) {
   const isPro = user.planType === "PRO";
   const canUpgrade = !isPro;
 
+  // Sidebar click handler
+  function handleSidebarClick(tabValue: string) {
+    router.push(`/profile?tab=${tabValue}`, { scroll: false });
+    setSidebarOpen(false);
+  }
+
   const SidebarContent = (
     <div className="flex flex-col h-full">
       <div className="flex-1 overflow-y-auto">
@@ -64,36 +75,36 @@ export function ProfileClient({ user, currentPath }: ProfileClientProps) {
           <div className="text-xs font-semibold text-muted-foreground mb-2">Account</div>
           <nav className="flex flex-col gap-1 mb-6">
             {accountOptions.map(opt => (
-              <Link
+              <button
                 key={opt.label}
-                href={opt.href}
-                className={`relative flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition
-                  ${currentPath === opt.href ? "bg-accent text-foreground" : "text-muted-foreground hover:bg-accent hover:text-foreground"}`}
+                onClick={() => handleSidebarClick(opt.href.replace("/profile", "") || "overview")}
+                className={`relative flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition w-full text-left
+                  ${tab === (opt.href.replace("/profile", "") || "overview") ? "bg-accent text-foreground" : "text-muted-foreground hover:bg-accent hover:text-foreground"}`}
               >
-                {currentPath === opt.href && (
+                {tab === (opt.href.replace("/profile", "") || "overview") && (
                   <span className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 rounded bg-purple-500" />
                 )}
                 <opt.icon className="w-4 h-4 text-purple-400" />
                 {opt.label}
-              </Link>
+              </button>
             ))}
           </nav>
           <Separator />
           <div className="text-xs font-semibold text-muted-foreground mt-6 mb-2">Workspace</div>
           <nav className="flex flex-col gap-1">
             {workspaceOptions.map(opt => (
-              <Link
+              <button
                 key={opt.label}
-                href={opt.href}
-                className={`relative flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition
-                  ${currentPath === opt.href ? "bg-accent text-foreground" : "text-muted-foreground hover:bg-accent hover:text-foreground"}`}
+                onClick={() => handleSidebarClick("prompts")}
+                className={`relative flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition w-full text-left
+                  ${tab === "prompts" ? "bg-accent text-foreground" : "text-muted-foreground hover:bg-accent hover:text-foreground"}`}
               >
-                {currentPath === opt.href && (
+                {tab === "prompts" && (
                   <span className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 rounded bg-purple-500" />
                 )}
                 <opt.icon className="w-4 h-4 text-purple-400" />
                 {opt.label}
-              </Link>
+              </button>
             ))}
           </nav>
         </div>
@@ -108,6 +119,79 @@ export function ProfileClient({ user, currentPath }: ProfileClientProps) {
       </div>
     </div>
   );
+
+  // Tab change handler
+  function handleTabChange(value: string) {
+    router.push(`/profile?tab=${value}`, { scroll: false });
+  }
+
+  function UsageStatsSection() {
+    const { data, error, isLoading } = useSWR("/api/profile/usage", (url) => fetch(url).then(r => r.json()));
+
+    if (isLoading) {
+      return <div className="p-8 text-center text-muted-foreground">Loading usage...</div>;
+    }
+    if (error || !data) {
+      return <div className="p-8 text-center text-red-500">Failed to load usage data.</div>;
+    }
+
+    // Stats
+    const { totalCreditsUsed, creditsRemaining, creditCap, lastCreditReset, totalRequests, dailyUsage } = data;
+
+    // Chart dimensions
+    const width = 320;
+    const height = 80;
+    const maxUsed = Math.max(...dailyUsage.map((d: any) => d.used), 1);
+    const points = dailyUsage.map((d: any, i: number) => {
+      const x = (i / (dailyUsage.length - 1)) * (width - 32) + 16;
+      const y = height - (d.used / maxUsed) * (height - 24) - 8;
+      return `${x},${y}`;
+    }).join(" ");
+
+    return (
+      <div className="flex flex-col gap-6">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="rounded-lg bg-muted p-4 text-center">
+            <div className="text-xs text-muted-foreground mb-1">Credits Used</div>
+            <div className="text-xl font-bold">{totalCreditsUsed}</div>
+          </div>
+          <div className="rounded-lg bg-muted p-4 text-center">
+            <div className="text-xs text-muted-foreground mb-1">Credits Remaining</div>
+            <div className="text-xl font-bold">{creditsRemaining}</div>
+          </div>
+          <div className="rounded-lg bg-muted p-4 text-center">
+            <div className="text-xs text-muted-foreground mb-1">Total Requests</div>
+            <div className="text-xl font-bold">{totalRequests}</div>
+          </div>
+          <div className="rounded-lg bg-muted p-4 text-center">
+            <div className="text-xs text-muted-foreground mb-1">Last Reset</div>
+            <div className="text-sm font-semibold">{lastCreditReset ? new Date(lastCreditReset).toLocaleDateString() : "-"}</div>
+          </div>
+        </div>
+        <div className="mt-4">
+          <div className="flex items-center justify-between mb-2">
+            <div className="font-semibold text-sm">Daily Usage (last 30 days)</div>
+            <div className="text-xs text-muted-foreground">Max: {maxUsed}</div>
+          </div>
+          <svg width={width} height={height} className="w-full h-20">
+            <polyline
+              fill="none"
+              stroke="#a855f7"
+              strokeWidth="3"
+              points={points}
+              className="transition-all duration-300"
+            />
+            {/* Dots */}
+            {dailyUsage.map((d: any, i: number) => {
+              const x = (i / (dailyUsage.length - 1)) * (width - 32) + 16;
+              const y = height - (d.used / maxUsed) * (height - 24) - 8;
+              return <circle key={i} cx={x} cy={y} r={2} fill="#a855f7" />;
+            })}
+          </svg>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -199,13 +283,15 @@ export function ProfileClient({ user, currentPath }: ProfileClientProps) {
             </div>
           </Card>
           {/* Tabs for profile sections */}
-          <Tabs defaultValue="general" className="w-full">
-            <TabsList className="mb-4">
-              <TabsTrigger value="general">General</TabsTrigger>
-              <TabsTrigger value="security">Security</TabsTrigger>
-              <TabsTrigger value="notifications">Notifications</TabsTrigger>
-            </TabsList>
-            <TabsContent value="general">
+          <Tabs value={tab} onValueChange={handleTabChange} className="w-full">
+            {/* <TabsList className="mb-4">
+              <TabsTrigger value="overview">overview</TabsTrigger>
+              <TabsTrigger value="usage">Usage</TabsTrigger>
+              <TabsTrigger value="billing">Billing</TabsTrigger>
+              <TabsTrigger value="prompts">My Prompts</TabsTrigger>
+              <TabsTrigger value="settings">Settings</TabsTrigger>
+            </TabsList> */}
+            <TabsContent value="overview">
               <Card className="p-8 bg-card border border-border rounded-2xl shadow-lg">
                 <ProfileForm user={{
                   ...user,
@@ -214,16 +300,27 @@ export function ProfileClient({ user, currentPath }: ProfileClientProps) {
                 }} />
               </Card>
             </TabsContent>
-            <TabsContent value="security">
-              <Card className="p-8 bg-card border border-border rounded-2xl shadow-lg text-center text-muted-foreground">
-                <CheckCircle2 className="w-8 h-8 mx-auto mb-2 text-purple-400" />
-                <div className="font-semibold">Security settings coming soon.</div>
+            <TabsContent value="usage">
+              <Card className="p-8 bg-card border border-border rounded-2xl shadow-lg">
+                <UsageStatsSection />
               </Card>
             </TabsContent>
-            <TabsContent value="notifications">
+            <TabsContent value="billing">
+              <Card className="p-8 bg-card border border-border rounded-2xl shadow-lg text-center text-muted-foreground">
+                <Sparkles className="w-8 h-8 mx-auto mb-2 text-purple-400" />
+                <div className="font-semibold">Billing and invoices coming soon.</div>
+              </Card>
+            </TabsContent>
+            <TabsContent value="prompts">
+              <Card className="p-8 bg-card border border-border rounded-2xl shadow-lg text-center text-muted-foreground">
+                <Sparkles className="w-8 h-8 mx-auto mb-2 text-purple-400" />
+                <div className="font-semibold">Your prompts management coming soon.</div>
+              </Card>
+            </TabsContent>
+            <TabsContent value="settings">
               <Card className="p-8 bg-card border border-border rounded-2xl shadow-lg text-center text-muted-foreground">
                 <CheckCircle2 className="w-8 h-8 mx-auto mb-2 text-purple-400" />
-                <div className="font-semibold">Notification preferences coming soon.</div>
+                <div className="font-semibold">Settings coming soon.</div>
               </Card>
             </TabsContent>
           </Tabs>

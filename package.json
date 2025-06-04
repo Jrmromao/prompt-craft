@@ -80,6 +80,7 @@
     "stripe": "^17.7.0",
     "svgo": "^3.3.2",
     "svix": "^1.62.0",
+    "swr": "^2.3.3",
     "tailwind-merge": "^2.5.4",
     "tailwindcss-animate": "^1.0.7",
     "vix": "^0.0.1",
