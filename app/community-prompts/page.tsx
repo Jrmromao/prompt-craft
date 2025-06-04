@@ -5,10 +5,11 @@ import { Metadata } from 'next';
 import { NavBar } from '@/components/layout/NavBar';
 import { currentUser } from '@clerk/nextjs/server';
 import PromptCard from '@/components/prompts/PromptCard';
+import Head from 'next/head';
 
 export const metadata: Metadata = {
-  title: 'Community Prompts | PromptCraft',
-  description: 'Discover the best public prompts curated by the PromptCraft community. Browse, upvote, and get inspired by top AI prompts.',
+  title: 'Community Prompts | PromptHive',
+  description: 'Discover the best public prompts curated by the PromptHive community. Browse, upvote, and get inspired by top AI prompts.',
 };
 
 async function getPublicPrompts() {
@@ -21,6 +22,21 @@ async function getPublicPrompts() {
     include: { tags: true },
     take: 50,
   });
+}
+
+function getItemListJsonLd(prompts: any[]) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    "name": "Community Prompts",
+    "itemListElement": prompts.map((prompt, idx) => ({
+      "@type": "ListItem",
+      "position": idx + 1,
+      "url": `http://prompthive.co/community-prompts/${prompt.slug}`,
+      "name": prompt.name,
+      "description": prompt.description
+    }))
+  };
 }
 
 export default async function CommunityPromptsPage() {
@@ -36,6 +52,27 @@ export default async function CommunityPromptsPage() {
 
   return (
     <div className="min-h-screen bg-white dark:bg-black text-gray-900 dark:text-white flex flex-col">
+      <Head>
+        <title>Community Prompts | PromptHive</title>
+        <meta name="description" content="Discover the best public prompts curated by the PromptHive community. Browse, upvote, and get inspired by top AI prompts." />
+        <link rel="canonical" href="http://prompthive.co/community-prompts" />
+        {/* Open Graph */}
+        <meta property="og:title" content="Community Prompts | PromptHive" />
+        <meta property="og:description" content="Discover the best public prompts curated by the PromptHive community. Browse, upvote, and get inspired by top AI prompts." />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="http://prompthive.co/community-prompts" />
+        <meta property="og:image" content="http://prompthive.co/og-image.jpg" />
+        {/* Twitter */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Community Prompts | PromptHive" />
+        <meta name="twitter:description" content="Discover the best public prompts curated by the PromptHive community. Browse, upvote, and get inspired by top AI prompts." />
+        <meta name="twitter:image" content="http://prompthive.co/og-image.jpg" />
+        {/* JSON-LD Structured Data */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(getItemListJsonLd(prompts)) }}
+        />
+      </Head>
       <NavBar user={navUser} />
       <main className="flex-1 max-w-7xl mx-auto px-4 pb-16">
         {/* Hero Section */}

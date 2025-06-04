@@ -16,7 +16,7 @@ export default function PromptCard({ prompt, isFeatured }: { prompt: any; isFeat
         </div>
       )}
       <h2 className="text-xl font-bold mb-2 bg-gradient-to-r from-purple-700 to-pink-600 bg-clip-text text-transparent dark:from-purple-300 dark:to-pink-300">
-        <Link href={`/community-prompts/${prompt.id}`}>{prompt.name}</Link>
+        <Link href={`/community-prompts/${prompt.slug}`}>{prompt.name}</Link>
       </h2>
       <p className="text-gray-800 dark:text-gray-100 mb-3 line-clamp-3">{prompt.description}</p>
       <div className="flex flex-wrap gap-2 mb-3">
@@ -45,7 +45,7 @@ export default function PromptCard({ prompt, isFeatured }: { prompt: any; isFeat
           <Copy className="w-4 h-4" /> Copy
         </button>
         <Link
-          href={`/community-prompts/${prompt.id}`}
+          href={`/community-prompts/${prompt.slug}`}
           className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-purple-200 dark:border-purple-700 text-purple-700 dark:text-purple-200 bg-white dark:bg-gray-900 font-medium shadow hover:bg-purple-50 dark:hover:bg-purple-800 focus:outline-none focus:ring-2 focus:ring-purple-500"
           aria-label="View prompt details"
         >

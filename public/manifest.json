@@ -1,6 +1,6 @@
 {
-  "name": "PromptCraft - AI-Powered Prompt Generation",
-  "short_name": "PromptCraft",
+  "name": "PromptHive - AI-Powered Prompt Generation",
+  "short_name": "PromptHive",
   "description": "Transform your ideas into detailed, effective prompts with our AI-powered platform",
   "start_url": "/",
   "display": "standalone",
@@ -72,7 +72,7 @@
       "sizes": "1280x720",
       "type": "image/png",
       "platform": "wide",
-      "label": "PromptCraft Home Screen"
+      "label": "PromptHive Home Screen"
     }
   ],
   "categories": ["productivity", "utilities", "ai"],
