@@ -6,36 +6,44 @@ import { prisma } from '@/lib/prisma';
 import { Role } from '@/utils/constants';
 
 export async function GET(req: Request) {
-  try {
-    const { userId } = await auth();
-    if (!userId) {
-      return new NextResponse('Unauthorized', { status: 401 });
+  const { searchParams } = new URL(req.url);
+  const search = searchParams.get("search") || "";
+  const featured = searchParams.get("featured") === "true";
+
+  if (featured) {
+    try {
+      const promptService = PromptService.getInstance();
+      const featuredPrompts = await promptService.getFeaturedPrompts(3);
+      return NextResponse.json({ prompts: featuredPrompts });
+    } catch (error) {
+      console.error('Error fetching featured prompts:', error);
+      return NextResponse.json(
+        { error: 'Failed to fetch featured prompts' },
+        { status: 500 }
+      );
     }
-
-    const { searchParams } = new URL(req.url);
-    const includePublic = searchParams.get('includePublic') === 'true';
-    const tags = searchParams.get('tags')?.split(',') || [];
-    const search = searchParams.get('search') || '';
-    const page = parseInt(searchParams.get('page') || '1');
-    const limit = parseInt(searchParams.get('limit') || '10');
-
-    const promptService = PromptService.getInstance();
-    const result = await promptService.getPrompts(userId, {
-      includePublic,
-      tags,
-      search,
-      page,
-      limit,
-    });
-
-    return NextResponse.json(result);
-  } catch (error) {
-    console.error('Error fetching prompts:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch prompts' },
-      { status: 500 }
-    );
   }
+
+  const { userId } = await auth();
+  if (!userId) {
+    return new NextResponse("Unauthorized", { status: 401 });
+  }
+
+  const prompts = await prisma.prompt.findMany({
+    where: {
+      user: { clerkId: userId },
+      OR: search
+        ? [
+            { name: { contains: search, mode: "insensitive" } },
+            { description: { contains: search, mode: "insensitive" } },
+          ]
+        : undefined,
+    },
+    orderBy: { createdAt: "desc" },
+    take: 30,
+  });
+
+  return NextResponse.json({ prompts });
 }
 
 export async function POST(req: Request) {
@@ -111,20 +119,6 @@ export async function POST(req: Request) {
     console.error('Error saving prompt:', err);
     return NextResponse.json(
       { error: 'Failed to save prompt' },
-      { status: 500 }
-    );
-  }
-}
-
-export async function GET_FEATURED_PROMPTS() {
-  try {
-    const promptService = PromptService.getInstance();
-    const featuredPrompts = await promptService.getFeaturedPrompts(3);
-    return NextResponse.json({ prompts: featuredPrompts });
-  } catch (error) {
-    console.error('Error fetching featured prompts:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch featured prompts' },
       { status: 500 }
     );
   }

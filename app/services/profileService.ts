@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import type { User } from "@prisma/client";
 import { subDays, format } from "date-fns";
+import { userUpdateSchema } from "@/lib/validations/user";
 
 /**
  * Fetches a user profile by Clerk ID.
@@ -22,6 +23,7 @@ export type UsageStats = {
   lastCreditReset: Date;
   totalRequests: number;
   dailyUsage: { date: string; used: number }[];
+  recentActivity: { date: string; description: string | null; amount: number; type: string }[];
 };
 
 /**
@@ -63,6 +65,19 @@ export async function getUsageStatsByClerkId(clerkId: string): Promise<UsageStat
   const creditsRemaining = user.creditCap - user.credits;
   const totalRequests = creditHistory.length;
 
+  // Recent activity (last 15, newest first)
+  const recent = await prisma.creditHistory.findMany({
+    where: { userId: user.id },
+    orderBy: { createdAt: "desc" },
+    take: 15,
+  });
+  const recentActivity = recent.map(h => ({
+    date: h.createdAt.toISOString(),
+    description: h.description,
+    amount: h.amount,
+    type: h.type,
+  }));
+
   return {
     totalCreditsUsed,
     creditsRemaining,
@@ -70,7 +85,21 @@ export async function getUsageStatsByClerkId(clerkId: string): Promise<UsageStat
     lastCreditReset: user.lastCreditReset,
     totalRequests,
     dailyUsage,
+    recentActivity,
   };
+}
+
+export async function updateProfile(
+  clerkId: string,
+  data: Partial<User>
+): Promise<User> {
+  // Validate the update data
+  const validatedData = userUpdateSchema.parse(data);
+
+  return prisma.user.update({
+    where: { clerkId },
+    data: validatedData,
+  });
 }
 
 export type { User }; 

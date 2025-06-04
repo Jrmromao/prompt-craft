@@ -3,84 +3,150 @@ import { notFound } from 'next/navigation';
 import { Badge } from '@/components/ui/badge';
 import { Metadata } from 'next';
 import Link from 'next/link';
-import Head from 'next/head';
+import { UpvoteButton } from '@/components/community/UpvoteButton';
+import { Suspense } from 'react';
+import { Skeleton } from '@/components/ui/skeleton';
 
-export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
-  const prompt = await prisma.prompt.findUnique({
-    where: { slug: params.slug, isPublic: true, isApproved: true },
-  });
-  if (!prompt) return { title: 'Prompt Not Found | PromptHive' };
-  return {
-    title: `${prompt.name} | Community Prompt | PromptHive`,
-    description: prompt.description || 'Discover a top community prompt on PromptHive.'
+interface Tag {
+  id: string;
+  name: string;
+}
+
+interface Prompt {
+  id: string;
+  name: string;
+  slug: string;
+  description: string | null;
+  content: string;
+  upvotes: number;
+  tags: Tag[];
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+interface PageProps {
+  params: {
+    slug: string;
   };
 }
 
-async function getPrompt(slug: string) {
-  return prisma.prompt.findUnique({
-    where: { slug, isPublic: true, isApproved: true },
-    include: { tags: true },
-  });
+// Move to services/prompt.ts in a real app
+async function getPrompt(slug: string): Promise<Prompt | null> {
+  try {
+    return await prisma.prompt.findUnique({
+      where: { slug, isPublic: true, isApproved: true },
+      include: { tags: true },
+    });
+  } catch (error) {
+    console.error('Error fetching prompt:', error);
+    return null;
+  }
 }
 
-function getPromptJsonLd(prompt: any) {
+// Move to utils/seo.ts in a real app
+function getPromptJsonLd(prompt: Prompt) {
   return {
     "@context": "https://schema.org",
     "@type": "CreativeWork",
     "name": prompt.name,
     "description": prompt.description,
     "url": `http://prompthive.co/community-prompts/${prompt.slug}`,
-    "keywords": prompt.tags.map((tag: any) => tag.name).join(", ")
+    "keywords": prompt.tags.map((tag) => tag.name).join(", "),
+    "datePublished": prompt.createdAt.toISOString(),
+    "dateModified": prompt.updatedAt.toISOString(),
+    "author": {
+      "@type": "Organization",
+      "name": "PromptHive"
+    }
   };
 }
 
-export default async function PromptDetailPage({ params }: { params: { slug: string } }) {
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const prompt = await getPrompt(params.slug);
-  if (!prompt) return notFound();
+  if (!prompt) return { title: 'Prompt Not Found | PromptHive' };
 
+  const title = `${prompt.name} | Community Prompt | PromptHive`;
+  const description = prompt.description || 'Discover a top community prompt on PromptHive.';
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      type: 'article',
+      url: `http://prompthive.co/community-prompts/${prompt.slug}`,
+      images: [{ url: 'http://prompthive.co/og-image.jpg' }],
+      publishedTime: prompt.createdAt.toISOString(),
+      modifiedTime: prompt.updatedAt.toISOString(),
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: ['http://prompthive.co/og-image.jpg'],
+    },
+    alternates: {
+      canonical: `http://prompthive.co/community-prompts/${prompt.slug}`,
+    },
+  };
+}
+
+function PromptContent({ prompt }: { prompt: Prompt }) {
   return (
     <>
-      <Head>
-        <title>{prompt.name} | Community Prompt | PromptHive</title>
-        <meta name="description" content={prompt.description || 'Discover a top community prompt on PromptHive.'} />
-        <link rel="canonical" href={`http://prompthive.co/community-prompts/${prompt.slug}`} />
-        {/* Open Graph */}
-        <meta property="og:title" content={`${prompt.name} | Community Prompt | PromptHive`} />
-        <meta property="og:description" content={prompt.description || 'Discover a top community prompt on PromptHive.'} />
-        <meta property="og:type" content="article" />
-        <meta property="og:url" content={`http://prompthive.co/community-prompts/${prompt.slug}`} />
-        <meta property="og:image" content="http://prompthive.co/og-image.jpg" />
-        {/* Twitter */}
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content={`${prompt.name} | Community Prompt | PromptHive`} />
-        <meta name="twitter:description" content={prompt.description || 'Discover a top community prompt on PromptHive.'} />
-        <meta name="twitter:image" content="http://prompthive.co/og-image.jpg" />
-        {/* JSON-LD Structured Data */}
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(getPromptJsonLd(prompt)) }}
-        />
-      </Head>
-      <main className="container mx-auto py-8 px-4 max-w-2xl">
-        <Link href="/community-prompts" className="text-purple-600 hover:underline mb-4 inline-block">← Back to Community Prompts</Link>
-        <h1 className="text-3xl font-bold mb-2">{prompt.name}</h1>
-        <div className="flex items-center gap-4 mb-4">
-          <span className="text-purple-600 font-bold text-lg">⬆️ {prompt.upvotes}</span>
-          <div className="flex flex-wrap gap-2">
-            {prompt.tags.map((tag: any) => (
-              <Badge key={tag.id}>{tag.name}</Badge>
-            ))}
-          </div>
+      <Link href="/community-prompts" className="text-purple-600 hover:underline mb-4 inline-block">
+        ← Back to Community Prompts
+      </Link>
+      <h1 className="text-3xl font-bold mb-2">{prompt.name}</h1>
+      <div className="flex items-center gap-4 mb-4">
+        <span className="text-purple-600 font-bold text-lg">⬆️ {prompt.upvotes}</span>
+        <div className="flex flex-wrap gap-2">
+          {prompt.tags.map((tag) => (
+            <Badge key={tag.id}>{tag.name}</Badge>
+          ))}
         </div>
-        <p className="text-gray-700 mb-6">{prompt.description}</p>
-        <div className="bg-gray-50 border rounded p-4 font-mono whitespace-pre-wrap mb-6">
-          {prompt.content}
-        </div>
-        {/* Upvote button (client component) */}
-        <UpvoteButton promptId={prompt.id} upvotes={prompt.upvotes} />
-      </main>
+      </div>
+      <p className="text-gray-700 mb-6">{prompt.description}</p>
+      <div className="bg-gray-50 border rounded p-4 font-mono whitespace-pre-wrap mb-6">
+        {prompt.content}
+      </div>
+      <UpvoteButton promptId={prompt.id} upvotes={prompt.upvotes} />
     </>
   );
 }
 
-import { UpvoteButton } from '@/components/community/UpvoteButton'; 
+function LoadingSkeleton() {
+  return (
+    <div className="space-y-4">
+      <Skeleton className="h-4 w-32" />
+      <Skeleton className="h-8 w-3/4" />
+      <div className="flex gap-4">
+        <Skeleton className="h-6 w-16" />
+        <div className="flex gap-2">
+          <Skeleton className="h-6 w-20" />
+          <Skeleton className="h-6 w-20" />
+        </div>
+      </div>
+      <Skeleton className="h-24 w-full" />
+      <Skeleton className="h-32 w-full" />
+    </div>
+  );
+}
+
+export default async function PromptDetailPage({ params }: PageProps) {
+  const prompt = await getPrompt(params.slug);
+  if (!prompt) return notFound();
+
+  return (
+    <main className="container mx-auto py-8 px-4 max-w-2xl">
+      <Suspense fallback={<LoadingSkeleton />}>
+        <PromptContent prompt={prompt} />
+      </Suspense>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(getPromptJsonLd(prompt)) }}
+      />
+    </main>
+  );
+} 

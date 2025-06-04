@@ -1,11 +1,8 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { prisma } from '@/lib/prisma';
+import { userProfileSchema } from '@/lib/validations/user';
 import { z } from 'zod';
-
-const profileSchema = z.object({
-  name: z.string().min(2),
-});
 
 export async function PATCH(req: Request) {
   try {
@@ -16,13 +13,20 @@ export async function PATCH(req: Request) {
     }
 
     const body = await req.json();
-    const validatedData = profileSchema.parse(body);
+    const validatedData = userProfileSchema.parse(body);
 
     // Update user profile
     const updatedUser = await prisma.user.update({
       where: { clerkId: userId },
       data: {
         name: validatedData.name,
+        bio: validatedData.bio,
+        jobTitle: validatedData.jobTitle,
+        location: validatedData.location,
+        company: validatedData.company,
+        website: validatedData.website,
+        twitter: validatedData.twitter,
+        linkedin: validatedData.linkedin,
       },
     });
 

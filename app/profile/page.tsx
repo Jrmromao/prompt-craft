@@ -32,6 +32,13 @@ export default async function ProfilePage() {
         planType: dbUser.planType,
         credits: dbUser.credits,
         creditCap: dbUser.creditCap,
+        bio: dbUser.bio || undefined,
+        jobTitle: dbUser.jobTitle || undefined,
+        location: dbUser.location || undefined,
+        company: dbUser.company || undefined,
+        website: dbUser.website || undefined,
+        twitter: dbUser.twitter || undefined,
+        linkedin: dbUser.linkedin || undefined,
       }}
       currentPath={currentPath}
     />

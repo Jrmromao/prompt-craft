@@ -21,6 +21,20 @@ model User {
   lastCreditReset   DateTime           @default(now())
   stripeCustomerId  String?
   onboarded         Boolean            @default(false)
+  imageUrl          String?            // URL to user's profile image
+  bio               String?            // User's bio/description
+  jobTitle          String?            // User's job title
+  location          String?            // User's location
+  company           String?            // User's company
+  website           String?            // User's website
+  twitter           String?            // User's Twitter handle
+  linkedin          String?            // User's LinkedIn profile
+  emailPreferences  Json?              @default("{\"marketingEmails\":true,\"productUpdates\":true,\"securityAlerts\":true}")
+  notificationSettings Json?           @default("{\"emailNotifications\":true,\"pushNotifications\":true,\"browserNotifications\":true}")
+  languagePreferences Json?            @default("{\"language\":\"en\",\"dateFormat\":\"MM/DD/YYYY\",\"timeFormat\":\"12h\"}")
+  themeSettings     Json?              @default("{\"theme\":\"system\",\"accentColor\":\"purple\"}")
+  securitySettings  Json?              @default("{\"twoFactorEnabled\":false,\"sessionTimeout\":30}")
+  apiKeys           ApiKey[]
   creditHistory     CreditHistory[]
   prompts           Prompt[]
   promptGenerations PromptGeneration[]
@@ -136,6 +150,19 @@ model PromptGeneration {
   @@index([userId])
   @@index([promptType])
   @@index([createdAt])
+}
+
+model ApiKey {
+  id        String   @id @default(cuid())
+  userId    String
+  name      String
+  key       String   @unique
+  createdAt DateTime @default(now())
+  expiresAt DateTime?
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([key])
 }
 
 enum Role {
