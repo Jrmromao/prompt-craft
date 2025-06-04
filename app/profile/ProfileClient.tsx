@@ -333,7 +333,9 @@ export function ProfileClient({ user, currentPath }: ProfileClientProps) {
                 const { url } = await res.json();
                 window.location.href = url;
               } catch (err) {
-                toast.error("Could not open Stripe portal. Please try again.");
+                toast("Could not open Stripe portal. Please try again.", {
+                  type: "error",
+                });
               } finally {
                 setPortalLoading(false);
               }
@@ -455,6 +457,7 @@ export function ProfileClient({ user, currentPath }: ProfileClientProps) {
     const { data, error, isLoading, mutate } = useSWR("/api/settings", (url) => fetch(url).then(r => r.json()));
     const { toast } = useToast();
     const [activeTab, setActiveTab] = useState("account");
+    const { data: loginHistory, error: loginHistoryError, mutate: mutateLoginHistory } = useSWR("/api/settings/login-history", (url) => fetch(url).then(r => r.json()));
 
     if (isLoading) {
       return <div className="p-8 text-center text-muted-foreground">Loading settings...</div>;
@@ -474,16 +477,9 @@ export function ProfileClient({ user, currentPath }: ProfileClientProps) {
         if (!response.ok) throw new Error("Failed to update settings");
 
         await mutate();
-        toast({
-          title: "Settings updated",
-          description: "Your settings have been saved successfully.",
-        });
+        toast.success("Settings updated");
       } catch (error) {
-        toast({
-          title: "Error",
-          description: "Failed to update settings. Please try again.",
-          variant: "destructive",
-        });
+        toast.error("Failed to update settings. Please try again.");
       }
     };
 
@@ -625,6 +621,150 @@ export function ProfileClient({ user, currentPath }: ProfileClientProps) {
 
           <TabsContent value="security">
             <div className="space-y-6">
+              {/* Password Change */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Change Password</CardTitle>
+                  <CardDescription>Update your account password</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <form
+                    onSubmit={async (e) => {
+                      e.preventDefault();
+                      const formData = new FormData(e.currentTarget);
+                      const currentPassword = formData.get("currentPassword") as string;
+                      const newPassword = formData.get("newPassword") as string;
+                      const confirmPassword = formData.get("confirmPassword") as string;
+
+                      if (newPassword !== confirmPassword) {
+                        toast("New passwords do not match", {
+                          type: "error",
+                        });
+                        return;
+                      }
+
+                      try {
+                        const response = await fetch("/api/settings/password", {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({
+                            currentPassword,
+                            newPassword,
+                          }),
+                        });
+
+                        if (!response.ok) {
+                          throw new Error("Failed to change password");
+                        }
+
+                        toast("Password changed successfully", {
+                          type: "success",
+                        });
+                        e.currentTarget.reset();
+                      } catch (error) {
+                        toast("Failed to change password", {
+                          type: "error",
+                        });
+                      }
+                    }}
+                    className="space-y-4"
+                  >
+                    <div className="space-y-2">
+                      <Label htmlFor="currentPassword">Current Password</Label>
+                      <Input
+                        id="currentPassword"
+                        name="currentPassword"
+                        type="password"
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="newPassword">New Password</Label>
+                      <Input
+                        id="newPassword"
+                        name="newPassword"
+                        type="password"
+                        required
+                        minLength={8}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="confirmPassword">Confirm New Password</Label>
+                      <Input
+                        id="confirmPassword"
+                        name="confirmPassword"
+                        type="password"
+                        required
+                        minLength={8}
+                      />
+                    </div>
+                    <Button type="submit">Change Password</Button>
+                  </form>
+                </CardContent>
+              </Card>
+
+              {/* Login History */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Login History</CardTitle>
+                  <CardDescription>View your recent login activity</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {loginHistoryError ? (
+                    <div className="text-red-500">Failed to load login history</div>
+                  ) : !loginHistory ? (
+                    <div className="text-muted-foreground">Loading login history...</div>
+                  ) : (
+                    <div className="space-y-4">
+                      {loginHistory.map((session: any) => (
+                        <div
+                          key={session.id}
+                          className="flex items-center justify-between p-4 border rounded-lg"
+                        >
+                          <div className="space-y-1">
+                            <p className="font-medium">
+                              {session.device} - {session.browser}
+                            </p>
+                            <p className="text-sm text-muted-foreground">
+                              {session.location} ({session.ipAddress})
+                            </p>
+                            <p className="text-sm text-muted-foreground">
+                              Last active: {new Date(session.lastActive).toLocaleString()}
+                            </p>
+                          </div>
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={async () => {
+                              try {
+                                const response = await fetch(`/api/settings/sessions?sessionId=${session.id}`, {
+                                  method: "DELETE",
+                                });
+                                
+                                if (!response.ok) {
+                                  throw new Error("Failed to revoke session");
+                                }
+                                
+                                mutateLoginHistory();
+                                toast("Session revoked successfully", {
+                                  type: "success",
+                                });
+                              } catch (error) {
+                                toast("Failed to revoke session", {
+                                  type: "error",
+                                });
+                              }
+                            }}
+                          >
+                            Revoke
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
               {/* Security Settings */}
               <Card>
                 <CardHeader>
@@ -673,10 +813,8 @@ export function ProfileClient({ user, currentPath }: ProfileClientProps) {
                           onClick={() => {
                             fetch(`/api/settings/sessions?sessionId=${session.id}`, { method: "DELETE" })
                               .then(() => mutate())
-                              .catch(() => toast({
-                                title: "Error",
-                                description: "Failed to revoke session",
-                                variant: "destructive",
+                              .catch(() => toast("Failed to revoke session", {
+                                type: "error",
                               }));
                           }}
                         >
@@ -715,10 +853,8 @@ export function ProfileClient({ user, currentPath }: ProfileClientProps) {
                           onClick={() => {
                             fetch(`/api/settings/api-keys?keyId=${key.id}`, { method: "DELETE" })
                               .then(() => mutate())
-                              .catch(() => toast({
-                                title: "Error",
-                                description: "Failed to revoke API key",
-                                variant: "destructive",
+                              .catch(() => toast("Failed to revoke API key", {
+                                type: "error",
                               }));
                           }}
                         >
@@ -736,10 +872,8 @@ export function ProfileClient({ user, currentPath }: ProfileClientProps) {
                             body: JSON.stringify({ name }),
                           })
                             .then(() => mutate())
-                            .catch(() => toast({
-                              title: "Error",
-                              description: "Failed to generate API key",
-                              variant: "destructive",
+                            .catch(() => toast("Failed to generate API key", {
+                              type: "error",
                             }));
                         }
                       }}
@@ -794,6 +928,17 @@ export function ProfileClient({ user, currentPath }: ProfileClientProps) {
                   currentImageUrl={user.imageUrl}
                   userId={user.id}
                   name={user.name || user.email}
+                  onUploadComplete={(url) => {
+                    setAvatarUrl(url);
+                    toast("Profile picture updated successfully", {
+                      type: "success",
+                    });
+                  }}
+                  onUploadError={(error) => {
+                    toast("Failed to upload profile picture", {
+                      type: "error",
+                    });
+                  }}
                 />
               </div>
               <div className="flex-1 flex flex-col gap-1 z-10">

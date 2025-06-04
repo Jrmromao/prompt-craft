@@ -22,6 +22,8 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { AvatarUpload } from "@/components/profile/AvatarUpload";
 
 type ProfileFormValues = z.infer<typeof userProfileSchema>;
 
@@ -41,12 +43,14 @@ interface ProfileFormProps {
     website?: string;
     twitter?: string;
     linkedin?: string;
+    imageUrl?: string;
   };
 }
 
 export function ProfileForm({ user }: ProfileFormProps) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState(user.imageUrl || "");
 
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(userProfileSchema),
@@ -93,6 +97,32 @@ export function ProfileForm({ user }: ProfileFormProps) {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+        <Card>
+          <CardHeader>
+            <CardTitle>Profile Picture</CardTitle>
+            <CardDescription>
+              Upload a profile picture to personalize your account.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-4">
+              <Avatar className="h-20 w-20">
+                <AvatarImage src={avatarUrl} alt={user.name} />
+                <AvatarFallback>{user.name?.charAt(0)}</AvatarFallback>
+              </Avatar>
+              <AvatarUpload
+                onUploadComplete={(url) => {
+                  setAvatarUrl(url);
+                  toast.success("Profile picture updated successfully");
+                }}
+                onUploadError={(error) => {
+                  toast.error("Failed to upload profile picture");
+                }}
+              />
+            </div>
+          </CardContent>
+        </Card>
+
         <Card>
           <CardHeader>
             <CardTitle>Personal Information</CardTitle>
@@ -147,17 +177,6 @@ export function ProfileForm({ user }: ProfileFormProps) {
                 </FormItem>
               )}
             />
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Professional Information</CardTitle>
-            <CardDescription>
-              Add your professional details to help others understand your expertise.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
             <FormField
               control={form.control}
               name="jobTitle"
@@ -165,7 +184,7 @@ export function ProfileForm({ user }: ProfileFormProps) {
                 <FormItem>
                   <FormLabel>Job Title</FormLabel>
                   <FormControl>
-                    <Input {...field} disabled={isLoading} />
+                    <Input {...field} disabled={isLoading} placeholder="Your job title" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -178,12 +197,23 @@ export function ProfileForm({ user }: ProfileFormProps) {
                 <FormItem>
                   <FormLabel>Company</FormLabel>
                   <FormControl>
-                    <Input {...field} disabled={isLoading} />
+                    <Input {...field} disabled={isLoading} placeholder="Your company" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Professional Information</CardTitle>
+            <CardDescription>
+              Add your professional details to help others understand your expertise.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
             <FormField
               control={form.control}
               name="location"
@@ -247,6 +277,42 @@ export function ProfileForm({ user }: ProfileFormProps) {
                 </FormItem>
               )}
             />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Account Management</CardTitle>
+            <CardDescription>
+              Manage your account settings and data.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <Button
+                variant="destructive"
+                onClick={async () => {
+                  if (window.confirm("Are you sure you want to delete your account? This action cannot be undone.")) {
+                    try {
+                      const response = await fetch("/api/profile", {
+                        method: "DELETE",
+                      });
+                      
+                      if (!response.ok) {
+                        throw new Error("Failed to delete account");
+                      }
+                      
+                      toast.success("Account deleted successfully");
+                      router.push("/");
+                    } catch (error) {
+                      toast.error("Failed to delete account");
+                    }
+                  }
+                }}
+              >
+                Delete Account
+              </Button>
+            </div>
           </CardContent>
         </Card>
 

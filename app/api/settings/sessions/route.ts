@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
-import { getActiveSessions, revokeSession } from "@/app/services/settingsService";
+import { auth, clerkClient } from "@clerk/nextjs/server";
 
 export async function GET() {
   const { userId } = await auth();
@@ -9,7 +8,7 @@ export async function GET() {
   }
 
   try {
-    const sessions = await getActiveSessions(userId);
+    const sessions = await clerkClient.users.getSessions(userId);
     return NextResponse.json(sessions);
   } catch (error) {
     console.error("Session fetch error:", error);
@@ -17,24 +16,26 @@ export async function GET() {
   }
 }
 
-export async function DELETE(req: Request) {
-  const { userId } = await auth();
-  if (!userId) {
-    return new NextResponse("Unauthorized", { status: 401 });
-  }
-
+export async function DELETE(request: Request) {
   try {
-    const { searchParams } = new URL(req.url);
+    const { userId } = await auth();
+    if (!userId) {
+      return new NextResponse("Unauthorized", { status: 401 });
+    }
+
+    const { searchParams } = new URL(request.url);
     const sessionId = searchParams.get("sessionId");
-    
+
     if (!sessionId) {
       return new NextResponse("Session ID is required", { status: 400 });
     }
 
-    const result = await revokeSession(userId, sessionId);
-    return NextResponse.json(result);
+    // Revoke the session
+    await clerkClient.users.revokeSession(sessionId);
+
+    return new NextResponse("Session revoked successfully", { status: 200 });
   } catch (error) {
-    console.error("Session revocation error:", error);
-    return new NextResponse("Internal error", { status: 500 });
+    console.error("Error revoking session:", error);
+    return new NextResponse("Internal Server Error", { status: 500 });
   }
 } 

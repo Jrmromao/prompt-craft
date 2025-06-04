@@ -3,21 +3,22 @@ import ProfilePage from "@/app/profile/page";
 import { auth } from "@clerk/nextjs/server";
 import { currentUser } from "@clerk/nextjs/server";
 import { getProfileByClerkId } from "@/app/services/profileService";
+import { vi, describe, it, expect, beforeEach } from 'vitest';
 
 // Mock Clerk auth
-jest.mock("@clerk/nextjs/server", () => ({
-  auth: jest.fn(),
-  currentUser: jest.fn(),
+vi.mock("@clerk/nextjs/server", () => ({
+  auth: vi.fn(),
+  currentUser: vi.fn(),
 }));
 
 // Mock profile service
-jest.mock("@/app/services/profileService", () => ({
-  getProfileByClerkId: jest.fn(),
+vi.mock("@/app/services/profileService", () => ({
+  getProfileByClerkId: vi.fn(),
 }));
 
 // Mock next/navigation
-jest.mock("next/navigation", () => ({
-  redirect: jest.fn(),
+vi.mock("next/navigation", () => ({
+  redirect: vi.fn(),
 }));
 
 describe("ProfilePage", () => {
@@ -40,12 +41,12 @@ describe("ProfilePage", () => {
   };
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it("redirects to sign-in if user is not authenticated", async () => {
-    const mockAuth = auth as unknown as jest.Mock;
-    const mockCurrentUser = currentUser as unknown as jest.Mock;
+    const mockAuth = auth as unknown as ReturnType<typeof vi.fn>;
+    const mockCurrentUser = currentUser as unknown as ReturnType<typeof vi.fn>;
     
     mockAuth.mockResolvedValueOnce({ userId: null });
     mockCurrentUser.mockResolvedValueOnce(null);
@@ -55,27 +56,27 @@ describe("ProfilePage", () => {
   });
 
   it("redirects to sign-in if user is not found in database", async () => {
-    const mockAuth = auth as unknown as jest.Mock;
-    const mockCurrentUser = currentUser as unknown as jest.Mock;
+    const mockAuth = auth as unknown as ReturnType<typeof vi.fn>;
+    const mockCurrentUser = currentUser as unknown as ReturnType<typeof vi.fn>;
     
     mockAuth.mockResolvedValueOnce({ userId: "user-123" });
     mockCurrentUser.mockResolvedValueOnce({ id: "user-123" });
-    (getProfileByClerkId as jest.Mock).mockResolvedValueOnce(null);
+    (getProfileByClerkId as ReturnType<typeof vi.fn>).mockResolvedValueOnce(null);
 
     await ProfilePage();
     expect(require("next/navigation").redirect).toHaveBeenCalledWith("/sign-in");
   });
 
   it("renders profile page with user data", async () => {
-    const mockAuth = auth as unknown as jest.Mock;
-    const mockCurrentUser = currentUser as unknown as jest.Mock;
+    const mockAuth = auth as unknown as ReturnType<typeof vi.fn>;
+    const mockCurrentUser = currentUser as unknown as ReturnType<typeof vi.fn>;
     
     mockAuth.mockResolvedValueOnce({ userId: "user-123" });
     mockCurrentUser.mockResolvedValueOnce({ 
       id: "user-123",
       imageUrl: "https://example.com/avatar.jpg",
     });
-    (getProfileByClerkId as jest.Mock).mockResolvedValueOnce(mockUser);
+    (getProfileByClerkId as ReturnType<typeof vi.fn>).mockResolvedValueOnce(mockUser);
 
     const { container } = render(await ProfilePage());
 
