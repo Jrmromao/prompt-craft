@@ -114,4 +114,18 @@ export async function POST(req: Request) {
       { status: 500 }
     );
   }
+}
+
+export async function GET_FEATURED_PROMPTS() {
+  try {
+    const promptService = PromptService.getInstance();
+    const featuredPrompts = await promptService.getFeaturedPrompts(3);
+    return NextResponse.json({ prompts: featuredPrompts });
+  } catch (error) {
+    console.error('Error fetching featured prompts:', error);
+    return NextResponse.json(
+      { error: 'Failed to fetch featured prompts' },
+      { status: 500 }
+    );
+  }
 } 

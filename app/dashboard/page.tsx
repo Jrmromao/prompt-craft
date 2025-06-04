@@ -4,6 +4,8 @@ import { redirect } from "next/navigation";
 import { DashboardService } from "@/lib/services/dashboardService";
 import { NavBar } from "@/components/layout/NavBar";
 import { auth, currentUser } from "@clerk/nextjs/server";
+import { useEffect, useState } from 'react';
+import { AdminPromptReview } from '@/components/dashboard/AdminPromptReview';
 
 // Types for serializable props
 interface SerializableUserWithPlan {
@@ -105,6 +107,7 @@ export default async function DashboardPage() {
           creditHistory={creditHistory}
           usageData={usageData}
         />
+        <AdminPromptReview />
       </>
     );
   } catch (error) {

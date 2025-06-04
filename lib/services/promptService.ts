@@ -14,6 +14,8 @@ interface Prompt {
   createdAt: Date;
   updatedAt: Date;
   tags: { id: string; name: string }[];
+  isApproved: boolean;
+  upvotes: number;
 }
 
 export class PromptService {
@@ -226,5 +228,59 @@ export class PromptService {
     await prisma.prompt.delete({
       where: { id },
     });
+  }
+
+  // Admin: Approve a prompt
+  public async approvePrompt(promptId: string): Promise<Prompt> {
+    return prisma.prompt.update({
+      where: { id: promptId },
+      data: { isApproved: true },
+      include: { tags: true },
+    }) as Promise<Prompt>;
+  }
+
+  // Admin: Reject (delete) a prompt
+  public async rejectPrompt(promptId: string): Promise<void> {
+    await prisma.prompt.delete({ where: { id: promptId } });
+  }
+
+  // Admin: Get prompts pending review (public but not approved)
+  public async getPendingPrompts(): Promise<Prompt[]> {
+    return prisma.prompt.findMany({
+      where: { isPublic: true, isApproved: false },
+      orderBy: { createdAt: 'desc' },
+      include: { tags: true },
+    }) as Promise<Prompt[]>;
+  }
+
+  // Update upvotePrompt to auto-approve if upvotes exceed threshold
+  public async upvotePrompt(promptId: string): Promise<Prompt> {
+    const threshold = 100;
+    const prompt = await prisma.prompt.update({
+      where: { id: promptId },
+      data: { upvotes: { increment: 1 } },
+      include: { tags: true },
+    });
+    if (!prompt.isApproved && prompt.upvotes >= threshold) {
+      await prisma.prompt.update({
+        where: { id: promptId },
+        data: { isApproved: true },
+      });
+      prompt.isApproved = true;
+    }
+    return prompt as Prompt;
+  }
+
+  // Get top N public, approved prompts for landing page/SEO
+  public async getFeaturedPrompts(limit: number = 3): Promise<Prompt[]> {
+    return prisma.prompt.findMany({
+      where: { isPublic: true, isApproved: true },
+      orderBy: [
+        { upvotes: 'desc' },
+        { createdAt: 'desc' },
+      ],
+      include: { tags: true },
+      take: limit,
+    }) as Promise<Prompt[]>;
   }
 }

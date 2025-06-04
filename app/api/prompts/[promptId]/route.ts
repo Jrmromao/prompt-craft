@@ -100,3 +100,22 @@ export async function DELETE(
     );
   }
 }
+
+// --- Upvote endpoint ---
+export async function POST(
+  req: Request,
+  context: { params: Promise<{ promptId: string }> }
+): Promise<Response> {
+  try {
+    const { promptId } = await context.params;
+    const promptService = PromptService.getInstance();
+    const updatedPrompt = await promptService.upvotePrompt(promptId);
+    return Response.json(updatedPrompt);
+  } catch (error) {
+    console.error('Error upvoting prompt:', error);
+    return Response.json(
+      { error: 'Failed to upvote prompt' },
+      { status: 500 }
+    );
+  }
+}
