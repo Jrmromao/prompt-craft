@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { Role, PlanType, Period, CreditType } from "@prisma/client";
 import { currentUser } from "@clerk/nextjs/server";
+import { Role as RoleConstant } from "@/utils/constants";
 
 // Types for serializable props
 interface SerializableUserWithPlan {
@@ -23,6 +24,7 @@ interface SerializableUserWithPlan {
   } | null;
   name: string;
   role: string;
+  planType: string;
   createdAt: string;
   updatedAt: string;
   creditCap: number;
@@ -111,7 +113,7 @@ export class DashboardService {
             clerkId,
             email: clerkUser.emailAddresses[0].emailAddress,
             name: clerkUser.firstName || "User",
-            role: Role.FREE,
+            planType: PlanType.FREE,
             credits: 10,
             creditCap: 10,
             lastCreditReset: new Date(),

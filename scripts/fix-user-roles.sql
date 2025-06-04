@@ -1,0 +1,1 @@
+UPDATE "User" SET role = 'USER' WHERE role IN ('FREE', 'LITE', 'PRO'); 

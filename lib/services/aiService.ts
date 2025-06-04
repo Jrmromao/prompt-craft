@@ -1,5 +1,6 @@
 import { Role } from '@/utils/constants';
 import { prisma } from '@/lib/prisma';
+import { PlanType } from '@/utils/constants';
 
 export type AIModel = 'deepseek' | 'gpt4' | 'claude';
 
@@ -34,19 +35,25 @@ export class AIService {
       where: { id: userId },
       select: { role: true },
     });
-    return (user?.role as Role) || Role.FREE;
+    return (user?.role as Role) || Role.USER;
+  }
+
+  private async getUserPlanType(userId: string): Promise<PlanType> {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { planType: true },
+    });
+    return (user?.planType as PlanType) || PlanType.FREE;
   }
 
   private async validateModelAccess(userId: string, model: AIModel): Promise<boolean> {
-    const role = await this.getUserRole(userId);
-    
+    const planType = await this.getUserPlanType(userId);
     // Free and Lite users can only use deepseek
-    if (role === Role.FREE || role === Role.LITE) {
+    if (planType === PlanType.FREE || planType === PlanType.LITE) {
       return model === 'deepseek';
     }
-    
     // Pro users can use all models
-    return role === Role.PRO;
+    return planType === PlanType.PRO;
   }
 
   public async generateText(userId: string, options: GenerateOptions): Promise<string> {

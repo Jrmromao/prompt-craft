@@ -1,5 +1,5 @@
 import { prisma } from '@/lib/prisma';
-import { Role } from '@/utils/constants';
+import { Role, PlanType } from '@/utils/constants';
 import { Prisma } from '@prisma/client';
 
 interface Prompt {
@@ -21,11 +21,10 @@ interface Prompt {
 
 export class PromptService {
   private static instance: PromptService;
-  private readonly PROMPT_LIMITS: Record<Role, number> = {
-    [Role.FREE]: 10,
-    [Role.LITE]: 50,
-    [Role.PRO]: Infinity,
-    [Role.ADMIN]: Infinity,
+  private readonly PROMPT_LIMITS: Record<PlanType, number> = {
+    [PlanType.FREE]: 10,
+    [PlanType.LITE]: 50,
+    [PlanType.PRO]: Infinity,
   };
 
   private constructor() {}
@@ -65,7 +64,7 @@ export class PromptService {
 
     console.log('\n\n\nuserId', user);
 
-    const promptLimit = this.PROMPT_LIMITS[user.role as Role];
+    const promptLimit = this.PROMPT_LIMITS[user.role as PlanType];
     if (promptLimit !== Infinity) {
       const promptCount = await prisma.prompt.count({
         where: { userId },

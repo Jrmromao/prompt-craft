@@ -1,6 +1,6 @@
 'use client';
 import Link from "next/link";
-import { Sparkles, User, LogOut } from "lucide-react";
+import { Sparkles, User, LogOut, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -20,7 +20,7 @@ export interface NavBarUser {
   imageUrl?: string;
 }
 
-export function NavBar({ user }: { user: NavBarUser }) {
+export function NavBar({ user, onMenuClick }: { user: NavBarUser, onMenuClick?: () => void }) {
   const { signOut } = useClerk();
   const userInitials = user?.name?.split(' ').map(n => n[0]).join('').toUpperCase() || 'U';
 
@@ -37,6 +37,7 @@ export function NavBar({ user }: { user: NavBarUser }) {
             </Link>
           </div>
           <div className="flex items-center gap-4">
+          
             <ThemeToggle />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -72,6 +73,14 @@ export function NavBar({ user }: { user: NavBarUser }) {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
+
+            <button
+              className="md:hidden p-2 rounded-lg hover:bg-muted focus:outline-none focus:ring-2 focus:ring-purple-500"
+              aria-label="Open menu"
+              onClick={onMenuClick}
+            >
+              <Menu className="w-6 h-6 text-purple-500" />
+            </button>
           </div>
         </div>
       </div>

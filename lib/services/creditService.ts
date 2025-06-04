@@ -1,5 +1,5 @@
 import { prisma } from '@/lib/prisma';
-import { Role, CreditType, Period } from '@/utils/constants';
+import { Role, CreditType, Period, PlanType } from '@/utils/constants';
 import { addDays, addMonths, isAfter, isBefore } from 'date-fns';
 
 interface CreditCheck {
@@ -20,17 +20,15 @@ interface CreditReset {
 export class CreditService {
   private static instance: CreditService;
   private readonly CREDIT_CAPS = {
-    [Role.FREE]: 10,
-    [Role.LITE]: 1500,
-    [Role.PRO]: 5000,
-    [Role.ADMIN]: 5000,
+    [PlanType.FREE]: 10,
+    [PlanType.LITE]: 1500,
+    [PlanType.PRO]: 5000,
   };
 
   private readonly CREDIT_ALLOCATIONS = {
-    [Role.FREE]: 10,
-    [Role.LITE]: 250,
-    [Role.PRO]: 1500,
-    [Role.ADMIN]: 1500,
+    [PlanType.FREE]: 10,
+    [PlanType.LITE]: 250,
+    [PlanType.PRO]: 1500,
   };
 
   private constructor() {}
@@ -61,7 +59,7 @@ export class CreditService {
       throw new Error('User not found');
     }
 
-    const creditCap = this.CREDIT_CAPS[user.role as Role];
+    const creditCap = this.CREDIT_CAPS[user.role as PlanType];
     const currentCredits = user.credits;
     const missingCredits = Math.max(0, requiredCredits - currentCredits);
 
@@ -94,7 +92,7 @@ export class CreditService {
       throw new Error('User not found');
     }
 
-    const role = user.role as Role;
+    const role = user.role as PlanType;
     const currentPeriodEnd = user.subscription?.currentPeriodEnd || new Date();
 
     // Calculate next period end (example: weekly)
@@ -151,7 +149,7 @@ export class CreditService {
       throw new Error('User not found');
     }
 
-    const creditCap = this.CREDIT_CAPS[user.role as Role];
+    const creditCap = this.CREDIT_CAPS[user.role as PlanType];
     const newBalance = Math.min(user.credits + amount, creditCap);
 
     // Update user credits
@@ -242,7 +240,7 @@ export class CreditService {
       throw new Error('User not found');
     }
 
-    const total = this.CREDIT_ALLOCATIONS[user.role as Role];
+    const total = this.CREDIT_ALLOCATIONS[user.role as PlanType];
     const used = total - user.credits;
     const percentage = (used / total) * 100;
 

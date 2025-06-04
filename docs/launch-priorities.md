@@ -8,7 +8,7 @@ A prioritized checklist of features and tasks to complete before launching the f
 - [x] **Access Control**: Only allow editing/deleting prompts by their owner. Hide edit/delete buttons for others.
 - [x] **Prompt Creation UX**: Validation, error handling, and user feedback (toasts) for prompt creation, editing, and deletion.
 - [x] **Slug Uniqueness**: Ensure slug generation is robust and handles collisions.
-- [ ] **Admin Features**: Admin dashboard for prompt approval/rejection. Protect admin-only routes.
+- [x] **Admin Features**: Admin dashboard for prompt approval/rejection. Protect admin-only routes.
 - [ ] **User Profile Page**: Allow users to view and edit their profile (name, email, avatar).
 - [ ] **Empty & Loading States**: Friendly empty states and loading skeletons for all lists and detail pages.
 - [ ] **Error Handling**: Add error boundaries and user-friendly error messages.

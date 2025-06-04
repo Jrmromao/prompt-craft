@@ -1,96 +1,70 @@
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
-import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
-import { Role } from "@/utils/constants";
+import { clerkMiddleware } from "@clerk/nextjs/server";
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+import { rateLimitMiddleware } from "./middleware/rate-limit";
+import { prisma } from "@/lib/prisma";
 
-// Define custom session claims type
-interface UserMetadata {
-    role: string;
-    onboarded: boolean;
-    subscription?: {
-        iat: number;
-        status?: string;
-        tier?: string;
-        subscriptionId?: string;
-        currentPeriodEnd?: string;
-    };
-}
+// Define routes that don't require authentication
+const publicRoutes = [
+  "/",
+  "/sign-in(.*)",
+  "/sign-up(.*)",
+  "/api/webhook(.*)",
+  "/api/health",
+  "/terms",
+  "/privacy",
+  "/pricing",
+  "/onboarding(.*)",
+  "/api/onboarding(.*)",
+];
 
-// Public routes that don't require authentication
-const PUBLIC_ROUTES = createRouteMatcher([
-    '/',
-    '/api/webhooks/(.*)',
-    '/sign-in(.*)',
-    '/sign-up(.*)',
-    '/pricing',
-    '/about',
-    '/contact',
-    '/onboarding(.*)',
-    '/api/onboarding(.*)',
-]);
+// Define routes that require admin access
+const adminRoutes = ["/admin(.*)"];
 
-// Routes that require Pro subscription
-const PRO_ONLY_ROUTES = createRouteMatcher([
-    '/api/ai/generate/advanced',
-    '/api/ai/generate/gpt4',
-    '/api/ai/generate/claude',
-]);
+// Define routes that should be rate limited
+const RATE_LIMITED_ROUTES = [
+  "/api/prompts(.*)",
+  "/api/community(.*)",
+  "/api/analytics(.*)",
+];
 
 export default clerkMiddleware(async (auth, req: NextRequest) => {
-    const path = req.nextUrl.pathname;
+  // Handle public routes
+  if (publicRoutes.some((route) => req.nextUrl.pathname.match(new RegExp(`^${route}$`)))) {
+    return NextResponse.next();
+  }
 
-    // Check if route is public
-    if (PUBLIC_ROUTES(req)) {
-        return NextResponse.next();
+  // Handle unauthenticated users
+  const { userId } = await auth();
+  if (!userId) {
+    const signInUrl = new URL("/sign-in", req.url);
+    signInUrl.searchParams.set("redirect_url", req.url);
+    return NextResponse.redirect(signInUrl);
+  }
+
+  // Apply rate limiting to API routes
+  if (RATE_LIMITED_ROUTES.some((route) => req.nextUrl.pathname.match(new RegExp(`^${route}$`)))) {
+    const rateLimitResponse = rateLimitMiddleware(req);
+    if (rateLimitResponse) {
+      return rateLimitResponse;
     }
+  }
 
-    // Authenticate the request
-    const { userId, sessionClaims, redirectToSignIn } = await auth();
+  // Handle admin routes
+  if (adminRoutes.some((route) => req.nextUrl.pathname.match(new RegExp(`^${route}$`)))) {
+    const user = await prisma.user.findUnique({
+      where: { clerkId: userId },
+      select: { role: true },
+    });
 
-    // Redirect to sign-in if not authenticated
-    if (!userId) {
-        return redirectToSignIn({ returnBackUrl: req.url });
+    if (!user || user.role !== "ADMIN") {
+      return new NextResponse("Unauthorized", { status: 403 });
     }
+  }
 
-    // Check if user is trying to access Pro-only routes
-    if (PRO_ONLY_ROUTES(req)) {
-        const metadata = sessionClaims?.metadata as unknown as UserMetadata;
-        const isPro = metadata?.role === Role.PRO || 
-                     (metadata?.subscription?.status === 'active' && 
-                      metadata?.subscription?.tier === 'PRO');
-
-        if (!isPro) {
-            return NextResponse.json({
-                error: 'This feature requires a Pro subscription',
-                upgradeRequired: true,
-            }, { status: 403 });
-        }
-    }
-
-    // API routes (except webhooks) should be accessible to authenticated users
-    if (path.startsWith('/api/') && !path.startsWith('/api/webhooks/')) {
-        return NextResponse.next();
-    }
-
-    // Check subscription status for protected routes
-    try {
-        const metadata = sessionClaims?.metadata as unknown as UserMetadata;
-
-        // Check if user is an admin or has an active subscription
-        const isAdmin = metadata?.role === Role.ADMIN;
-        const hasActiveSubscription =
-            metadata?.subscription?.status === 'active' &&
-            ['PRO', 'pro'].includes(metadata?.subscription?.tier || '');
-
-        // All checks passed, continue to protected route
-        return NextResponse.next();
-    } catch (error) {
-        console.error('Error in subscription middleware:', error);
-        return NextResponse.redirect(new URL('/error?code=middleware_error', req.url));
-    }
+  return NextResponse.next();
 });
 
-// Export config for Clerk middleware
 export const config = {
-    matcher: ['/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)'],
+  matcher: ["/((?!.+\\.[\\w]+$|_next).*)", "/", "/(api|trpc)(.*)"],
 };

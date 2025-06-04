@@ -15,7 +15,7 @@ export default async function PromptsPage() {
   const user = await dashboardService.getUserData(auth.user.id);
 
   // Free tier users can only create prompts, not view history
-  if (user.role === 'FREE') {
+  if (user.planType === 'FREE') {
     return <PromptsClient mode="create" />;
   }
 

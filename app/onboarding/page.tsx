@@ -1,277 +1,103 @@
 // app/onboarding/page.tsx
-"use client"
+import { auth } from "@clerk/nextjs/server";
+import { currentUser } from "@clerk/nextjs/server";
+import { redirect } from "next/navigation";
+import { OnboardingForm } from "@/components/onboarding/OnboardingForm";
+import { prisma } from "@/lib/prisma";
+import { Sparkles, Zap, Shield, Users } from "lucide-react";
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { useUser, useAuth } from '@clerk/nextjs';
-import { z } from 'zod';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
+export default async function OnboardingPage() {
+    const { userId } = await auth();
+    const clerkUser = await currentUser();
 
-// UI Components
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import {
-    Form,
-    FormControl,
-    FormField,
-    FormItem,
-    FormLabel,
-    FormMessage,
-} from '@/components/ui/form';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardFooter,
-    CardHeader,
-    CardTitle,
-} from '@/components/ui/card';
-import { Textarea } from '@/components/ui/textarea';
-import {useToast} from "@/hooks/use-toast";
-import {useUserRole} from "@/hooks/useUserRole";
+    if (!userId || !clerkUser) {
+        redirect("/sign-in?redirect_url=/onboarding");
+    }
 
-// Form schema
-const onboardingSchema = z.object({
-    fullName: z.string().min(2, {
-        message: "Full name must be at least 2 characters.",
-    }),
-    displayName: z.string().min(2, {
-        message: "Display name must be at least 2 characters.",
-    }),
-    jobTitle: z.string().optional(),
-    department: z.string().optional(),
-    bio: z.string().max(160).optional(),
-    role: z.enum(["ADMIN", "USER"]),
-});
-
-type OnboardingFormValues = z.infer<typeof onboardingSchema>;
-
-export default function OnboardingPage() {
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const { user, isLoaded: userLoaded } = useUser();
-    const { isLoaded: authLoaded, userId } = useAuth();
-    const router = useRouter();
-    const { toast } = useToast();
-
-    const userRole = useUserRole();
-
-    // Redirect if not logged in after auth is loaded
-    useEffect(() => {
-        if (authLoaded && !userId) {
-            // If they're on the onboarding page but not authenticated,
-            // they likely need to complete the sign-up process from the invitation
-            router.push('/sign-up?redirect_url=/onboarding');
-        }
-    }, [authLoaded, userId, router]);
-
-    // Default values based on Clerk user data
-    const defaultValues: Partial<OnboardingFormValues> = {
-        fullName: user?.fullName || '',
-        displayName: user?.firstName || '',
-        role: 'USER',
-    };
-
-    const form = useForm<OnboardingFormValues>({
-        resolver: zodResolver(onboardingSchema),
-        defaultValues,
+    const user = await prisma.user.findUnique({
+        where: { clerkId: userId },
     });
 
-    // Update form when user data loads
-    useEffect(() => {
-        if (userLoaded && user) {
-            form.setValue('fullName', user.fullName || '');
-            form.setValue('displayName', user.firstName || '');
-        }
-    }, [userLoaded, user, form]);
-
-    async function onSubmit(data: OnboardingFormValues) {
-        try {
-            setIsSubmitting(true);
-
-            const response = await fetch('/api/onboarding', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(data),
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'Failed to save onboarding data');
-            }
-
-            toast({
-                title: "Onboarding complete!",
-                description: "Your account has been successfully set up.",
-            });
-
-            // Redirect to dashboard after successful onboarding
-            router.push('/dashboard');
-        } catch (error) {
-            console.error('Onboarding error:', error);
-            toast({
-                title: "Something went wrong",
-                description: error instanceof Error ? error.message : "There was an error completing your onboarding. Please try again.",
-                variant: "destructive",
-            });
-        } finally {
-            setIsSubmitting(false);
-        }
+    if (!user) {
+        redirect("/sign-in?redirect_url=/onboarding");
     }
 
-    // Show loading state while user data is loading
-    if (!userLoaded || !authLoaded) {
-        return (
-            <div className="container flex items-center justify-center min-h-screen py-12">
-                <Card className="w-full max-w-md p-8">
-                    <div className="flex flex-col items-center justify-center space-y-4">
-                        <div className="w-8 h-8 border-t-2 border-b-2 border-gray-900 rounded-full animate-spin"></div>
-                        <p className="text-center text-muted-foreground">Loading your profile...</p>
-                    </div>
-                </Card>
-            </div>
-        );
+    // If user is already onboarded, redirect to dashboard
+    if (user.onboarded) {
+        redirect("/dashboard");
     }
+
+    const features = [
+        {
+            icon: <Zap className="w-6 h-6" />,
+            title: "AI-Powered Prompts",
+            description: "Create and optimize prompts with advanced AI assistance",
+        },
+        {
+            icon: <Shield className="w-6 h-6" />,
+            title: "Enterprise Security",
+            description: "Bank-grade security for your prompts and data",
+        },
+        {
+            icon: <Users className="w-6 h-6" />,
+            title: "Team Collaboration",
+            description: "Work seamlessly with your team members",
+        },
+    ];
 
     return (
-        <div className="container flex items-center justify-center min-h-screen py-12">
-            <Card className="w-full max-w-md">
-                <CardHeader className="space-y-1">
-                    <CardTitle className="text-2xl font-bold">Welcome aboard!</CardTitle>
-                    <CardDescription>
-                        Complete your profile to get started with the application.
-                    </CardDescription>
+        <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
+            <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:20px_20px]" />
+            <div className="absolute inset-0 bg-gradient-to-t from-background to-transparent" />
+            
+            <div className="container relative mx-auto px-4 py-12">
+                <div className="max-w-5xl mx-auto">
+                    <div className="text-center mb-16">
+                        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary/10 mb-6 backdrop-blur-sm">
+                            <Sparkles className="w-8 h-8 text-primary" />
+                        </div>
+                        <h1 className="text-5xl font-bold tracking-tight mb-6 bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/60">
+                            Welcome to PromptCraft
+                        </h1>
+                        <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+                            Let's create your personalized experience and unlock the full potential of AI-powered prompt engineering
+                        </p>
+                    </div>
 
-                </CardHeader>
-                <CardContent>
-
-
-
-                    <Form {...form}>
-                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                            <FormField
-                                control={form.control}
-                                name="fullName"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Full Name</FormLabel>
-                                        <FormControl>
-                                            <Input placeholder="John Doe" {...field} />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-
-
-                            <FormField
-                                control={form.control}
-                                name="displayName"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Display Name</FormLabel>
-                                        <FormControl>
-                                            <Input placeholder="How you want to be called" {...field} />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-
-                            <div className="grid grid-cols-2 gap-4">
-                                <FormField
-                                    control={form.control}
-                                    name="jobTitle"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Job Title</FormLabel>
-                                            <FormControl>
-                                                <Input placeholder="Optional" {...field} value={field.value || ''} />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-
-                                <FormField
-                                    control={form.control}
-                                    name="department"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Department</FormLabel>
-                                            <FormControl>
-                                                <Input placeholder="Optional" {...field} value={field.value || ''} />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-16">
+                        {features.map((feature, index) => (
+                            <div
+                                key={index}
+                                className="relative group"
+                            >
+                                <div className="absolute -inset-0.5 bg-gradient-to-r from-primary/50 to-primary/30 rounded-2xl blur opacity-30 group-hover:opacity-100 transition duration-1000 group-hover:duration-200" />
+                                <div className="relative bg-card/50 backdrop-blur-sm rounded-xl p-6 border border-border/50">
+                                    <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
+                                        {feature.icon}
+                                    </div>
+                                    <h3 className="text-lg font-semibold mb-2">{feature.title}</h3>
+                                    <p className="text-muted-foreground">{feature.description}</p>
+                                </div>
                             </div>
+                        ))}
+                    </div>
 
-                            <FormField
-                                control={form.control}
-                                name="bio"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Short Bio</FormLabel>
-                                        <FormControl>
-                                            <Textarea
-                                                placeholder="Tell us a little about yourself"
-                                                className="resize-none"
-                                                {...field}
-                                                value={field.value || ''}
-                                            />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
+                    <div className="relative">
+                        <div className="absolute -inset-0.5 bg-gradient-to-r from-primary/50 to-primary/30 rounded-2xl blur opacity-30" />
+                        <div className="relative bg-card/50 backdrop-blur-sm rounded-xl p-8 border border-border/50">
+                            <OnboardingForm userId={user.id} />
+                        </div>
+                    </div>
 
-                            <FormField
-                                control={form.control}
-                                name="role"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Role</FormLabel>
-                                        <Select
-                                            onValueChange={field.onChange}
-                                            defaultValue={field.value}
-                                            value={field.value}
-                                        >
-                                            <FormControl>
-                                                <SelectTrigger>
-                                                    <SelectValue placeholder="Select a role" />
-                                                </SelectTrigger>
-                                            </FormControl>
-                                            <SelectContent>
-                                                <SelectItem value="USER">User</SelectItem>
-                                                <SelectItem value="ADMIN">Administrator</SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-
-                            <Button type="submit" className="w-full" disabled={isSubmitting}>
-                                {isSubmitting ? "Setting up your account..." : "Complete Setup"}
-                            </Button>
-                        </form>
-                    </Form>
-                </CardContent>
-                <CardFooter className="flex justify-center text-sm text-muted-foreground">
-                    You can update these details later in your profile settings.
-                </CardFooter>
-            </Card>
+                    <div className="mt-8 text-center text-sm text-muted-foreground">
+                        <p>By continuing, you agree to our{" "}
+                            <a href="/terms" className="text-primary hover:underline">Terms of Service</a>
+                            {" "}and{" "}
+                            <a href="/privacy" className="text-primary hover:underline">Privacy Policy</a>
+                        </p>
+                    </div>
+                </div>
+            </div>
         </div>
     );
 }

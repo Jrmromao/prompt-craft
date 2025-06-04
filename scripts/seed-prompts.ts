@@ -1,30 +1,29 @@
-import { prisma } from '../lib/prisma';
+// @ts-nocheck
+const { PrismaClient } = require('@prisma/client');
+
+
+const { randomUUID } = require('crypto');
+const prisma = new PrismaClient();
 
 async function main() {
   // await prisma.prompt.deleteMany(); // Clean slate
   // await prisma.tag.deleteMany();
   // await prisma.user.deleteMany({});
 
-  // Upsert dummy users
-  // const users = [
-  //   { clerkId: 'seed-user-1', email: 'user1@example.com', name: 'Seed User 1' },
-  //   { clerkId: 'seed-user-2', email: 'user2@example.com', name: 'Seed User 2' },
-  //   { clerkId: 'seed-user-3', email: 'user3@example.com', name: 'Seed User 3' },
-  //   { clerkId: 'seed-user-4', email: 'user4@example.com', name: 'Seed User 4' },
-  //   { clerkId: 'seed-user-5', email: 'user5@example.com', name: 'Seed User 5' },
-  // ];
-  // for (const user of users) {
-  //   await prisma.user.upsert({
-  //     where: { clerkId: user.clerkId },
-  //     update: {},
-  //     create: {
-  //       clerkId: user.clerkId,
-  //       email: user.email,
-  //       name: user.name,
-  //     },
-  //   });
-  // }
+  // First, create the user
+  const user = await prisma.user.upsert({
+    where: { clerkId: 'user_2y3AM5C06LBwfYwSMU0LyQ3HpoD' },
+    update: {},
+    create: {
+      clerkId: 'user_2y3AM5C06LBwfYwSMU0LyQ3HpoD',
+      email: 'admin@prompthive.com',
+      name: 'Admin User',
+      role: 'ADMIN',
+      planType: 'PRO'
+    },
+  });
 
+  // Create tags
   const tags = await prisma.tag.createMany({
     data: [
       { name: 'productivity' },
@@ -47,7 +46,7 @@ async function main() {
       isApproved: true,
       upvotes: 120,
       promptType: 'text',
-      userId: 'user_2xxz0T8rjcLGHcvR6Zs9bZmQjOT',
+      userId: user.id, // Use the created user's ID
       tags: [tagObjs[0].id],
     },
     {
@@ -58,7 +57,7 @@ async function main() {
       isApproved: false,
       upvotes: 10,
       promptType: 'text',
-      userId: 'user_2xxz0T8rjcLGHcvR6Zs9bZmQjOT',
+      userId: user.id, // Use the created user's ID
       tags: [tagObjs[1].id],
     },
     {
@@ -69,7 +68,7 @@ async function main() {
       isApproved: true,
       upvotes: 200,
       promptType: 'text',
-      userId: 'user_2xxz0T8rjcLGHcvR6Zs9bZmQjOT',
+      userId: user.id, // Use the created user's ID
       tags: [tagObjs[3].id],
     },
     {
@@ -80,7 +79,7 @@ async function main() {
       isApproved: false,
       upvotes: 0,
       promptType: 'text',
-      userId: 'user_2xxz0T8rjcLGHcvR6Zs9bZmQjOT',
+      userId: user.id, // Use the created user's ID
       tags: [tagObjs[4].id],
     },
     {
@@ -91,7 +90,7 @@ async function main() {
       isApproved: true,
       upvotes: 75,
       promptType: 'text',
-      userId: 'user_2xxz0T8rjcLGHcvR6Zs9bZmQjOT',
+      userId: user.id, // Use the created user's ID
       tags: [tagObjs[2].id],
     },
   ];
@@ -99,6 +98,7 @@ async function main() {
   for (const prompt of prompts) {
     await prisma.prompt.create({
       data: {
+        slug: `${prompt.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${randomUUID().slice(0, 5)}`,
         name: prompt.name,
         description: prompt.description,
         content: prompt.content,

@@ -3,11 +3,11 @@ import { auth } from '@clerk/nextjs/server';
 import { prisma } from '@/lib/prisma';
 import { Role } from '@/utils/constants';
 
-// Define prompt limits per plan
+// Define prompt limits per planType
 const PROMPT_LIMITS = {
-  [Role.FREE]: 10,
-  [Role.LITE]: 250,
-  [Role.PRO]: Infinity,
+  FREE: 10,
+  LITE: 250,
+  PRO: Infinity,
 };
 
 export async function GET() {
@@ -17,17 +17,17 @@ export async function GET() {
       return NextResponse.json({ canCreate: false, isLastFree: false, redirectTo: '/sign-in' }, { status: 401 });
     }
 
-    // Get user and their role
+    // Get user and their planType
     const user = await prisma.user.findUnique({
       where: { clerkId: userId },
-      select: { id: true, role: true },
+      select: { id: true, planType: true },
     });
     if (!user) {
       return NextResponse.json({ canCreate: false, isLastFree: false, redirectTo: '/sign-up' }, { status: 404 });
     }
 
-    const role = user.role || Role.FREE;
-    const promptLimit = PROMPT_LIMITS[role] ?? 0;
+    const planType = user.planType || 'FREE';
+    const promptLimit = PROMPT_LIMITS[planType] ?? 0;
 
     // Pro users are unlimited
     if (promptLimit === Infinity) {

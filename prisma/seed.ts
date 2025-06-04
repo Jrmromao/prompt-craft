@@ -1,3 +1,4 @@
+// @ts-nocheck
 const { PrismaClient, Period } = require('@prisma/client');
 
 const db = new PrismaClient();
@@ -51,7 +52,8 @@ async function main() {
       clerkId: 'testuser_clerk_id',
       name: 'Test User',
       credits: 100,
-      role: 'PRO',
+      role: 'USER',
+      planType: 'FREE',
       creditCap: 1000,
     },
   });

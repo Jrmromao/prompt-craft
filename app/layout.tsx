@@ -4,9 +4,11 @@ import {ClerkProvider} from "@clerk/nextjs";
 import { enUS } from '@clerk/localizations'
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import {Providers} from "@/components/Providers";
-import { Analytics } from "@vercel/analytics/next"
+import { Analytics } from "@vercel/analytics/react";
 import { ThemeProvider } from '@/components/theme-provider';
 import { Toaster } from '@/components/ui/toaster';
+import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { cn } from '@/lib/utils';
 
 const inter = Inter({subsets: ["latin"]})
 
@@ -23,7 +25,7 @@ export default function RootLayout({
     return (
         <ClerkProvider localization={enUS}>
             <html lang="en" suppressHydrationWarning>
-                <body className={inter.className}>
+                <body className={cn('min-h-screen bg-background font-sans antialiased')}>
                     <Providers>
                         <ThemeProvider
                             attribute="class"
@@ -31,7 +33,9 @@ export default function RootLayout({
                             enableSystem
                             disableTransitionOnChange
                         >
-                            {children}
+                            <ErrorBoundary>
+                                {children}
+                            </ErrorBoundary>
                             <Analytics />
                             <Toaster />
                         </ThemeProvider>

@@ -1,17 +1,13 @@
-// app/api/onboarding/route.ts
 import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
 
-const onboardingSchema = z.object({
-  fullName: z.string().min(2),
-  jobTitle: z.string().optional(),
-  department: z.string().optional(),
-  bio: z.string().max(500).optional(),
+const profileSchema = z.object({
+  name: z.string().min(2),
 });
 
-export async function POST(req: Request) {
+export async function PATCH(req: Request) {
   try {
     const { userId } = await auth();
 
@@ -20,24 +16,22 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
-    const validatedData = onboardingSchema.parse(body);
+    const validatedData = profileSchema.parse(body);
 
-    // Update user profile with USER role by default
+    // Update user profile
     const updatedUser = await prisma.user.update({
       where: { clerkId: userId },
       data: {
-        name: validatedData.fullName,
-        role: 'USER',
-        onboarded: true,
+        name: validatedData.name,
       },
     });
 
     return NextResponse.json(updatedUser);
   } catch (error) {
-    console.error('Error in onboarding:', error);
+    console.error('Error updating profile:', error);
     if (error instanceof z.ZodError) {
       return new NextResponse('Invalid request data', { status: 400 });
     }
     return new NextResponse('Internal error', { status: 500 });
   }
-}
+} 

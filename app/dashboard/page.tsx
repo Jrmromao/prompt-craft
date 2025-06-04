@@ -6,6 +6,9 @@ import { NavBar } from "@/components/layout/NavBar";
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { useEffect, useState } from 'react';
 import { AdminPromptReview } from '@/components/dashboard/AdminPromptReview';
+import { Dialog, DialogTrigger, DialogContent, DialogTitle } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { AdminPromptReviewDialog } from '@/components/dashboard/AdminPromptReviewDialog';
 
 // Types for serializable props
 interface SerializableUserWithPlan {
@@ -84,6 +87,9 @@ export default async function DashboardPage() {
         }
       : { name: 'Guest', email: '' };
 
+    // Only show the review button for admins
+    const isAdmin = user.role === 'ADMIN';
+
     return (
       <>
         <NavBar user={navUser} />
@@ -107,7 +113,9 @@ export default async function DashboardPage() {
           creditHistory={creditHistory}
           usageData={usageData}
         />
-        <AdminPromptReview />
+        {isAdmin && (
+          <AdminPromptReviewDialog />
+        )}
       </>
     );
   } catch (error) {
