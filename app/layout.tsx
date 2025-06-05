@@ -9,6 +9,7 @@ import { ThemeProvider } from '@/components/theme-provider';
 import { Toaster } from '@/components/ui/toaster';
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { cn } from '@/lib/utils';
+import { Footer } from "@/app/components/Footer";
 
 const inter = Inter({subsets: ["latin"]})
 
@@ -36,6 +37,7 @@ export default function RootLayout({
                             <ErrorBoundary>
                                 {children}
                             </ErrorBoundary>
+                            <Footer />
                             <Analytics />
                             <Toaster />
                         </ThemeProvider>

@@ -20,7 +20,7 @@ model User {
   creditCap         Int                @default(10)
   lastCreditReset   DateTime           @default(now())
   stripeCustomerId  String?
-  onboarded         Boolean            @default(false)
+  onboarded         Boolean            @default(true)
   imageUrl          String?            // URL to user's profile image
   bio               String?            // User's bio/description
   jobTitle          String?            // User's job title

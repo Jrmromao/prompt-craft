@@ -15,7 +15,6 @@ A prioritized checklist of features and tasks to complete before launching the f
 - [ ] **Input Validation & Security**: Sanitize and validate all user input (prevent XSS, SQLi).
 
 ## 2. Highly Recommended
-- [ ] **User Onboarding**: Optional onboarding flow for new users.
 - [ ] **Analytics**: Integrate Google Analytics and error logging (e.g., Sentry).
 - [ ] **Legal Pages**: Add privacy policy, terms of service, and support/contact page.
 - [ ] **Rate Limiting**: Protect APIs (especially upvotes) from abuse.
@@ -29,6 +28,35 @@ A prioritized checklist of features and tasks to complete before launching the f
 ## 4. Deployment
 - [ ] **Production Deployment**: Deploy to Vercel, AWS, or another production host.
 - [ ] **Environment Variables**: Ensure all secrets and API keys are set for production.
+
+## Partially Implemented / Needs Review Checklist
+
+### 1. User Profile Page
+- [ ] User can view their profile information (name, email, avatar)
+- [ ] User can edit their profile information
+- [ ] User can upload/change avatar
+- [ ] Profile form has validation and error feedback
+- [ ] Profile page has loading and error states
+- [ ] Profile updates are persisted and reflected immediately
+
+### 2. Empty & Loading States
+- [ ] All lists (prompts, dashboard, community, etc.) show a friendly empty state when no data
+- [ ] All lists and detail pages show a loading skeleton or spinner while fetching data
+- [ ] Empty/loading states are accessible and visually consistent
+
+### 3. Error Handling
+- [ ] Global error boundary is implemented (catches unhandled errors and shows user-friendly message)
+- [ ] All forms and actions show clear error messages on failure
+- [ ] API/network errors are handled gracefully in the UI
+- [ ] Error states are accessible and visually consistent
+
+### 4. Input Validation & Security
+- [ ] All user input is validated on the client (length, format, required fields)
+- [ ] All user input is validated on the server (API endpoints)
+- [ ] Inputs are sanitized to prevent XSS
+- [ ] Database queries are protected against SQL injection
+- [ ] Sensitive actions require authentication/authorization
+- [ ] Validation errors are shown clearly to the user
 
 ---
 

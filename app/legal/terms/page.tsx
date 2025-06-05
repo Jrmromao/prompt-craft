@@ -1,85 +1,60 @@
+"use client";
+import { useUser } from '@clerk/nextjs';
+import React from "react";
+import { NavBar } from "@/components/layout/NavBar";
+
 export default function TermsPage() {
+  const { user, isSignedIn } = useUser();
+  const navUser = isSignedIn
+    ? {
+        name: [user.firstName, user.lastName].filter(Boolean).join(' ') || user.username || 'User',
+        email: user.emailAddresses?.[0]?.emailAddress || '',
+        imageUrl: user.imageUrl,
+      }
+    : undefined;
+
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="max-w-3xl mx-auto">
-        <h1 className="text-3xl font-bold mb-8">Terms of Service</h1>
-        
-        <div className="prose prose-gray dark:prose-invert max-w-none">
-          <h2>1. Acceptance of Terms</h2>
-          <p>
-            By accessing and using PromptCraft, you agree to be bound by these Terms of Service
-            and all applicable laws and regulations. If you do not agree with any of these terms,
-            you are prohibited from using or accessing this site.
-          </p>
+    <>
+      <NavBar user={navUser} />
+      <main className="min-h-[70vh] flex flex-col items-center justify-center px-4 py-16 bg-background text-foreground">
+        <section className="w-full max-w-3xl bg-card border border-border rounded-2xl shadow-lg p-8">
+          <h1 className="text-4xl font-extrabold bg-gradient-to-r from-purple-600 to-pink-500 bg-clip-text text-transparent mb-6 text-center">Terms of Service</h1>
+          <div className="prose prose-sm md:prose-base prose-headings:text-foreground prose-p:text-muted-foreground prose-li:text-foreground max-w-none">
+            <p>Welcome to <strong>PromptCraft</strong>! Please read these Terms of Service ("Terms") carefully before using our platform. By accessing or using PromptCraft, you agree to these Terms.</p>
 
-          <h2>2. Use License</h2>
-          <p>
-            Permission is granted to temporarily use PromptCraft for personal, non-commercial
-            transitory viewing only. This is the grant of a license, not a transfer of title,
-            and under this license you may not:
-          </p>
-          <ul>
-            <li>Modify or copy the materials</li>
-            <li>Use the materials for any commercial purpose</li>
-            <li>Attempt to decompile or reverse engineer any software contained on PromptCraft</li>
-            <li>Remove any copyright or other proprietary notations from the materials</li>
-            <li>Transfer the materials to another person or "mirror" the materials on any other server</li>
-          </ul>
+            <h2>1. Acceptance of Terms</h2>
+            <p>By using PromptCraft, you agree to follow these Terms. If you do not agree, please do not use our services.</p>
 
-          <h2>3. User Content</h2>
-          <p>
-            Users may submit content to PromptCraft, including but not limited to prompts,
-            comments, and feedback. By submitting content, you grant PromptCraft a worldwide,
-            non-exclusive, royalty-free license to use, reproduce, modify, adapt, publish,
-            translate, and distribute your content.
-          </p>
+            <h2>2. Using PromptCraft</h2>
+            <ul>
+              <li>You must be at least 13 years old.</li>
+              <li>You are responsible for your account and all activity under it.</li>
+              <li>Do not use PromptCraft for anything illegal, harmful, or abusive.</li>
+            </ul>
 
-          <h2>4. Disclaimer</h2>
-          <p>
-            The materials on PromptCraft are provided on an 'as is' basis. PromptCraft makes no
-            warranties, expressed or implied, and hereby disclaims and negates all other
-            warranties including, without limitation, implied warranties or conditions of
-            merchantability, fitness for a particular purpose, or non-infringement of
-            intellectual property or other violation of rights.
-          </p>
+            <h2>3. Intellectual Property</h2>
+            <p>All content, trademarks, and data on PromptCraft belong to PromptCraft, Inc. or our licensors. You may not copy, reuse, or distribute our content without permission.</p>
 
-          <h2>5. Limitations</h2>
-          <p>
-            In no event shall PromptCraft or its suppliers be liable for any damages
-            (including, without limitation, damages for loss of data or profit, or due to
-            business interruption) arising out of the use or inability to use the materials
-            on PromptCraft.
-          </p>
+            <h2>4. Your Content</h2>
+            <ul>
+              <li>You own the prompts and content you create.</li>
+              <li>By submitting content, you give us permission to use, display, and share it on PromptCraft.</li>
+            </ul>
 
-          <h2>6. Accuracy of Materials</h2>
-          <p>
-            The materials appearing on PromptCraft could include technical, typographical,
-            or photographic errors. PromptCraft does not warrant that any of the materials
-            on its website are accurate, complete, or current.
-          </p>
+            <h2>5. Account Suspension or Termination</h2>
+            <p>We may suspend or terminate your access to PromptCraft at any time, with or without notice, if you violate these Terms or for any other reason.</p>
 
-          <h2>7. Links</h2>
-          <p>
-            PromptCraft has not reviewed all of the sites linked to its website and is not
-            responsible for the contents of any such linked site. The inclusion of any link
-            does not imply endorsement by PromptCraft of the site.
-          </p>
+            <h2>6. Disclaimer</h2>
+            <p>PromptCraft is provided "as is" and without warranties. We are not responsible for any damages or losses from using our platform.</p>
 
-          <h2>8. Modifications</h2>
-          <p>
-            PromptCraft may revise these terms of service at any time without notice. By using
-            this website, you are agreeing to be bound by the then current version of these
-            terms of service.
-          </p>
+            <h2>7. Changes to These Terms</h2>
+            <p>We may update these Terms at any time. If you continue to use PromptCraft after changes, you accept the new Terms.</p>
 
-          <h2>9. Governing Law</h2>
-          <p>
-            These terms and conditions are governed by and construed in accordance with the
-            laws and you irrevocably submit to the exclusive jurisdiction of the courts in
-            that location.
-          </p>
-        </div>
-      </div>
-    </div>
+            <h2>8. Contact Us</h2>
+            <p>Questions? Email us at <a href="mailto:legal@promptcraft.com">legal@promptcraft.com</a>.</p>
+          </div>
+        </section>
+      </main>
+    </>
   );
 } 

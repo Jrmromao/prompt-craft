@@ -96,23 +96,7 @@ export function ProfileForm({ user }: ProfileFormProps) {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-        <Card>
-          <CardHeader>
-            <CardTitle>Profile Picture</CardTitle>
-            <CardDescription>
-              Upload a profile picture to personalize your account.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center gap-4">
-              <Avatar className="h-20 w-20">
-                <AvatarImage src={avatarUrl} alt={user.name} />
-                <AvatarFallback>{user.name?.charAt(0)}</AvatarFallback>
-              </Avatar>
-            </div>
-          </CardContent>
-        </Card>
-
+    
         <Card>
           <CardHeader>
             <CardTitle>Personal Information</CardTitle>

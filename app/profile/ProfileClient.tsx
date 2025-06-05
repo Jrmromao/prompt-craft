@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { User, BarChart2, CreditCard as BillingIcon, FileText, Settings, LogOut, Sparkles, CheckCircle2, Pencil, Circle } from "lucide-react";
+import { User, BarChart2, CreditCard as BillingIcon, FileText, Settings, LogOut, Sparkles, ShieldUser, Pencil, Circle } from "lucide-react";
 import { NavBar } from "@/components/layout/NavBar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -26,6 +26,7 @@ import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import type { KeyedMutator } from 'swr';
 
 const Sheet = dynamic(() => import("@/components/ui/sheet").then(mod => mod.Sheet), { ssr: false });
 const SheetContent = dynamic(() => import("@/components/ui/sheet").then(mod => mod.SheetContent), { ssr: false });
@@ -35,6 +36,7 @@ const accountOptions = [
   { label: "Usage", icon: BarChart2, href: "usage" },
   { label: "Billing", icon: BillingIcon, href: "billing" },
   { label: "Settings", icon: Settings, href: "settings" },
+  { label: "Security", icon: ShieldUser, href: "security" },
 ];
 const workspaceOptions = [
   { label: "My Prompts", icon: FileText, href: "prompts" },
@@ -61,6 +63,396 @@ export interface ProfileClientProps {
   currentPath: string;
 }
 
+interface SettingsSectionProps {
+  data: any;
+  error: any;
+  isLoading: boolean;
+  mutate: KeyedMutator<any>;
+}
+
+interface SecuritySectionProps {
+  data: any;
+  error: any;
+  isLoading: boolean;
+  mutate: KeyedMutator<any>;
+  loginHistory: any;
+  loginHistoryError: any;
+  loginHistoryLoading: boolean;
+  mutateLoginHistory: KeyedMutator<any>;
+}
+
+function SettingsSection(props: SettingsSectionProps) {
+  const { data, error, isLoading, mutate } = props;
+  const [isSaving, setIsSaving] = useState(false);
+  if (isLoading && !data) {
+    return <div className="p-8"><div className="animate-pulse h-8 w-1/2 bg-muted rounded mb-4" /><div className="animate-pulse h-32 w-full bg-muted rounded" /></div>;
+  }
+  if (error) {
+    return <div className="text-red-500">Failed to load settings.</div>;
+  }
+  const handleSettingsUpdate = async (type: string, newData: any) => {
+    setIsSaving(true);
+    const previous = data;
+    mutate({ ...data, [type]: newData }, false); // Optimistic update
+    try {
+      const response = await fetch("/api/settings", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type, data: newData }),
+      });
+      if (!response.ok) throw new Error("Failed to update settings");
+      toast.success("Settings updated");
+      mutate(); // Revalidate
+    } catch (error) {
+      mutate(previous, false); // Rollback
+      toast.error("Failed to update settings. Please try again.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+  return (
+    <div className="flex flex-col gap-8">
+      {/* Email Preferences */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Email Preferences</CardTitle>
+          <CardDescription>Manage your email notification preferences</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center justify-between">
+            <Label>Marketing Emails</Label>
+            <Switch
+              checked={data.emailPreferences.marketingEmails}
+              onCheckedChange={(checked) => handleSettingsUpdate("email", { ...data.emailPreferences, marketingEmails: checked })}
+              disabled={isSaving}
+            />
+          </div>
+          <div className="flex items-center justify-between">
+            <Label>Product Updates</Label>
+            <Switch
+              checked={data.emailPreferences.productUpdates}
+              onCheckedChange={(checked) => handleSettingsUpdate("email", { ...data.emailPreferences, productUpdates: checked })}
+              disabled={isSaving}
+            />
+          </div>
+          <div className="flex items-center justify-between">
+            <Label>Security Alerts</Label>
+            <Switch
+              checked={data.emailPreferences.securityAlerts}
+              onCheckedChange={(checked) => handleSettingsUpdate("email", { ...data.emailPreferences, securityAlerts: checked })}
+              disabled={isSaving}
+            />
+          </div>
+        </CardContent>
+      </Card>
+      {/* Notification Settings */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Notification Settings</CardTitle>
+          <CardDescription>Choose how you want to receive notifications</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center justify-between">
+            <Label>Email Notifications</Label>
+            <Switch
+              checked={data.notificationSettings.emailNotifications}
+              onCheckedChange={(checked) => handleSettingsUpdate("notifications", { ...data.notificationSettings, emailNotifications: checked })}
+              disabled={isSaving}
+            />
+          </div>
+          <div className="flex items-center justify-between">
+            <Label>Push Notifications</Label>
+            <Switch
+              checked={data.notificationSettings.pushNotifications}
+              onCheckedChange={(checked) => handleSettingsUpdate("notifications", { ...data.notificationSettings, pushNotifications: checked })}
+              disabled={isSaving}
+            />
+          </div>
+          <div className="flex items-center justify-between">
+            <Label>Browser Notifications</Label>
+            <Switch
+              checked={data.notificationSettings.browserNotifications}
+              onCheckedChange={(checked) => handleSettingsUpdate("notifications", { ...data.notificationSettings, browserNotifications: checked })}
+              disabled={isSaving}
+            />
+          </div>
+        </CardContent>
+      </Card>
+      {/* Language & Theme */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Language & Theme</CardTitle>
+          <CardDescription>Customize your interface preferences</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label>Language</Label>
+            <Select
+              value={data.languagePreferences.language}
+              onValueChange={(value) => handleSettingsUpdate("language", { ...data.languagePreferences, language: value })}
+              disabled={isSaving}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select language" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="en">English</SelectItem>
+                <SelectItem value="es">Español</SelectItem>
+                <SelectItem value="fr">Français</SelectItem>
+                <SelectItem value="de">Deutsch</SelectItem>
+                <SelectItem value="pt">Português</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label>Theme</Label>
+            <Select
+              value={data.themeSettings.theme}
+              onValueChange={(value) => handleSettingsUpdate("theme", { ...data.themeSettings, theme: value })}
+              disabled={isSaving}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select theme" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="light">Light</SelectItem>
+                <SelectItem value="dark">Dark</SelectItem>
+                <SelectItem value="system">System</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label>Accent Color</Label>
+            <Select
+              value={data.themeSettings.accentColor}
+              onValueChange={(value) => handleSettingsUpdate("theme", { ...data.themeSettings, accentColor: value })}
+              disabled={isSaving}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select accent color" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="purple">Purple</SelectItem>
+                <SelectItem value="blue">Blue</SelectItem>
+                <SelectItem value="green">Green</SelectItem>
+                <SelectItem value="red">Red</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+function SecuritySection({ data, error, isLoading, mutate, loginHistory, loginHistoryError, loginHistoryLoading, mutateLoginHistory }: SecuritySectionProps) {
+  if (isLoading || loginHistoryLoading) {
+    return <div className="p-8 text-center text-muted-foreground">Loading security settings...</div>;
+  }
+  if (error || !data) {
+    return <div className="p-8 text-center text-red-500">Failed to load security settings.</div>;
+  }
+  return (
+    <div className="space-y-6">
+      {/* Password Change */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Change Password</CardTitle>
+          <CardDescription>Update your account password</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form
+            onSubmit={async (e) => {
+              e.preventDefault();
+              const formData = new FormData(e.currentTarget);
+              const currentPassword = formData.get("currentPassword") as string;
+              const newPassword = formData.get("newPassword") as string;
+              const confirmPassword = formData.get("confirmPassword") as string;
+
+              if (newPassword !== confirmPassword) {
+                toast.error("New passwords do not match");
+                return;
+              }
+
+              try {
+                const response = await fetch("/api/settings/password", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    currentPassword,
+                    newPassword,
+                  }),
+                });
+
+                if (!response.ok) {
+                  throw new Error("Failed to change password");
+                }
+
+                toast.success("Password changed successfully");
+                e.currentTarget.reset();
+              } catch (error) {
+                toast.error("Failed to change password");
+              }
+            }}
+            className="space-y-4"
+          >
+            <div className="space-y-2">
+              <Label htmlFor="currentPassword">Current Password</Label>
+              <Input
+                id="currentPassword"
+                name="currentPassword"
+                type="password"
+                required
+                data-testid="current-password-input"
+                placeholder="Current password"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="newPassword">New Password</Label>
+              <Input
+                id="newPassword"
+                name="newPassword"
+                type="password"
+                required
+                minLength={8}
+                data-testid="new-password-input"
+                placeholder="New password"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="confirmPassword">Confirm New Password</Label>
+              <Input
+                id="confirmPassword"
+                name="confirmPassword"
+                type="password"
+                required
+                minLength={8}
+                data-testid="confirm-password-input"
+                placeholder="Confirm new password"
+              />
+            </div>
+            <Button type="submit" data-testid="change-password-button">Change Password</Button>
+          </form>
+        </CardContent>
+      </Card>
+      {/* Login History */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Login History</CardTitle>
+          <CardDescription>View your recent login activity</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {loginHistoryError ? (
+            <div className="text-red-500">Failed to load login history</div>
+          ) : !loginHistory ? (
+            <div className="text-muted-foreground">Loading login history...</div>
+          ) : (
+            <div className="space-y-4">
+              {loginHistory.map((session: any) => (
+                <div
+                  key={session.id}
+                  className="flex items-center justify-between p-4 border rounded-lg"
+                >
+                  <div className="space-y-1">
+                    <p className="font-medium">
+                      {session.device} - {session.browser}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      {session.location} ({session.ipAddress})
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      Last active: {new Date(session.lastActive).toLocaleString()}
+                    </p>
+                  </div>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={async () => {
+                      try {
+                        const response = await fetch(`/api/settings/sessions?sessionId=${session.id}`, {
+                          method: "DELETE",
+                        });
+                        
+                        if (!response.ok) {
+                          throw new Error("Failed to revoke session");
+                        }
+                        
+                        mutateLoginHistory();
+                        toast.success("Session revoked successfully");
+                      } catch (error) {
+                        toast.error("Failed to revoke session");
+                      }
+                    }}
+                  >
+                    Revoke
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+      {/* Security Settings */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Security Settings</CardTitle>
+          <CardDescription>Manage your account security preferences</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center justify-between">
+            <Label>Two-Factor Authentication</Label>
+            <Switch
+              checked={data.securitySettings.twoFactorEnabled}
+              onCheckedChange={(checked) => mutate("security", { ...data.securitySettings, twoFactorEnabled: checked })}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label>Session Timeout (minutes)</Label>
+            <Input
+              type="number"
+              min={5}
+              max={120}
+              value={data.securitySettings.sessionTimeout}
+              onChange={(e) => mutate("security", { ...data.securitySettings, sessionTimeout: parseInt(e.target.value) })}
+            />
+          </div>
+        </CardContent>
+      </Card>
+      {/* Active Sessions */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Active Sessions</CardTitle>
+          <CardDescription>Manage your active sessions</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {data.sessions?.map((session: any) => (
+              <div key={session.id} className="flex items-center justify-between p-4 border rounded-lg">
+                <div>
+                  <p className="font-medium">{session.device}</p>
+                  <p className="text-sm text-muted-foreground">{session.location}</p>
+                  <p className="text-sm text-muted-foreground">Last active: {new Date(session.lastActive).toLocaleString()}</p>
+                </div>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={() => {
+                    fetch(`/api/settings/sessions?sessionId=${session.id}`, { method: "DELETE" })
+                      .then(() => mutate())
+                      .catch(() => toast.error("Failed to revoke session"));
+                  }}
+                >
+                  Revoke
+                </Button>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
 export function ProfileClient({ user, currentPath }: ProfileClientProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { signOut } = useClerk();
@@ -68,8 +460,15 @@ export function ProfileClient({ user, currentPath }: ProfileClientProps) {
   const searchParams = useSearchParams();
   const creditPercentage = (user.credits / user.creditCap) * 100;
 
-  // Determine active tab from query param
-  const tab = searchParams.get("tab") || "overview";
+  // --- Tab State Management ---
+  const initialTab = searchParams.get("tab") || "overview";
+  const [activeTab, setActiveTab] = useState(initialTab);
+
+  // Keep tab in sync with URL
+  useEffect(() => {
+    const urlTab = searchParams.get("tab") || "overview";
+    setActiveTab(urlTab);
+  }, [searchParams]);
 
   // Simulate status (in real app, fetch from subscription)
   const status: "active" | "trial" | "suspended" = "active";
@@ -82,6 +481,7 @@ export function ProfileClient({ user, currentPath }: ProfileClientProps) {
   function handleSidebarClick(tabValue: string) {
     router.push(`/profile?tab=${tabValue}`, { scroll: false });
     setSidebarOpen(false);
+    setActiveTab(tabValue);
   }
 
   const SidebarContent = (
@@ -95,10 +495,10 @@ export function ProfileClient({ user, currentPath }: ProfileClientProps) {
                 key={opt.label}
                 onClick={() => handleSidebarClick(opt.href.replace("/profile", "") || "overview")}
                 className={`relative flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition w-full text-left
-                  ${tab === (opt.href.replace("/profile", "") || "overview") ? "bg-accent text-foreground" : "text-muted-foreground hover:bg-accent hover:text-foreground"}`}
+                  ${activeTab === (opt.href.replace("/profile", "") || "overview") ? "bg-accent text-foreground" : "text-muted-foreground hover:bg-accent hover:text-foreground"}`}
                 data-testid={`sidebar-${opt.label.toLowerCase()}-button`}
               >
-                {tab === (opt.href.replace("/profile", "") || "overview") && (
+                {activeTab === (opt.href.replace("/profile", "") || "overview") && (
                   <span className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 rounded bg-purple-500" />
                 )}
                 <opt.icon className="w-4 h-4 text-purple-400" />
@@ -114,9 +514,9 @@ export function ProfileClient({ user, currentPath }: ProfileClientProps) {
                 key={opt.label}
                 onClick={() => handleSidebarClick("prompts")}
                 className={`relative flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition w-full text-left
-                  ${tab === "prompts" ? "bg-accent text-foreground" : "text-muted-foreground hover:bg-accent hover:text-foreground"}`}
+                  ${activeTab === "prompts" ? "bg-accent text-foreground" : "text-muted-foreground hover:bg-accent hover:text-foreground"}`}
               >
-                {tab === "prompts" && (
+                {activeTab === "prompts" && (
                   <span className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 rounded bg-purple-500" />
                 )}
                 <opt.icon className="w-4 h-4 text-purple-400" />
@@ -146,7 +546,15 @@ export function ProfileClient({ user, currentPath }: ProfileClientProps) {
     const { data, error, isLoading } = useSWR("/api/profile/usage", (url) => fetch(url).then(r => r.json()));
 
     if (isLoading) {
-      return <div className="p-8 text-center text-muted-foreground">Loading usage...</div>;
+      // Animated ellipsis for loading
+      const [dots, setDots] = useState(0);
+      useEffect(() => {
+        const interval = setInterval(() => {
+          setDots((prev) => (prev + 1) % 4);
+        }, 400);
+        return () => clearInterval(interval);
+      }, []);
+      return <div className="p-8 text-center text-muted-foreground">Loading usage{'.'.repeat(dots)}</div>;
     }
     if (error || !data) {
       return <div className="p-8 text-center text-red-500">Failed to load usage data.</div>;
@@ -450,434 +858,24 @@ export function ProfileClient({ user, currentPath }: ProfileClientProps) {
     );
   }
 
-  function SettingsSection() {
-    const { data, error, isLoading, mutate } = useSWR("/api/settings", (url) => fetch(url).then(r => r.json()));
-    const [activeTab, setActiveTab] = useState("account");
-    const { data: loginHistory, error: loginHistoryError, mutate: mutateLoginHistory } = useSWR("/api/settings/login-history", (url) => fetch(url).then(r => r.json()));
-
-    if (isLoading) {
-      return <div className="p-8 text-center text-muted-foreground">Loading settings...</div>;
+  // SWR setup at the top of ProfileClient
+  const fetcher = (url: string) => fetch(url).then(r => r.json());
+  const { data: settingsData, error: settingsError, isLoading: settingsLoading, mutate: mutateSettings } = useSWR(
+    '/api/settings',
+    fetcher,
+    {
+      dedupingInterval: 30000, // 30 seconds
+      revalidateOnFocus: false,
     }
-    if (error || !data) {
-      return <div className="p-8 text-center text-red-500">Failed to load settings.</div>;
+  );
+  const { data: loginHistory, error: loginHistoryError, isLoading: loginHistoryLoading, mutate: mutateLoginHistory } = useSWR(
+    '/api/settings/login-history',
+    fetcher,
+    {
+      dedupingInterval: 30000,
+      revalidateOnFocus: false,
     }
-
-    const handleSettingsUpdate = async (type: string, newData: any) => {
-      try {
-        const response = await fetch("/api/settings", {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ type, data: newData }),
-        });
-
-        if (!response.ok) throw new Error("Failed to update settings");
-
-        await mutate();
-        toast.success("Settings updated");
-      } catch (error) {
-        toast.error("Failed to update settings. Please try again.");
-      }
-    };
-
-    return (
-      <div className="flex flex-col gap-8">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="mb-4">
-            <TabsTrigger value="overview" data-testid="overview-tab-button">Overview</TabsTrigger>
-            <TabsTrigger value="usage" data-testid="usage-tab-button">Usage</TabsTrigger>
-            <TabsTrigger value="billing" data-testid="billing-tab-button">Billing</TabsTrigger>
-            <TabsTrigger value="prompts" data-testid="prompts-tab-button">My Prompts</TabsTrigger>
-            <TabsTrigger value="security" data-testid="security-tab-button">Security</TabsTrigger>
-            <TabsTrigger value="settings" data-testid="settings-tab-button">Settings</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="overview">
-            <div className="space-y-6">
-              {/* Email Preferences */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Email Preferences</CardTitle>
-                  <CardDescription>Manage your email notification preferences</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <Label>Marketing Emails</Label>
-                    <Switch
-                      checked={data.emailPreferences.marketingEmails}
-                      onCheckedChange={(checked) => handleSettingsUpdate("email", { ...data.emailPreferences, marketingEmails: checked })}
-                    />
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <Label>Product Updates</Label>
-                    <Switch
-                      checked={data.emailPreferences.productUpdates}
-                      onCheckedChange={(checked) => handleSettingsUpdate("email", { ...data.emailPreferences, productUpdates: checked })}
-                    />
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <Label>Security Alerts</Label>
-                    <Switch
-                      checked={data.emailPreferences.securityAlerts}
-                      onCheckedChange={(checked) => handleSettingsUpdate("email", { ...data.emailPreferences, securityAlerts: checked })}
-                    />
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Notification Settings */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Notification Settings</CardTitle>
-                  <CardDescription>Choose how you want to receive notifications</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <Label>Email Notifications</Label>
-                    <Switch
-                      checked={data.notificationSettings.emailNotifications}
-                      onCheckedChange={(checked) => handleSettingsUpdate("notifications", { ...data.notificationSettings, emailNotifications: checked })}
-                    />
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <Label>Push Notifications</Label>
-                    <Switch
-                      checked={data.notificationSettings.pushNotifications}
-                      onCheckedChange={(checked) => handleSettingsUpdate("notifications", { ...data.notificationSettings, pushNotifications: checked })}
-                    />
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <Label>Browser Notifications</Label>
-                    <Switch
-                      checked={data.notificationSettings.browserNotifications}
-                      onCheckedChange={(checked) => handleSettingsUpdate("notifications", { ...data.notificationSettings, browserNotifications: checked })}
-                    />
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Language & Theme */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Language & Theme</CardTitle>
-                  <CardDescription>Customize your interface preferences</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <Label>Language</Label>
-                    <Select
-                      value={data.languagePreferences.language}
-                      onValueChange={(value) => handleSettingsUpdate("language", { ...data.languagePreferences, language: value })}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select language" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="en">English</SelectItem>
-                        <SelectItem value="es">Español</SelectItem>
-                        <SelectItem value="fr">Français</SelectItem>
-                        <SelectItem value="de">Deutsch</SelectItem>
-                        <SelectItem value="pt">Português</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Theme</Label>
-                    <Select
-                      value={data.themeSettings.theme}
-                      onValueChange={(value) => handleSettingsUpdate("theme", { ...data.themeSettings, theme: value })}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select theme" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="light">Light</SelectItem>
-                        <SelectItem value="dark">Dark</SelectItem>
-                        <SelectItem value="system">System</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Accent Color</Label>
-                    <Select
-                      value={data.themeSettings.accentColor}
-                      onValueChange={(value) => handleSettingsUpdate("theme", { ...data.themeSettings, accentColor: value })}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select accent color" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="purple">Purple</SelectItem>
-                        <SelectItem value="blue">Blue</SelectItem>
-                        <SelectItem value="green">Green</SelectItem>
-                        <SelectItem value="red">Red</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="security">
-            <div className="space-y-6">
-              {/* Password Change */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Change Password</CardTitle>
-                  <CardDescription>Update your account password</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <form
-                    onSubmit={async (e) => {
-                      e.preventDefault();
-                      const formData = new FormData(e.currentTarget);
-                      const currentPassword = formData.get("currentPassword") as string;
-                      const newPassword = formData.get("newPassword") as string;
-                      const confirmPassword = formData.get("confirmPassword") as string;
-
-                      if (newPassword !== confirmPassword) {
-                        toast.error("New passwords do not match");
-                        return;
-                      }
-
-                      try {
-                        const response = await fetch("/api/settings/password", {
-                          method: "POST",
-                          headers: { "Content-Type": "application/json" },
-                          body: JSON.stringify({
-                            currentPassword,
-                            newPassword,
-                          }),
-                        });
-
-                        if (!response.ok) {
-                          throw new Error("Failed to change password");
-                        }
-
-                        toast.success("Password changed successfully");
-                        e.currentTarget.reset();
-                      } catch (error) {
-                        toast.error("Failed to change password");
-                      }
-                    }}
-                    className="space-y-4"
-                  >
-                    <div className="space-y-2">
-                      <Label htmlFor="currentPassword">Current Password</Label>
-                      <Input
-                        id="currentPassword"
-                        name="currentPassword"
-                        type="password"
-                        required
-                        data-testid="current-password-input"
-                        placeholder="Current password"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="newPassword">New Password</Label>
-                      <Input
-                        id="newPassword"
-                        name="newPassword"
-                        type="password"
-                        required
-                        minLength={8}
-                        data-testid="new-password-input"
-                        placeholder="New password"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="confirmPassword">Confirm New Password</Label>
-                      <Input
-                        id="confirmPassword"
-                        name="confirmPassword"
-                        type="password"
-                        required
-                        minLength={8}
-                        data-testid="confirm-password-input"
-                        placeholder="Confirm new password"
-                      />
-                    </div>
-                    <Button type="submit" data-testid="change-password-button">Change Password</Button>
-                  </form>
-                </CardContent>
-              </Card>
-
-              {/* Login History */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Login History</CardTitle>
-                  <CardDescription>View your recent login activity</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {loginHistoryError ? (
-                    <div className="text-red-500">Failed to load login history</div>
-                  ) : !loginHistory ? (
-                    <div className="text-muted-foreground">Loading login history...</div>
-                  ) : (
-                    <div className="space-y-4">
-                      {loginHistory.map((session: any) => (
-                        <div
-                          key={session.id}
-                          className="flex items-center justify-between p-4 border rounded-lg"
-                        >
-                          <div className="space-y-1">
-                            <p className="font-medium">
-                              {session.device} - {session.browser}
-                            </p>
-                            <p className="text-sm text-muted-foreground">
-                              {session.location} ({session.ipAddress})
-                            </p>
-                            <p className="text-sm text-muted-foreground">
-                              Last active: {new Date(session.lastActive).toLocaleString()}
-                            </p>
-                          </div>
-                          <Button
-                            variant="destructive"
-                            size="sm"
-                            onClick={async () => {
-                              try {
-                                const response = await fetch(`/api/settings/sessions?sessionId=${session.id}`, {
-                                  method: "DELETE",
-                                });
-                                
-                                if (!response.ok) {
-                                  throw new Error("Failed to revoke session");
-                                }
-                                
-                                mutateLoginHistory();
-                                toast.success("Session revoked successfully");
-                              } catch (error) {
-                                toast.error("Failed to revoke session");
-                              }
-                            }}
-                          >
-                            Revoke
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-
-              {/* Security Settings */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Security Settings</CardTitle>
-                  <CardDescription>Manage your account security preferences</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <Label>Two-Factor Authentication</Label>
-                    <Switch
-                      checked={data.securitySettings.twoFactorEnabled}
-                      onCheckedChange={(checked) => handleSettingsUpdate("security", { ...data.securitySettings, twoFactorEnabled: checked })}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Session Timeout (minutes)</Label>
-                    <Input
-                      type="number"
-                      min={5}
-                      max={120}
-                      value={data.securitySettings.sessionTimeout}
-                      onChange={(e) => handleSettingsUpdate("security", { ...data.securitySettings, sessionTimeout: parseInt(e.target.value) })}
-                    />
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Active Sessions */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Active Sessions</CardTitle>
-                  <CardDescription>Manage your active sessions</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {data.sessions?.map((session: any) => (
-                      <div key={session.id} className="flex items-center justify-between p-4 border rounded-lg">
-                        <div>
-                          <p className="font-medium">{session.device}</p>
-                          <p className="text-sm text-muted-foreground">{session.location}</p>
-                          <p className="text-sm text-muted-foreground">Last active: {new Date(session.lastActive).toLocaleString()}</p>
-                        </div>
-                        <Button
-                          variant="destructive"
-                          size="sm"
-                          onClick={() => {
-                            fetch(`/api/settings/sessions?sessionId=${session.id}`, { method: "DELETE" })
-                              .then(() => mutate())
-                              .catch(() => toast.error("Failed to revoke session"));
-                          }}
-                        >
-                          Revoke
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="api">
-            <div className="space-y-6">
-              {/* API Keys */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>API Keys</CardTitle>
-                  <CardDescription>Manage your API keys for programmatic access</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {data.apiKeys?.map((key: any) => (
-                      <div key={key.id} className="flex items-center justify-between p-4 border rounded-lg">
-                        <div>
-                          <p className="font-medium">{key.name}</p>
-                          <p className="text-sm text-muted-foreground">Created: {new Date(key.createdAt).toLocaleString()}</p>
-                          {key.expiresAt && (
-                            <p className="text-sm text-muted-foreground">Expires: {new Date(key.expiresAt).toLocaleString()}</p>
-                          )}
-                        </div>
-                        <Button
-                          variant="destructive"
-                          size="sm"
-                          onClick={() => {
-                            fetch(`/api/settings/api-keys?keyId=${key.id}`, { method: "DELETE" })
-                              .then(() => mutate())
-                              .catch(() => toast.error("Failed to revoke API key"));
-                          }}
-                        >
-                          Revoke
-                        </Button>
-                      </div>
-                    ))}
-                    <Button
-                      onClick={() => {
-                        const name = prompt("Enter a name for your API key:");
-                        if (name) {
-                          fetch("/api/settings/api-keys", {
-                            method: "POST",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({ name }),
-                          })
-                            .then(() => mutate())
-                            .catch(() => toast.error("Failed to generate API key"));
-                        }
-                      }}
-                    >
-                      Generate New API Key
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-        </Tabs>
-      </div>
-    );
-  }
+  );
 
   return (
     <div className="min-h-screen bg-background">
@@ -924,11 +922,20 @@ export function ProfileClient({ user, currentPath }: ProfileClientProps) {
                       <span className="text-xs text-muted-foreground">{statusLabel}</span>
                     </span>
                   </span>
-                  <span className="relative ml-2">
+                  <span className={`relative ml-2 flex ${user.planType === "FREE" ? "flex-col items-start gap-2" : "flex-row items-center"}`}>
                     <Badge className={`bg-gradient-to-r from-purple-500 to-pink-500 text-white flex items-center gap-1 animate-pulse ${isPro ? "shadow-[0_0_8px_2px_rgba(168,85,247,0.4)]" : ""}`}>
                       {isPro && <Sparkles className="w-4 h-4 animate-spin-slow" />}
                       {user.planType}
                     </Badge>
+                    {user.planType === "FREE" && (
+                      <Button
+                        size="sm"
+                        className="mt-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold shadow hover:from-purple-700 hover:to-pink-700 transition"
+                        onClick={() => router.push("/pricing")}
+                      >
+                        Upgrade Plan
+                      </Button>
+                    )}
                   </span>
                 </div>
                 <div className="text-sm text-muted-foreground">{user.email}</div>
@@ -966,7 +973,8 @@ export function ProfileClient({ user, currentPath }: ProfileClientProps) {
           </ErrorBoundary>
           {/* Tabs for profile sections */}
           <ErrorBoundary>
-            <Tabs value={tab} onValueChange={handleTabChange} className="w-full">
+            <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
+  
               <TabsContent value="overview">
                 <Card className="p-8 bg-card border border-border rounded-2xl shadow-lg">
                   <ProfileForm user={{
@@ -993,7 +1001,12 @@ export function ProfileClient({ user, currentPath }: ProfileClientProps) {
               </TabsContent>
               <TabsContent value="settings">
                 <Card className="p-8 bg-card border border-border rounded-2xl shadow-lg">
-                  <SettingsSection />
+                  <SettingsSection data={settingsData} error={settingsError} isLoading={settingsLoading} mutate={mutateSettings} />
+                </Card>
+              </TabsContent>
+              <TabsContent value="security">
+                <Card className="p-8 bg-card border border-border rounded-2xl shadow-lg">
+                  <SecuritySection data={settingsData} error={settingsError} isLoading={settingsLoading} mutate={mutateSettings} loginHistory={loginHistory} loginHistoryError={loginHistoryError} loginHistoryLoading={loginHistoryLoading} mutateLoginHistory={mutateLoginHistory} />
                 </Card>
               </TabsContent>
             </Tabs>

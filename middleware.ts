@@ -9,13 +9,19 @@ const publicRoutes = [
   "/",
   "/sign-in(.*)",
   "/sign-up(.*)",
+  "/legal/terms",
+  "/legal/privacy",
+  "/about",
+  "/careers",
+  "/blog",
+  "/contact",
   "/api/webhook(.*)",
   "/api/health",
   "/terms",
   "/privacy",
   "/pricing",
-  "/onboarding(.*)",
-  "/api/onboarding(.*)",
+  // "/onboarding(.*)",
+  // "/api/onboarding(.*)",
 ];
 
 // Define routes that require admin access
