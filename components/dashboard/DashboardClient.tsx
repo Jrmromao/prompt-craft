@@ -57,7 +57,6 @@ interface SerializableUserWithPlan {
   creditCap: number;
   lastCreditReset: string;
   stripeCustomerId: string;
-  onboarded?: boolean;
   bio?: string | null;
   jobTitle?: string | null;
   location?: string | null;
@@ -216,7 +215,6 @@ export function DashboardClient({ user, prompts, creditHistory, usageData }: Das
     lastCreditReset: new Date(user.lastCreditReset),
     role: user.role as Role,
     planType: user.plan?.type as PlanType || PlanType.FREE,
-    onboarded: user.onboarded || false,
     bio: user.bio || null,
     jobTitle: user.jobTitle || null,
     location: user.location || null,

@@ -3,7 +3,8 @@ import { notFound } from 'next/navigation';
 import { Badge } from '@/components/ui/badge';
 import { Metadata } from 'next';
 import Link from 'next/link';
-import { UpvoteButton } from '@/components/community/UpvoteButton';
+import { VoteButton } from '@/components/VoteButton';
+import { Comments } from '@/components/Comments';
 import { Suspense } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -100,7 +101,7 @@ function PromptContent({ prompt }: { prompt: Prompt }) {
       </Link>
       <h1 className="text-3xl font-bold mb-2">{prompt.name}</h1>
       <div className="flex items-center gap-4 mb-4">
-        <span className="text-purple-600 font-bold text-lg">⬆️ {prompt.upvotes}</span>
+        <VoteButton promptId={prompt.id} initialUpvotes={prompt.upvotes} />
         <div className="flex flex-wrap gap-2">
           {prompt.tags.map((tag) => (
             <Badge key={tag.id}>{tag.name}</Badge>
@@ -108,28 +109,24 @@ function PromptContent({ prompt }: { prompt: Prompt }) {
         </div>
       </div>
       <p className="text-gray-700 mb-6">{prompt.description}</p>
-      <div className="bg-gray-50 border rounded p-4 font-mono whitespace-pre-wrap mb-6">
+      <div className="bg-gray-50 dark:bg-gray-800 border rounded p-4 font-mono whitespace-pre-wrap mb-6">
         {prompt.content}
       </div>
-      <UpvoteButton promptId={prompt.id} upvotes={prompt.upvotes} />
+      <div className="mt-8">
+        <h2 className="text-2xl font-bold mb-4">Comments</h2>
+        <Comments promptId={prompt.id} />
+      </div>
     </>
   );
 }
 
 function LoadingSkeleton() {
   return (
-    <div className="space-y-4">
-      <Skeleton className="h-4 w-32" />
-      <Skeleton className="h-8 w-3/4" />
-      <div className="flex gap-4">
-        <Skeleton className="h-6 w-16" />
-        <div className="flex gap-2">
-          <Skeleton className="h-6 w-20" />
-          <Skeleton className="h-6 w-20" />
-        </div>
-      </div>
-      <Skeleton className="h-24 w-full" />
-      <Skeleton className="h-32 w-full" />
+    <div className="animate-pulse space-y-4">
+      <div className="h-4 w-24 bg-gray-200 rounded" />
+      <div className="h-8 w-3/4 bg-gray-200 rounded" />
+      <div className="h-4 w-1/2 bg-gray-200 rounded" />
+      <div className="h-32 bg-gray-200 rounded" />
     </div>
   );
 }

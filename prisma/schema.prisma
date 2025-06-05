@@ -20,7 +20,6 @@ model User {
   creditCap         Int                @default(10)
   lastCreditReset   DateTime           @default(now())
   stripeCustomerId  String?
-  onboarded         Boolean            @default(true)
   imageUrl          String?            // URL to user's profile image
   bio               String?            // User's bio/description
   jobTitle          String?            // User's job title
@@ -40,6 +39,8 @@ model User {
   promptGenerations PromptGeneration[]
   promptTemplates   PromptTemplate[]
   subscription      Subscription?
+  votes             Vote[]
+  comments          Comment[]
 }
 
 model Plan {
@@ -93,6 +94,8 @@ model Prompt {
   upvotes     Int      @default(0)
   isApproved  Boolean  @default(false)
   slug        String  @unique
+  votes       Vote[]
+  comments    Comment[]
 
   @@index([userId])
   @@index([promptType])
@@ -163,6 +166,35 @@ model ApiKey {
 
   @@index([userId])
   @@index([key])
+}
+
+model Vote {
+  id        String   @id @default(cuid())
+  userId    String
+  promptId  String
+  value     Int      // 1 for upvote, -1 for downvote
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  prompt    Prompt   @relation(fields: [promptId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, promptId])
+  @@index([userId])
+  @@index([promptId])
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  userId    String
+  promptId  String
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  prompt    Prompt   @relation(fields: [promptId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([promptId])
 }
 
 enum Role {
