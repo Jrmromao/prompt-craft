@@ -55,7 +55,7 @@ export default function PrivacyPage() {
             <p>We may update this Privacy Policy. Using PromptCraft after changes means you accept the new policy.</p>
 
             <h2>7. Contact Us</h2>
-            <p>Questions? Email us at <a href="mailto:legal@promptcraft.com">legal@promptcraft.com</a>.</p>
+            <p>Questions? Email us at <a href="mailto:egal@PromptCraft.co">egal@PromptCraft.co</a>.</p>
           </div>
         </section>
       </main>

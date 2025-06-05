@@ -8,8 +8,8 @@ import PromptCard from '@/components/prompts/PromptCard';
 import Head from 'next/head';
 
 export const metadata: Metadata = {
-  title: 'Community Prompts | PromptHive',
-  description: 'Discover the best public prompts curated by the PromptHive community. Browse, upvote, and get inspired by top AI prompts.',
+  title: 'Community Prompts | PromptCraft',
+  description: 'Discover the best public prompts curated by the PromptCraft community. Browse, upvote, and get inspired by top AI prompts.',
 };
 
 async function getPublicPrompts() {
@@ -32,7 +32,7 @@ function getItemListJsonLd(prompts: any[]) {
     "itemListElement": prompts.map((prompt, idx) => ({
       "@type": "ListItem",
       "position": idx + 1,
-      "url": `http://prompthive.co/community-prompts/${prompt.slug}`,
+      "url": `http://PromptCraft.co/community-prompts/${prompt.slug}`,
       "name": prompt.name,
       "description": prompt.description
     }))
@@ -53,20 +53,20 @@ export default async function CommunityPromptsPage() {
   return (
     <div className="min-h-screen bg-white dark:bg-black text-gray-900 dark:text-white flex flex-col">
       <Head>
-        <title>Community Prompts | PromptHive</title>
-        <meta name="description" content="Discover the best public prompts curated by the PromptHive community. Browse, upvote, and get inspired by top AI prompts." />
-        <link rel="canonical" href="http://prompthive.co/community-prompts" />
+        <title>Community Prompts | PromptCraft</title>
+        <meta name="description" content="Discover the best public prompts curated by the PromptCraft community. Browse, upvote, and get inspired by top AI prompts." />
+        <link rel="canonical" href="http://PromptCraft.co/community-prompts" />
         {/* Open Graph */}
-        <meta property="og:title" content="Community Prompts | PromptHive" />
-        <meta property="og:description" content="Discover the best public prompts curated by the PromptHive community. Browse, upvote, and get inspired by top AI prompts." />
+        <meta property="og:title" content="Community Prompts | PromptCraft" />
+        <meta property="og:description" content="Discover the best public prompts curated by the PromptCraft community. Browse, upvote, and get inspired by top AI prompts." />
         <meta property="og:type" content="website" />
-        <meta property="og:url" content="http://prompthive.co/community-prompts" />
-        <meta property="og:image" content="http://prompthive.co/og-image.jpg" />
+        <meta property="og:url" content="http://PromptCraft.co/community-prompts" />
+        <meta property="og:image" content="http://PromptCraft.co/og-image.jpg" />
         {/* Twitter */}
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="Community Prompts | PromptHive" />
-        <meta name="twitter:description" content="Discover the best public prompts curated by the PromptHive community. Browse, upvote, and get inspired by top AI prompts." />
-        <meta name="twitter:image" content="http://prompthive.co/og-image.jpg" />
+        <meta name="twitter:title" content="Community Prompts | PromptCraft" />
+        <meta name="twitter:description" content="Discover the best public prompts curated by the PromptCraft community. Browse, upvote, and get inspired by top AI prompts." />
+        <meta name="twitter:image" content="http://PromptCraft.co/og-image.jpg" />
         {/* JSON-LD Structured Data */}
         <script
           type="application/ld+json"

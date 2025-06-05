@@ -8,39 +8,49 @@ datasource db {
 }
 
 model User {
-  id                String             @id @default(cuid())
-  email             String             @unique
-  createdAt         DateTime           @default(now())
-  updatedAt         DateTime           @updatedAt
-  clerkId           String             @unique
-  credits           Int                @default(10)
-  name              String?
-  role              Role               @default(USER)
-  planType          PlanType           @default(FREE)
-  creditCap         Int                @default(10)
-  lastCreditReset   DateTime           @default(now())
-  stripeCustomerId  String?
-  imageUrl          String?            // URL to user's profile image
-  bio               String?            // User's bio/description
-  jobTitle          String?            // User's job title
-  location          String?            // User's location
-  company           String?            // User's company
-  website           String?            // User's website
-  twitter           String?            // User's Twitter handle
-  linkedin          String?            // User's LinkedIn profile
-  emailPreferences  Json?              @default("{\"marketingEmails\":true,\"productUpdates\":true,\"securityAlerts\":true}")
-  notificationSettings Json?           @default("{\"emailNotifications\":true,\"pushNotifications\":true,\"browserNotifications\":true}")
-  languagePreferences Json?            @default("{\"language\":\"en\",\"dateFormat\":\"MM/DD/YYYY\",\"timeFormat\":\"12h\"}")
-  themeSettings     Json?              @default("{\"theme\":\"system\",\"accentColor\":\"purple\"}")
-  securitySettings  Json?              @default("{\"twoFactorEnabled\":false,\"sessionTimeout\":30}")
-  apiKeys           ApiKey[]
-  creditHistory     CreditHistory[]
-  prompts           Prompt[]
+  id            String    @id @default(cuid())
+  clerkId       String    @unique
+  email         String    @unique
+  name          String?
+  role          Role      @default(USER)
+  planType      PlanType  @default(FREE)
+  credits       Int       @default(0)
+  creditCap     Int       @default(100)
+  lastCreditReset DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  stripeCustomerId String?
+  imageUrl      String?
+  bio           String?
+  jobTitle      String?
+  location      String?
+  company       String?
+  website       String?
+  twitter       String?
+  linkedin      String?
+  emailPreferences Json?  @default("{\"marketingEmails\":true,\"productUpdates\":true,\"securityAlerts\":true}")
+  notificationSettings Json? @default("{\"emailNotifications\":true,\"pushNotifications\":true,\"browserNotifications\":true}")
+  languagePreferences Json? @default("{\"language\":\"en\",\"dateFormat\":\"MM/DD/YYYY\",\"timeFormat\":\"12h\"}")
+  themeSettings Json? @default("{\"theme\":\"system\",\"accentColor\":\"purple\"}")
+  securitySettings Json? @default("{\"twoFactorEnabled\":false,\"sessionTimeout\":30}")
+
+  // Relations
+  prompts       Prompt[]
+  comments      Comment[]
+  votes         Vote[]
+  commentLikes  CommentLike[]
+  promptUsages  PromptUsage[]
+  apiKeys       ApiKey[]
+  creditHistory CreditHistory[]
+  subscription  Subscription?
+  promptTemplates PromptTemplate[]
   promptGenerations PromptGeneration[]
-  promptTemplates   PromptTemplate[]
-  subscription      Subscription?
-  votes             Vote[]
-  comments          Comment[]
+  supportTickets SupportTicket[]
+  assignedTickets SupportTicket[] @relation("AssignedTickets")
+  messages      Message[]
+
+  @@index([clerkId])
+  @@index([email])
 }
 
 model Plan {
@@ -81,34 +91,46 @@ model Subscription {
 model Prompt {
   id          String   @id @default(cuid())
   userId      String
-  createdAt   DateTime @default(now())
-  content     String
-  description String?
-  isPublic    Boolean  @default(false)
-  metadata    Json?
   name        String
-  promptType  String
+  description String?
+  content     String
+  isPublic    Boolean  @default(false)
+  promptType  String   @default("text")
+  metadata    Json?
+  createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-  user        User     @relation(fields: [userId], references: [id])
   tags        Tag[]    @relation("PromptToTag")
-  upvotes     Int      @default(0)
   isApproved  Boolean  @default(false)
-  slug        String  @unique
-  votes       Vote[]
+  upvotes     Int      @default(0)
+  slug        String   @unique
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  likes       CommentLike[]
   comments    Comment[]
+  votes       Vote[]
+  analytics   PromptAnalytics?
+  views       PromptView[]
+  usages      PromptUsage[]
+  versions    PromptVersion[]
+  branches    PromptBranch[]
+
+  // Analytics fields
+  viewCount   Int      @default(0)
+  usageCount  Int      @default(0)
+  lastViewedAt DateTime?
+  lastUsedAt  DateTime?
 
   @@index([userId])
-  @@index([promptType])
+  @@index([isPublic])
+  @@index([isApproved])
+  @@index([slug])
 }
 
 model Tag {
   id        String   @id @default(cuid())
   name      String   @unique
+  prompts   Prompt[] @relation("PromptToTag")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  prompts   Prompt[] @relation("PromptToTag")
-
-  @@index([name])
 }
 
 model CreditHistory {
@@ -172,7 +194,7 @@ model Vote {
   id        String   @id @default(cuid())
   userId    String
   promptId  String
-  value     Int      // 1 for upvote, -1 for downvote
+  value     Int
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -190,11 +212,138 @@ model Comment {
   content   String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  parentId  String?  // Optional field for nested comments
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   prompt    Prompt   @relation(fields: [promptId], references: [id], onDelete: Cascade)
+  parent    Comment? @relation("CommentToComment", fields: [parentId], references: [id], onDelete: SetNull)
+  replies   Comment[] @relation("CommentToComment")
+  likes     CommentLike[]
 
   @@index([userId])
   @@index([promptId])
+  @@index([parentId])
+}
+
+model CommentLike {
+  id        String   @id @default(cuid())
+  userId    String
+  commentId String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  comment   Comment  @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  prompt    Prompt   @relation(fields: [promptId], references: [id], onDelete: Cascade)
+  promptId  String
+
+  @@unique([userId, commentId])
+  @@index([userId])
+  @@index([commentId])
+  @@index([promptId])
+}
+
+model PromptAnalytics {
+  id        String   @id @default(cuid())
+  promptId  String   @unique
+  prompt    Prompt   @relation(fields: [promptId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model PromptView {
+  id        String   @id @default(cuid())
+  promptId  String
+  userId    String?
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+  prompt    Prompt   @relation(fields: [promptId], references: [id], onDelete: Cascade)
+
+  @@index([promptId])
+  @@index([userId])
+}
+
+model PromptUsage {
+  id        String   @id @default(cuid())
+  promptId  String
+  userId    String
+  result    Json?
+  createdAt DateTime @default(now())
+  prompt    Prompt   @relation(fields: [promptId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([promptId])
+  @@index([userId])
+}
+
+model PromptVersion {
+  id        String   @id @default(cuid())
+  promptId  String
+  content   String
+  createdAt DateTime @default(now())
+  prompt    Prompt   @relation(fields: [promptId], references: [id], onDelete: Cascade)
+
+  @@index([promptId])
+}
+
+model PromptBranch {
+  id        String   @id @default(cuid())
+  promptId  String
+  name      String
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  prompt    Prompt   @relation(fields: [promptId], references: [id], onDelete: Cascade)
+
+  @@unique([promptId, name])
+  @@index([promptId])
+}
+
+model SupportTicket {
+  id          String       @id @default(cuid())
+  title       String
+  description String
+  status      TicketStatus @default(OPEN)
+  priority    Priority     @default(MEDIUM)
+  category    Category
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  userId      String
+  assigneeId  String?
+  user        User         @relation(fields: [userId], references: [id])
+  assignee    User?        @relation("AssignedTickets", fields: [assigneeId], references: [id])
+  messages    Message[]
+  attachments Attachment[]
+
+  @@index([userId])
+  @@index([assigneeId])
+  @@index([status])
+  @@index([priority])
+  @@index([category])
+}
+
+model Message {
+  id        String   @id @default(cuid())
+  content   String
+  createdAt DateTime @default(now())
+  ticketId  String
+  userId    String
+  ticket    SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  user      User         @relation(fields: [userId], references: [id])
+
+  @@index([ticketId])
+  @@index([userId])
+}
+
+model Attachment {
+  id        String   @id @default(cuid())
+  filename  String
+  url       String
+  type      String
+  size      Int
+  createdAt DateTime @default(now())
+  ticketId  String
+  ticket    SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+
+  @@index([ticketId])
 }
 
 enum Role {
@@ -229,4 +378,26 @@ enum SubscriptionStatus {
   TRIALING
   INCOMPLETE
   INCOMPLETE_EXPIRED
+}
+
+enum TicketStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum Category {
+  BUG
+  FEATURE_REQUEST
+  GENERAL_INQUIRY
+  TECHNICAL_SUPPORT
+  BILLING
 }

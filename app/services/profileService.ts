@@ -82,7 +82,7 @@ export async function getUsageStatsByClerkId(clerkId: string): Promise<UsageStat
     totalCreditsUsed,
     creditsRemaining,
     creditCap: user.creditCap,
-    lastCreditReset: user.lastCreditReset,
+    lastCreditReset: user.lastCreditReset || new Date(),
     totalRequests,
     dailyUsage,
     recentActivity,

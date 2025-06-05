@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { User, BarChart2, CreditCard as BillingIcon, FileText, Settings, LogOut, Sparkles, ShieldUser, Pencil, Circle } from "lucide-react";
@@ -42,6 +42,12 @@ const workspaceOptions = [
   { label: "My Prompts", icon: FileText, href: "prompts" },
 ];
 
+const PRIVATE_PROMPT_LIMITS = {
+  [PlanType.FREE]: 5,
+  [PlanType.LITE]: 200,
+  [PlanType.PRO]: Infinity,
+};
+
 export interface ProfileClientProps {
   user: {
     name: string;
@@ -79,6 +85,21 @@ interface SecuritySectionProps {
   loginHistoryError: any;
   loginHistoryLoading: boolean;
   mutateLoginHistory: KeyedMutator<any>;
+}
+
+interface UsageData {
+  totalCreditsUsed: number;
+  creditsRemaining: number;
+  creditCap: number;
+  lastCreditReset: string;
+  totalRequests: number;
+  dailyUsage: Array<{ date: string; used: number }>;
+  recentActivity: Array<{
+    date: string;
+    description: string;
+    amount: number;
+    type: string;
+  }>;
 }
 
 function SettingsSection(props: SettingsSectionProps) {
@@ -453,7 +474,7 @@ function SecuritySection({ data, error, isLoading, mutate, loginHistory, loginHi
   );
 }
 
-export function ProfileClient({ user, currentPath }: ProfileClientProps) {
+function ProfileContent({ user, currentPath }: ProfileClientProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { signOut } = useClerk();
   const router = useRouter();
@@ -482,6 +503,11 @@ export function ProfileClient({ user, currentPath }: ProfileClientProps) {
     router.push(`/profile?tab=${tabValue}`, { scroll: false });
     setSidebarOpen(false);
     setActiveTab(tabValue);
+  }
+
+  // Tab change handler
+  function handleTabChange(value: string) {
+    router.push(`/profile?tab=${value}`, { scroll: false });
   }
 
   const SidebarContent = (
@@ -537,30 +563,24 @@ export function ProfileClient({ user, currentPath }: ProfileClientProps) {
     </div>
   );
 
-  // Tab change handler
-  function handleTabChange(value: string) {
-    router.push(`/profile?tab=${value}`, { scroll: false });
-  }
-
   function UsageStatsSection() {
-    const { data, error, isLoading } = useSWR("/api/profile/usage", (url) => fetch(url).then(r => r.json()));
+    const { data, error, isLoading } = useSWR<UsageData>("/api/profile/usage", (url: string) => fetch(url).then(r => r.json()));
+    const [dots, setDots] = useState(0);
+
+    useEffect(() => {
+      const interval = setInterval(() => {
+        setDots((prev: number) => (prev + 1) % 4);
+      }, 400);
+      return () => clearInterval(interval);
+    }, []);
 
     if (isLoading) {
-      // Animated ellipsis for loading
-      const [dots, setDots] = useState(0);
-      useEffect(() => {
-        const interval = setInterval(() => {
-          setDots((prev) => (prev + 1) % 4);
-        }, 400);
-        return () => clearInterval(interval);
-      }, []);
       return <div className="p-8 text-center text-muted-foreground">Loading usage{'.'.repeat(dots)}</div>;
     }
     if (error || !data) {
       return <div className="p-8 text-center text-red-500">Failed to load usage data.</div>;
     }
 
-    // Stats
     const { totalCreditsUsed, creditsRemaining, creditCap, lastCreditReset, totalRequests, dailyUsage, recentActivity } = data;
 
     return (
@@ -650,7 +670,7 @@ export function ProfileClient({ user, currentPath }: ProfileClientProps) {
                 {recentActivity.length === 0 && (
                   <tr><td colSpan={4} className="text-center py-4 text-muted-foreground">No recent activity</td></tr>
                 )}
-                {recentActivity.map((a: any, i: number) => (
+                {recentActivity.map((a, i) => (
                   <tr key={i} className="border-t">
                     <td className="px-3 py-2 whitespace-nowrap">{new Date(a.date).toLocaleString()}</td>
                     <td className="px-3 py-2">{a.description || "-"}</td>
@@ -877,6 +897,11 @@ export function ProfileClient({ user, currentPath }: ProfileClientProps) {
     }
   );
 
+  const { data: promptStats } = useSWR('/api/prompts/stats', fetcher);
+  const privatePromptLimit = PRIVATE_PROMPT_LIMITS[user.planType as PlanType];
+  const privatePromptCount = promptStats?.privatePromptCount || 0;
+  const privatePromptPercentage = privatePromptLimit === Infinity ? 0 : (privatePromptCount / privatePromptLimit) * 100;
+
   return (
     <div className="min-h-screen bg-background">
       {/* NavBar with hamburger menu */}
@@ -977,11 +1002,43 @@ export function ProfileClient({ user, currentPath }: ProfileClientProps) {
   
               <TabsContent value="overview">
                 <Card className="p-8 bg-card border border-border rounded-2xl shadow-lg">
-                  <ProfileForm user={{
-                    ...user,
-                    role: user.role as Role,
-                    planType: user.planType as PlanType,
-                  }} />
+                  <div className="space-y-8">
+                    <ProfileForm user={{
+                      ...user,
+                      role: user.role as Role,
+                      planType: user.planType as PlanType,
+                    }} />
+                    
+                    {/* Usage Stats */}
+                    <div className="space-y-4">
+                      <h3 className="text-lg font-semibold">Usage</h3>
+                      
+                      {/* Credits Usage */}
+                      <div className="space-y-2">
+                        <div className="flex justify-between text-sm">
+                          <span>Credits</span>
+                          <span>{user.credits} / {user.creditCap}</span>
+                        </div>
+                        <Progress value={creditPercentage} className="h-2" />
+                      </div>
+
+                      {/* Private Prompts Usage */}
+                      <div className="space-y-2">
+                        <div className="flex justify-between text-sm">
+                          <span>Private Prompts</span>
+                          <span>
+                            {privatePromptCount} / {privatePromptLimit === Infinity ? '∞' : privatePromptLimit}
+                          </span>
+                        </div>
+                        <Progress value={privatePromptPercentage} className="h-2" />
+                        {privatePromptPercentage > 80 && privatePromptLimit !== Infinity && (
+                          <p className="text-sm text-yellow-600 dark:text-yellow-400">
+                            You're approaching your private prompt limit. Consider upgrading to save more private prompts.
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
                 </Card>
               </TabsContent>
               <TabsContent value="usage">
@@ -1014,5 +1071,13 @@ export function ProfileClient({ user, currentPath }: ProfileClientProps) {
         </main>
       </div>
     </div>
+  );
+}
+
+export function ProfileClient({ user, currentPath }: ProfileClientProps) {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <ProfileContent user={user} currentPath={currentPath} />
+    </Suspense>
   );
 } 

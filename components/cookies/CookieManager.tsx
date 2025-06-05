@@ -1,11 +1,14 @@
 // components/CookieConsent/CookieManager.tsx
 import React, { useState } from "react";
 import { X } from "lucide-react";
+import Link from "next/link";
 
 export type CookiePreferences = {
   necessary: boolean;
   analytics: boolean;
   functional: boolean;
+  marketing: boolean;
+  preferences: boolean;
 };
 
 interface CookieManagerProps {
@@ -33,13 +36,13 @@ export default function CookieManager({
 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+      <div className="bg-white dark:bg-gray-900 rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         <div className="p-6">
           <div className="flex justify-between items-start">
-            <h2 className="text-xl font-semibold">Cookie Settings</h2>
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Cookie Settings</h2>
             <button
               onClick={onClose}
-              className="text-gray-400 hover:text-gray-600"
+              className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
             >
               <X size={24} />
             </button>
@@ -47,11 +50,11 @@ export default function CookieManager({
 
           <div className="mt-4 space-y-6">
             {/* Necessary Cookies */}
-            <div className="border rounded-lg p-4">
+            <div className="border dark:border-gray-700 rounded-lg p-4">
               <div className="flex items-center justify-between mb-2">
                 <div>
-                  <h3 className="font-medium">Essential Cookies</h3>
-                  <span className="text-xs text-gray-500">Always active</span>
+                  <h3 className="font-medium text-gray-900 dark:text-white">Essential Cookies</h3>
+                  <span className="text-xs text-gray-500 dark:text-gray-400">Always active</span>
                 </div>
                 <div className="relative inline-block">
                   <button
@@ -62,7 +65,7 @@ export default function CookieManager({
                   </button>
                 </div>
               </div>
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-gray-600 dark:text-gray-300">
                 These cookies are necessary for the website to function and
                 cannot be switched off. They are usually only set in response to
                 actions made by you which amount to a request for services, such
@@ -72,9 +75,9 @@ export default function CookieManager({
             </div>
 
             {/* Analytics Cookies */}
-            <div className="border rounded-lg p-4">
+            <div className="border dark:border-gray-700 rounded-lg p-4">
               <div className="flex items-center justify-between mb-2">
-                <h3 className="font-medium">Analytics Cookies</h3>
+                <h3 className="font-medium text-gray-900 dark:text-white">Analytics Cookies</h3>
                 <div className="relative inline-block">
                   <button
                     onClick={() =>
@@ -84,32 +87,26 @@ export default function CookieManager({
                       }))
                     }
                     className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                      preferences.analytics ? "bg-emerald-600" : "bg-gray-200"
+                      preferences.analytics ? "bg-emerald-600" : "bg-gray-200 dark:bg-gray-700"
                     }`}
                   >
                     <span
                       className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                        preferences.analytics
-                          ? "translate-x-6"
-                          : "translate-x-1"
+                        preferences.analytics ? "translate-x-6" : "translate-x-1"
                       }`}
                     />
                   </button>
                 </div>
               </div>
-              <p className="text-sm text-gray-600">
-                These cookies allow us to count visits and traffic sources so we
-                can measure and improve the performance of our site. They help
-                us to know which pages are the most and least popular and see
-                how visitors move around the site. All information these cookies
-                collect is aggregated and therefore anonymous.
+              <p className="text-sm text-gray-600 dark:text-gray-300">
+                These cookies help us understand how visitors interact with our website by collecting and reporting information anonymously. They help us to know which pages are the most and least popular and see how visitors move around the site.
               </p>
             </div>
 
             {/* Functional Cookies */}
-            <div className="border rounded-lg p-4">
+            <div className="border dark:border-gray-700 rounded-lg p-4">
               <div className="flex items-center justify-between mb-2">
-                <h3 className="font-medium">Functional Cookies</h3>
+                <h3 className="font-medium text-gray-900 dark:text-white">Functional Cookies</h3>
                 <div className="relative inline-block">
                   <button
                     onClick={() =>
@@ -119,42 +116,110 @@ export default function CookieManager({
                       }))
                     }
                     className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                      preferences.functional ? "bg-emerald-600" : "bg-gray-200"
+                      preferences.functional ? "bg-emerald-600" : "bg-gray-200 dark:bg-gray-700"
                     }`}
                   >
                     <span
                       className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                        preferences.functional
-                          ? "translate-x-6"
-                          : "translate-x-1"
+                        preferences.functional ? "translate-x-6" : "translate-x-1"
                       }`}
                     />
                   </button>
                 </div>
               </div>
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-gray-600 dark:text-gray-300">
                 These cookies enable the website to provide enhanced
-                functionality and personalisation. They may be set by us or by
-                third party providers whose services we have added to our pages.
-                If you do not allow these cookies then some or all of these
-                services may not function properly.
+                functionality and personalization. They may be set by us or by
+                third-party providers whose services we have added to our pages.
               </p>
             </div>
-          </div>
 
-          <div className="mt-6 flex justify-end gap-3">
-            <button
-              onClick={onClose}
-              className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 transition-colors rounded-md hover:bg-gray-50"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={handleSave}
-              className="px-4 py-2 bg-emerald-600 text-white rounded-md text-sm hover:bg-emerald-700 transition-colors"
-            >
-              Save preferences
-            </button>
+            {/* Marketing Cookies */}
+            <div className="border dark:border-gray-700 rounded-lg p-4">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="font-medium text-gray-900 dark:text-white">Marketing Cookies</h3>
+                <div className="relative inline-block">
+                  <button
+                    onClick={() =>
+                      setPreferences((prev) => ({
+                        ...prev,
+                        marketing: !prev.marketing,
+                      }))
+                    }
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                      preferences.marketing ? "bg-emerald-600" : "bg-gray-200 dark:bg-gray-700"
+                    }`}
+                  >
+                    <span
+                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                        preferences.marketing ? "translate-x-6" : "translate-x-1"
+                      }`}
+                    />
+                  </button>
+                </div>
+              </div>
+              <p className="text-sm text-gray-600 dark:text-gray-300">
+                These cookies are used to track visitors across websites. The intention is to display ads that are relevant and engaging for the individual user and thereby more valuable for publishers and third-party advertisers.
+              </p>
+            </div>
+
+            {/* Preferences Cookies */}
+            <div className="border dark:border-gray-700 rounded-lg p-4">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="font-medium text-gray-900 dark:text-white">Preferences Cookies</h3>
+                <div className="relative inline-block">
+                  <button
+                    onClick={() =>
+                      setPreferences((prev) => ({
+                        ...prev,
+                        preferences: !prev.preferences,
+                      }))
+                    }
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                      preferences.preferences ? "bg-emerald-600" : "bg-gray-200 dark:bg-gray-700"
+                    }`}
+                  >
+                    <span
+                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                        preferences.preferences ? "translate-x-6" : "translate-x-1"
+                      }`}
+                    />
+                  </button>
+                </div>
+              </div>
+              <p className="text-sm text-gray-600 dark:text-gray-300">
+                These cookies allow the website to remember choices you make (such as your username, language, or the region you are in) and provide enhanced, more personal features.
+              </p>
+            </div>
+
+            <div className="text-sm text-gray-600 dark:text-gray-300">
+              <p>
+                For more information about how we use cookies and your data, please read our{" "}
+                <Link href="/privacy-policy" className="text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300">
+                  Privacy Policy
+                </Link>{" "}
+                and{" "}
+                <Link href="/cookie-policy" className="text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300">
+                  Cookie Policy
+                </Link>
+                .
+              </p>
+            </div>
+
+            <div className="flex justify-end gap-4">
+              <button
+                onClick={onClose}
+                className="px-4 py-2 text-sm text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSave}
+                className="px-4 py-2 bg-emerald-600 text-white rounded-md text-sm hover:bg-emerald-700 transition-colors"
+              >
+                Save Preferences
+              </button>
+            </div>
           </div>
         </div>
       </div>

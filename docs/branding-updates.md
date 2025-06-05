@@ -1,6 +1,6 @@
-# PromptHive Branding Updates
+# PromptCraft Branding Updates
 
-This document tracks all the places where we need to update the branding from "PromptCraft" to "PromptHive" for consistency.
+This document tracks all the places where we need to update the branding from "PromptCraft" to "PromptCraft" for consistency.
 
 ## Completed Updates
 
@@ -9,7 +9,7 @@ This document tracks all the places where we need to update the branding from "P
    - ✅ Completed
 
 2. `components/PromptCraftLandingClient.tsx`
-   - Renamed component to `PromptHiveLandingClient`
+   - Renamed component to `PromptCraftLandingClient`
    - Updated all branding references
    - ✅ Completed
 
@@ -21,12 +21,12 @@ This document tracks all the places where we need to update the branding from "P
 
 ### 1. Legal Pages
 - `app/legal/terms/page.tsx`
-  - Update all instances of "PromptCraft" to "PromptHive"
-  - Update email from legal@promptcraft.com to legal@prompthive.co
+  - Update all instances of "PromptCraft" to "PromptCraft"
+  - Update email from egal@PromptCraft.co to legal@PromptCraft.co
 
 - `app/legal/privacy/page.tsx`
-  - Update all instances of "PromptCraft" to "PromptHive"
-  - Update email from legal@promptcraft.com to legal@prompthive.co
+  - Update all instances of "PromptCraft" to "PromptCraft"
+  - Update email from egal@PromptCraft.co to legal@PromptCraft.co
 
 ### 2. Auth Pages
 - `app/(auth)/sign-in/[[...sign-in]]/page.tsx`
@@ -79,7 +79,7 @@ This document tracks all the places where we need to update the branding from "P
 ## SEO and Metadata Updates
 
 ### URLs to Update
-- Update all instances of `promptcraft.com` to `prompthive.co`
+- Update all instances of `PromptCraft.com` to `PromptCraft.co`
 - Update all canonical URLs
 - Update all OpenGraph URLs
 - Update all Twitter card URLs
@@ -92,9 +92,9 @@ This document tracks all the places where we need to update the branding from "P
 
 ## Next Steps
 
-1. Create a script to automate the replacement of "PromptCraft" with "PromptHive" in all files
-2. Update all email addresses from @promptcraft.com to @prompthive.co
-3. Update all URLs from promptcraft.com to prompthive.co
+1. Create a script to automate the replacement of "PromptCraft" with "PromptCraft" in all files
+2. Update all email addresses from @PromptCraft.com to @PromptCraft.co
+3. Update all URLs from PromptCraft.com to PromptCraft.co
 4. Test all pages after updates to ensure no broken links
 5. Update any hardcoded references in the database or environment variables
 

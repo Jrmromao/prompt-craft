@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 
 // SEO metadata
 const metadata = {
-  title: 'PromptHive - AI-Powered Prompt Generation Platform',
+  title: 'PromptCraft - AI-Powered Prompt Generation Platform',
   description: 'Transform your ideas into detailed, effective prompts with our AI-powered platform. Perfect for content creators, marketers, and AI enthusiasts.',
   keywords: 'AI prompts, prompt engineering, content creation, marketing tools, AI assistance',
   ogImage: '/og-image.jpg',
@@ -20,7 +20,7 @@ const metadata = {
 const structuredData = {
   "@context": "https://schema.org",
   "@type": "SoftwareApplication",
-  "name": "PromptHive",
+  "name": "PromptCraft",
   "applicationCategory": "BusinessApplication",
   "operatingSystem": "Web",
   "offers": {
@@ -189,16 +189,16 @@ const PromptCraftLandingClient = () => {
   return (
     <>
       <Head>
-        <title>PromptHive - AI-Powered Prompt Generation Platform</title>
+        <title>PromptCraft - AI-Powered Prompt Generation Platform</title>
         <meta name="description" content="Transform your ideas into detailed, effective prompts with our AI-powered platform. Perfect for content creators, marketers, and AI enthusiasts." />
         <meta name="keywords" content="AI prompts, prompt engineering, content creation, marketing tools, AI assistance" />
-        <link rel="canonical" href="http://prompthive.co/" />
+        <link rel="canonical" href="http://PromptCraft.co/" />
         
         {/* PWA Meta Tags */}
-        <meta name="application-name" content="PromptHive" />
+        <meta name="application-name" content="PromptCraft" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-        <meta name="apple-mobile-web-app-title" content="PromptHive" />
+        <meta name="apple-mobile-web-app-title" content="PromptCraft" />
         <meta name="format-detection" content="telephone=no" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="theme-color" content="#9333ea" />
@@ -208,17 +208,17 @@ const PromptCraftLandingClient = () => {
         <link rel="manifest" href="/manifest.json" />
         
         {/* Open Graph */}
-        <meta property="og:title" content="PromptHive - AI-Powered Prompt Generation Platform" />
+        <meta property="og:title" content="PromptCraft - AI-Powered Prompt Generation Platform" />
         <meta property="og:description" content="Transform your ideas into detailed, effective prompts with our AI-powered platform. Perfect for content creators, marketers, and AI enthusiasts." />
-        <meta property="og:image" content="http://prompthive.co/og-image.jpg" />
+        <meta property="og:image" content="http://PromptCraft.co/og-image.jpg" />
         <meta property="og:type" content="website" />
-        <meta property="og:url" content="http://prompthive.co/" />
+        <meta property="og:url" content="http://PromptCraft.co/" />
         
         {/* Twitter */}
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="PromptHive - AI-Powered Prompt Generation Platform" />
+        <meta name="twitter:title" content="PromptCraft - AI-Powered Prompt Generation Platform" />
         <meta name="twitter:description" content="Transform your ideas into detailed, effective prompts with our AI-powered platform. Perfect for content creators, marketers, and AI enthusiasts." />
-        <meta name="twitter:image" content="http://prompthive.co/og-image.jpg" />
+        <meta name="twitter:image" content="http://PromptCraft.co/og-image.jpg" />
         
         {/* Structured Data */}
         <Script
@@ -251,7 +251,7 @@ const PromptCraftLandingClient = () => {
                   <Sparkles className="w-6 h-6 text-white" aria-hidden="true" />
                 </div>
                 <span className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-                  PromptHive
+                  PromptCraft
                 </span>
               </div>
               <div className="hidden md:flex items-center space-x-8">
@@ -567,7 +567,7 @@ const PromptCraftLandingClient = () => {
                     <Sparkles className="w-5 h-5 text-white" aria-hidden="true" />
                   </div>
                   <span className="text-xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-                    PromptHive
+                    PromptCraft
                   </span>
                 </div>
                 <nav className="flex items-center space-x-6 text-gray-600 dark:text-gray-400" aria-label="Footer navigation">

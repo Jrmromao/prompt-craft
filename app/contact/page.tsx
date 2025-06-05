@@ -116,10 +116,10 @@ export default function ContactPage() {
           {/* Contact Info */}
           <div className="flex-1 flex flex-col gap-4 justify-center items-center md:items-start">
             <div>
-              <span className="font-semibold">Email:</span> <a href="mailto:hello@promptcraft.com" className="underline">hello@promptcraft.com</a>
+              <span className="font-semibold">Email:</span> <a href="mailto:hello@PromptCraft.com" className="underline">hello@PromptCraft.com</a>
             </div>
             <div>
-              <span className="font-semibold">Legal:</span> <a href="mailto:legal@promptcraft.com" className="underline">legal@promptcraft.com</a>
+              <span className="font-semibold">Legal:</span> <a href="mailto:egal@PromptCraft.co" className="underline">egal@PromptCraft.co</a>
             </div>
             <div>
               <span className="font-semibold">Follow us:</span>

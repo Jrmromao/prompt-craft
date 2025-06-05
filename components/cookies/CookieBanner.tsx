@@ -11,6 +11,8 @@ const defaultPreferences: CookiePreferences = {
   necessary: true,
   analytics: false,
   functional: false,
+  marketing: false,
+  preferences: false,
 };
 
 export default function CookieBanner({
@@ -18,8 +20,7 @@ export default function CookieBanner({
 }: CookieBannerProps) {
   const [showBanner, setShowBanner] = useState(false);
   const [showManager, setShowManager] = useState(false);
-  const [preferences, setPreferences] =
-    useState<CookiePreferences>(defaultPreferences);
+  const [preferences, setPreferences] = useState<CookiePreferences>(defaultPreferences);
 
   useEffect(() => {
     // Check if we have stored preferences
@@ -38,6 +39,8 @@ export default function CookieBanner({
       necessary: true,
       analytics: true,
       functional: true,
+      marketing: true,
+      preferences: true,
     };
     savePreferences(allAccepted);
   };
@@ -47,6 +50,8 @@ export default function CookieBanner({
       necessary: true, // Always true
       analytics: false,
       functional: false,
+      marketing: false,
+      preferences: false,
     };
     savePreferences(allDeclined);
   };
@@ -63,32 +68,37 @@ export default function CookieBanner({
 
   return (
     <>
-      <div className="fixed top-0 left-0 right-0 bg-white border-b border-gray-100 shadow-sm p-4 z-50 animate-slide-down">
+      <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 border-t border-gray-100 dark:border-gray-800 shadow-lg p-4 z-50 animate-slide-up">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex-1">
-            <p className="text-sm text-gray-600">
-              We use cookies to enhance your browsing experience, serve
-              personalized content, and analyze our traffic. Please read our{" "}
+            <p className="text-sm text-gray-600 dark:text-gray-300">
+              We use cookies to enhance your browsing experience, serve personalized content, and analyze our traffic. By clicking "Accept All", you consent to our use of cookies. You can customize your preferences by clicking "Manage Preferences". For more information, please read our{" "}
               <Link
                 href="/privacy-policy"
-                target="_blank"
-                className="text-emerald-600 hover:text-emerald-700 underline-offset-2 hover:underline"
+                className="text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300 underline-offset-2 hover:underline"
               >
                 Privacy Policy
               </Link>{" "}
-              for more information.
+              and{" "}
+              <Link
+                href="/cookie-policy"
+                className="text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300 underline-offset-2 hover:underline"
+              >
+                Cookie Policy
+              </Link>
+              .
             </p>
           </div>
           <div className="flex items-center gap-3 shrink-0">
             <button
               onClick={() => setShowManager(true)}
-              className="text-sm text-gray-600 hover:text-gray-800 transition-colors"
+              className="text-sm text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white transition-colors"
             >
               Manage preferences
             </button>
             <button
               onClick={handleDeclineAll}
-              className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 transition-colors rounded-md hover:bg-gray-50"
+              className="px-4 py-2 text-sm text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white transition-colors rounded-md hover:bg-gray-50 dark:hover:bg-gray-800"
             >
               Decline all
             </button>

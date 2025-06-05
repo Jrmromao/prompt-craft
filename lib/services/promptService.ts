@@ -27,6 +27,12 @@ export class PromptService {
     [PlanType.PRO]: Infinity,
   };
 
+  private readonly PRIVATE_PROMPT_LIMITS: Record<PlanType, number> = {
+    [PlanType.FREE]: 5,
+    [PlanType.LITE]: 200,
+    [PlanType.PRO]: Infinity,
+  };
+
   private constructor() {}
 
   public static getInstance(): PromptService {
@@ -48,30 +54,42 @@ export class PromptService {
       tags?: string[];
     }
   ): Promise<Prompt> {
-
-    console.log('\n\n\n\n/nuserId', userId);
-
-    // Check user's prompt limit
+    // Get user's plan type
     const user = await prisma.user.findUnique({
-      where: { clerkId: userId },
-      select: { role: true },
+      where: { id: userId },
+      select: { planType: true },
     });
-
 
     if (!user) {
       throw new Error('User not found');
     }
 
-    console.log('\n\n\nuserId', user);
+    const planType = user.planType as PlanType;
+    const isPrivate = !data.isPublic;
 
-    const promptLimit = this.PROMPT_LIMITS[user.role as PlanType];
+    // Check private prompt limit if the prompt is private
+    if (isPrivate) {
+      const privatePromptLimit = this.PRIVATE_PROMPT_LIMITS[planType];
+      if (privatePromptLimit !== Infinity) {
+        const privatePromptCount = await prisma.prompt.count({
+          where: { 
+            userId,
+            isPublic: false,
+          },
+        });
+
+        if (privatePromptCount >= privatePromptLimit) {
+          throw new Error(`You have reached your private prompt limit of ${privatePromptLimit}. Please upgrade to save more private prompts.`);
+        }
+      }
+    }
+
+    // Check total prompt limit
+    const promptLimit = this.PROMPT_LIMITS[planType];
     if (promptLimit !== Infinity) {
       const promptCount = await prisma.prompt.count({
         where: { userId },
       });
-
-      console.log('\n\n\npromptCount', promptCount);
-      console.log('\n\n\npromptLimit', promptLimit);
 
       if (promptCount >= promptLimit) {
         throw new Error(`You have reached your prompt limit of ${promptLimit}. Please upgrade to save more prompts.`);

@@ -1,15 +1,17 @@
+"use client";
+
 import { useState, useEffect } from 'react';
 import { ThumbsUp, ThumbsDown } from 'lucide-react';
 import { useUser } from '@clerk/nextjs';
 import { toast } from 'sonner';
 
 interface VoteButtonProps {
-  promptId: string;
+  id: string;
   initialUpvotes: number;
   onVoteChange?: (upvotes: number) => void;
 }
 
-export function VoteButton({ promptId, initialUpvotes, onVoteChange }: VoteButtonProps) {
+export function VoteButton({ id, initialUpvotes, onVoteChange }: VoteButtonProps) {
   const { user } = useUser();
   const [upvotes, setUpvotes] = useState(initialUpvotes);
   const [userVote, setUserVote] = useState<number | null>(null);
@@ -19,11 +21,19 @@ export function VoteButton({ promptId, initialUpvotes, onVoteChange }: VoteButto
     if (user) {
       fetchUserVote();
     }
-  }, [user, promptId]);
+  }, [user, id]);
+
+  useEffect(() => {
+    fetchUserVote();
+    const interval = setInterval(() => {
+      fetchUserVote();
+    }, 10000); // every 10 seconds
+    return () => clearInterval(interval);
+  }, [id]);
 
   const fetchUserVote = async () => {
     try {
-      const response = await fetch(`/api/prompts/${promptId}/vote`);
+      const response = await fetch(`/api/prompts/${id}/vote`);
       if (response.ok) {
         const data = await response.json();
         setUserVote(data.vote);
@@ -41,9 +51,32 @@ export function VoteButton({ promptId, initialUpvotes, onVoteChange }: VoteButto
 
     if (isLoading) return;
 
+    // Optimistic update
+    const previousVote = userVote;
+    const previousUpvotes = upvotes;
+    
+    // Calculate new upvotes based on previous state
+    let newUpvotes = upvotes;
+    if (previousVote === value) {
+      // If clicking the same vote, remove it
+      newUpvotes -= value;
+      setUserVote(null);
+    } else if (previousVote) {
+      // If changing vote, update it
+      newUpvotes += value * 2; // Multiply by 2 because we're changing from -1 to 1 or vice versa
+      setUserVote(value);
+    } else {
+      // If new vote
+      newUpvotes += value;
+      setUserVote(value);
+    }
+    
+    setUpvotes(newUpvotes);
+    onVoteChange?.(newUpvotes);
+
     setIsLoading(true);
     try {
-      const response = await fetch(`/api/prompts/${promptId}/vote`, {
+      const response = await fetch(`/api/prompts/${id}/vote`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -56,11 +89,15 @@ export function VoteButton({ promptId, initialUpvotes, onVoteChange }: VoteButto
       }
 
       const data = await response.json();
+      // Update with server response
       setUpvotes(data.upvotes);
-      setUserVote(userVote === value ? null : value);
       onVoteChange?.(data.upvotes);
     } catch (error) {
       console.error('Error voting:', error);
+      // Revert optimistic update on error
+      setUpvotes(previousUpvotes);
+      setUserVote(previousVote);
+      onVoteChange?.(previousUpvotes);
       toast.error('Failed to vote. Please try again.');
     } finally {
       setIsLoading(false);

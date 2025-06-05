@@ -3,6 +3,7 @@ import { currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { getProfileByClerkId } from "@/app/services/profileService";
 import { ProfileClient } from "./ProfileClient";
+import { Suspense } from "react";
 
 export default async function ProfilePage() {
   const { userId } = await auth();
@@ -22,25 +23,27 @@ export default async function ProfilePage() {
   const currentPath = "/profile";
 
   return (
-    <ProfileClient
-      user={{
-        id: dbUser.id,
-        name: dbUser.name || "",
-        email: dbUser.email,
-        imageUrl: user.imageUrl,
-        role: dbUser.role,
-        planType: dbUser.planType,
-        credits: dbUser.credits,
-        creditCap: dbUser.creditCap,
-        bio: dbUser.bio || undefined,
-        jobTitle: dbUser.jobTitle || undefined,
-        location: dbUser.location || undefined,
-        company: dbUser.company || undefined,
-        website: dbUser.website || undefined,
-        twitter: dbUser.twitter || undefined,
-        linkedin: dbUser.linkedin || undefined,
-      }}
-      currentPath={currentPath}
-    />
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
+      <ProfileClient
+        user={{
+          id: dbUser.id,
+          name: dbUser.name || "",
+          email: dbUser.email,
+          imageUrl: user.imageUrl,
+          role: dbUser.role,
+          planType: dbUser.planType,
+          credits: dbUser.credits,
+          creditCap: dbUser.creditCap,
+          bio: dbUser.bio || undefined,
+          jobTitle: dbUser.jobTitle || undefined,
+          location: dbUser.location || undefined,
+          company: dbUser.company || undefined,
+          website: dbUser.website || undefined,
+          twitter: dbUser.twitter || undefined,
+          linkedin: dbUser.linkedin || undefined,
+        }}
+        currentPath={currentPath}
+      />
+    </Suspense>
   );
 }

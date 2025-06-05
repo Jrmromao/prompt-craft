@@ -20,6 +20,7 @@ export function Footer() {
             <Link href="/careers" className="hover:underline">Careers</Link>
             <Link href="/blog" className="hover:underline">Blog</Link>
             <Link href="/contact" className="hover:underline">Contact</Link>
+            <Link href="/support" className="hover:underline">Support</Link>
             <span className="text-muted-foreground">|</span>
             <Link href="/legal/terms" className="hover:underline">Terms of Service</Link>
             <Link href="/legal/privacy" className="hover:underline">Privacy Policy</Link>
@@ -34,7 +35,7 @@ export function Footer() {
             <a href="https://github.com/" target="_blank" rel="noopener" aria-label="GitHub" className="hover:text-purple-500 transition-colors"><FaGithub /></a>
           </div>
           <div className="text-xs">
-            Legal: <a href="mailto:legal@promptcraft.com" className="underline">legal@promptcraft.com</a>
+            Legal: <a href="mailto:egal@PromptCraft.co" className="underline">egal@PromptCraft.co</a>
           </div>
         </div>
       </div>
