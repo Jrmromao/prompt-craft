@@ -3,7 +3,7 @@ import { auth } from '@clerk/nextjs/server';
 import { PromptService } from '@/lib/services/promptService';
 import { AIService } from '@/lib/services/aiService';
 import { prisma } from '@/lib/prisma';
-import { Role } from '@/utils/constants';
+import { Role, PlanType } from '@/utils/constants';
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
@@ -66,13 +66,14 @@ export async function POST(req: Request) {
     }
     const user = await prisma.user.findUnique({
       where: { clerkId: userId },
-      select: { id: true, role: true },
+      select: { id: true, role: true, planType: true },
     });
     if (!user) {
       return new NextResponse('User not found', { status: 404 });
     }
 
     const userRole = user.role as Role;
+    const userPlanType = user.planType as PlanType;
 
     // Always call the LLM API first
     const aiService = AIService.getInstance();
@@ -81,7 +82,7 @@ export async function POST(req: Request) {
     });
 
     let savedPrompt = null;
-    if (userRole === Role.PRO || userRole === Role.ADMIN) {
+    if (userRole === Role.ADMIN || userPlanType === PlanType.PRO) {
       const promptService = PromptService.getInstance();
       savedPrompt = await promptService.savePrompt(user.id, {
         name: title,
@@ -90,17 +91,17 @@ export async function POST(req: Request) {
         tags: tags || [],
         metadata: { llmResult },
       });
-    } else if (userRole === Role.LITE) {
+    } else if (userPlanType === PlanType.LITE) {
       const promptCount = await prisma.prompt.count({ where: { userId: user.id } });
       if (promptCount < 50) {
-    const promptService = PromptService.getInstance();
+        const promptService = PromptService.getInstance();
         savedPrompt = await promptService.savePrompt(user.id, {
-      name: title,
-      content,
-      isPublic: isPublic || false,
-      tags: tags || [],
+          name: title,
+          content,
+          isPublic: isPublic || false,
+          tags: tags || [],
           metadata: { llmResult },
-    });
+        });
       }
     }
 

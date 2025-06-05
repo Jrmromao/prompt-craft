@@ -17,7 +17,7 @@ export async function POST(request: Request) {
 
     // Verify current password
     try {
-      await clerkClient.users.verifyPassword({
+      await (clerkClient as any).users.verifyPassword({
         userId,
         password: currentPassword,
       });
@@ -26,9 +26,9 @@ export async function POST(request: Request) {
     }
 
     // Update password
-    await clerkClient.users.updateUserPassword({
+    await (clerkClient as any).users.updateUserPassword({
       userId,
-      newPassword,
+      newPassword: newPassword,
     });
 
     return new NextResponse("Password updated successfully", { status: 200 });

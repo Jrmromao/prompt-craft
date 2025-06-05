@@ -25,9 +25,8 @@ interface Prompt {
 }
 
 interface PageProps {
-  params: {
-    slug: string;
-  };
+  params: Promise<{ slug: string }>;
+  searchParams?: Promise<any>;
 }
 
 // Move to services/prompt.ts in a real app
@@ -62,7 +61,8 @@ function getPromptJsonLd(prompt: Prompt) {
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const prompt = await getPrompt(params.slug);
+  const resolvedParams = await params;
+  const prompt = await getPrompt(resolvedParams.slug);
   if (!prompt) return { title: 'Prompt Not Found | PromptHive' };
 
   const title = `${prompt.name} | Community Prompt | PromptHive`;
@@ -135,7 +135,8 @@ function LoadingSkeleton() {
 }
 
 export default async function PromptDetailPage({ params }: PageProps) {
-  const prompt = await getPrompt(params.slug);
+  const resolvedParams = await params;
+  const prompt = await getPrompt(resolvedParams.slug);
   if (!prompt) return notFound();
 
   return (

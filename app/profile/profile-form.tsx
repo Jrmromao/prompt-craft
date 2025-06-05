@@ -23,7 +23,6 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { AvatarUpload } from "@/components/profile/AvatarUpload";
 
 type ProfileFormValues = z.infer<typeof userProfileSchema>;
 
@@ -110,15 +109,6 @@ export function ProfileForm({ user }: ProfileFormProps) {
                 <AvatarImage src={avatarUrl} alt={user.name} />
                 <AvatarFallback>{user.name?.charAt(0)}</AvatarFallback>
               </Avatar>
-              <AvatarUpload
-                onUploadComplete={(url) => {
-                  setAvatarUrl(url);
-                  toast.success("Profile picture updated successfully");
-                }}
-                onUploadError={(error) => {
-                  toast.error("Failed to upload profile picture");
-                }}
-              />
             </div>
           </CardContent>
         </Card>
@@ -320,7 +310,7 @@ export function ProfileForm({ user }: ProfileFormProps) {
           <Button type="submit" disabled={isLoading}>
             {isLoading ? (
               <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" data-testid="loading-spinner" />
                 Saving...
               </>
             ) : (

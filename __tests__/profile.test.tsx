@@ -99,7 +99,7 @@ describe("ProfileForm", () => {
 
     // Wait for submission to complete
     await waitFor(() => {
-      expect(screen.getByText(/save changes/i)).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: /save changes/i })).toBeInTheDocument();
     });
   });
 
@@ -115,7 +115,17 @@ describe("ProfileForm", () => {
       expect(global.fetch).toHaveBeenCalledWith("/api/profile", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(mockUser),
+        body: JSON.stringify({
+          name: mockUser.name,
+          email: mockUser.email,
+          bio: mockUser.bio,
+          jobTitle: mockUser.jobTitle,
+          location: mockUser.location,
+          company: mockUser.company,
+          website: mockUser.website,
+          twitter: mockUser.twitter,
+          linkedin: mockUser.linkedin,
+        }),
       });
       expect(toast.success).toHaveBeenCalledWith("Profile updated successfully");
       expect(mockRouter.refresh).toHaveBeenCalled();
@@ -140,14 +150,14 @@ describe("ProfileForm", () => {
     
     // Clear required fields
     const nameInput = screen.getByLabelText(/name/i);
-    fireEvent.clear(nameInput);
+    fireEvent.change(nameInput, { target: { value: '' } });
     
     const submitButton = screen.getByRole("button", { name: /save changes/i });
     fireEvent.click(submitButton);
 
     // Check for validation error
     await waitFor(() => {
-      expect(screen.getByText(/name is required/i)).toBeInTheDocument();
+      expect(screen.getByText(/name must be at least 2 characters/i)).toBeInTheDocument();
     });
 
     // Check if form submission was prevented

@@ -91,12 +91,12 @@ export class SubscriptionService {
     });
 
     // Update user role based on plan
-    await prisma.user.update({
-      where: { id: userId },
-      data: {
-        role: subscription.plan.name === 'PRO' ? Role.PRO : subscription.plan.name === 'LITE' ? Role.LITE : Role.FREE,
-      },
-    });
+    // await prisma.user.update({
+    //   where: { id: userId },
+    //   data: {
+    //     role: subscription.plan.name === 'PRO' ? Role.ADMIN : Role.USER,
+    //   },
+    // });
 
     return {
       status: subscription.status,
@@ -121,7 +121,7 @@ export class SubscriptionService {
     await prisma.user.update({
       where: { id: userId },
       data: {
-        role: Role.FREE,
+        planType: PlanType.FREE,
       },
     });
 
@@ -151,7 +151,7 @@ export class SubscriptionService {
         await prisma.user.update({
           where: { id: userId },
           data: {
-            role: plan.name === 'PRO' ? Role.PRO : plan.name === 'LITE' ? Role.LITE : Role.FREE,
+            role: plan.name === 'PRO' ? Role.ADMIN : Role.USER,
           },
         });
       }

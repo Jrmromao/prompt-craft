@@ -36,10 +36,6 @@ function sanitizeString(input: string | null | undefined): string {
     return input.replace(/[\u0000-\u001F\u007F-\u009F]/g, '').trim().substring(0, 255);
 }
 
-const clerk = await  clerkClient();
-
-
-
 // Helper function to create or update a user with proper error handling and input validation
 async function createOrUpdateUser(clerkUserId: string, email: string, firstName: string | null, lastName: string | null): Promise<boolean> {
     // Validate inputs
@@ -206,12 +202,12 @@ async function processWebhook(req: Request): Promise<NextResponse> {
                     console.log(`User not found in database. Fetching from Clerk...`);
 
                     try {
-                        if (!clerk) {
+                        if (!clerkClient) {
                             throw new Error('Clerk client not initialized');
                         }
 
                         // Fetch the user details from Clerk
-                        const clerkUser = await clerk.users.getUser(user_id);
+                        const clerkUser = await (clerkClient as any).users.getUser(user_id);
 
                         if (!clerkUser) {
                             console.error(`Failed to fetch user data from Clerk`);

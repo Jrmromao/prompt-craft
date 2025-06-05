@@ -8,7 +8,7 @@ export async function GET() {
   }
 
   try {
-    const sessions = await clerkClient.users.getSessions(userId);
+    const sessions = await (clerkClient as any).users.getSessions(userId);
     return NextResponse.json(sessions);
   } catch (error) {
     console.error("Session fetch error:", error);
@@ -31,7 +31,7 @@ export async function DELETE(request: Request) {
     }
 
     // Revoke the session
-    await clerkClient.users.revokeSession(sessionId);
+    await (clerkClient as any).users.revokeSession(sessionId);
 
     return new NextResponse("Session revoked successfully", { status: 200 });
   } catch (error) {

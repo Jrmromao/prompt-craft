@@ -19,7 +19,7 @@ export async function GET(request: Request) {
     }
 
     // Get user's sessions
-    const sessions = await clerkClient.users.getSessions(userId);
+    const sessions = await (clerkClient as any).users.getSessions(userId);
 
     // Format session data
     const loginHistory = sessions.map((session: Session) => ({

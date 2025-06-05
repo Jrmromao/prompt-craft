@@ -78,7 +78,7 @@
     "react-hook-form": "^7.55.0",
     "recharts": "^2.15.3",
     "sharp": "^0.34.2",
-    "sonner": "^1.7.0",
+    "sonner": "^2.0.5",
     "stripe": "^17.7.0",
     "svgo": "^3.3.2",
     "svix": "^1.62.0",

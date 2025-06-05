@@ -57,6 +57,19 @@ interface SerializableUserWithPlan {
   creditCap: number;
   lastCreditReset: string;
   stripeCustomerId: string;
+  onboarded?: boolean;
+  bio?: string | null;
+  jobTitle?: string | null;
+  location?: string | null;
+  company?: string | null;
+  website?: string | null;
+  twitter?: string | null;
+  linkedin?: string | null;
+  emailPreferences?: { marketingEmails: boolean; productUpdates: boolean; securityAlerts: boolean };
+  notificationSettings?: { emailNotifications: boolean; pushNotifications: boolean; browserNotifications: boolean };
+  languagePreferences?: { language: string; dateFormat: string; timeFormat: string };
+  themeSettings?: { theme: string; accentColor: string };
+  securitySettings?: { twoFactorEnabled: boolean; sessionTimeout: number };
 }
 
 // PromptGeneration type for dashboard recent prompts
@@ -202,6 +215,21 @@ export function DashboardClient({ user, prompts, creditHistory, usageData }: Das
     updatedAt: new Date(user.updatedAt),
     lastCreditReset: new Date(user.lastCreditReset),
     role: user.role as Role,
+    planType: user.plan?.type as PlanType || PlanType.FREE,
+    onboarded: user.onboarded || false,
+    bio: user.bio || null,
+    jobTitle: user.jobTitle || null,
+    location: user.location || null,
+    company: user.company || null,
+    website: user.website || null,
+    twitter: user.twitter || null,
+    linkedin: user.linkedin || null,
+    imageUrl: user.imageUrl || null,
+    emailPreferences: user.emailPreferences || { marketingEmails: true, productUpdates: true, securityAlerts: true },
+    notificationSettings: user.notificationSettings || { emailNotifications: true, pushNotifications: true, browserNotifications: true },
+    languagePreferences: user.languagePreferences || { language: "en", dateFormat: "MM/DD/YYYY", timeFormat: "12h" },
+    themeSettings: user.themeSettings || { theme: "system", accentColor: "purple" },
+    securitySettings: user.securitySettings || { twoFactorEnabled: false, sessionTimeout: 30 },
     plan: user.plan
       ? {
           ...user.plan,
@@ -244,7 +272,7 @@ export function DashboardClient({ user, prompts, creditHistory, usageData }: Das
           </Suspense>
 
           <Suspense fallback={<div>Loading...</div>}>
-            <CreditHistoryTable history={hydratedCreditHistory} />
+            <CreditHistoryTable />
           </Suspense>
         </div>
 

@@ -8,7 +8,7 @@ export async function GET() {
     if (!userId) {
       return new NextResponse('Unauthorized', { status: 401 });
     }
-    const dashboardService = DashboardService.getInstance ? DashboardService.getInstance() : new DashboardService();
+    const dashboardService = DashboardService.getInstance();
     const history = await dashboardService.getCreditHistory(userId);
     return NextResponse.json(history);
   } catch (error) {

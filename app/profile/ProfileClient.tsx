@@ -19,10 +19,8 @@ import useSWR from "swr";
 import { useState as useReactState } from "react";
 import { AreaChart, Area, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import { toast } from "sonner";
-import { AvatarUpload } from "@/components/profile/AvatarUpload";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import Link from "next/link";
-import { useToast } from "@/components/ui/use-toast";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
@@ -98,6 +96,7 @@ export function ProfileClient({ user, currentPath }: ProfileClientProps) {
                 onClick={() => handleSidebarClick(opt.href.replace("/profile", "") || "overview")}
                 className={`relative flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition w-full text-left
                   ${tab === (opt.href.replace("/profile", "") || "overview") ? "bg-accent text-foreground" : "text-muted-foreground hover:bg-accent hover:text-foreground"}`}
+                data-testid={`sidebar-${opt.label.toLowerCase()}-button`}
               >
                 {tab === (opt.href.replace("/profile", "") || "overview") && (
                   <span className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 rounded bg-purple-500" />
@@ -333,9 +332,7 @@ export function ProfileClient({ user, currentPath }: ProfileClientProps) {
                 const { url } = await res.json();
                 window.location.href = url;
               } catch (err) {
-                toast("Could not open Stripe portal. Please try again.", {
-                  type: "error",
-                });
+                toast.error("Could not open Stripe portal. Please try again.");
               } finally {
                 setPortalLoading(false);
               }
@@ -455,7 +452,6 @@ export function ProfileClient({ user, currentPath }: ProfileClientProps) {
 
   function SettingsSection() {
     const { data, error, isLoading, mutate } = useSWR("/api/settings", (url) => fetch(url).then(r => r.json()));
-    const { toast } = useToast();
     const [activeTab, setActiveTab] = useState("account");
     const { data: loginHistory, error: loginHistoryError, mutate: mutateLoginHistory } = useSWR("/api/settings/login-history", (url) => fetch(url).then(r => r.json()));
 
@@ -487,12 +483,15 @@ export function ProfileClient({ user, currentPath }: ProfileClientProps) {
       <div className="flex flex-col gap-8">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="mb-4">
-            <TabsTrigger value="account">Account</TabsTrigger>
-            <TabsTrigger value="security">Security</TabsTrigger>
-            <TabsTrigger value="api">API Keys</TabsTrigger>
+            <TabsTrigger value="overview" data-testid="overview-tab-button">Overview</TabsTrigger>
+            <TabsTrigger value="usage" data-testid="usage-tab-button">Usage</TabsTrigger>
+            <TabsTrigger value="billing" data-testid="billing-tab-button">Billing</TabsTrigger>
+            <TabsTrigger value="prompts" data-testid="prompts-tab-button">My Prompts</TabsTrigger>
+            <TabsTrigger value="security" data-testid="security-tab-button">Security</TabsTrigger>
+            <TabsTrigger value="settings" data-testid="settings-tab-button">Settings</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="account">
+          <TabsContent value="overview">
             <div className="space-y-6">
               {/* Email Preferences */}
               <Card>
@@ -637,9 +636,7 @@ export function ProfileClient({ user, currentPath }: ProfileClientProps) {
                       const confirmPassword = formData.get("confirmPassword") as string;
 
                       if (newPassword !== confirmPassword) {
-                        toast("New passwords do not match", {
-                          type: "error",
-                        });
+                        toast.error("New passwords do not match");
                         return;
                       }
 
@@ -657,14 +654,10 @@ export function ProfileClient({ user, currentPath }: ProfileClientProps) {
                           throw new Error("Failed to change password");
                         }
 
-                        toast("Password changed successfully", {
-                          type: "success",
-                        });
+                        toast.success("Password changed successfully");
                         e.currentTarget.reset();
                       } catch (error) {
-                        toast("Failed to change password", {
-                          type: "error",
-                        });
+                        toast.error("Failed to change password");
                       }
                     }}
                     className="space-y-4"
@@ -676,6 +669,8 @@ export function ProfileClient({ user, currentPath }: ProfileClientProps) {
                         name="currentPassword"
                         type="password"
                         required
+                        data-testid="current-password-input"
+                        placeholder="Current password"
                       />
                     </div>
                     <div className="space-y-2">
@@ -686,6 +681,8 @@ export function ProfileClient({ user, currentPath }: ProfileClientProps) {
                         type="password"
                         required
                         minLength={8}
+                        data-testid="new-password-input"
+                        placeholder="New password"
                       />
                     </div>
                     <div className="space-y-2">
@@ -696,9 +693,11 @@ export function ProfileClient({ user, currentPath }: ProfileClientProps) {
                         type="password"
                         required
                         minLength={8}
+                        data-testid="confirm-password-input"
+                        placeholder="Confirm new password"
                       />
                     </div>
-                    <Button type="submit">Change Password</Button>
+                    <Button type="submit" data-testid="change-password-button">Change Password</Button>
                   </form>
                 </CardContent>
               </Card>
@@ -746,13 +745,9 @@ export function ProfileClient({ user, currentPath }: ProfileClientProps) {
                                 }
                                 
                                 mutateLoginHistory();
-                                toast("Session revoked successfully", {
-                                  type: "success",
-                                });
+                                toast.success("Session revoked successfully");
                               } catch (error) {
-                                toast("Failed to revoke session", {
-                                  type: "error",
-                                });
+                                toast.error("Failed to revoke session");
                               }
                             }}
                           >
@@ -813,9 +808,7 @@ export function ProfileClient({ user, currentPath }: ProfileClientProps) {
                           onClick={() => {
                             fetch(`/api/settings/sessions?sessionId=${session.id}`, { method: "DELETE" })
                               .then(() => mutate())
-                              .catch(() => toast("Failed to revoke session", {
-                                type: "error",
-                              }));
+                              .catch(() => toast.error("Failed to revoke session"));
                           }}
                         >
                           Revoke
@@ -853,9 +846,7 @@ export function ProfileClient({ user, currentPath }: ProfileClientProps) {
                           onClick={() => {
                             fetch(`/api/settings/api-keys?keyId=${key.id}`, { method: "DELETE" })
                               .then(() => mutate())
-                              .catch(() => toast("Failed to revoke API key", {
-                                type: "error",
-                              }));
+                              .catch(() => toast.error("Failed to revoke API key"));
                           }}
                         >
                           Revoke
@@ -872,9 +863,7 @@ export function ProfileClient({ user, currentPath }: ProfileClientProps) {
                             body: JSON.stringify({ name }),
                           })
                             .then(() => mutate())
-                            .catch(() => toast("Failed to generate API key", {
-                              type: "error",
-                            }));
+                            .catch(() => toast.error("Failed to generate API key"));
                         }
                       }}
                     >
@@ -924,22 +913,7 @@ export function ProfileClient({ user, currentPath }: ProfileClientProps) {
               </div>
               {/* Avatar with edit overlay */}
               <div className="relative group">
-                <AvatarUpload
-                  currentImageUrl={user.imageUrl}
-                  userId={user.id}
-                  name={user.name || user.email}
-                  onUploadComplete={(url) => {
-                    setAvatarUrl(url);
-                    toast("Profile picture updated successfully", {
-                      type: "success",
-                    });
-                  }}
-                  onUploadError={(error) => {
-                    toast("Failed to upload profile picture", {
-                      type: "error",
-                    });
-                  }}
-                />
+                {/* AvatarUpload component removed */}
               </div>
               <div className="flex-1 flex flex-col gap-1 z-10">
                 <div className="flex items-center gap-2 flex-wrap">
@@ -993,13 +967,6 @@ export function ProfileClient({ user, currentPath }: ProfileClientProps) {
           {/* Tabs for profile sections */}
           <ErrorBoundary>
             <Tabs value={tab} onValueChange={handleTabChange} className="w-full">
-              {/* <TabsList className="mb-4">
-                <TabsTrigger value="overview">overview</TabsTrigger>
-                <TabsTrigger value="usage">Usage</TabsTrigger>
-                <TabsTrigger value="billing">Billing</TabsTrigger>
-                <TabsTrigger value="prompts">My Prompts</TabsTrigger>
-                <TabsTrigger value="settings">Settings</TabsTrigger>
-              </TabsList> */}
               <TabsContent value="overview">
                 <Card className="p-8 bg-card border border-border rounded-2xl shadow-lg">
                   <ProfileForm user={{
