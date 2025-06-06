@@ -20,6 +20,7 @@ import Playground from './Playground';
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
 import { Separator } from './ui/separator';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
+import { PromptAnalyticsProvider, usePromptAnalytics } from './PromptAnalyticsContext';
 
 interface Tag {
   id: string;
@@ -36,6 +37,9 @@ interface Prompt {
   tags: Tag[];
   createdAt: Date;
   updatedAt: Date;
+  copyCount?: number;
+  viewCount?: number;
+  usageCount?: number;
 }
 
 export interface PromptContentProps {
@@ -78,7 +82,7 @@ export function PromptContent({ user, prompt }: PromptContentProps) {
             Back to Community Prompts
           </Link>
         </div>
-
+        <PromptAnalyticsProvider initialCopyCount={prompt.copyCount || 0} initialViewCount={prompt.viewCount || 0} initialUsageCount={prompt.usageCount || 0} initialCommentCount={commentCount}>
         {/* Main Content */}
         <div className="grid gap-6">
           {/* Prompt Header Card */}
@@ -148,7 +152,14 @@ export function PromptContent({ user, prompt }: PromptContentProps) {
                   <Button
                     variant="outline"
                     className={`flex items-center gap-2 border-gray-300 dark:border-gray-700 transition-all duration-200 ${copied ? 'bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300' : ''}`}
-                    onClick={copyToClipboard}
+                    onClick={() => {
+                      copyToClipboard();
+                      // Optimistic update
+                      try {
+                        const { incrementCopyCount } = usePromptAnalytics();
+                        incrementCopyCount();
+                      } catch {}
+                    }}
                     disabled={copied}
                   >
                     {copied ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
@@ -195,6 +206,7 @@ export function PromptContent({ user, prompt }: PromptContentProps) {
             </CardContent>
           </Card>
         </div>
+        </PromptAnalyticsProvider>
       </main>
     </div>
   );

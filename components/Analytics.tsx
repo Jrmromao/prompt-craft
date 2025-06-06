@@ -5,8 +5,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { formatDistanceToNow } from 'date-fns';
-import { Eye, ThumbsUp, MessageSquare, Play } from 'lucide-react';
+import { Eye, ThumbsUp, MessageSquare, Play, Copy } from 'lucide-react';
 import { toast } from 'sonner';
+import { usePromptAnalytics } from './PromptAnalyticsContext';
 
 interface AnalyticsProps {
   promptId: string;
@@ -17,6 +18,7 @@ interface AnalyticsData {
   viewCount: number;
   usageCount: number;
   upvotes: number;
+  copyCount: number;
   _count: {
     comments: number;
     votes: number;
@@ -38,11 +40,20 @@ interface AnalyticsData {
       imageUrl: string | null;
     };
   }>;
+  recentCopies: Array<{
+    id: string;
+    createdAt: string;
+    user?: {
+      name: string | null;
+      imageUrl: string | null;
+    };
+  }>;
 }
 
 export function Analytics({ promptId, upvotes }: AnalyticsProps) {
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const { copyCount, viewCount, usageCount, commentCount } = usePromptAnalytics();
 
   useEffect(() => {
     const fetchAnalytics = async () => {
@@ -67,8 +78,8 @@ export function Analytics({ promptId, upvotes }: AnalyticsProps) {
     return (
       <div className="space-y-4">
         <div className="h-8 w-32 bg-gray-200 rounded animate-pulse" />
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          {[...Array(4)].map((_, i) => (
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+          {[...Array(5)].map((_, i) => (
             <div key={i} className="h-24 bg-gray-200 rounded animate-pulse" />
           ))}
         </div>
@@ -82,14 +93,14 @@ export function Analytics({ promptId, upvotes }: AnalyticsProps) {
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Views</CardTitle>
             <Eye className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{analytics.viewCount}</div>
+            <div className="text-2xl font-bold">{viewCount}</div>
           </CardContent>
         </Card>
         <Card>
@@ -98,7 +109,7 @@ export function Analytics({ promptId, upvotes }: AnalyticsProps) {
             <Play className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{analytics.usageCount}</div>
+            <div className="text-2xl font-bold">{usageCount}</div>
           </CardContent>
         </Card>
         <Card>
@@ -116,62 +127,19 @@ export function Analytics({ promptId, upvotes }: AnalyticsProps) {
             <MessageSquare className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{analytics._count.comments}</div>
+            <div className="text-2xl font-bold">{commentCount}</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Copies</CardTitle>
+            <Copy className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{copyCount}</div>
           </CardContent>
         </Card>
       </div>
-
-      <Tabs defaultValue="views" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="views">Recent Views</TabsTrigger>
-          <TabsTrigger value="usages">Recent Uses</TabsTrigger>
-        </TabsList>
-        <TabsContent value="views" className="space-y-4">
-          {analytics.recentViews.map((view) => (
-            <div key={view.id} className="flex items-center gap-4">
-              <Avatar>
-                <AvatarImage src={view.user?.imageUrl || undefined} />
-                <AvatarFallback>
-                  {view.user?.name?.[0]?.toUpperCase() || 'A'}
-                </AvatarFallback>
-              </Avatar>
-              <div>
-                <p className="font-medium">
-                  {view.user?.name || 'Anonymous'}
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  {formatDistanceToNow(new Date(view.createdAt), {
-                    addSuffix: true,
-                  })}
-                </p>
-              </div>
-            </div>
-          ))}
-        </TabsContent>
-        <TabsContent value="usages" className="space-y-4">
-          {analytics.recentUsages.map((usage) => (
-            <div key={usage.id} className="flex items-center gap-4">
-              <Avatar>
-                <AvatarImage src={usage.user.imageUrl || undefined} />
-                <AvatarFallback>
-                  {usage.user.name?.[0]?.toUpperCase() || 'A'}
-                </AvatarFallback>
-              </Avatar>
-              <div>
-                <p className="font-medium">{usage.user.name || 'Anonymous'}</p>
-                <p className="text-sm text-muted-foreground">
-                  {formatDistanceToNow(new Date(usage.createdAt), {
-                    addSuffix: true,
-                  })}
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  {usage.result ? usage.result : ''}
-                </p>
-              </div>
-            </div>
-          ))}
-        </TabsContent>
-      </Tabs>
     </div>
   );
 } 

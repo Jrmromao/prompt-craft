@@ -127,6 +127,7 @@ export class AnalyticsService {
         upvotes: true,
         viewCount: true,
         usageCount: true,
+        copyCount: true,
         lastViewedAt: true,
         lastUsedAt: true,
         _count: {
@@ -210,10 +211,44 @@ export class AnalyticsService {
       user: usageUsers.find(u => u.id === usage.userId),
     }));
 
+    // Get recent copies
+    const recentCopies = await prisma.promptCopy.findMany({
+      where: { promptId },
+      orderBy: { createdAt: 'desc' },
+      take: 10,
+      select: {
+        id: true,
+        createdAt: true,
+        userId: true,
+      },
+    });
+
+    // Get user details for copies
+    const copyUsers = await prisma.user.findMany({
+      where: {
+        id: {
+          in: recentCopies.map(copy => copy.userId).filter((id): id is string => id !== null),
+        },
+      },
+      select: {
+        id: true,
+        name: true,
+        imageUrl: true,
+      },
+    });
+
+    // Map copies with user details
+    const copiesWithUsers = recentCopies.map(copy => ({
+      id: copy.id,
+      createdAt: copy.createdAt,
+      user: copy.userId ? copyUsers.find(u => u.id === copy.userId) : undefined,
+    }));
+
     return {
       ...prompt,
       recentViews: viewsWithUsers,
       recentUsages: usagesWithUsers,
+      recentCopies: copiesWithUsers,
     };
   }
 
