@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { AnalyticsService } from '@/lib/services/analyticsService';
+import { AnalyticsTrackingService } from '@/lib/services/analyticsTrackingService';
 
 export async function POST(
   request: NextRequest,
@@ -8,16 +9,19 @@ export async function POST(
 ) {
   try {
     const { userId } = await auth();
-    const analyticsService = AnalyticsService.getInstance();
+    if (!userId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
 
     // Track the view
-    await analyticsService.trackPromptView(context.params.id, userId ?? undefined);
+    const analyticsTrackingService = AnalyticsTrackingService.getInstance();
+    await analyticsTrackingService.trackPromptView(context.params.id, userId ?? undefined);
 
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Error tracking prompt view:', error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Internal server error', details: error instanceof Error ? error.message : 'An unknown error occurred' },
       { status: 500 }
     );
   }

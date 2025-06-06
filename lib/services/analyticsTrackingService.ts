@@ -15,7 +15,7 @@ export class AnalyticsTrackingService {
 
   // Track a prompt view
   public async trackPromptView(promptId: string, userId?: string): Promise<void> {
-    const headersList = headers();
+    const headersList = await headers();
     const userAgent = headersList.get('user-agent') ?? undefined;
     const ipAddress = headersList.get('x-forwarded-for') ?? undefined;
 
@@ -74,7 +74,7 @@ export class AnalyticsTrackingService {
 
   // Track a prompt copy (unique per user/IP per hour)
   public async trackPromptCopy(promptId: string, userId?: string): Promise<void> {
-    const headersList = headers();
+    const headersList = await headers();
     const userAgent = headersList.get('user-agent') ?? undefined;
     const ipAddress = headersList.get('x-forwarded-for') ?? undefined;
     const oneHourAgo = new Date(Date.now() - 1000 * 60 * 60);

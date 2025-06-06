@@ -449,6 +449,18 @@ model ApiUsage {
   @@index([promptId])
 }
 
+model Moderation {
+  id           String   @id @default(cuid())
+  contentId    String   // Reference to the content (e.g., prompt, post, etc.)
+  contentType  String   // e.g., "prompt", "post", "comment"
+  severity     String   // "low", "medium", "high", "none"
+  category     String   // e.g., "sexual", "attracting"
+  status       String   // "pending", "reviewed", "approved", "rejected"
+  reason       String?  // Optional: more details
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
 enum Role {
   USER
   ADMIN

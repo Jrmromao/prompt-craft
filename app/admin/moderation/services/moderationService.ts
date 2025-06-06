@@ -200,4 +200,39 @@ export async function bulkModerateContent(
       })
     )
   );
+}
+
+export async function getModeratedWords() {
+  const moderatedWords = await prisma.moderation.findMany({
+    where: {
+      contentType: "word",
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+
+  return moderatedWords;
+}
+
+export async function createModeratedWord(word: string, severity: string, category: string, status: string) {
+  const moderatedWord = await prisma.moderation.create({
+    data: {
+      contentId: word,
+      contentType: "word",
+      severity,
+      category,
+      status,
+    },
+  });
+
+  return moderatedWord;
+}
+
+export async function removeModeratedWord(id: string) {
+  await prisma.moderation.delete({
+    where: {
+      id,
+    },
+  });
 } 
