@@ -3,13 +3,13 @@
 import { useState, useEffect, Suspense } from "react";
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { User, BarChart2, CreditCard as BillingIcon, FileText, Settings, LogOut, Sparkles, ShieldUser, Pencil, Circle } from "lucide-react";
+import { User, BarChart2, CreditCard as BillingIcon, FileText, Settings, LogOut, Sparkles, ShieldUser, Pencil, Circle, Lock } from "lucide-react";
 import { NavBar } from "@/components/layout/NavBar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import dynamic from "next/dynamic";
-import { useClerk } from "@clerk/nextjs";
+import { useClerk, UserProfile } from "@clerk/nextjs";
 import { ProfileForm } from "./profile-form";
 import { Role, PlanType } from "@prisma/client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -27,6 +27,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import type { KeyedMutator } from 'swr';
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 
 const Sheet = dynamic(() => import("@/components/ui/sheet").then(mod => mod.Sheet), { ssr: false });
 const SheetContent = dynamic(() => import("@/components/ui/sheet").then(mod => mod.SheetContent), { ssr: false });
@@ -202,29 +203,10 @@ function SettingsSection(props: SettingsSectionProps) {
       {/* Language & Theme */}
       <Card>
         <CardHeader>
-          <CardTitle>Language & Theme</CardTitle>
-          <CardDescription>Customize your interface preferences</CardDescription>
+          <CardTitle>Theme Settings</CardTitle>
+          <CardDescription>Customize your interface appearance</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label>Language</Label>
-            <Select
-              value={data.languagePreferences.language}
-              onValueChange={(value) => handleSettingsUpdate("language", { ...data.languagePreferences, language: value })}
-              disabled={isSaving}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select language" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="en">English</SelectItem>
-                <SelectItem value="es">Español</SelectItem>
-                <SelectItem value="fr">Français</SelectItem>
-                <SelectItem value="de">Deutsch</SelectItem>
-                <SelectItem value="pt">Português</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
           <div className="space-y-2">
             <Label>Theme</Label>
             <Select
@@ -242,235 +224,116 @@ function SettingsSection(props: SettingsSectionProps) {
               </SelectContent>
             </Select>
           </div>
-          <div className="space-y-2">
-            <Label>Accent Color</Label>
-            <Select
-              value={data.themeSettings.accentColor}
-              onValueChange={(value) => handleSettingsUpdate("theme", { ...data.themeSettings, accentColor: value })}
-              disabled={isSaving}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select accent color" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="purple">Purple</SelectItem>
-                <SelectItem value="blue">Blue</SelectItem>
-                <SelectItem value="green">Green</SelectItem>
-                <SelectItem value="red">Red</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
         </CardContent>
       </Card>
     </div>
   );
 }
 
-function SecuritySection({ data, error, isLoading, mutate, loginHistory, loginHistoryError, loginHistoryLoading, mutateLoginHistory }: SecuritySectionProps) {
-  if (isLoading || loginHistoryLoading) {
+function SecuritySection({ data, error, isLoading, mutate }: SecuritySectionProps) {
+  if (isLoading) {
     return <div className="p-8 text-center text-muted-foreground">Loading security settings...</div>;
   }
   if (error || !data) {
     return <div className="p-8 text-center text-red-500">Failed to load security settings.</div>;
   }
   return (
-    <div className="space-y-6">
-      {/* Password Change */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Change Password</CardTitle>
-          <CardDescription>Update your account password</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form
-            onSubmit={async (e) => {
-              e.preventDefault();
-              const formData = new FormData(e.currentTarget);
-              const currentPassword = formData.get("currentPassword") as string;
-              const newPassword = formData.get("newPassword") as string;
-              const confirmPassword = formData.get("confirmPassword") as string;
+    <section className="w-full flex flex-col px-8">
+      <h2 className="text-2xl font-bold mb-2 w-full max-w-4xl flex items-center gap-2">
+        <Lock className="w-6 h-6 text-[#5A43F1]" aria-hidden="true" />
+        Authentication
+      </h2>
+      <p className="mb-2 w-full max-w-4xl text-muted-foreground">
+        Manage your account security and authentication settings.
+      </p>
+      <div className="flex items-center gap-2 mb-6 w-full max-w-4xl bg-muted/60 rounded-lg px-4 py-2 shadow-sm border border-border">
+        <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-white border border-border mr-2">
+          <svg width="18" height="18" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect width="32" height="32" rx="16" fill="#fff"/>
+            <path d="M16 6C10.477 6 6 10.477 6 16C6 21.523 10.477 26 16 26C21.523 26 26 21.523 26 16C26 10.477 21.523 6 16 6ZM16 24C11.589 24 8 20.411 8 16C8 11.589 11.589 8 16 8C20.411 8 24 11.589 24 16C24 20.411 20.411 24 16 24ZM16 10C13.243 10 11 12.243 11 15C11 17.757 13.243 20 16 20C18.757 20 21 17.757 21 15C21 12.243 18.757 10 16 10ZM16 18C14.346 18 13 16.654 13 15C13 13.346 14.346 12 16 12C17.654 12 19 13.346 19 15C19 16.654 17.654 18 16 18Z" fill="#5A43F1"/>
+          </svg>
+        </span>
+        <span className="text-xs text-muted-foreground font-medium">Authentication powered by <span className="font-semibold text-[#5A43F1]">Clerk</span></span>
+      </div>
+      <div className="w-full max-w-4xl">
+        <UserProfile
+        routing="hash"
+          appearance={{
+            elements: {
+              card: "rounded-lg shadow-none bg-background w-full",
+            
+            },
+          }}
+        />
+      </div>
+    </section>
+  );
+}
 
-              if (newPassword !== confirmPassword) {
-                toast.error("New passwords do not match");
-                return;
-              }
-
-              try {
-                const response = await fetch("/api/settings/password", {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({
-                    currentPassword,
-                    newPassword,
-                  }),
-                });
-
-                if (!response.ok) {
-                  throw new Error("Failed to change password");
-                }
-
-                toast.success("Password changed successfully");
-                e.currentTarget.reset();
-              } catch (error) {
-                toast.error("Failed to change password");
-              }
-            }}
-            className="space-y-4"
-          >
-            <div className="space-y-2">
-              <Label htmlFor="currentPassword">Current Password</Label>
-              <Input
-                id="currentPassword"
-                name="currentPassword"
-                type="password"
-                required
-                data-testid="current-password-input"
-                placeholder="Current password"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="newPassword">New Password</Label>
-              <Input
-                id="newPassword"
-                name="newPassword"
-                type="password"
-                required
-                minLength={8}
-                data-testid="new-password-input"
-                placeholder="New password"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Confirm New Password</Label>
-              <Input
-                id="confirmPassword"
-                name="confirmPassword"
-                type="password"
-                required
-                minLength={8}
-                data-testid="confirm-password-input"
-                placeholder="Confirm new password"
-              />
-            </div>
-            <Button type="submit" data-testid="change-password-button">Change Password</Button>
-          </form>
-        </CardContent>
-      </Card>
-      {/* Login History */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Login History</CardTitle>
-          <CardDescription>View your recent login activity</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {loginHistoryError ? (
-            <div className="text-red-500">Failed to load login history</div>
-          ) : !loginHistory ? (
-            <div className="text-muted-foreground">Loading login history...</div>
-          ) : (
-            <div className="space-y-4">
-              {loginHistory.map((session: any) => (
-                <div
-                  key={session.id}
-                  className="flex items-center justify-between p-4 border rounded-lg"
-                >
-                  <div className="space-y-1">
-                    <p className="font-medium">
-                      {session.device} - {session.browser}
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      {session.location} ({session.ipAddress})
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      Last active: {new Date(session.lastActive).toLocaleString()}
-                    </p>
-                  </div>
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    onClick={async () => {
-                      try {
-                        const response = await fetch(`/api/settings/sessions?sessionId=${session.id}`, {
-                          method: "DELETE",
-                        });
-                        
-                        if (!response.ok) {
-                          throw new Error("Failed to revoke session");
-                        }
-                        
-                        mutateLoginHistory();
-                        toast.success("Session revoked successfully");
-                      } catch (error) {
-                        toast.error("Failed to revoke session");
-                      }
-                    }}
-                  >
-                    Revoke
-                  </Button>
-                </div>
-              ))}
-            </div>
+function ProfileHeader({ user, status, statusColor, statusLabel, isPro, canUpgrade, creditPercentage, router }: {
+  user: ProfileClientProps['user'];
+  status: "active" | "trial" | "suspended";
+  statusColor: string;
+  statusLabel: string;
+  isPro: boolean;
+  canUpgrade: boolean;
+  creditPercentage: number;
+  router: ReturnType<typeof useRouter>;
+}) {
+  return (
+    <Card className="relative overflow-hidden flex flex-col md:flex-row items-stretch gap-0 p-8 bg-card border border-border rounded-2xl shadow-lg">
+      {/* Gradient background */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute -top-10 -left-10 w-40 h-40 bg-gradient-to-br from-purple-500/20 to-pink-500/10 rounded-full blur-2xl animate-pulse" />
+        <div className="absolute bottom-0 right-0 w-32 h-32 bg-gradient-to-tr from-pink-500/10 to-purple-500/20 rounded-full blur-2xl animate-pulse-slow" />
+      </div>
+      {/* 2-column layout */}
+      <div className="flex flex-1 flex-col justify-center z-10 gap-2 md:gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
+          <span className="text-2xl font-bold text-foreground flex items-center gap-2">
+            {user.name || "Unnamed User"}
+            <span className="inline-flex items-center ml-1">
+              <Circle className={`w-3 h-3 mr-1 ${statusColor}`} />
+              <span className="text-xs text-muted-foreground">{statusLabel}</span>
+            </span>
+          </span>
+          <Badge className={`bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs font-semibold px-2 py-0.5 ${isPro ? "shadow-[0_0_8px_2px_rgba(168,85,247,0.4)]" : ""}`}>{isPro && <Sparkles className="w-3 h-3 animate-spin-slow mr-1" />}{user.planType}</Badge>
+        </div>
+        <div className="flex items-center gap-2 mt-1">
+          {user.planType === "FREE" && (
+            <Button
+              size="sm"
+              className="bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold shadow hover:from-purple-700 hover:to-pink-700 transition px-4 py-1 text-sm"
+              onClick={() => router.push("/pricing")}
+            >
+              Upgrade Plan
+            </Button>
           )}
-        </CardContent>
-      </Card>
-      {/* Security Settings */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Security Settings</CardTitle>
-          <CardDescription>Manage your account security preferences</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center justify-between">
-            <Label>Two-Factor Authentication</Label>
-            <Switch
-              checked={data.securitySettings.twoFactorEnabled}
-              onCheckedChange={(checked) => mutate("security", { ...data.securitySettings, twoFactorEnabled: checked })}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label>Session Timeout (minutes)</Label>
-            <Input
-              type="number"
-              min={5}
-              max={120}
-              value={data.securitySettings.sessionTimeout}
-              onChange={(e) => mutate("security", { ...data.securitySettings, sessionTimeout: parseInt(e.target.value) })}
-            />
-          </div>
-        </CardContent>
-      </Card>
-      {/* Active Sessions */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Active Sessions</CardTitle>
-          <CardDescription>Manage your active sessions</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {data.sessions?.map((session: any) => (
-              <div key={session.id} className="flex items-center justify-between p-4 border rounded-lg">
-                <div>
-                  <p className="font-medium">{session.device}</p>
-                  <p className="text-sm text-muted-foreground">{session.location}</p>
-                  <p className="text-sm text-muted-foreground">Last active: {new Date(session.lastActive).toLocaleString()}</p>
-                </div>
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  onClick={() => {
-                    fetch(`/api/settings/sessions?sessionId=${session.id}`, { method: "DELETE" })
-                      .then(() => mutate())
-                      .catch(() => toast.error("Failed to revoke session"));
-                  }}
-                >
-                  Revoke
-                </Button>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+        </div>
+        <div className="text-sm text-muted-foreground mt-2">{user.email}</div>
+        <div className="text-xs text-muted-foreground capitalize">{user.role}</div>
+      </div>
+      {/* Credits Widget (right column) */}
+      <div className="flex flex-col justify-center items-end min-w-[260px] z-10 md:pl-12 mt-8 md:mt-0">
+        <div className="flex items-center gap-2 mb-1">
+          <span className="text-xs font-medium text-muted-foreground">Credits</span>
+          <Sparkles className="w-4 h-4 text-purple-400 animate-pulse" />
+        </div>
+        <div className="flex items-center w-full gap-2">
+          <Progress value={creditPercentage} className="h-2 flex-1 bg-muted [&>div]:bg-gradient-to-r [&>div]:from-purple-500 [&>div]:to-pink-500" />
+          <span className="text-xs font-semibold text-muted-foreground whitespace-nowrap ml-2">{user.credits} / {user.creditCap}</span>
+          {canUpgrade && (
+            <Button
+              size="sm"
+              className="ml-2 px-3 py-0.5 rounded bg-gradient-to-r from-purple-600 to-pink-600 text-white text-xs font-semibold shadow hover:from-purple-700 hover:to-pink-700 transition"
+              onClick={() => router.push("/billing")}
+            >
+              Upgrade
+            </Button>
+          )}
+        </div>
+      </div>
+    </Card>
   );
 }
 
@@ -925,76 +788,10 @@ function ProfileContent({ user, currentPath }: ProfileClientProps) {
           </aside>
         </ErrorBoundary>
         {/* Main Content */}
-        <main className="flex-1 max-w-4xl w-full mx-auto flex flex-col gap-8">
+        <main className="flex-1 max-w-[1180px] w-full mx-auto flex flex-col gap-8">
           {/* Profile Header Card */}
           <ErrorBoundary>
-            <Card className="relative overflow-hidden flex flex-col md:flex-row items-center md:items-start gap-6 p-8 bg-card border border-border rounded-2xl shadow-lg">
-              {/* Gradient background */}
-              <div className="absolute inset-0 pointer-events-none">
-                <div className="absolute -top-10 -left-10 w-40 h-40 bg-gradient-to-br from-purple-500/20 to-pink-500/10 rounded-full blur-2xl animate-pulse" />
-                <div className="absolute bottom-0 right-0 w-32 h-32 bg-gradient-to-tr from-pink-500/10 to-purple-500/20 rounded-full blur-2xl animate-pulse-slow" />
-              </div>
-              {/* Avatar with edit overlay */}
-              <div className="relative group">
-                {/* AvatarUpload component removed */}
-              </div>
-              <div className="flex-1 flex flex-col gap-1 z-10">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-2xl font-bold text-foreground flex items-center gap-2">
-                    {user.name || "Unnamed User"}
-                    <span className={`inline-flex items-center ml-2`}>
-                      <Circle className={`w-3 h-3 mr-1 ${statusColor}`} />
-                      <span className="text-xs text-muted-foreground">{statusLabel}</span>
-                    </span>
-                  </span>
-                  <span className={`relative ml-2 flex ${user.planType === "FREE" ? "flex-col items-start gap-2" : "flex-row items-center"}`}>
-                    <Badge className={`bg-gradient-to-r from-purple-500 to-pink-500 text-white flex items-center gap-1 animate-pulse ${isPro ? "shadow-[0_0_8px_2px_rgba(168,85,247,0.4)]" : ""}`}>
-                      {isPro && <Sparkles className="w-4 h-4 animate-spin-slow" />}
-                      {user.planType}
-                    </Badge>
-                    {user.planType === "FREE" && (
-                      <Button
-                        size="sm"
-                        className="mt-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold shadow hover:from-purple-700 hover:to-pink-700 transition"
-                        onClick={() => router.push("/pricing")}
-                      >
-                        Upgrade Plan
-                      </Button>
-                    )}
-                  </span>
-                </div>
-                <div className="text-sm text-muted-foreground">{user.email}</div>
-                <div className="text-xs text-muted-foreground mt-1 capitalize">{user.role}</div>
-              </div>
-              {/* Credits Widget (desktop only) */}
-              <div className="hidden md:flex flex-col items-end min-w-[180px] z-10">
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <div className="flex items-center gap-2 cursor-pointer">
-                        <div className="text-xs font-medium text-muted-foreground mb-1">Credits</div>
-                        <Sparkles className="w-4 h-4 text-purple-400 animate-pulse" />
-                      </div>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <span>Your credits reset monthly. Upgrade for more.</span>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-                <Progress value={creditPercentage} className="h-2 w-full bg-muted [&>div]:bg-gradient-to-r [&>div]:from-purple-500 [&>div]:to-pink-500 mt-1" />
-                <div className="text-sm mt-1 text-muted-foreground flex items-center gap-2">
-                  {user.credits} / {user.creditCap}
-                  {canUpgrade && (
-                    <button
-                      className="ml-2 px-2 py-1 rounded bg-gradient-to-r from-purple-600 to-pink-600 text-white text-xs font-semibold shadow hover:from-purple-700 hover:to-pink-700 transition"
-                      onClick={() => router.push("/billing")}
-                    >
-                      Upgrade
-                    </button>
-                  )}
-                </div>
-              </div>
-            </Card>
+            <ProfileHeader user={user} status={status} statusColor={statusColor} statusLabel={statusLabel} isPro={isPro} canUpgrade={canUpgrade} creditPercentage={creditPercentage} router={router} />
           </ErrorBoundary>
           {/* Tabs for profile sections */}
           <ErrorBoundary>

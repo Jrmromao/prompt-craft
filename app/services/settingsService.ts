@@ -14,20 +14,8 @@ export const notificationSettingsSchema = z.object({
   browserNotifications: z.boolean(),
 });
 
-export const languagePreferencesSchema = z.object({
-  language: z.enum(["en", "es", "fr", "de", "pt"]),
-  dateFormat: z.enum(["MM/DD/YYYY", "DD/MM/YYYY", "YYYY-MM-DD"]),
-  timeFormat: z.enum(["12h", "24h"]),
-});
-
 export const themeSettingsSchema = z.object({
   theme: z.enum(["light", "dark", "system"]),
-  accentColor: z.enum(["purple", "blue", "green", "red"]),
-});
-
-export const securitySettingsSchema = z.object({
-  twoFactorEnabled: z.boolean(),
-  sessionTimeout: z.number().min(5).max(120), // minutes
 });
 
 export const apiKeySchema = z.object({
@@ -38,9 +26,7 @@ export const apiKeySchema = z.object({
 // Types
 export type EmailPreferences = z.infer<typeof emailPreferencesSchema>;
 export type NotificationSettings = z.infer<typeof notificationSettingsSchema>;
-export type LanguagePreferences = z.infer<typeof languagePreferencesSchema>;
 export type ThemeSettings = z.infer<typeof themeSettingsSchema>;
-export type SecuritySettings = z.infer<typeof securitySettingsSchema>;
 export type ApiKey = z.infer<typeof apiKeySchema>;
 
 /**
@@ -55,9 +41,7 @@ export async function getUserSettings(clerkId: string) {
       id: true,
       emailPreferences: true,
       notificationSettings: true,
-      languagePreferences: true,
       themeSettings: true,
-      securitySettings: true,
       apiKeys: {
         select: {
           id: true,
@@ -85,20 +69,8 @@ export async function getUserSettings(clerkId: string) {
     browserNotifications: true,
   };
 
-  const defaultLanguagePreferences = {
-    language: "en",
-    dateFormat: "MM/DD/YYYY",
-    timeFormat: "12h",
-  };
-
   const defaultThemeSettings = {
     theme: "system",
-    accentColor: "purple",
-  };
-
-  const defaultSecuritySettings = {
-    twoFactorEnabled: false,
-    sessionTimeout: 30,
   };
 
   return {
@@ -112,21 +84,11 @@ export async function getUserSettings(clerkId: string) {
         JSON.parse(user.notificationSettings) : 
         user.notificationSettings) : 
       defaultNotificationSettings,
-    languagePreferences: user.languagePreferences ? 
-      (typeof user.languagePreferences === 'string' ? 
-        JSON.parse(user.languagePreferences) : 
-        user.languagePreferences) : 
-      defaultLanguagePreferences,
     themeSettings: user.themeSettings ? 
       (typeof user.themeSettings === 'string' ? 
         JSON.parse(user.themeSettings) : 
         user.themeSettings) : 
       defaultThemeSettings,
-    securitySettings: user.securitySettings ? 
-      (typeof user.securitySettings === 'string' ? 
-        JSON.parse(user.securitySettings) : 
-        user.securitySettings) : 
-      defaultSecuritySettings,
     apiKeys: user.apiKeys,
   };
 }
@@ -156,39 +118,23 @@ export async function updateNotificationSettings(clerkId: string, settings: Noti
 }
 
 /**
- * Update language preferences
- */
-export async function updateLanguagePreferences(clerkId: string, preferences: LanguagePreferences) {
-  const validatedData = languagePreferencesSchema.parse(preferences);
-  
-  return prisma.user.update({
-    where: { clerkId },
-    data: { languagePreferences: validatedData },
-  });
-}
-
-/**
  * Update theme settings
  */
 export async function updateThemeSettings(clerkId: string, settings: ThemeSettings) {
   const validatedData = themeSettingsSchema.parse(settings);
   
-  return prisma.user.update({
+  // Update both database and localStorage
+  const result = await prisma.user.update({
     where: { clerkId },
     data: { themeSettings: validatedData },
   });
-}
 
-/**
- * Update security settings
- */
-export async function updateSecuritySettings(clerkId: string, settings: SecuritySettings) {
-  const validatedData = securitySettingsSchema.parse(settings);
-  
-  return prisma.user.update({
-    where: { clerkId },
-    data: { securitySettings: validatedData },
-  });
+  // If we're in a browser environment, update localStorage
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('theme', validatedData.theme);
+  }
+
+  return result;
 }
 
 /**

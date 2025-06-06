@@ -1,5 +1,30 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+## ClerkProvider Integration Requirement
+
+If you use Clerk authentication (e.g., `useUser`, `useClerk`, etc.), you **must** wrap your application with `<ClerkProvider>` at the top level (e.g., in `components/Providers.tsx`).
+
+**Example:**
+
+```tsx
+import { ClerkProvider } from '@clerk/nextjs';
+
+export default function Providers({ children }) {
+  return (
+    <ClerkProvider>
+      {/* other providers */}
+      {children}
+    </ClerkProvider>
+  );
+}
+```
+
+If you do not do this, you will encounter runtime errors such as:
+
+> useClerk can only be used within the <ClerkProvider /> component.
+
+Always ensure `ClerkProvider` wraps your app to avoid these issues.
+
 ## Getting Started
 
 First, run the development server:

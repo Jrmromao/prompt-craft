@@ -4,13 +4,9 @@ import {
   getUserSettings,
   updateEmailPreferences,
   updateNotificationSettings,
-  updateLanguagePreferences,
   updateThemeSettings,
-  updateSecuritySettings,
   generateApiKey,
   revokeApiKey,
-  getActiveSessions,
-  revokeSession,
 } from "@/app/services/settingsService";
 
 export async function GET() {
@@ -45,14 +41,8 @@ export async function PATCH(req: Request) {
       case "notifications":
         result = await updateNotificationSettings(userId, data);
         break;
-      case "language":
-        result = await updateLanguagePreferences(userId, data);
-        break;
       case "theme":
         result = await updateThemeSettings(userId, data);
-        break;
-      case "security":
-        result = await updateSecuritySettings(userId, data);
         break;
       default:
         return new NextResponse("Invalid settings type", { status: 400 });
