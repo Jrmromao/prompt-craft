@@ -46,7 +46,7 @@ export async function getUserSettings(clerkId: string) {
         select: {
           id: true,
           name: true,
-          key: true,
+          hashedKey: true,
           createdAt: true,
           expiresAt: true,
         },
@@ -153,9 +153,10 @@ export async function generateApiKey(clerkId: string, keyData: ApiKey) {
 
   return prisma.apiKey.create({
     data: {
+      lastRotatedAt: new Date(),
       userId: user.id,
       name: validatedData.name,
-      key: apiKey,
+      hashedKey: apiKey,
       expiresAt: validatedData.expiresAt,
     },
   });

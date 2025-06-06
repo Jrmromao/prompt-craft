@@ -1,6 +1,3 @@
-import { prisma } from '@/lib/prisma';
-import { headers } from 'next/headers';
-
 export class AnalyticsService {
   private static instance: AnalyticsService;
 
@@ -13,272 +10,113 @@ export class AnalyticsService {
     return AnalyticsService.instance;
   }
 
-  // Track a prompt view
-  public async trackPromptView(promptId: string, userId?: string): Promise<void> {
-    const headersList = await headers();
-    const userAgent = headersList.get('user-agent') ?? undefined;
-    const ipAddress = headersList.get('x-forwarded-for') ?? undefined;
-
-    await prisma.$transaction(async (tx) => {
-      // Create view record
-      await tx.promptView.create({
-        data: {
-          promptId,
-          userId,
-          userAgent,
-          ipAddress,
-        },
-      });
-
-      // Update prompt view count
-      await tx.prompt.update({
-        where: { id: promptId },
-        data: {
-          viewCount: {
-            increment: 1,
-          },
-          lastViewedAt: new Date(),
-        },
-      });
-    });
+  // Get dashboard overview stats
+  public async getDashboardOverview() {
+    const data = await this.getAnalytics();
+    return data.dashboardOverview;
   }
 
-  // Track prompt usage
-  public async trackPromptUsage(
-    promptId: string,
-    userId: string,
-    result: any
-  ): Promise<void> {
-    await prisma.$transaction(async (tx) => {
-      // Create usage record
-      await tx.promptUsage.create({
-        data: {
-          promptId,
-          userId,
-          result,
-        },
-      });
-
-      // Update prompt usage count
-      await tx.prompt.update({
-        where: { id: promptId },
-        data: {
-          usageCount: {
-            increment: 1,
-          },
-          lastUsedAt: new Date(),
-        },
-      });
-    });
+  // Dashboard metrics helpers
+  public async getTotalUsers() {
+    const data = await this.getAnalytics();
+    return data.totalUsers;
   }
 
-  // Track a prompt copy (unique per user/IP per hour)
-  public async trackPromptCopy(promptId: string, userId?: string): Promise<void> {
-    const headersList = await headers();
-    const userAgent = headersList.get('user-agent') ?? undefined;
-    const ipAddress = headersList.get('x-forwarded-for') ?? undefined;
-    const oneHourAgo = new Date(Date.now() - 1000 * 60 * 60);
-    let dbUserId: string | undefined = undefined;
-    if (userId) {
-      const dbUser = await prisma.user.findUnique({
-        where: { clerkId: userId },
-        select: { id: true }
+  public async getTotalPrompts() {
+    const data = await this.getAnalytics();
+    return data.totalPrompts;
+  }
+
+  public async getTotalUsage() {
+    const data = await this.getAnalytics();
+    return data.totalUsage;
+  }
+
+  public async getUserGrowth() {
+    const data = await this.getAnalytics();
+    return data.userGrowth;
+  }
+
+  public async getPromptUsageGrowth() {
+    const data = await this.getAnalytics();
+    return data.promptUsageGrowth;
+  }
+
+  public async getPlanDistribution() {
+    const data = await this.getAnalytics();
+    return data.planDistribution;
+  }
+
+  public async getAnalytics() {
+    try {
+      const response = await fetch('http://localhost:3000/api/admin/analytics', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        cache: 'no-store',
+        next: { revalidate: 0 }
       });
-      dbUserId = dbUser?.id;
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching analytics:', error);
+      throw error;
     }
-    const recentCopy = await prisma.promptCopy.findFirst({
-      where: {
-        promptId,
-        OR: [
-          { userId: dbUserId ?? undefined },
-          { ipAddress },
-        ],
-        createdAt: { gte: oneHourAgo },
-      },
-    });
-    if (!recentCopy) {
-      await prisma.$transaction(async (tx) => {
-        await tx.promptCopy.create({
-          data: {
-            promptId,
-            userId: dbUserId,
-            ipAddress,
-            userAgent,
-          },
-        });
-        await tx.prompt.update({
-          where: { id: promptId },
-          data: {
-            copyCount: { increment: 1 },
-          },
-        });
-      });
-    }
+  }
+
+  public async getRecentLogs() {
+    const data = await this.getAnalytics();
+    return data.recentLogs;
   }
 
   // Get prompt analytics
   public async getPromptAnalytics(promptId: string) {
-    const prompt = await prisma.prompt.findUnique({
-      where: { id: promptId },
-      select: {
-        id: true,
-        name: true,
-        description: true,
-        upvotes: true,
-        viewCount: true,
-        usageCount: true,
-        copyCount: true,
-        lastViewedAt: true,
-        lastUsedAt: true,
-        _count: {
-          select: {
-            comments: true,
-            votes: true,
-          },
+    try {
+      const response = await fetch(`http://localhost:3000/api/prompts/${promptId}/analytics`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
         },
-      },
-    });
+        cache: 'no-store',
+        next: { revalidate: 0 }
+      });
 
-    if (!prompt) {
-      return null;
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching prompt analytics:', error);
+      throw error;
     }
-
-    // Get recent views
-    const recentViews = await prisma.promptView.findMany({
-      where: { promptId },
-      orderBy: { createdAt: 'desc' },
-      take: 10,
-      select: {
-        id: true,
-        createdAt: true,
-        userId: true,
-      },
-    });
-
-    // Get user details for views
-    const viewUsers = await prisma.user.findMany({
-      where: {
-        id: {
-          in: recentViews.map(view => view.userId).filter((id): id is string => id !== null),
-        },
-      },
-      select: {
-        id: true,
-        name: true,
-        imageUrl: true,
-      },
-    });
-
-    // Map views with user details
-    const viewsWithUsers = recentViews.map(view => ({
-      id: view.id,
-      createdAt: view.createdAt,
-      user: view.userId ? viewUsers.find(u => u.id === view.userId) : undefined,
-    }));
-
-    // Get recent usages
-    const recentUsages = await prisma.promptUsage.findMany({
-      where: { promptId },
-      orderBy: { createdAt: 'desc' },
-      take: 10,
-      select: {
-        id: true,
-        createdAt: true,
-        result: true,
-        userId: true,
-      },
-    });
-
-    // Get user details for usages
-    const usageUsers = await prisma.user.findMany({
-      where: {
-        id: {
-          in: recentUsages.map(usage => usage.userId),
-        },
-      },
-      select: {
-        id: true,
-        name: true,
-        imageUrl: true,
-      },
-    });
-
-    // Map usages with user details
-    const usagesWithUsers = recentUsages.map(usage => ({
-      id: usage.id,
-      createdAt: usage.createdAt,
-      result: usage.result,
-      user: usageUsers.find(u => u.id === usage.userId),
-    }));
-
-    // Get recent copies
-    const recentCopies = await prisma.promptCopy.findMany({
-      where: { promptId },
-      orderBy: { createdAt: 'desc' },
-      take: 10,
-      select: {
-        id: true,
-        createdAt: true,
-        userId: true,
-      },
-    });
-
-    // Get user details for copies
-    const copyUsers = await prisma.user.findMany({
-      where: {
-        id: {
-          in: recentCopies.map(copy => copy.userId).filter((id): id is string => id !== null),
-        },
-      },
-      select: {
-        id: true,
-        name: true,
-        imageUrl: true,
-      },
-    });
-
-    // Map copies with user details
-    const copiesWithUsers = recentCopies.map(copy => ({
-      id: copy.id,
-      createdAt: copy.createdAt,
-      user: copy.userId ? copyUsers.find(u => u.id === copy.userId) : undefined,
-    }));
-
-    return {
-      ...prompt,
-      recentViews: viewsWithUsers,
-      recentUsages: usagesWithUsers,
-      recentCopies: copiesWithUsers,
-    };
   }
 
   // Get user's prompt analytics
   public async getUserPromptAnalytics(userId: string) {
-    const prompts = await prisma.prompt.findMany({
-      where: { userId },
-      select: {
-        id: true,
-        name: true,
-        viewCount: true,
-        usageCount: true,
-        upvotes: true,
-        _count: {
-          select: {
-            comments: true,
-            votes: true,
-          },
+    try {
+      const response = await fetch(`http://localhost:3000/api/users/${userId}/prompt-analytics`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
         },
-      },
-    });
+        cache: 'no-store',
+        next: { revalidate: 0 }
+      });
 
-    return prompts.map((prompt) => ({
-      id: prompt.id,
-      name: prompt.name,
-      views: prompt.viewCount,
-      uses: prompt.usageCount,
-      upvotes: prompt.upvotes,
-      comments: prompt._count.comments,
-      votes: prompt._count.votes,
-    }));
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching user prompt analytics:', error);
+      throw error;
+    }
   }
 } 

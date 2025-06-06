@@ -2,6 +2,7 @@ import { Redis } from '@upstash/redis';
 import { Ratelimit } from '@upstash/ratelimit';
 import { prisma } from '@/lib/prisma';
 import { NextRequest } from 'next/server';
+import { AuditService } from "@/lib/services/auditService";
 
 // Rate limit configurations
 const RATE_LIMIT_CONFIGS = {
@@ -79,16 +80,13 @@ export class SecurityService {
     ip?: string;
   }) {
     try {
-      await prisma.auditLog.create({
-        data: {
-          userId: data.userId,
-          action: data.action,
-          resource: data.resource,
-          status: data.status,
-          details: data.details || {},
-          ipAddress: data.ip,
-          timestamp: new Date(),
-        },
+      await AuditService.logAction({
+        userId: data.userId || null,
+        action: data.action,
+        resource: data.resource,
+        status: data.status,
+        details: data.details || {},
+        ipAddress: data.ip || null,
       });
     } catch (error) {
       console.error('Failed to create audit log:', error);

@@ -3,6 +3,8 @@ import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { clerkClient } from '@clerk/nextjs/server';
 import { DELETE } from '@/app/api/settings/sessions/route';
+import { POST } from '@/app/api/settings/password/route';
+import { GET } from '@/app/api/settings/login-history/route';
 
 // Mock the auth and clerkClient
 vi.mock('@clerk/nextjs/server', () => ({
@@ -12,8 +14,6 @@ vi.mock('@clerk/nextjs/server', () => ({
       verifyPassword: vi.fn(),
       updateUserPassword: vi.fn(),
       getSessions: vi.fn(),
-    },
-    sessions: {
       revokeSession: vi.fn(),
     },
   },
@@ -25,68 +25,57 @@ describe('Settings API Routes', () => {
   });
 
   describe('Password Change', () => {
-    it('should change password successfully', async () => {
-      // Mock auth
-      (auth as any).mockResolvedValue({ userId: 'test-user-id' });
-      
-      // Mock password verification
-      (clerkClient.users.verifyPassword as any).mockResolvedValue(true);
-      
-      // Mock password update
-      (clerkClient.users.updateUserPassword as any).mockResolvedValue(true);
-
-      const request = new Request('http://localhost:3000/api/settings/password', {
+    const createPasswordRequest = (currentPassword: string, newPassword: string) => 
+      new Request('http://localhost:3000/api/settings/password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          currentPassword: 'oldPassword123',
-          newPassword: 'newPassword123',
-        }),
+        body: JSON.stringify({ currentPassword, newPassword }),
       });
 
+    it('should change password successfully', async () => {
+      // Mock auth
+      vi.mocked(auth).mockResolvedValue({ userId: 'test-user-id' } as any);
+      
+      // Mock password verification
+      (clerkClient as any).users.verifyPassword.mockResolvedValue(true);
+      
+      // Mock password update
+      (clerkClient as any).users.updateUserPassword.mockResolvedValue(true);
+
+      const request = createPasswordRequest('oldPassword123', 'newPassword123');
       const response = await POST(request);
+      
       expect(response.status).toBe(200);
       expect(await response.text()).toBe('Password updated successfully');
     });
 
     it('should return 401 if user is not authenticated', async () => {
-      (auth as any).mockResolvedValue({ userId: null });
+      vi.mocked(auth).mockResolvedValue({ userId: null } as any);
 
-      const request = new Request('http://localhost:3000/api/settings/password', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          currentPassword: 'oldPassword123',
-          newPassword: 'newPassword123',
-        }),
-      });
-
+      const request = createPasswordRequest('oldPassword123', 'newPassword123');
       const response = await POST(request);
+      
       expect(response.status).toBe(401);
     });
 
     it('should return 400 if current password is incorrect', async () => {
-      (auth as any).mockResolvedValue({ userId: 'test-user-id' });
-      (clerkClient.users.verifyPassword as any).mockRejectedValue(new Error('Invalid password'));
+      vi.mocked(auth).mockResolvedValue({ userId: 'test-user-id' } as any);
+      (clerkClient as any).users.verifyPassword.mockRejectedValue(new Error('Invalid password'));
 
-      const request = new Request('http://localhost:3000/api/settings/password', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          currentPassword: 'wrongPassword',
-          newPassword: 'newPassword123',
-        }),
-      });
-
+      const request = createPasswordRequest('wrongPassword', 'newPassword123');
       const response = await POST(request);
+      
       expect(response.status).toBe(400);
       expect(await response.text()).toBe('Current password is incorrect');
     });
   });
 
   describe('Login History', () => {
+    const createLoginHistoryRequest = () => 
+      new Request('http://localhost:3000/api/settings/login-history');
+
     it('should return login history successfully', async () => {
-      (auth as any).mockResolvedValue({ userId: 'test-user-id' });
+      vi.mocked(auth).mockResolvedValue({ userId: 'test-user-id' } as any);
       
       const mockSessions = [
         {
@@ -100,9 +89,9 @@ describe('Settings API Routes', () => {
         },
       ];
 
-      (clerkClient.users.getSessions as any).mockResolvedValue(mockSessions);
+      (clerkClient as any).users.getSessions.mockResolvedValue(mockSessions);
 
-      const request = new Request('http://localhost:3000/api/settings/login-history');
+      const request = createLoginHistoryRequest();
       const response = await GET(request);
       
       expect(response.status).toBe(200);
@@ -112,9 +101,9 @@ describe('Settings API Routes', () => {
     });
 
     it('should return 401 if user is not authenticated', async () => {
-      (auth as any).mockResolvedValue({ userId: null });
+      vi.mocked(auth).mockResolvedValue({ userId: null } as any);
 
-      const request = new Request('http://localhost:3000/api/settings/login-history');
+      const request = createLoginHistoryRequest();
       const response = await GET(request);
       
       expect(response.status).toBe(401);
@@ -122,39 +111,39 @@ describe('Settings API Routes', () => {
   });
 
   describe('Session Management', () => {
+    const createSessionRequest = (sessionId?: string) => 
+      new Request(
+        `http://localhost:3000/api/settings/sessions${sessionId ? `?sessionId=${sessionId}` : ''}`,
+        { method: 'DELETE' }
+      );
+
     it('should revoke session successfully', async () => {
-      (auth as any).mockResolvedValue({ userId: 'test-user-id' });
-      (clerkClient.sessions.revokeSession as any).mockResolvedValue(true);
+      vi.mocked(auth).mockResolvedValue({ userId: 'test-user-id' } as any);
+      (clerkClient as any).users.revokeSession.mockResolvedValue(true);
 
-      const request = new Request('http://localhost:3000/api/settings/sessions?sessionId=test-session-id', {
-        method: 'DELETE',
-      });
-
+      const request = createSessionRequest('test-session-id');
       const response = await DELETE(request);
+      
       expect(response.status).toBe(200);
       expect(await response.text()).toBe('Session revoked successfully');
     });
 
     it('should return 400 if session ID is missing', async () => {
-      (auth as any).mockResolvedValue({ userId: 'test-user-id' });
+      vi.mocked(auth).mockResolvedValue({ userId: 'test-user-id' } as any);
 
-      const request = new Request('http://localhost:3000/api/settings/sessions', {
-        method: 'DELETE',
-      });
-
+      const request = createSessionRequest();
       const response = await DELETE(request);
+      
       expect(response.status).toBe(400);
       expect(await response.text()).toBe('Session ID is required');
     });
 
     it('should return 401 if user is not authenticated', async () => {
-      (auth as any).mockResolvedValue({ userId: null });
+      vi.mocked(auth).mockResolvedValue({ userId: null } as any);
 
-      const request = new Request('http://localhost:3000/api/settings/sessions?sessionId=test-session-id', {
-        method: 'DELETE',
-      });
-
+      const request = createSessionRequest('test-session-id');
       const response = await DELETE(request);
+      
       expect(response.status).toBe(401);
     });
   });

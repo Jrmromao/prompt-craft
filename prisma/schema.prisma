@@ -14,6 +14,7 @@ model User {
   name          String?
   role          Role      @default(USER)
   planType      PlanType  @default(FREE)
+  status        UserStatus @default(ACTIVE)
   credits       Int       @default(0)
   creditCap     Int       @default(100)
   lastCreditReset DateTime?
@@ -50,6 +51,9 @@ model User {
   messages      Message[]
   playgroundRuns PlaygroundRun[]
   promptCopies  PromptCopy[]
+  reports       Report[]
+  auditLogs     AuditLog[]
+  apiUsage      ApiUsage[]
 
   @@index([clerkId])
   @@index([email])
@@ -124,6 +128,8 @@ model Prompt {
   copies      PromptCopy[]
   lastViewedAt DateTime?
   lastUsedAt  DateTime?
+  reports     Report[]
+  apiUsage    ApiUsage[]
 
   @@index([userId])
   @@index([slug])
@@ -185,16 +191,19 @@ model PromptGeneration {
 }
 
 model ApiKey {
-  id        String   @id @default(cuid())
-  userId    String
-  name      String
-  key       String   @unique
-  createdAt DateTime @default(now())
-  expiresAt DateTime?
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id          String    @id @default(cuid())
+  userId      String
+  name        String
+  hashedKey   String    @unique
+  scopes      String[]
+  expiresAt   DateTime?
+  lastRotatedAt DateTime
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
-  @@index([key])
+  @@index([hashedKey])
 }
 
 model Vote {
@@ -220,15 +229,18 @@ model Comment {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   parentId  String?  // Optional field for nested comments
+  hidden    Boolean  @default(false)
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   prompt    Prompt   @relation(fields: [promptId], references: [id], onDelete: Cascade)
   parent    Comment? @relation("CommentToComment", fields: [parentId], references: [id], onDelete: SetNull)
   replies   Comment[] @relation("CommentToComment")
   likes     CommentLike[]
+  reports   Report[]
 
   @@index([userId])
   @@index([promptId])
   @@index([parentId])
+  @@index([hidden])
 }
 
 model CommentLike {
@@ -388,17 +400,53 @@ model PlaygroundRun {
 
 model AuditLog {
   id        String   @id @default(cuid())
-  userId    String?
   action    String
   resource  String
-  status    String
-  details   Json
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
   ipAddress String?
+  details   Json
+  status    String   @default("success")
   timestamp DateTime @default(now())
 
   @@index([userId])
   @@index([action])
+  @@index([resource])
   @@index([timestamp])
+}
+
+model Report {
+  id        String   @id @default(cuid())
+  reason    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  userId    String
+  promptId  String?
+  commentId String?
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  prompt    Prompt?  @relation(fields: [promptId], references: [id], onDelete: Cascade)
+  comment   Comment? @relation(fields: [commentId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([promptId])
+  @@index([commentId])
+  @@index([createdAt])
+}
+
+model ApiUsage {
+  id           String   @id @default(cuid())
+  createdAt    DateTime @default(now())
+  inputTokens  Int
+  outputTokens Int
+  isCacheHit   Boolean  @default(false)
+  userId       String
+  user         User     @relation(fields: [userId], references: [id])
+  promptId     String?
+  prompt       Prompt?  @relation(fields: [promptId], references: [id])
+
+  @@index([createdAt])
+  @@index([userId])
+  @@index([promptId])
 }
 
 enum Role {
@@ -455,4 +503,10 @@ enum Category {
   GENERAL_INQUIRY
   TECHNICAL_SUPPORT
   BILLING
+}
+
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+  BANNED
 }

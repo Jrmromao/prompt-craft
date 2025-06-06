@@ -3,6 +3,11 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { rateLimitMiddleware } from "./middleware/rate-limit";
 import { validationMiddleware } from "./middleware/validation";
+import { apiKeyMiddleware } from "./middleware/api-key";
+import { ipBlockMiddleware } from "./middleware/ip-block";
+import { apiVersionMiddleware } from "./middleware/api-version";
+import { requestIdMiddleware } from "./middleware/request-id";
+import { quotaMiddleware } from "./middleware/quota";
 import { prisma } from "@/lib/prisma";
 
 // Define routes that don't require authentication
@@ -26,7 +31,7 @@ const publicRoutes = [
 ];
 
 // Define routes that require admin access
-const adminRoutes = ["/admin(.*)"];
+const adminRoutes: string[] = [];
 
 // Define routes that should be rate limited
 const RATE_LIMITED_ROUTES = [
@@ -41,7 +46,18 @@ const VALIDATED_ROUTES = [
   "/api/community(.*)",
 ];
 
+// Define routes that require API key authentication
+const API_KEY_ROUTES = [
+  "/api/v1(.*)",
+];
+
 export default clerkMiddleware(async (auth, req: NextRequest) => {
+  // Add request ID tracking
+  const requestIdResponse = requestIdMiddleware(req);
+  if (requestIdResponse) {
+    return requestIdResponse;
+  }
+
   // Add security headers
   const response = NextResponse.next();
   response.headers.set('X-Content-Type-Options', 'nosniff');
@@ -50,8 +66,31 @@ export default clerkMiddleware(async (auth, req: NextRequest) => {
   response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
   response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
   
+  // Apply IP blocking
+  const ipBlockResponse = await ipBlockMiddleware(req);
+  if (ipBlockResponse) {
+    return ipBlockResponse;
+  }
+
+  // Apply API versioning for API routes
+  if (req.nextUrl.pathname.startsWith('/api/')) {
+    const versionResponse = apiVersionMiddleware(req);
+    if (versionResponse) {
+      return versionResponse;
+    }
+  }
+
   // Handle public routes
   if (publicRoutes.some((route) => req.nextUrl.pathname.match(new RegExp(`^${route}$`)))) {
+    return response;
+  }
+
+  // Handle API key routes
+  if (API_KEY_ROUTES.some((route) => req.nextUrl.pathname.match(new RegExp(`^${route}$`)))) {
+    const apiKeyResponse = await apiKeyMiddleware(req);
+    if (apiKeyResponse) {
+      return apiKeyResponse;
+    }
     return response;
   }
 
@@ -76,6 +115,14 @@ export default clerkMiddleware(async (auth, req: NextRequest) => {
     const validationResponse = validationMiddleware(req);
     if (validationResponse) {
       return validationResponse;
+    }
+  }
+
+  // Apply quota enforcement for API routes
+  if (req.nextUrl.pathname.startsWith('/api/')) {
+    const quotaResponse = await quotaMiddleware(req);
+    if (quotaResponse) {
+      return quotaResponse;
     }
   }
 
