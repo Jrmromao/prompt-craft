@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import { NavBarWrapper } from "@/components/layout/NavBarWrapper";
+// import { NavBarWrapper } from "@/components/layout/NavBarWrapper";
 import { Footer } from "@/app/components/Footer";
 import Providers from "@/components/Providers";
 import { ThemeProvider } from '@/components/ThemeProvider';
@@ -26,7 +26,7 @@ export default function RootLayout({
           <ThemeProvider>
             <Providers>
               <div className="min-h-screen flex flex-col">
-                <NavBarWrapper />
+                {/* <NavBarWrapper /> */}
                 <main className="flex-grow">{children}</main>
                 <Footer />
               </div>

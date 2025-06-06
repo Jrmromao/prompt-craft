@@ -777,73 +777,75 @@ function ProfileContent({ user, currentPath }: ProfileClientProps) {
   const privatePromptPercentage = privatePromptLimit === Infinity ? 0 : (privatePromptCount / privatePromptLimit) * 100;
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Mobile/Tablet Sidebar Drawer */}
-      <Sheet open={sidebarOpen} onOpenChange={closeSidebar}>
-        <SheetContent side="left" className="p-0 w-64">
+    <>
+      <NavBar user={user} />
+      <div className="min-h-screen bg-background">
+        {/* Mobile/Tablet Sidebar Drawer */}
+        <Sheet open={sidebarOpen} onOpenChange={closeSidebar}>
+          <SheetContent side="left" className="p-0 w-64">
+            <ErrorBoundary>
+              {SidebarContent}
+            </ErrorBoundary>
+          </SheetContent>
+        </Sheet>
+        <div className="flex w-full max-w-7xl mx-auto pt-8 px-4 gap-8">
+          {/* Desktop Sidebar */}
           <ErrorBoundary>
-            {SidebarContent}
+            <aside className="w-72 shrink-0 hidden md:flex flex-col bg-card rounded-2xl py-8 px-6 h-fit mt-4 border border-border">
+              {SidebarContent}
+            </aside>
           </ErrorBoundary>
-        </SheetContent>
-      </Sheet>
-      <div className="flex w-full max-w-7xl mx-auto pt-8 px-4 gap-8">
-        {/* Desktop Sidebar */}
-        <ErrorBoundary>
-          <aside className="w-72 shrink-0 hidden md:flex flex-col bg-card rounded-2xl py-8 px-6 h-fit mt-4 border border-border">
-            {SidebarContent}
-          </aside>
-        </ErrorBoundary>
-        {/* Main Content */}
-        <main className="flex-1 max-w-[1180px] w-full mx-auto flex flex-col gap-8">
-          {/* Profile Header Card */}
-          <ErrorBoundary>
-            <ProfileHeader user={user} status={status} statusColor={statusColor} statusLabel={statusLabel} isPro={isPro} canUpgrade={canUpgrade} creditPercentage={creditPercentage} router={router} />
-          </ErrorBoundary>
-          {/* Tabs for profile sections */}
-          <ErrorBoundary>
-            <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-  
-              <TabsContent value="overview">
-                <Card className="p-8 bg-card border border-border rounded-2xl shadow-lg">
-                  <div className="space-y-8">
-                    <ProfileForm user={{
-                      ...user,
-                      role: user.role as Role,
-                      planType: user.planType as PlanType,
-                    }} />
-                  </div>
-                </Card>
-              </TabsContent>
-              <TabsContent value="usage">
-                <Card className="p-8 bg-card border border-border rounded-2xl shadow-lg">
-                  <UsageStatsSection />
-                </Card> 
-              </TabsContent>
-              <TabsContent value="billing">
-                <Card className="p-8 bg-card border border-border rounded-2xl shadow-lg">
-                  <BillingSection />
-                </Card>
-              </TabsContent>
-              <TabsContent value="prompts">
-                <Card className="p-8 bg-card border border-border rounded-2xl shadow-lg">
-                  <PromptsSection />
-                </Card>
-              </TabsContent>
-              <TabsContent value="settings">
-                <Card className="p-8 bg-card border border-border rounded-2xl shadow-lg">
-                  <SettingsSection data={settingsData} error={settingsError} isLoading={settingsLoading} mutate={mutateSettings} />
-                </Card>
-              </TabsContent>
-              <TabsContent value="security">
-                <Card className="p-8 bg-card border border-border rounded-2xl shadow-lg">
-                  <SecuritySection data={settingsData} error={settingsError} isLoading={settingsLoading} mutate={mutateSettings} loginHistory={loginHistory} loginHistoryError={loginHistoryError} loginHistoryLoading={loginHistoryLoading} mutateLoginHistory={mutateLoginHistory} />
-                </Card>
-              </TabsContent>
-            </Tabs>
-          </ErrorBoundary>
-        </main>
+          {/* Main Content */}
+          <main className="flex-1 max-w-[1180px] w-full mx-auto flex flex-col gap-8">
+            {/* Profile Header Card */}
+            <ErrorBoundary>
+              <ProfileHeader user={user} status={status} statusColor={statusColor} statusLabel={statusLabel} isPro={isPro} canUpgrade={canUpgrade} creditPercentage={creditPercentage} router={router} />
+            </ErrorBoundary>
+            {/* Tabs for profile sections */}
+            <ErrorBoundary>
+              <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
+                <TabsContent value="overview">
+                  <Card className="p-8 bg-card border border-border rounded-2xl shadow-lg">
+                    <div className="space-y-8">
+                      <ProfileForm user={{
+                        ...user,
+                        role: user.role as Role,
+                        planType: user.planType as PlanType,
+                      }} />
+                    </div>
+                  </Card>
+                </TabsContent>
+                <TabsContent value="usage">
+                  <Card className="p-8 bg-card border border-border rounded-2xl shadow-lg">
+                    <UsageStatsSection />
+                  </Card> 
+                </TabsContent>
+                <TabsContent value="billing">
+                  <Card className="p-8 bg-card border border-border rounded-2xl shadow-lg">
+                    <BillingSection />
+                  </Card>
+                </TabsContent>
+                <TabsContent value="prompts">
+                  <Card className="p-8 bg-card border border-border rounded-2xl shadow-lg">
+                    <PromptsSection />
+                  </Card>
+                </TabsContent>
+                <TabsContent value="settings">
+                  <Card className="p-8 bg-card border border-border rounded-2xl shadow-lg">
+                    <SettingsSection data={settingsData} error={settingsError} isLoading={settingsLoading} mutate={mutateSettings} />
+                  </Card>
+                </TabsContent>
+                <TabsContent value="security">
+                  <Card className="p-8 bg-card border border-border rounded-2xl shadow-lg">
+                    <SecuritySection data={settingsData} error={settingsError} isLoading={settingsLoading} mutate={mutateSettings} loginHistory={loginHistory} loginHistoryError={loginHistoryError} loginHistoryLoading={loginHistoryLoading} mutateLoginHistory={mutateLoginHistory} />
+                  </Card>
+                </TabsContent>
+              </Tabs>
+            </ErrorBoundary>
+          </main>
+        </div>
       </div>
-    </div>
+    </>
   );
 }
 

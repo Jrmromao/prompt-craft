@@ -1,4 +1,4 @@
-export type PromptType = 'text' | 'image' | 'video' | 'music' | 'software';
+export type PromptType = 'text' | 'image' | 'video' | 'music' | 'software' | 'medical';
 
 export interface PromptPayload {
   name: string;

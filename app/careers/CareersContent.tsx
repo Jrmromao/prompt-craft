@@ -1,7 +1,6 @@
-'use client';
-
 import { currentUser } from '@clerk/nextjs/server';
 import { NavBar } from "@/components/layout/NavBar";
+import { AuthOptionsBar } from "@/components/layout/AuthOptionsBar";
 import Link from "next/link";
 
 const mockRoles = [
@@ -39,13 +38,22 @@ export default async function CareersContent() {
         email: user.emailAddresses?.[0]?.emailAddress || '',
         imageUrl: user.imageUrl,
       }
-    : { name: 'Guest', email: '' };
+    : null;
 
   return (
     <div className="min-h-screen bg-white dark:bg-black text-gray-900 dark:text-white">
+      {navUser ? <NavBar user={navUser} /> : <AuthOptionsBar />}
       <main className="max-w-4xl mx-auto px-4 py-16">
         <h1 className="text-4xl font-bold mb-8">Careers</h1>
-        {/* Careers content */}
+        <div className="grid gap-6">
+          {mockRoles.map((role, index) => (
+            <div key={index} className="p-6 border rounded-lg hover:shadow-lg transition-shadow">
+              <h2 className="text-2xl font-semibold mb-2">{role.title}</h2>
+              <p className="text-gray-600 dark:text-gray-400 mb-2">{role.location} • {role.type}</p>
+              <p className="text-gray-700 dark:text-gray-300">{role.description}</p>
+            </div>
+          ))}
+        </div>
       </main>
     </div>
   );

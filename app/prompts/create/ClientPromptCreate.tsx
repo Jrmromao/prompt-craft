@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
-import { HelpCircle, Info, Sparkles, Tag, Lock, Globe, Plus, Check, BookOpen, Image, Video, Music, Code2 } from "lucide-react";
+import { HelpCircle, Info, Sparkles, Tag, Lock, Globe, Plus, Check, BookOpen, Image, Video, Music, Code2, Stethoscope, X } from "lucide-react";
 import { sendPromptToLLM } from "@/services/aiService";
 import type { PromptPayload, PromptType } from "@/types/ai";
 import { useToast } from "@/components/ui/use-toast";
@@ -16,13 +16,51 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import type { NavBarUser } from '@/components/layout/NavBar';
 import { NavBar } from '@/components/layout/NavBar';
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
+import { InsufficientCreditsDialog } from '@/components/prompts/InsufficientCreditsDialog';
 
-const PROMPT_TYPES: { value: PromptType; label: string; icon: any }[] = [
-  { value: "text", label: "Text", icon: BookOpen },
-  { value: "image", label: "Image", icon: Image },
-  { value: "video", label: "Video", icon: Video },
-  { value: "music", label: "Music", icon: Music },
-  { value: "software", label: "Software", icon: Code2 },
+const PROMPT_TYPES: { value: PromptType; label: string; icon: any; description: string; color: string }[] = [
+  { 
+    value: "text", 
+    label: "Text", 
+    icon: BookOpen,
+    description: "Create text-based prompts for articles, stories, and general content",
+    color: "from-blue-500 to-blue-600"
+  },
+  { 
+    value: "image", 
+    label: "Image", 
+    icon: Image,
+    description: "Generate prompts for image creation and visual content",
+    color: "from-purple-500 to-purple-600"
+  },
+  { 
+    value: "video", 
+    label: "Video", 
+    icon: Video,
+    description: "Create prompts for video content and motion graphics",
+    color: "from-pink-500 to-pink-600"
+  },
+  { 
+    value: "music", 
+    label: "Music", 
+    icon: Music,
+    description: "Generate prompts for music and audio content",
+    color: "from-green-500 to-green-600"
+  },
+  { 
+    value: "software", 
+    label: "Software", 
+    icon: Code2,
+    description: "Create prompts for coding and software development",
+    color: "from-orange-500 to-orange-600"
+  },
+  { 
+    value: "medical", 
+    label: "Medical", 
+    icon: Stethoscope,
+    description: "Generate prompts for medical documentation and healthcare content",
+    color: "from-red-500 to-red-600"
+  },
 ];
 
 const COMMON_TAGS = Array.from(new Set([
@@ -34,7 +72,9 @@ const COMMON_TAGS = Array.from(new Set([
   "algorithm", "performance", "API", "setup", "code review", "quality", "security", "testing",
   "bugfix", "market-research", "image", "video", "music", "background", "ambient", "upbeat",
   "branding", "software", "language-specific", "framework", "dependency", "documentation",
-  "optimization", "integration", "library", "refactor", "engineering"
+  "optimization", "integration", "library", "refactor", "engineering",
+  "medical", "healthcare", "clinical", "patient", "diagnosis", "treatment", "research",
+  "documentation", "compliance", "HIPAA", "medical-writing", "case-study", "medical-education"
 ]));
 
 
@@ -263,6 +303,102 @@ const EXAMPLE_PROMPTS: ExamplePrompt[] = [
     format: "technical",
     promptType: "software"
   },
+  // Medical Prompts
+  {
+    name: "Medical Case Study Template",
+    description: "Create a template for generating detailed medical case studies",
+    content: `IMPORTANT: This template is for educational purposes only. Always consult with qualified healthcare professionals for actual medical decisions.
+
+Create a medical case study template that includes:
+- Patient demographics: [age, gender, relevant history]
+- Presenting symptoms: [chief complaint and duration]
+- Medical history: [relevant conditions, medications, allergies]
+- Physical examination findings: [vital signs, relevant exam details]
+- Diagnostic tests: [lab results, imaging, other tests]
+- Assessment: [differential diagnosis]
+- Treatment plan: [medications, procedures, follow-up]
+- Outcome: [patient response, complications, resolution]
+
+Target audience: [medical professionals, students, etc.]
+Format: [structured case report]
+Include references: [yes/no]
+Include disclaimer: [yes/no]`,
+    tags: ["medical", "case-study", "documentation", "clinical"],
+    tone: "professional",
+    format: "medical-report",
+    promptType: "text"
+  },
+  {
+    name: "Patient Education Material",
+    description: "Create a template for generating patient education materials",
+    content: `IMPORTANT: This material should be reviewed by healthcare professionals before distribution to patients.
+
+Create a patient education template about [medical condition/treatment] that includes:
+- Overview: [condition/treatment explanation]
+- Symptoms/Side effects: [what to expect]
+- Treatment options: [available approaches]
+- Self-care instructions: [home care guidelines]
+- Warning signs: [when to seek medical attention]
+- Lifestyle modifications: [recommended changes]
+- Follow-up care: [appointment schedule, monitoring]
+
+Target audience: [patient education level]
+Language level: [basic, intermediate, advanced]
+Include visual aids: [yes/no]
+Include medical review statement: [yes/no]`,
+    tags: ["medical", "patient", "education", "documentation"],
+    tone: "clear",
+    format: "patient-education",
+    promptType: "text"
+  },
+  {
+    name: "Clinical Research Protocol",
+    description: "Create a template for generating clinical research protocols",
+    content: `IMPORTANT: This template should be reviewed by qualified researchers and institutional review boards (IRB) before implementation.
+
+Create a clinical research protocol template that includes:
+- Study title: [research question]
+- Background: [literature review, rationale]
+- Objectives: [primary and secondary endpoints]
+- Methodology: [study design, population, interventions]
+- Data collection: [variables, measurements, timeline]
+- Statistical analysis: [methods, sample size]
+- Ethical considerations: [informed consent, IRB]
+- Timeline: [study duration, milestones]
+
+Target audience: [researchers, IRB, funding agencies]
+Study type: [observational, interventional, etc.]
+Compliance requirements: [specific regulations]
+Include ethical review statement: [yes/no]`,
+    tags: ["medical", "research", "clinical", "documentation"],
+    tone: "scientific",
+    format: "research-protocol",
+    promptType: "text"
+  },
+  {
+    name: "Medical Documentation Template",
+    description: "Create a template for generating standardized medical documentation",
+    content: `IMPORTANT: This template should be used in accordance with local medical regulations and institutional policies.
+
+Create a medical documentation template for [specialty/condition] that includes:
+- Patient information: [demographics, identifiers]
+- Chief complaint: [patient's main concern]
+- History of present illness: [symptom progression]
+- Review of systems: [pertinent positives/negatives]
+- Physical examination: [relevant findings]
+- Assessment: [diagnoses, problems]
+- Plan: [treatment, medications, follow-up]
+- Notes: [additional observations]
+
+Target audience: [healthcare providers]
+Specialty: [specific medical field]
+Compliance: [HIPAA, specific requirements]
+Include compliance statement: [yes/no]`,
+    tags: ["medical", "documentation", "clinical", "HIPAA"],
+    tone: "professional",
+    format: "medical-note",
+    promptType: "text"
+  }
 ];
 
 function getRandomSpinnerMessage() {
@@ -275,6 +411,46 @@ function getRandomSpinnerMessage() {
   ];
   return SPINNER_MESSAGES[Math.floor(Math.random() * SPINNER_MESSAGES.length)];
 }
+
+function getLanguageName(code: string) {
+  switch (code) {
+    case 'pt': return 'português';
+    case 'es': return 'espanhol';
+    case 'fr': return 'francês';
+    case 'de': return 'alemão';
+    default: return 'inglês';
+  }
+}
+
+// Update the FloatingWarningBar component
+const FloatingWarningBar = ({ onClose }: { onClose: () => void }) => (
+  <div className="fixed top-0 left-0 right-0 z-50 bg-yellow-500 dark:bg-yellow-600 shadow-lg">
+    <div className="max-w-7xl mx-auto px-4 py-3">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <Info className="w-5 h-5 text-white" />
+          <p className="text-sm font-medium text-white">
+            Medical prompts are for educational purposes only. Always consult healthcare professionals for medical decisions.
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Badge variant="secondary" className="bg-yellow-400/20 text-white hover:bg-yellow-400/30">
+            HIPAA Compliant
+          </Badge>
+          <Badge variant="secondary" className="bg-yellow-400/20 text-white hover:bg-yellow-400/30">
+            Professional Review Required
+          </Badge>
+          <button
+            onClick={onClose}
+            className="ml-2 p-1 rounded-full hover:bg-yellow-400/20 transition-colors"
+          >
+            <X className="w-5 h-5 text-white" />
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+);
 
 export default function ClientPromptCreate({ user }: { user: NavBarUser }) {
   const { toast } = useToast();
@@ -298,6 +474,7 @@ export default function ClientPromptCreate({ user }: { user: NavBarUser }) {
     includeExamples: false,
     includeKeywords: false,
     includeStructure: false,
+    includeImageDescription: false,
     style: "",
     resolution: "",
     palette: "",
@@ -313,6 +490,9 @@ export default function ClientPromptCreate({ user }: { user: NavBarUser }) {
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [editableAiResponse, setEditableAiResponse] = useState<string | null>(null);
   const [spinnerMessage, setSpinnerMessage] = useState(getRandomSpinnerMessage());
+  const [showCreditsDialog, setShowCreditsDialog] = useState(false);
+  const [creditsInfo, setCreditsInfo] = useState<{ currentCredits: number; requiredCredits: number; missingCredits: number }>({ currentCredits: 0, requiredCredits: 0, missingCredits: 0 });
+  const [showMedicalWarning, setShowMedicalWarning] = useState(false);
 
   useEffect(() => {
     if (aiResponse && aiResponseRef.current) {
@@ -331,6 +511,10 @@ export default function ClientPromptCreate({ user }: { user: NavBarUser }) {
     }
   }, [isLoading, isGenerating]);
 
+  useEffect(() => {
+    setShowMedicalWarning(promptType === "medical");
+  }, [promptType]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name || !formData.content) {
@@ -341,11 +525,32 @@ export default function ClientPromptCreate({ user }: { user: NavBarUser }) {
     setIsGenerating(true);
     setAiResponse(null);
     try {
+      const personaInstruction = formData.persona
+        ? `Act as ${formData.persona}.`
+        : '';
+      const temperatureInstruction = formData.temperature !== undefined
+        ? `Use a temperature of ${formData.temperature}.`
+        : '';
+      const languageInstruction = formData.language && formData.language !== 'en'
+        ? `Respond only in ${getLanguageName(formData.language)}.`
+        : '';
+      const imageDescriptionInstruction = formData.includeImageDescription
+        ? 'Include a detailed image description in your response.'
+        : '';
+      const brevityInstruction = 'Only return the prompt template, no extra explanations or examples.';
+      const llmPrompt = [
+        personaInstruction,
+        temperatureInstruction,
+        languageInstruction,
+        imageDescriptionInstruction,
+        brevityInstruction,
+        formData.content
+      ].filter(Boolean).join('\n\n');
       const llmPayload: PromptPayload = {
         ...formData,
         tags: selectedTags,
         promptType,
-        content: `Create a prompt template based on the following requirements:\n\n${formData.content}\n\nGenerate a reusable prompt template that others can use to create ${promptType} content. The template should include clear instructions and placeholders for customization.`,
+        content: llmPrompt,
       };
       let llmResponse;
       try {
@@ -354,6 +559,20 @@ export default function ClientPromptCreate({ user }: { user: NavBarUser }) {
         setEditableAiResponse(llmResponse);
         toast({ title: "Success", description: "Prompt template generated successfully" });
       } catch (llmError: any) {
+        // Check for insufficient credits (402)
+        if (llmError.message && llmError.message.toLowerCase().includes('insufficient credits')) {
+          // Try to extract credit info if available
+          const errorData = llmError.response?.data || {};
+          setCreditsInfo({
+            currentCredits: errorData.currentCredits || 0,
+            requiredCredits: errorData.requiredCredits || 0,
+            missingCredits: errorData.missingCredits || 0,
+          });
+          setShowCreditsDialog(true);
+          setIsLoading(false);
+          setIsGenerating(false);
+          return;
+        }
         toast({ title: "LLM Error", description: llmError instanceof Error ? llmError.message : "Failed to get LLM response", variant: "destructive" });
         return;
       }
@@ -371,10 +590,31 @@ export default function ClientPromptCreate({ user }: { user: NavBarUser }) {
 
   // ... (return the full JSX for the form, spinner, AI response, tips, and examples) ...
 
+  const MedicalDisclaimer = () => (
+    <div className="mt-4 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+      <div className="flex items-start gap-2">
+        <Info className="w-5 h-5 text-yellow-600 dark:text-yellow-400 mt-0.5" />
+        <div className="space-y-2">
+          <h4 className="font-medium text-yellow-800 dark:text-yellow-300">Important Notice</h4>
+          <p className="text-sm text-yellow-700 dark:text-yellow-400">
+            Medical prompts are provided for educational and reference purposes only. They should not be used as a substitute for professional medical advice, diagnosis, or treatment. Always consult with qualified healthcare professionals for medical decisions.
+          </p>
+          <ul className="text-sm text-yellow-700 dark:text-yellow-400 list-disc list-inside space-y-1">
+            <li>Verify all medical information with qualified professionals</li>
+            <li>Ensure compliance with local medical regulations</li>
+            <li>Maintain patient confidentiality and HIPAA compliance</li>
+            <li>Use appropriate disclaimers in all medical content</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <>
-
-      <div className="min-h-screen bg-white dark:bg-gray-900 flex flex-col relative">
+      <NavBar user={user} />
+      {showMedicalWarning && <FloatingWarningBar onClose={() => setShowMedicalWarning(false)} />}
+      <div className={`min-h-screen bg-white dark:bg-gray-900 flex flex-col relative ${showMedicalWarning ? 'pt-12' : ''}`}>
         {(isLoading || isGenerating) && (
           <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-white/80 dark:bg-gray-900/80">
             <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-purple-500 mb-6"></div>
@@ -414,25 +654,66 @@ export default function ClientPromptCreate({ user }: { user: NavBarUser }) {
               </CardHeader>
               <CardContent className="space-y-6">
                 {/* Prompt Type Selection */}
-                <div>
-                  <Label className="mb-2 block text-gray-700 dark:text-gray-200">
-                    Prompt Type
-                  </Label>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
-                    {PROMPT_TYPES.map(({ value, label, icon: Icon }) => (
-                      <Button
+                <div className="space-y-4">
+                  <div className="flex items-center gap-1">
+                    <Label className="text-gray-700 dark:text-gray-200">Prompt Type</Label>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <span tabIndex={0}>
+                          <HelpCircle className="w-4 h-4 text-gray-400 hover:text-purple-500 cursor-pointer" />
+                        </span>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        Select the type of content you want to create
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {PROMPT_TYPES.map(({ value, label, icon: Icon, description, color }) => (
+                      <button
                         key={value}
-                        variant={promptType === value ? "default" : "outline"}
                         onClick={() => setPromptType(value)}
-                        className={`w-full h-20 flex flex-col items-center justify-center gap-2 ${
+                        className={`relative group p-4 rounded-xl border transition-all duration-200 ${
                           promptType === value
-                            ? "bg-purple-500 hover:bg-purple-600 text-white"
-                            : "hover:bg-purple-50 dark:hover:bg-purple-900/20"
+                            ? `bg-gradient-to-r ${color} border-transparent text-white shadow-lg`
+                            : "border-gray-200 dark:border-gray-700 hover:border-purple-300 dark:hover:border-purple-700 bg-white dark:bg-gray-800"
                         }`}
                       >
-                        <Icon className="w-6 h-6" />
-                        <span>{label}</span>
-                      </Button>
+                        <div className="flex items-start gap-3">
+                          <div className={`p-2 rounded-lg ${
+                            promptType === value
+                              ? "bg-white/20"
+                              : "bg-gray-100 dark:bg-gray-700 group-hover:bg-purple-50 dark:group-hover:bg-purple-900/20"
+                          }`}>
+                            <Icon className={`w-6 h-6 ${
+                              promptType === value
+                                ? "text-white"
+                                : "text-gray-600 dark:text-gray-300 group-hover:text-purple-600 dark:group-hover:text-purple-400"
+                            }`} />
+                          </div>
+                          <div className="flex-1 text-left">
+                            <h3 className={`font-medium ${
+                              promptType === value
+                                ? "text-white"
+                                : "text-gray-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-400"
+                            }`}>
+                              {label}
+                            </h3>
+                            <p className={`text-sm mt-1 ${
+                              promptType === value
+                                ? "text-white/90"
+                                : "text-gray-500 dark:text-gray-400 group-hover:text-purple-500 dark:group-hover:text-purple-300"
+                            }`}>
+                              {description}
+                            </p>
+                          </div>
+                          {promptType === value && (
+                            <div className="absolute top-2 right-2">
+                              <Check className="w-5 h-5 text-white" />
+                            </div>
+                          )}
+                        </div>
+                      </button>
                     ))}
                   </div>
                 </div>
@@ -545,6 +826,30 @@ export default function ClientPromptCreate({ user }: { user: NavBarUser }) {
                     className="min-h-[120px] font-mono"
                   />
                 </div>
+                {/* Image Description Option - Only for text type prompts */}
+                {promptType === "text" && (
+                  <div className="flex items-center space-x-2">
+                    <Switch
+                      id="includeImageDescription"
+                      checked={formData.includeImageDescription}
+                      onCheckedChange={checked => setFormData({ ...formData, includeImageDescription: checked })}
+                      className="data-[state=checked]:bg-purple-500"
+                    />
+                    <Label htmlFor="includeImageDescription" className="flex items-center gap-2 text-gray-700 dark:text-gray-200">
+                      <Image className="w-4 h-4" /> Include image description in the prompt
+                    </Label>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <span tabIndex={0}>
+                          <HelpCircle className="w-4 h-4 text-gray-400 hover:text-purple-500 cursor-pointer" />
+                        </span>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        When enabled, the AI will include a detailed image description in its response.
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
+                )}
                 {/* Tags & Visibility */}
                 <div className="space-y-2">
                   <Label>Tags</Label>
@@ -815,11 +1120,19 @@ export default function ClientPromptCreate({ user }: { user: NavBarUser }) {
                     </button>
                   ))}
                 </div>
+                {promptType === "medical" && selectedTags.some(tag => tag.includes("medical")) && <MedicalDisclaimer />}
               </CardContent>
             </Card>
           </div>
         </div>
       </div>
+      <InsufficientCreditsDialog
+        open={showCreditsDialog}
+        onOpenChange={setShowCreditsDialog}
+        currentCredits={creditsInfo.currentCredits}
+        requiredCredits={creditsInfo.requiredCredits}
+        missingCredits={creditsInfo.missingCredits}
+      />
     </>
   );
 } 
