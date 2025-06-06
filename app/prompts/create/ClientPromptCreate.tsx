@@ -15,6 +15,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import type { NavBarUser } from '@/components/layout/NavBar';
 import { NavBar } from '@/components/layout/NavBar';
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 
 const PROMPT_TYPES: { value: PromptType; label: string; icon: any }[] = [
   { value: "text", label: "Text", icon: BookOpen },
@@ -305,6 +306,9 @@ export default function ClientPromptCreate({ user }: { user: NavBarUser }) {
     mood: "",
     length: "",
     instruments: "",
+    temperature: 0.7,
+    persona: "",
+    language: "en",
   });
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [editableAiResponse, setEditableAiResponse] = useState<string | null>(null);
@@ -432,10 +436,44 @@ export default function ClientPromptCreate({ user }: { user: NavBarUser }) {
                     ))}
                   </div>
                 </div>
+                {/* Persona Field */}
+                <div className="space-y-2">
+                  <div className="flex items-center gap-1">
+                    <Label htmlFor="persona">AI Character / Persona</Label>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <span tabIndex={0}>
+                          <HelpCircle className="w-4 h-4 text-gray-400 hover:text-purple-500 cursor-pointer" />
+                        </span>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        Describe the role or persona the AI should adopt for this prompt (e.g., "Act as a designer").
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
+                  <Input
+                    id="persona"
+                    value={formData.persona ?? ''}
+                    onChange={e => setFormData({ ...formData, persona: e.target.value })}
+                    placeholder="e.g., Act as a designer, Act as a writer"
+                  />
+                </div>
                 {/* Name & Description */}
                 <div className="grid grid-cols-1 gap-6">
                   <div className="space-y-2">
-                    <Label>Name</Label>
+                    <div className="flex items-center gap-1">
+                      <Label>Name</Label>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <span tabIndex={0}>
+                            <HelpCircle className="w-4 h-4 text-gray-400 hover:text-purple-500 cursor-pointer" />
+                          </span>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          Give your prompt a clear, descriptive name so you can easily find it later.
+                        </TooltipContent>
+                      </Tooltip>
+                    </div>
                     <Input
                       value={formData.name}
                       onChange={e => setFormData({ ...formData, name: e.target.value })}
@@ -444,7 +482,19 @@ export default function ClientPromptCreate({ user }: { user: NavBarUser }) {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>Description</Label>
+                    <div className="flex items-center gap-1">
+                      <Label>Description</Label>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <span tabIndex={0}>
+                            <HelpCircle className="w-4 h-4 text-gray-400 hover:text-purple-500 cursor-pointer" />
+                          </span>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          Briefly explain what this prompt does or its intended use case.
+                        </TooltipContent>
+                      </Tooltip>
+                    </div>
                     <Textarea
                       value={formData.description}
                       onChange={e => setFormData({ ...formData, description: e.target.value })}
@@ -452,9 +502,41 @@ export default function ClientPromptCreate({ user }: { user: NavBarUser }) {
                     />
                   </div>
                 </div>
+                {/* Language Field */}
+                <div className="space-y-2">
+                  <Label htmlFor="language">Prompt Language</Label>
+                  <select
+                    id="language"
+                    value={formData.language ?? 'en'}
+                    onChange={e => setFormData({ ...formData, language: e.target.value })}
+                    className="w-full border rounded px-2 py-1 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                  >
+                    <option value="en">English</option>
+                    <option value="es">Spanish</option>
+                    <option value="fr">French</option>
+                    <option value="de">German</option>
+                    <option value="pt">Portuguese</option>
+                    {/* Add more languages as needed */}
+                  </select>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    Select the language in which the AI should respond.
+                  </p>
+                </div>
                 {/* Content */}
                 <div className="space-y-2">
-                  <Label>Prompt Content</Label>
+                  <div className="flex items-center gap-1">
+                    <Label>Prompt Content</Label>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <span tabIndex={0}>
+                          <HelpCircle className="w-4 h-4 text-gray-400 hover:text-purple-500 cursor-pointer" />
+                        </span>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        Enter your AI prompt template. Use [variables] in brackets for customizable parts.
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
                   <Textarea
                     value={formData.content}
                     onChange={e => setFormData({ ...formData, content: e.target.value })}
@@ -506,6 +588,48 @@ export default function ClientPromptCreate({ user }: { user: NavBarUser }) {
                       </>
                     )}
                   </Label>
+                </div>
+                {/* Action Buttons */}
+                <div className="flex justify-end gap-2 pt-4">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => router.back()}
+                    disabled={isLoading}
+                    className="border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    type="submit"
+                    onClick={handleSubmit}
+                    className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white flex items-center justify-center"
+                    disabled={isLoading}
+                  >
+                    {isLoading ? (
+                      <svg
+                        className="animate-spin h-5 w-5 mr-2 text-white"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        ></circle>
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                        ></path>
+                      </svg>
+                    ) : null}
+                    {isLoading ? "Creating..." : "Create Prompt"}
+                  </Button>
                 </div>
               </CardContent>
             </Card>
@@ -587,6 +711,43 @@ export default function ClientPromptCreate({ user }: { user: NavBarUser }) {
                 </ul>
               </CardContent>
             </Card>
+            {/* Temperature Card */}
+            <Card className="border-gray-200 dark:border-gray-800">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <Sparkles className="w-5 h-5 text-pink-500" />
+                  Temperature
+                </CardTitle>
+                <CardDescription>
+                  Controls the creativity of the AI's responses
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="temperature" className="text-gray-700 dark:text-gray-200">Temperature</Label>
+                    <span className="text-xs font-mono text-purple-600 dark:text-purple-300">{formData.temperature ?? 0.7}</span>
+                  </div>
+                  <input
+                    id="temperature"
+                    type="range"
+                    min={0}
+                    max={1}
+                    step={0.01}
+                    value={formData.temperature ?? 0.7}
+                    onChange={e => setFormData({ ...formData, temperature: parseFloat(e.target.value) })}
+                    className="w-full accent-purple-500"
+                  />
+                  <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400">
+                    <span>Deterministic (0)</span>
+                    <span>Creative (1)</span>
+                  </div>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    <span className="font-medium text-purple-600 dark:text-purple-300">What is temperature?</span> Lower values make the AI more focused and predictable. Higher values make it more creative and diverse. For most use cases, 0.7 is a good starting point.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
             <Card className="border-gray-200 dark:border-gray-800">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-lg">
@@ -656,50 +817,6 @@ export default function ClientPromptCreate({ user }: { user: NavBarUser }) {
                 </div>
               </CardContent>
             </Card>
-          </div>
-        </div>
-        {/* Sticky Action Bar */}
-        <div className="fixed bottom-0 left-0 w-full bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 py-4 z-50 flex justify-center">
-          <div className="max-w-7xl w-full flex justify-end px-4 md:px-8">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => router.back()}
-              disabled={isLoading}
-              className="border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 mr-2"
-            >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              onClick={handleSubmit}
-              className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white flex items-center justify-center"
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <svg
-                  className="animate-spin h-5 w-5 mr-2 text-white"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  ></circle>
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
-                  ></path>
-                </svg>
-              ) : null}
-              {isLoading ? "Creating..." : "Create Prompt"}
-            </Button>
           </div>
         </div>
       </div>
