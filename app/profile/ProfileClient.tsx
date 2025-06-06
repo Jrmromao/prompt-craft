@@ -28,6 +28,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button";
 import type { KeyedMutator } from 'swr';
 import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { useSidebarStore } from "@/components/layout/NavBarWrapper";
+import { useTheme } from '@/components/ThemeProvider';
 
 const Sheet = dynamic(() => import("@/components/ui/sheet").then(mod => mod.Sheet), { ssr: false });
 const SheetContent = dynamic(() => import("@/components/ui/sheet").then(mod => mod.SheetContent), { ssr: false });
@@ -103,9 +105,12 @@ interface UsageData {
   }>;
 }
 
+type Theme = 'light' | 'dark' | 'system';
+
 function SettingsSection(props: SettingsSectionProps) {
   const { data, error, isLoading, mutate } = props;
   const [isSaving, setIsSaving] = useState(false);
+  const { setTheme } = useTheme();
   if (isLoading && !data) {
     return <div className="p-8"><div className="animate-pulse h-8 w-1/2 bg-muted rounded mb-4" /><div className="animate-pulse h-32 w-full bg-muted rounded" /></div>;
   }
@@ -130,6 +135,12 @@ function SettingsSection(props: SettingsSectionProps) {
       toast.error("Failed to update settings. Please try again.");
     } finally {
       setIsSaving(false);
+    }
+  };
+  const handleThemeChange = (value: string) => {
+    if (value === 'light' || value === 'dark' || value === 'system') {
+      setTheme(value);
+      handleSettingsUpdate("theme", { ...data.themeSettings, theme: value });
     }
   };
   return (
@@ -211,7 +222,7 @@ function SettingsSection(props: SettingsSectionProps) {
             <Label>Theme</Label>
             <Select
               value={data.themeSettings.theme}
-              onValueChange={(value) => handleSettingsUpdate("theme", { ...data.themeSettings, theme: value })}
+              onValueChange={handleThemeChange}
               disabled={isSaving}
             >
               <SelectTrigger>
@@ -338,7 +349,7 @@ function ProfileHeader({ user, status, statusColor, statusLabel, isPro, canUpgra
 }
 
 function ProfileContent({ user, currentPath }: ProfileClientProps) {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { isOpen: sidebarOpen, close: closeSidebar } = useSidebarStore();
   const { signOut } = useClerk();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -364,7 +375,7 @@ function ProfileContent({ user, currentPath }: ProfileClientProps) {
   // Sidebar click handler
   function handleSidebarClick(tabValue: string) {
     router.push(`/profile?tab=${tabValue}`, { scroll: false });
-    setSidebarOpen(false);
+    closeSidebar();
     setActiveTab(tabValue);
   }
 
@@ -767,13 +778,8 @@ function ProfileContent({ user, currentPath }: ProfileClientProps) {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* NavBar with hamburger menu */}
-      <NavBar
-        user={user}
-        onMenuClick={() => setSidebarOpen(true)}
-      />
       {/* Mobile/Tablet Sidebar Drawer */}
-      <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
+      <Sheet open={sidebarOpen} onOpenChange={closeSidebar}>
         <SheetContent side="left" className="p-0 w-64">
           <ErrorBoundary>
             {SidebarContent}
@@ -805,43 +811,13 @@ function ProfileContent({ user, currentPath }: ProfileClientProps) {
                       role: user.role as Role,
                       planType: user.planType as PlanType,
                     }} />
-                    
-                    {/* Usage Stats */}
-                    <div className="space-y-4">
-                      <h3 className="text-lg font-semibold">Usage</h3>
-                      
-                      {/* Credits Usage */}
-                      <div className="space-y-2">
-                        <div className="flex justify-between text-sm">
-                          <span>Credits</span>
-                          <span>{user.credits} / {user.creditCap}</span>
-                        </div>
-                        <Progress value={creditPercentage} className="h-2" />
-                      </div>
-
-                      {/* Private Prompts Usage */}
-                      <div className="space-y-2">
-                        <div className="flex justify-between text-sm">
-                          <span>Private Prompts</span>
-                          <span>
-                            {privatePromptCount} / {privatePromptLimit === Infinity ? '∞' : privatePromptLimit}
-                          </span>
-                        </div>
-                        <Progress value={privatePromptPercentage} className="h-2" />
-                        {privatePromptPercentage > 80 && privatePromptLimit !== Infinity && (
-                          <p className="text-sm text-yellow-600 dark:text-yellow-400">
-                            You're approaching your private prompt limit. Consider upgrading to save more private prompts.
-                          </p>
-                        )}
-                      </div>
-                    </div>
                   </div>
                 </Card>
               </TabsContent>
               <TabsContent value="usage">
                 <Card className="p-8 bg-card border border-border rounded-2xl shadow-lg">
                   <UsageStatsSection />
-                </Card>
+                </Card> 
               </TabsContent>
               <TabsContent value="billing">
                 <Card className="p-8 bg-card border border-border rounded-2xl shadow-lg">

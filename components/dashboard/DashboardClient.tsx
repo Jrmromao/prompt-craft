@@ -1,289 +1,210 @@
 'use client';
 
-import { Suspense } from "react";
-import { UserSummaryCard } from "@/components/dashboard/UserSummaryCard";
-import { RecentPromptsTable } from "@/components/dashboard/RecentPromptsTable";
-import { CreditHistoryTable } from "@/components/dashboard/CreditHistoryTable";
-import { UsageChart } from "@/components/dashboard/UsageChart";
-import { UpgradeBanner } from "@/components/dashboard/UpgradeBanner";
-import { PromptTemplatesCard } from "@/components/dashboard/PromptTemplatesCard";
-import { Role, PlanType, Period, CreditType } from "@prisma/client";
+import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Sparkles, History, Plus, LogOut, Sun, Moon, User } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { Plus, History, Sparkles, CreditCard, BarChart2, Sun, Moon } from "lucide-react";
 import Link from "next/link";
-import React from "react";
-import { CreatePromptDialog } from "@/components/prompts/CreatePromptDialog";
+import { useState, useEffect } from "react";
 import { useTheme } from "next-themes";
-import { useClerk } from "@clerk/nextjs";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { NavBar, NavBarUser } from '@/components/layout/NavBar';
-import { useRouter } from "next/navigation";
 
-// Types for serializable props
-interface SerializableUserWithPlan {
-  id: string;
-  clerkId: string;
-  email: string;
-  name: string;
-  imageUrl?: string;
-  credits: number;
-  plan: {
-    id: string;
-    name: string;
-    features: string[];
-    price: number;
-    createdAt: string;
-    updatedAt: string;
-    credits: number;
-    creditCap: number;
-    type: string;
-    period: string;
-    isActive: boolean;
-    description?: string;
-    stripeProductId?: string;
-  } | null;
-  role: string;
-  createdAt: string;
-  updatedAt: string;
-  creditCap: number;
-  lastCreditReset: string;
-  stripeCustomerId: string;
-  bio?: string | null;
-  jobTitle?: string | null;
-  location?: string | null;
-  company?: string | null;
-  website?: string | null;
-  twitter?: string | null;
-  linkedin?: string | null;
-  emailPreferences?: { marketingEmails: boolean; productUpdates: boolean; securityAlerts: boolean };
-  notificationSettings?: { emailNotifications: boolean; pushNotifications: boolean; browserNotifications: boolean };
-  languagePreferences?: { language: string; dateFormat: string; timeFormat: string };
-  themeSettings?: { theme: string; accentColor: string };
-  securitySettings?: { twoFactorEnabled: boolean; sessionTimeout: number };
-}
-
-// PromptGeneration type for dashboard recent prompts
-interface PromptGeneration {
+interface Prompt {
   id: string;
   input: string;
-  output: string;
   model: string;
   creditsUsed: number;
   createdAt: string;
 }
 
-interface SerializableCreditHistory {
+interface CreditHistory {
   id: string;
-  createdAt: string;
   type: string;
-  description: string | null;
-  userId: string;
   amount: number;
+  description: string;
+  createdAt: string;
+}
+
+interface UsageData {
+  date: string;
+  value: number;
 }
 
 interface DashboardClientProps {
-  user: SerializableUserWithPlan;
-  prompts: PromptGeneration[];
-  creditHistory: SerializableCreditHistory[];
-  usageData?: { date: string; credits: number }[];
+  user: {
+    credits: number;
+    planType: string;
+    nextReset: string;
+  };
+  prompts: Prompt[];
+  creditHistory: CreditHistory[];
+  usageData: UsageData[];
+}
+
+function formatDate(date: string) {
+  return new Date(date).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
 }
 
 function ThemeToggle() {
   const { theme, setTheme } = useTheme();
-  const [mounted, setMounted] = React.useState(false);
-
-  // Avoid hydration mismatch by only rendering after mount
-  React.useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  if (!mounted) {
-    return (
-      <Button
-        variant="ghost"
-        size="icon"
-        className="text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800"
-      >
-        <Sun className="w-5 h-5" />
-      </Button>
-    );
-  }
-
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  if (!mounted) return null;
   return (
     <Button
       variant="ghost"
       size="icon"
-      onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-      className="text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800"
+      aria-label="Toggle theme"
+      className="fixed top-6 right-6 z-50 bg-background/80 backdrop-blur border border-border hover:bg-accent focus-visible:ring-2 focus-visible:ring-primary transition-colors"
+      onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
     >
-      {theme === 'dark' ? (
-        <Sun className="w-5 h-5" />
-      ) : (
-        <Moon className="w-5 h-5" />
-      )}
+      {theme === "dark" ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
       <span className="sr-only">Toggle theme</span>
     </Button>
   );
 }
 
-function PromptActionsCard({ user }: { user: SerializableUserWithPlan }) {
-  const isFreeTier = user.role === 'FREE';
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = React.useState(false);
-  const router = useRouter();
+export default function DashboardClient({ user, prompts, creditHistory, usageData }: DashboardClientProps) {
+  // Table pagination state (for demo, not full implementation)
+  const [promptPage] = useState(1);
+  const [historyPage] = useState(1);
+
   return (
-    <Card className="border-gray-200 dark:border-gray-800">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-lg">
-          <Sparkles className="w-5 h-5 text-purple-500" />
-          Prompt Actions
-        </CardTitle>
-        <CardDescription>
-          {isFreeTier 
-            ? "Create new prompts or upgrade to access prompt history"
-            : "Manage your prompts and create new ones"}
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="flex flex-col gap-4">
-        {isFreeTier ? (
-          <>
-            <Button 
-              onClick={() => router.push('/prompts/create')}
-              className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white"
-            >
+    <div className="max-w-6xl mx-auto px-4 py-8 space-y-8 relative">
+      {/* Top Card: Account Overview */}
+      <Card className="flex flex-col md:flex-row items-center justify-between p-6 gap-4 shadow-md">
+        <div className="flex items-center gap-6 w-full">
+          <div className="flex items-center gap-2 text-2xl font-bold">
+            <CreditCard className="w-6 h-6 text-primary" />
+            {user.credits}
+            <span className="text-base font-normal text-muted-foreground ml-2">credits available</span>
+          </div>
+          <div className="ml-8 text-muted-foreground text-base">
+            <span className="block">Plan: <span className="font-medium text-foreground">{user.planType}</span></span>
+            <span className="block">Next reset: {formatDate(user.nextReset)}</span>
+          </div>
+        </div>
+        <Button className="ml-auto w-full md:w-auto transition-colors hover:bg-primary/90 focus-visible:ring-2 focus-visible:ring-primary" asChild>
+          <Link href="/prompts/new">Use Prompt</Link>
+        </Button>
+      </Card>
+
+      {/* Prompt Actions Card */}
+      <Card className="p-6 bg-gradient-to-r from-purple-600 to-pink-500 text-white shadow-lg">
+        <CardHeader className="p-0 mb-4 flex flex-row items-center gap-2">
+          <Sparkles className="w-5 h-5" />
+          <CardTitle className="text-white">Prompt Actions</CardTitle>
+        </CardHeader>
+        <CardDescription className="mb-6 text-white/80">Manage your prompts and create new ones</CardDescription>
+        <div className="flex flex-col md:flex-row gap-4">
+          <Button className="w-full md:w-auto bg-white text-purple-700 font-semibold hover:bg-purple-100 focus-visible:ring-2 focus-visible:ring-white" asChild>
+            <Link href="/prompts/new">
               <Plus className="w-4 h-4 mr-2" />
               Create New Prompt
-            
-            </Button>
-            <Button 
-              asChild 
-              variant="outline" 
-              className="w-full border-purple-200 dark:border-purple-800 text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/20"
-            >
-              <Link href="/pricing">
-                Upgrade to Access Prompt History
-              </Link>
-            </Button>
-            <CreatePromptDialog
-              open={isCreateDialogOpen}
-              onOpenChange={setIsCreateDialogOpen}
-              onSuccess={() => setIsCreateDialogOpen(false)}
-            />
-          </>
-        ) : (
-          <>
-            <Button 
-              asChild 
-              className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white"
-            >
-              <Link href="/prompts/create">
-                <Plus className="w-4 h-4 mr-2" />
-                Create New Prompt
-              </Link>
-            </Button>
-            <Button 
-              asChild 
-              variant="outline" 
-              className="w-full border-purple-200 dark:border-purple-800 text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/20"
-            >
-              <Link href="/prompts">
-                <History className="w-4 h-4 mr-2" />
-                View Prompt History
-              </Link>
-            </Button>
-          </>
-        )}
-      </CardContent>
-    </Card>
-  );
-}
-
-export function DashboardClient({ user, prompts, creditHistory, usageData }: DashboardClientProps) {
-  // Convert serializable props to correct types
-  const hydratedUser = {
-    ...user,
-    createdAt: new Date(user.createdAt),
-    updatedAt: new Date(user.updatedAt),
-    lastCreditReset: new Date(user.lastCreditReset),
-    role: user.role as Role,
-    planType: user.plan?.type as PlanType || PlanType.FREE,
-    bio: user.bio || null,
-    jobTitle: user.jobTitle || null,
-    location: user.location || null,
-    company: user.company || null,
-    website: user.website || null,
-    twitter: user.twitter || null,
-    linkedin: user.linkedin || null,
-    imageUrl: user.imageUrl || null,
-    emailPreferences: user.emailPreferences || { marketingEmails: true, productUpdates: true, securityAlerts: true },
-    notificationSettings: user.notificationSettings || { emailNotifications: true, pushNotifications: true, browserNotifications: true },
-    languagePreferences: user.languagePreferences || { language: "en", dateFormat: "MM/DD/YYYY", timeFormat: "12h" },
-    themeSettings: user.themeSettings || { theme: "system", accentColor: "purple" },
-    securitySettings: user.securitySettings || { twoFactorEnabled: false, sessionTimeout: 30 },
-    plan: user.plan
-      ? {
-          ...user.plan,
-          createdAt: new Date(user.plan.createdAt),
-          updatedAt: new Date(user.plan.updatedAt),
-          type: user.plan.type as PlanType,
-          period: user.plan.period as Period,
-          description: user.plan.description || "",
-          stripeProductId: user.plan.stripeProductId || "",
-        }
-      : null,
-    stripeCustomerId: user.stripeCustomerId,
-  };
-  const hydratedCreditHistory = creditHistory.map((h) => ({
-    ...h,
-    createdAt: new Date(h.createdAt),
-    type: h.type as CreditType,
-  }));
-
-  const router = useRouter();
-
-
-  return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-    
-      <div className="container mx-auto px-4 py-8 space-y-8">
-        <Suspense fallback={<div>Loading...</div>}>
-          <UserSummaryCard user={hydratedUser} />
-        </Suspense>
-
-        {/* Prompt Actions Section */}
-        <PromptActionsCard user={user} />
-
-        {/* Prompt Templates Section
-        <PromptTemplatesCard /> */}
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <Suspense fallback={<div>Loading...</div>}>
-            <RecentPromptsTable prompts={prompts} />
-          </Suspense>
-
-          <Suspense fallback={<div>Loading...</div>}>
-            <CreditHistoryTable />
-          </Suspense>
+            </Link>
+          </Button>
+          <Button variant="outline" className="w-full md:w-auto border-white text-white hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-white" asChild>
+            <Link href="/prompts/history">
+              <History className="w-4 h-4 mr-2" />
+              View Prompt History
+            </Link>
+          </Button>
         </div>
+      </Card>
 
-        <Suspense fallback={<div>Loading...</div>}>
-          <UsageChart userId={hydratedUser.id} usageData={usageData || []} />
-        </Suspense>
-
-        {(hydratedUser.plan?.name === "FREE" || hydratedUser.credits < 10) && (
-          <Suspense fallback={<div>Loading...</div>}>
-            <UpgradeBanner />
-          </Suspense>
-        )}
+      {/* Data Tables */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        {/* Recent Prompts Table */}
+        <Card className="p-6">
+          <CardTitle className="mb-4">Recent Prompts</CardTitle>
+          <div className="overflow-x-auto">
+            <table className="min-w-full text-sm">
+              <thead>
+                <tr className="text-muted-foreground border-b">
+                  <th className="py-2 px-3 text-left">Input</th>
+                  <th className="py-2 px-3 text-left">Model</th>
+                  <th className="py-2 px-3 text-left">Credits</th>
+                  <th className="py-2 px-3 text-left">Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                {prompts.length === 0 ? (
+                  <tr>
+                    <td colSpan={4} className="py-6 text-center text-muted-foreground">No data found.</td>
+                  </tr>
+                ) : (
+                  prompts.map((prompt) => (
+                    <tr key={prompt.id} className="border-b last:border-0 hover:bg-accent/50 transition-colors">
+                      <td className="py-2 px-3 max-w-xs truncate">{prompt.input}</td>
+                      <td className="py-2 px-3">{prompt.model}</td>
+                      <td className="py-2 px-3">{prompt.creditsUsed}</td>
+                      <td className="py-2 px-3">{formatDate(prompt.createdAt)}</td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+          {/* Pagination (placeholder) */}
+          <div className="flex justify-between items-center mt-4 text-xs text-muted-foreground">
+            <span>Rows per page: 5</span>
+            <span>Page {promptPage} of 1</span>
+          </div>
+        </Card>
+        {/* Credit History Table */}
+        <Card className="p-6">
+          <CardTitle className="mb-4">Credit History</CardTitle>
+          <div className="overflow-x-auto">
+            <table className="min-w-full text-sm">
+              <thead>
+                <tr className="text-muted-foreground border-b">
+                  <th className="py-2 px-3 text-left">Type</th>
+                  <th className="py-2 px-3 text-left">Amount</th>
+                  <th className="py-2 px-3 text-left">Description</th>
+                  <th className="py-2 px-3 text-left">Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                {creditHistory.length === 0 ? (
+                  <tr>
+                    <td colSpan={4} className="py-6 text-center text-muted-foreground">No data found.</td>
+                  </tr>
+                ) : (
+                  creditHistory.map((entry) => (
+                    <tr key={entry.id} className="border-b last:border-0 hover:bg-accent/50 transition-colors">
+                      <td className="py-2 px-3">
+                        <Badge variant={entry.type === "ADD" ? "default" : "secondary"}>
+                          {entry.type}
+                        </Badge>
+                      </td>
+                      <td className="py-2 px-3">{entry.amount}</td>
+                      <td className="py-2 px-3 max-w-xs truncate">{entry.description}</td>
+                      <td className="py-2 px-3">{formatDate(entry.createdAt)}</td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+          {/* Pagination (placeholder) */}
+          <div className="flex justify-between items-center mt-4 text-xs text-muted-foreground">
+            <span>Rows per page: 5</span>
+            <span>Page {historyPage} of 1</span>
+          </div>
+        </Card>
       </div>
+
+      {/* Usage Statistics Chart */}
+      <Card className="p-6">
+        <CardTitle className="mb-4 flex items-center gap-2">
+          <BarChart2 className="w-5 h-5 text-primary" />
+          Usage Statistics
+        </CardTitle>
+        <div className="w-full h-64 flex items-center justify-center bg-muted rounded-lg">
+          {/* Placeholder for chart - replace with your chart component */}
+          <span className="text-muted-foreground">[Usage chart goes here]</span>
+        </div>
+      </Card>
     </div>
   );
 } 

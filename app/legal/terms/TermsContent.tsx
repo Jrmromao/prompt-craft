@@ -1,24 +1,15 @@
 'use client';
 
 import { useUser } from '@clerk/nextjs';
-import { NavBar } from "@/components/layout/NavBar";
 
 export default function TermsContent() {
-  const { user, isSignedIn } = useUser();
-  const navUser = isSignedIn
-    ? {
-        name: [user.firstName, user.lastName].filter(Boolean).join(' ') || user.username || 'User',
-        email: user.emailAddresses?.[0]?.emailAddress || '',
-        imageUrl: user.imageUrl,
-      }
-    : undefined;
+  const { user } = useUser();
 
   return (
-    <>
-      <NavBar user={navUser} />
-      <main className="min-h-[70vh] flex flex-col items-center justify-center px-4 py-16 bg-background text-foreground">
+    <div className="min-h-screen bg-white dark:bg-black text-gray-900 dark:text-white">
+      <main className="max-w-4xl mx-auto px-4 py-16">
+        <h1 className="text-4xl font-bold mb-8">Terms of Service</h1>
         <section className="w-full max-w-3xl bg-card border border-border rounded-2xl shadow-lg p-8">
-          <h1 className="text-4xl font-extrabold bg-gradient-to-r from-purple-600 to-pink-500 bg-clip-text text-transparent mb-6 text-center">Terms of Service</h1>
           <div className="prose prose-sm md:prose-base prose-headings:text-foreground prose-p:text-muted-foreground prose-li:text-foreground max-w-none">
             <p>Welcome to <strong>PromptCraft</strong>! Please read these Terms of Service ("Terms") carefully before using our platform. By accessing or using PromptCraft, you agree to these Terms.</p>
 
@@ -55,6 +46,6 @@ export default function TermsContent() {
           </div>
         </section>
       </main>
-    </>
+    </div>
   );
 } 

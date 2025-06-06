@@ -1,48 +1,66 @@
 'use client';
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 
-type Theme = 'light' | 'dark';
+type Theme = 'light' | 'dark' | 'system';
 interface ThemeContextProps {
   theme: Theme;
+  resolvedTheme: 'light' | 'dark';
+  setTheme: (theme: Theme) => void;
   toggleTheme: () => void;
 }
 
 const ThemeContext = createContext<ThemeContextProps | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setTheme] = useState<Theme>('light');
+  const [theme, setTheme] = useState<Theme>('system');
+  const [resolvedTheme, setResolvedTheme] = useState<'light' | 'dark'>('light');
   const [mounted, setMounted] = useState(false);
+
+  // Helper to get system theme
+  const getSystemTheme = useCallback(() => {
+    if (typeof window === 'undefined') return 'light';
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  }, []);
 
   // Set theme on mount
   useEffect(() => {
     const stored = typeof window !== 'undefined' ? localStorage.getItem('theme') : null;
-    let initial: Theme = 'light';
-    if (stored === 'light' || stored === 'dark') {
+    let initial: Theme = 'system';
+    if (stored === 'light' || stored === 'dark' || stored === 'system') {
       initial = stored;
-    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-      initial = 'dark';
     }
     setTheme(initial);
     setMounted(true);
   }, []);
 
-  // Update <html> class and localStorage when theme changes
+  // Listen for system theme changes if theme is 'system'
+  useEffect(() => {
+    if (!mounted) return;
+    if (theme === 'system') {
+      const updateSystemTheme = () => setResolvedTheme(getSystemTheme());
+      updateSystemTheme();
+      window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', updateSystemTheme);
+      return () => window.matchMedia('(prefers-color-scheme: dark)').removeEventListener('change', updateSystemTheme);
+    } else {
+      setResolvedTheme(theme);
+    }
+  }, [theme, mounted, getSystemTheme]);
+
+  // Update <html> class and localStorage when theme or resolvedTheme changes
   useEffect(() => {
     if (!mounted) return;
     localStorage.setItem('theme', theme);
-    if (theme === 'dark') {
+    if ((theme === 'system' ? resolvedTheme : theme) === 'dark') {
       document.documentElement.classList.add('dark');
     } else {
       document.documentElement.classList.remove('dark');
     }
-  }, [theme, mounted]);
+  }, [theme, resolvedTheme, mounted]);
 
-  const toggleTheme = () => setTheme((t) => (t === 'dark' ? 'light' : 'dark'));
-
-  if (!mounted) return null;
+  const toggleTheme = () => setTheme((t) => (t === 'dark' ? 'light' : t === 'light' ? 'dark' : getSystemTheme()));
 
   return (
-    <ThemeContext.Provider value={{ theme, toggleTheme }}>
+    <ThemeContext.Provider value={{ theme, resolvedTheme, setTheme, toggleTheme }}>
       {children}
     </ThemeContext.Provider>
   );

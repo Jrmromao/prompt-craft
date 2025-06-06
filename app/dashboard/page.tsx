@@ -1,13 +1,7 @@
-import { DashboardClient } from "@/components/dashboard/DashboardClient";
-import { validateAuthentication } from "@/lib/actions/authValidation.action";
+import DashboardClient from "@/components/dashboard/DashboardClient";
 import { redirect } from "next/navigation";
 import { DashboardService } from "@/lib/services/dashboardService";
-import { NavBar } from "@/components/layout/NavBar";
-import { auth, currentUser } from "@clerk/nextjs/server";
-import { useEffect, useState } from 'react';
-import { AdminPromptReview } from '@/components/dashboard/AdminPromptReview';
-import { Dialog, DialogTrigger, DialogContent, DialogTitle } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
+import { currentUser } from "@clerk/nextjs/server";
 import { AdminPromptReviewDialog } from '@/components/dashboard/AdminPromptReviewDialog';
 
 // Types for serializable props
@@ -62,7 +56,6 @@ interface SerializableCreditHistory {
 }
 
 export default async function DashboardPage() {
-  // const auth = await validateAuthentication();
   const clerkUser = await currentUser();
 
   if (!clerkUser) {
@@ -79,20 +72,11 @@ export default async function DashboardPage() {
       dashboardService.getUsageData(clerkUser.id),
     ]);
 
-    const navUser = clerkUser
-      ? {
-          name: [clerkUser.firstName, clerkUser.lastName].filter(Boolean).join(' ') || clerkUser.username || 'User',
-          email: clerkUser.emailAddresses?.[0]?.emailAddress || '',
-          imageUrl: clerkUser.imageUrl,
-        }
-      : { name: 'Guest', email: '' };
-
     // Only show the review button for admins
     const isAdmin = user.role === 'ADMIN';
 
     return (
       <>
-        <NavBar user={navUser} />
         <DashboardClient
           user={{
             name: user.name || "User",

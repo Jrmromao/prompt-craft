@@ -1,5 +1,4 @@
 import { currentUser } from '@clerk/nextjs/server';
-import { NavBar } from '@/components/layout/NavBar';
 import ClientPromptCreate from './ClientPromptCreate';
 
 export default async function CreatePromptPage() {
@@ -12,10 +11,5 @@ export default async function CreatePromptPage() {
       }
     : { name: 'Guest', email: '' };
 
-  return (
-    <>
-      <NavBar user={navUser} />
-      <ClientPromptCreate user={navUser} />
-    </>
-  );
+  return <ClientPromptCreate user={navUser} />;
 }
