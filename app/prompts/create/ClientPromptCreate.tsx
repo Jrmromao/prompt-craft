@@ -838,11 +838,11 @@ export default function ClientPromptCreate({ user }: { user: NavBarUser }) {
                         Test in Playground
                       </Button>
                     </DialogTrigger>
-                    <DialogContent className="max-w-2xl">
+                    <DialogContent className="max-w-4xl">
                       <DialogHeader>
                         <DialogTitle>Test Prompt in Playground</DialogTitle>
                       </DialogHeader>
-                      <Playground initialPrompt={formData.content} />
+                      <Playground initialPrompt={formData.content} showTitle={false} />
                     </DialogContent>
                   </Dialog>
                 </div>

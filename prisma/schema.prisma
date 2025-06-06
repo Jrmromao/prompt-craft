@@ -92,49 +92,46 @@ model Subscription {
 
 model Prompt {
   id          String   @id @default(cuid())
-  userId      String
   name        String
+  slug        String   @unique
   description String?
   content     String
   isPublic    Boolean  @default(false)
-  promptType  String   @default("text")
-  metadata    Json?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-  tags        Tag[]    @relation("PromptToTag")
-  isApproved  Boolean  @default(false)
-  upvotes     Int      @default(0)
-  slug        String   @unique
+  userId      String
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  likes       CommentLike[]
+  tags        Tag[]    @relation("PromptToTag")
+  upvotes     Int      @default(0)
+  copyCount   Int      @default(0)
+  viewCount   Int      @default(0)
+  usageCount  Int      @default(0)
+  versions    PromptVersion[]
   comments    Comment[]
+  playgroundRuns PlaygroundRun[]
+  likes       CommentLike[]
   votes       Vote[]
   analytics   PromptAnalytics?
   views       PromptView[]
   usages      PromptUsage[]
-  versions    PromptVersion[]
   branches    PromptBranch[]
-  copyCount   Int      @default(0)
   copies      PromptCopy[]
-
-  // Analytics fields
-  viewCount   Int      @default(0)
-  usageCount  Int      @default(0)
   lastViewedAt DateTime?
   lastUsedAt  DateTime?
 
   @@index([userId])
-  @@index([isPublic])
-  @@index([isApproved])
   @@index([slug])
 }
 
 model Tag {
   id        String   @id @default(cuid())
   name      String   @unique
-  prompts   Prompt[] @relation("PromptToTag")
+  slug      String   @unique
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  prompts   Prompt[] @relation("PromptToTag")
+
+  @@index([slug])
 }
 
 model CreditHistory {
@@ -370,13 +367,16 @@ model Attachment {
 model PlaygroundRun {
   id        String   @id @default(cuid())
   userId    String
-  prompt    String
-  result    String?
-  status    String   @default("SUCCESS")
+  promptId  String?
+  input     String
+  output    String?
+  error     String?
   createdAt DateTime @default(now())
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  prompt    Prompt?  @relation(fields: [promptId], references: [id], onDelete: SetNull)
 
   @@index([userId])
+  @@index([promptId])
   @@index([createdAt])
 }
 

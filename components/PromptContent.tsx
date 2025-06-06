@@ -142,11 +142,11 @@ export function PromptContent({ user, prompt }: PromptContentProps) {
                         Test in Playground
                       </Button>
                     </DialogTrigger>
-                    <DialogContent className="max-w-2xl">
+                    <DialogContent className="max-w-4xl">
                       <DialogHeader>
                         <DialogTitle>Test this Prompt in Playground</DialogTitle>
                       </DialogHeader>
-                      <Playground initialPrompt={prompt.content} />
+                      <Playground initialPrompt={prompt.content} showTitle={false} />
                     </DialogContent>
                   </Dialog>
                   <Button
