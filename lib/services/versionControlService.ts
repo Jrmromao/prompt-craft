@@ -5,6 +5,9 @@ interface Version {
   id: string;
   promptId: string;
   content: string;
+  description?: string | null;
+  metadata?: any;
+  tags?: string[];
   createdAt: Date;
   prompt: {
     user: {
@@ -29,16 +32,14 @@ export class VersionControlService {
   // Create a new version of a prompt
   public async createVersion(
     promptId: string,
-    content: string
+    content: string,
+    description: string | null,
+    metadata: any,
+    tags: string[]
   ) {
     const prompt = await prisma.prompt.findUnique({
       where: { id: promptId },
-      include: {
-        versions: {
-          orderBy: { createdAt: 'desc' },
-          take: 1,
-        },
-      },
+      include: { tags: true },
     });
 
     if (!prompt) {
@@ -50,6 +51,9 @@ export class VersionControlService {
       data: {
         promptId,
         content,
+        description,
+        metadata,
+        tags,
       },
     });
 
@@ -104,18 +108,36 @@ export class VersionControlService {
       throw new Error('One or both versions not found');
     }
 
-    // Compare content
-    const differences = diffWords(v1.content, v2.content);
-    const diff = differences.map(part => ({
-      value: part.value,
-      added: part.added || false,
-      removed: part.removed || false,
-    }));
+    // Content diff
+    const contentDiff = diffWords(v1.content, v2.content);
+    // Description diff
+    const descriptionDiff = diffWords(v1.description || '', v2.description || '');
+    // Tags diff
+    const oldTags = new Set(v1.tags || []);
+    const newTags = new Set(v2.tags || []);
+    const addedTags = [...newTags].filter(tag => !oldTags.has(tag));
+    const removedTags = [...oldTags].filter(tag => !newTags.has(tag));
+    // Metadata diff
+    const metadataDiff = [];
+    const allKeys = new Set([
+      ...Object.keys(v1.metadata || {}),
+      ...Object.keys(v2.metadata || {}),
+    ]);
+    for (const key of allKeys) {
+      const oldVal = v1.metadata?.[key];
+      const newVal = v2.metadata?.[key];
+      if (JSON.stringify(oldVal) !== JSON.stringify(newVal)) {
+        metadataDiff.push({ key, oldVal, newVal });
+      }
+    }
 
     return {
       version1: v1,
       version2: v2,
-      diff,
+      contentDiff,
+      descriptionDiff,
+      tagsDiff: { added: addedTags, removed: removedTags },
+      metadataDiff,
     };
   }
 
@@ -165,7 +187,13 @@ export class VersionControlService {
     }
 
     // Create a new version with the old content
-    return this.createVersion(promptId, targetVersion.content);
+    return this.createVersion(
+      promptId,
+      targetVersion.content,
+      typeof targetVersion.description === 'undefined' ? null : targetVersion.description,
+      targetVersion.metadata ?? null,
+      targetVersion.tags ?? []
+    );
   }
 
   // Private helper to detect changes between versions

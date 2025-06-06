@@ -32,7 +32,10 @@ export async function POST(
     const versionControlService = VersionControlService.getInstance();
     const version = await versionControlService.createVersion(
       id,
-      validatedData.content
+      validatedData.content,
+      validatedData.description ?? null,
+      null,
+      []
     );
 
     return NextResponse.json(version);

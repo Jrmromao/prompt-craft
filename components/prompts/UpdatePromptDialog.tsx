@@ -128,7 +128,7 @@ const TYPE_OPTIONS = [
 ] as const;
 
 const MedicalDisclaimer = () => (
-  <div className="mb-4 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+  <div className="mt-4 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
     <div className="flex items-start gap-2">
       <Info className="w-5 h-5 text-yellow-600 dark:text-yellow-400 mt-0.5" />
       <div className="space-y-2">
@@ -296,7 +296,7 @@ export function UpdatePromptDialog({
                       variant={selectedTags.includes(tag) ? "default" : "outline"}
                       className={`cursor-pointer transition-colors ${
                         selectedTags.includes(tag)
-                          ? "bg-purple-500 hover:bg-purple-600 text-white"
+                          ? "bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white"
                           : "hover:bg-purple-50 dark:hover:bg-purple-900/20 hover:text-purple-600 dark:hover:text-purple-400"
                       }`}
                       onClick={() => toggleTag(tag)}
@@ -475,7 +475,7 @@ export function UpdatePromptDialog({
             <Button 
               type="submit" 
               disabled={isLoading}
-              className="bg-purple-500 hover:bg-purple-600 text-white px-8 py-2.5 text-base"
+              className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-8 py-2.5 text-base"
               onClick={handleSubmit}
             >
               {isLoading ? 'Creating...' : 'Create Version'}
@@ -487,7 +487,7 @@ export function UpdatePromptDialog({
   );
 }
 
-// Add these styles to your global CSS or create a new style block
+// Add these styles to your global CSS or create a new style block                
 const styles = `
   @keyframes fade-in {
     from {
