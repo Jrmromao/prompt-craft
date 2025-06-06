@@ -91,16 +91,28 @@ export function VersionHistory({ id, onVersionSelect }: VersionHistoryProps) {
 
   const handleCompare = async (version1: string, version2: string) => {
     try {
-      const response = await fetch(`/api/prompts/${id}/versions/${version1}`, {
+      // Find the version objects to get their IDs
+      const v1 = versions.find(v => v.version === version1);
+      const v2 = versions.find(v => v.version === version2);
+
+      if (!v1 || !v2) {
+        toast.error('Could not find versions to compare');
+        return;
+      }
+
+      const response = await fetch(`/api/prompts/${id}/versions/${v1.id}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ compareWith: version2 }),
+        body: JSON.stringify({ compareWith: v2.id }),
       });
 
       if (response.ok) {
         const comparison = await response.json();
         setComparison(comparison);
         setIsComparisonOpen(true);
+      } else {
+        const error = await response.json();
+        toast.error(error.error || 'Failed to compare versions');
       }
     } catch (error) {
       console.error('Error comparing versions:', error);
@@ -166,7 +178,7 @@ export function VersionHistory({ id, onVersionSelect }: VersionHistoryProps) {
       </div>
 
       <div className="space-y-4">
-        {versions.map((version) => (
+        {versions.map((version, index) => (
           <Card
             key={version.id}
             className={`cursor-pointer transition-colors ${
@@ -195,19 +207,33 @@ export function VersionHistory({ id, onVersionSelect }: VersionHistoryProps) {
                 )}
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <GitCommit className="h-4 w-4" />
-                  <span>By {version.user.name || 'Anonymous'}</span>
+                  <span>By {version.user?.name || 'Anonymous'}</span>
                 </div>
                 <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleCompare(version.version, versions[0].version);
-                    }}
-                  >
-                    Compare with Latest
-                  </Button>
+                  {index < versions.length - 1 && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleCompare(version.version, versions[index + 1].version);
+                      }}
+                    >
+                      Compare with Previous
+                    </Button>
+                  )}
+                  {index > 0 && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleCompare(version.version, versions[0].version);
+                      }}
+                    >
+                      Compare with Latest
+                    </Button>
+                  )}
                   {selectedVersion === version.version && (
                     <Button
                       variant="outline"

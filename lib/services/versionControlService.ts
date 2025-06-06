@@ -1,6 +1,19 @@
 import { prisma } from '@/lib/prisma';
 import { diffWords } from 'diff';
 
+interface Version {
+  id: string;
+  promptId: string;
+  content: string;
+  createdAt: Date;
+  prompt: {
+    user: {
+      name: string | null;
+      imageUrl: string | null;
+    } | null;
+  };
+}
+
 export class VersionControlService {
   private static instance: VersionControlService;
 
@@ -48,31 +61,99 @@ export class VersionControlService {
     return prisma.promptVersion.findMany({
       where: { promptId },
       orderBy: { createdAt: 'desc' },
+      include: {
+        prompt: {
+          select: {
+            user: {
+              select: {
+                name: true,
+                imageUrl: true,
+              },
+            },
+          },
+        },
+      },
     });
   }
 
   // Get a specific version by ID
-  public async getVersion(versionId: string) {
+  public async getVersion(versionId: string): Promise<Version | null> {
     return prisma.promptVersion.findUnique({
       where: { id: versionId },
+      include: {
+        prompt: {
+          select: {
+            user: {
+              select: {
+                name: true,
+                imageUrl: true,
+              },
+            },
+          },
+        },
+      },
     });
   }
 
   // Compare two versions
-  public async compareVersions(version1Id: string, version2Id: string) {
-    const [v1, v2] = await Promise.all([
-      this.getVersion(version1Id),
-      this.getVersion(version2Id),
-    ]);
+  public async compareVersions(version1: string, version2: string) {
+    const v1 = await this.getVersion(version1);
+    const v2 = await this.getVersion(version2);
 
     if (!v1 || !v2) {
       throw new Error('One or both versions not found');
     }
 
+    // Compare content
+    const differences = diffWords(v1.content, v2.content);
+    const diff = differences.map(part => ({
+      value: part.value,
+      added: part.added || false,
+      removed: part.removed || false,
+    }));
+
     return {
       version1: v1,
       version2: v2,
-      diff: this.detectChanges(v1.content, v2.content),
+      diff,
+    };
+  }
+
+  // Compare metadata between versions
+  private compareMetadata(metadata1: any, metadata2: any) {
+    const changes: { field: string; oldValue: any; newValue: any }[] = [];
+    
+    // Compare each metadata field
+    const allFields = new Set([...Object.keys(metadata1 || {}), ...Object.keys(metadata2 || {})]);
+    
+    allFields.forEach(field => {
+      const oldValue = metadata1?.[field];
+      const newValue = metadata2?.[field];
+      
+      if (JSON.stringify(oldValue) !== JSON.stringify(newValue)) {
+        changes.push({
+          field,
+          oldValue,
+          newValue
+        });
+      }
+    });
+
+    return changes;
+  }
+
+  // Compare tags between versions
+  private compareTags(tags1: { name: string }[], tags2: { name: string }[]) {
+    const oldTags = new Set(tags1.map(t => t.name));
+    const newTags = new Set(tags2.map(t => t.name));
+    
+    const added = [...newTags].filter(tag => !oldTags.has(tag));
+    const removed = [...oldTags].filter(tag => !newTags.has(tag));
+    
+    return {
+      added,
+      removed,
+      unchanged: [...oldTags].filter(tag => newTags.has(tag))
     };
   }
 
