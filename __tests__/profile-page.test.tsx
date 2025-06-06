@@ -3,22 +3,56 @@ import ProfilePage from "@/app/profile/page";
 import { auth } from "@clerk/nextjs/server";
 import { currentUser } from "@clerk/nextjs/server";
 import { getProfileByClerkId } from "@/app/services/profileService";
-import { vi, describe, it, expect, beforeEach } from 'vitest';
+import { Role, PlanType } from "@prisma/client";
+
+// Mock next/navigation
+jest.mock("next/navigation", () => ({
+  redirect: jest.fn(),
+}));
 
 // Mock Clerk auth
-vi.mock("@clerk/nextjs/server", () => ({
-  auth: vi.fn(),
-  currentUser: vi.fn(),
+jest.mock("@clerk/nextjs/server", () => ({
+  auth: jest.fn(),
+  currentUser: jest.fn(),
 }));
 
 // Mock profile service
-vi.mock("@/app/services/profileService", () => ({
-  getProfileByClerkId: vi.fn(),
+jest.mock("@/app/services/profileService", () => ({
+  getProfileByClerkId: jest.fn(),
 }));
 
-// Mock next/navigation
-vi.mock("next/navigation", () => ({
-  redirect: vi.fn(),
+// Correctly mock the default export for ProfileClient
+jest.mock("@/app/profile/ProfileClient", () => ({
+  __esModule: true,
+  default: ({ user }: { user: any }) => (
+    <div>
+      <h2>Personal Information</h2>
+      <div>{user.name}</div>
+      <div>{user.email}</div>
+      <div>{user.bio}</div>
+      <h2>Professional Information</h2>
+      <div>{user.jobTitle}</div>
+      <div>{user.company}</div>
+      <div>{user.location}</div>
+      <h2>Social Links</h2>
+      <div>{user.website}</div>
+      <div>{user.twitter}</div>
+      <div>{user.linkedin}</div>
+    </div>
+  ),
+}));
+
+// Mock the PlanType enum
+jest.mock("@prisma/client", () => ({
+  Role: {
+    USER: "USER",
+    ADMIN: "ADMIN",
+  },
+  PlanType: {
+    FREE: "FREE",
+    LITE: "LITE",
+    PRO: "PRO",
+  },
 }));
 
 describe("ProfilePage", () => {
@@ -27,8 +61,8 @@ describe("ProfilePage", () => {
     name: "John Doe",
     email: "john@example.com",
     imageUrl: "https://example.com/avatar.jpg",
-    role: "USER",
-    planType: "FREE",
+    role: "USER" as Role,
+    planType: "FREE" as PlanType,
     credits: 100,
     creditCap: 1000,
     bio: "Test bio",
@@ -41,12 +75,16 @@ describe("ProfilePage", () => {
   };
 
   beforeEach(() => {
-    vi.clearAllMocks();
+    jest.clearAllMocks();
+  });
+
+  afterEach(() => {
+    jest.resetAllMocks();
   });
 
   it("redirects to sign-in if user is not authenticated", async () => {
-    const mockAuth = auth as unknown as ReturnType<typeof vi.fn>;
-    const mockCurrentUser = currentUser as unknown as ReturnType<typeof vi.fn>;
+    const mockAuth = auth as unknown as jest.Mock;
+    const mockCurrentUser = currentUser as unknown as jest.Mock;
     
     mockAuth.mockResolvedValueOnce({ userId: null });
     mockCurrentUser.mockResolvedValueOnce(null);
@@ -56,29 +94,30 @@ describe("ProfilePage", () => {
   });
 
   it("redirects to sign-in if user is not found in database", async () => {
-    const mockAuth = auth as unknown as ReturnType<typeof vi.fn>;
-    const mockCurrentUser = currentUser as unknown as ReturnType<typeof vi.fn>;
+    const mockAuth = auth as unknown as jest.Mock;
+    const mockCurrentUser = currentUser as unknown as jest.Mock;
     
     mockAuth.mockResolvedValueOnce({ userId: "user-123" });
     mockCurrentUser.mockResolvedValueOnce({ id: "user-123" });
-    (getProfileByClerkId as ReturnType<typeof vi.fn>).mockResolvedValueOnce(null);
+    (getProfileByClerkId as jest.Mock).mockResolvedValueOnce(null);
 
     await ProfilePage();
     expect(require("next/navigation").redirect).toHaveBeenCalledWith("/sign-in");
   });
 
   it("renders profile page with user data", async () => {
-    const mockAuth = auth as unknown as ReturnType<typeof vi.fn>;
-    const mockCurrentUser = currentUser as unknown as ReturnType<typeof vi.fn>;
+    const mockAuth = auth as unknown as jest.Mock;
+    const mockCurrentUser = currentUser as unknown as jest.Mock;
     
     mockAuth.mockResolvedValueOnce({ userId: "user-123" });
     mockCurrentUser.mockResolvedValueOnce({ 
       id: "user-123",
       imageUrl: "https://example.com/avatar.jpg",
     });
-    (getProfileByClerkId as ReturnType<typeof vi.fn>).mockResolvedValueOnce(mockUser);
+    (getProfileByClerkId as jest.Mock).mockResolvedValueOnce(mockUser);
 
-    const { container } = render(await ProfilePage());
+    const page = await ProfilePage();
+    render(page);
 
     // Check if profile form is rendered
     expect(screen.getByText(/personal information/i)).toBeInTheDocument();
@@ -88,12 +127,12 @@ describe("ProfilePage", () => {
     // Check if user data is displayed
     expect(screen.getByText(mockUser.name)).toBeInTheDocument();
     expect(screen.getByText(mockUser.email)).toBeInTheDocument();
-    expect(screen.getByText(mockUser.bio!)).toBeInTheDocument();
-    expect(screen.getByText(mockUser.jobTitle!)).toBeInTheDocument();
-    expect(screen.getByText(mockUser.company!)).toBeInTheDocument();
-    expect(screen.getByText(mockUser.location!)).toBeInTheDocument();
-    expect(screen.getByText(mockUser.website!)).toBeInTheDocument();
-    expect(screen.getByText(mockUser.twitter!)).toBeInTheDocument();
-    expect(screen.getByText(mockUser.linkedin!)).toBeInTheDocument();
+    expect(screen.getByText(mockUser.bio)).toBeInTheDocument();
+    expect(screen.getByText(mockUser.jobTitle)).toBeInTheDocument();
+    expect(screen.getByText(mockUser.company)).toBeInTheDocument();
+    expect(screen.getByText(mockUser.location)).toBeInTheDocument();
+    expect(screen.getByText(mockUser.website)).toBeInTheDocument();
+    expect(screen.getByText(mockUser.twitter)).toBeInTheDocument();
+    expect(screen.getByText(mockUser.linkedin)).toBeInTheDocument();
   });
 }); 

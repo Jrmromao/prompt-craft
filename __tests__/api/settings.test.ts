@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { clerkClient } from '@clerk/nextjs/server';
+import { DELETE } from '@/app/api/settings/sessions/route';
 
 // Mock the auth and clerkClient
 vi.mock('@clerk/nextjs/server', () => ({

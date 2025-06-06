@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor, act } from "@testing-library/react";
 import { ProfileForm } from "@/app/profile/profile-form";
 import { Role, PlanType } from "@prisma/client";
 import { useRouter } from "next/navigation";
@@ -48,6 +48,10 @@ describe("ProfileForm", () => {
     jest.clearAllMocks();
   });
 
+  afterEach(() => {
+    jest.resetAllMocks();
+  });
+
   it("renders all form fields correctly", () => {
     render(<ProfileForm user={mockUser} />);
 
@@ -84,17 +88,21 @@ describe("ProfileForm", () => {
   });
 
   it("shows loading state during form submission", async () => {
-    (global.fetch as jest.Mock).mockImplementationOnce(() => 
+    const mockFetch = global.fetch as jest.Mock;
+    mockFetch.mockImplementationOnce(() => 
       new Promise((resolve) => setTimeout(() => resolve({ ok: true }), 100))
     );
 
     render(<ProfileForm user={mockUser} />);
     
     const submitButton = screen.getByRole("button", { name: /save changes/i });
-    fireEvent.click(submitButton);
+    
+    await act(async () => {
+      fireEvent.click(submitButton);
+    });
 
     // Check if button shows loading state
-    expect(screen.getByText(/saving/i)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /saving/i })).toBeInTheDocument();
     expect(submitButton).toBeDisabled();
 
     // Wait for submission to complete
@@ -109,7 +117,10 @@ describe("ProfileForm", () => {
     render(<ProfileForm user={mockUser} />);
     
     const submitButton = screen.getByRole("button", { name: /save changes/i });
-    fireEvent.click(submitButton);
+    
+    await act(async () => {
+      fireEvent.click(submitButton);
+    });
 
     await waitFor(() => {
       expect(global.fetch).toHaveBeenCalledWith("/api/profile", {
@@ -138,7 +149,10 @@ describe("ProfileForm", () => {
     render(<ProfileForm user={mockUser} />);
     
     const submitButton = screen.getByRole("button", { name: /save changes/i });
-    fireEvent.click(submitButton);
+    
+    await act(async () => {
+      fireEvent.click(submitButton);
+    });
 
     await waitFor(() => {
       expect(toast.error).toHaveBeenCalledWith("Failed to update profile. Please try again.");
@@ -150,10 +164,16 @@ describe("ProfileForm", () => {
     
     // Clear required fields
     const nameInput = screen.getByLabelText(/name/i);
-    fireEvent.change(nameInput, { target: { value: '' } });
+    
+    await act(async () => {
+      fireEvent.change(nameInput, { target: { value: '' } });
+    });
     
     const submitButton = screen.getByRole("button", { name: /save changes/i });
-    fireEvent.click(submitButton);
+    
+    await act(async () => {
+      fireEvent.click(submitButton);
+    });
 
     // Check for validation error
     await waitFor(() => {

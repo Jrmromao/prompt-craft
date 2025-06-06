@@ -67,6 +67,9 @@ model Plan {
   description     String
   stripeProductId String         @unique
   subscriptions   Subscription[]
+
+  @@index([isActive])
+  @@index([period])
 }
 
 model Subscription {
@@ -88,6 +91,9 @@ model Subscription {
   @@index([planId])
   @@index([stripeCustomerId])
   @@index([stripeSubscriptionId])
+  @@index([status])
+  @@index([currentPeriodEnd])
+  @@index([createdAt])
 }
 
 model Prompt {
@@ -378,6 +384,21 @@ model PlaygroundRun {
   @@index([userId])
   @@index([promptId])
   @@index([createdAt])
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  action    String
+  resource  String
+  status    String
+  details   Json
+  ipAddress String?
+  timestamp DateTime @default(now())
+
+  @@index([userId])
+  @@index([action])
+  @@index([timestamp])
 }
 
 enum Role {

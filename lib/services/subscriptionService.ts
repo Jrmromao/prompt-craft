@@ -1,7 +1,8 @@
 import { prisma } from '@/lib/prisma';
 import { Role } from '@/utils/constants';
-import { SubscriptionStatus, PlanType, Period } from '@prisma/client';
+import { SubscriptionStatus, PlanType, Period, Subscription, Plan } from '@prisma/client';
 import { addDays, addMonths, isAfter } from 'date-fns';
+import { DatabaseService } from '@/lib/services/database/databaseService';
 
 interface SubscriptionDetails {
   status: SubscriptionStatus;
@@ -11,19 +12,17 @@ interface SubscriptionDetails {
   autoRenew: boolean;
 }
 
+interface SubscriptionWithPlan extends Subscription {
+  plan: Plan;
+}
+
 export class SubscriptionService {
   private static instance: SubscriptionService;
-  private readonly PRICING = {
-    [PlanType.LITE]: {
-      weekly: 3,
-      monthly: 12,
-    },
-    [PlanType.PRO]: {
-      monthly: 12,
-    },
-  };
+  private databaseService: DatabaseService;
 
-  private constructor() {}
+  private constructor() {
+    this.databaseService = DatabaseService.getInstance();
+  }
 
   public static getInstance(): SubscriptionService {
     if (!SubscriptionService.instance) {
@@ -33,18 +32,9 @@ export class SubscriptionService {
   }
 
   public async getSubscriptionDetails(userId: string): Promise<SubscriptionDetails> {
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      select: {
-        subscription: {
-          include: {
-            plan: true,
-          },
-        },
-      },
-    });
+    const subscription = await this.databaseService.getSubscriptionWithCache(userId) as SubscriptionWithPlan | null;
 
-    if (!user?.subscription || !user.subscription.plan) {
+    if (!subscription || !subscription.plan) {
       return {
         status: SubscriptionStatus.INCOMPLETE,
         planName: 'FREE',
@@ -54,13 +44,12 @@ export class SubscriptionService {
       };
     }
 
-    const sub = user.subscription;
     return {
-      status: sub.status,
-      planName: sub.plan.name,
-      period: sub.plan.period,
-      periodEnd: sub.currentPeriodEnd,
-      autoRenew: !sub.cancelAtPeriodEnd,
+      status: subscription.status,
+      planName: subscription.plan.name,
+      period: subscription.plan.period,
+      periodEnd: subscription.currentPeriodEnd,
+      autoRenew: !subscription.cancelAtPeriodEnd,
     };
   }
 
@@ -69,34 +58,24 @@ export class SubscriptionService {
     planId: string,
     autoRenew: boolean = true
   ): Promise<SubscriptionDetails> {
-    const plan = await prisma.plan.findUnique({ where: { id: planId } });
+    const plan = await this.databaseService.getPlanWithCache(planId) as Plan | null;
     if (!plan) throw new Error('Plan not found');
+
     const now = new Date();
     const periodEnd = plan.period === Period.WEEKLY
       ? addDays(now, 7)
       : addMonths(now, 1);
 
-    const subscription = await prisma.subscription.create({
-      data: {
-        userId,
-        planId,
-        status: SubscriptionStatus.ACTIVE,
-        currentPeriodStart: now,
-        currentPeriodEnd: periodEnd,
-        cancelAtPeriodEnd: !autoRenew,
-        stripeCustomerId: '', // set as needed
-        stripeSubscriptionId: '', // set as needed
-      },
-      include: { plan: true },
-    });
-
-    // Update user role based on plan
-    // await prisma.user.update({
-    //   where: { id: userId },
-    //   data: {
-    //     role: subscription.plan.name === 'PRO' ? Role.ADMIN : Role.USER,
-    //   },
-    // });
+    const subscription = await this.databaseService.createSubscription({
+      user: { connect: { id: userId } },
+      plan: { connect: { id: planId } },
+      status: SubscriptionStatus.ACTIVE,
+      currentPeriodStart: now,
+      currentPeriodEnd: periodEnd,
+      cancelAtPeriodEnd: !autoRenew,
+      stripeCustomerId: '', // set as needed
+      stripeSubscriptionId: '', // set as needed
+    }) as SubscriptionWithPlan;
 
     return {
       status: subscription.status,
@@ -108,14 +87,13 @@ export class SubscriptionService {
   }
 
   public async cancelSubscription(userId: string): Promise<SubscriptionDetails> {
-    const subscription = await prisma.subscription.update({
-      where: { userId },
-      data: {
+    const subscription = await this.databaseService.updateSubscription(
+      userId,
+      {
         status: SubscriptionStatus.CANCELED,
         cancelAtPeriodEnd: true,
-      },
-      include: { plan: true },
-    });
+      }
+    ) as SubscriptionWithPlan;
 
     // Update user role to FREE after cancellation
     await prisma.user.update({
@@ -138,15 +116,14 @@ export class SubscriptionService {
     userId: string,
     updates: Partial<{ planId: string; status: SubscriptionStatus; currentPeriodEnd: Date; cancelAtPeriodEnd: boolean; }>
   ): Promise<SubscriptionDetails> {
-    const subscription = await prisma.subscription.update({
-      where: { userId },
-      data: updates,
-      include: { plan: true },
-    });
+    const subscription = await this.databaseService.updateSubscription(
+      userId,
+      updates
+    ) as SubscriptionWithPlan;
 
     // Update user role if plan changes
     if (updates.planId) {
-      const plan = await prisma.plan.findUnique({ where: { id: updates.planId } });
+      const plan = await this.databaseService.getPlanWithCache(updates.planId) as Plan | null;
       if (plan) {
         await prisma.user.update({
           where: { id: userId },
@@ -227,14 +204,17 @@ export class SubscriptionService {
     };
   }
 
-  public getPricing(planName: PlanType, period: Period): number {
-    // Find the plan by name and period
-    if (planName === PlanType.LITE) {
-      return period === Period.WEEKLY ? this.PRICING[PlanType.LITE].weekly : this.PRICING[PlanType.LITE].monthly;
+  public async getPricing(planName: PlanType, period: Period): Promise<number> {
+    const plan = await this.databaseService.getPlanWithCache(planName) as Plan | null;
+    if (!plan) {
+      throw new Error(`Plan ${planName} not found`);
     }
-    if (planName === PlanType.PRO) {
-      return this.PRICING[PlanType.PRO].monthly;
+
+    // Only return price if the plan's period matches the requested period
+    if (plan.period === period) {
+      return plan.price;
     }
-    return 0;
+
+    throw new Error(`Plan ${planName} is not available for ${period} period`);
   }
 } 

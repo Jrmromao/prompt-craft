@@ -1,41 +1,66 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { Redis } from '@upstash/redis';
 
-// Simple in-memory store for rate limiting
-const rateLimitStore = new Map<string, { count: number; resetTime: number }>();
+// Initialize Redis client for distributed rate limiting
+const redis = new Redis({
+  url: process.env.UPSTASH_REDIS_REST_URL || '',
+  token: process.env.UPSTASH_REDIS_REST_TOKEN || '',
+});
 
 // Rate limit configuration
-const RATE_LIMIT_WINDOW = 10 * 1000; // 10 seconds in milliseconds
-const MAX_REQUESTS = 10; // Maximum requests per window
+const RATE_LIMIT_WINDOW = 60 * 1000; // 1 minute in milliseconds
+const MAX_REQUESTS = 100; // Maximum requests per window
+const MAX_REQUEST_SIZE = 1024 * 1024; // 1MB in bytes
 
-export function rateLimitMiddleware(request: NextRequest) {
-  // Get IP from headers or use a fallback
-  const forwardedFor = request.headers.get('x-forwarded-for');
-  const ip = forwardedFor ? forwardedFor.split(',')[0] : 'anonymous';
-  const now = Date.now();
-  
-  // Get or initialize rate limit data for this IP
-  const rateLimitData = rateLimitStore.get(ip) ?? { count: 0, resetTime: now + RATE_LIMIT_WINDOW };
-  
-  // Reset if window has passed
-  if (now > rateLimitData.resetTime) {
-    rateLimitData.count = 0;
-    rateLimitData.resetTime = now + RATE_LIMIT_WINDOW;
-  }
-  
-  // Increment request count
-  rateLimitData.count++;
-  rateLimitStore.set(ip, rateLimitData);
-  
-  // Check if rate limit exceeded
-  if (rateLimitData.count > MAX_REQUESTS) {
-    return new NextResponse('Too Many Requests', {
-      status: 429,
+export async function rateLimitMiddleware(request: NextRequest) {
+  // Check request size
+  const contentLength = parseInt(request.headers.get('content-length') || '0');
+  if (contentLength > MAX_REQUEST_SIZE) {
+    return new NextResponse('Request Entity Too Large', {
+      status: 413,
       headers: {
-        'Retry-After': Math.ceil((rateLimitData.resetTime - now) / 1000).toString(),
+        'Content-Type': 'application/json',
       },
     });
   }
+
+  // Get IP from headers or use a fallback
+  const forwardedFor = request.headers.get('x-forwarded-for');
+  const ip = forwardedFor ? forwardedFor.split(',')[0] : 'anonymous';
   
-  return null;
+  // Use Redis for distributed rate limiting
+  const key = `rate-limit:${ip}`;
+  const now = Date.now();
+  
+  try {
+    // Get current count from Redis
+    const count = await redis.incr(key);
+    
+    // Set expiry if this is the first request
+    if (count === 1) {
+      await redis.expire(key, Math.ceil(RATE_LIMIT_WINDOW / 1000));
+    }
+    
+    // Check if rate limit exceeded
+    if (count > MAX_REQUESTS) {
+      const ttl = await redis.ttl(key);
+      return new NextResponse(JSON.stringify({
+        error: 'Too Many Requests',
+        message: 'Rate limit exceeded. Please try again later.',
+      }), {
+        status: 429,
+        headers: {
+          'Content-Type': 'application/json',
+          'Retry-After': ttl.toString(),
+        },
+      });
+    }
+    
+    return null;
+  } catch (error) {
+    console.error('Rate limiting error:', error);
+    // Fail open in case of Redis errors
+    return null;
+  }
 } 

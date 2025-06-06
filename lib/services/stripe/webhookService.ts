@@ -2,6 +2,7 @@ import { stripe } from '@/lib/stripe';
 import { prisma } from '@/lib/prisma';
 import { StripeWebhookError, handleStripeError } from './errors';
 import { SubscriptionStatus } from '@prisma/client';
+import { DatabaseService } from '@/lib/services/database/databaseService';
 
 interface WebhookEvent {
   id: string;
@@ -14,8 +15,11 @@ export class WebhookService {
   private static instance: WebhookService;
   private readonly maxRetries = 3;
   private readonly retryDelay = 1000; // 1 second
+  private databaseService: DatabaseService;
 
-  private constructor() {}
+  private constructor() {
+    this.databaseService = DatabaseService.getInstance();
+  }
 
   public static getInstance(): WebhookService {
     if (!WebhookService.instance) {
@@ -24,112 +28,84 @@ export class WebhookService {
     return WebhookService.instance;
   }
 
-  async constructEvent(payload: string, signature: string, secret: string): Promise<WebhookEvent> {
+  public async constructEvent(
+    payload: string,
+    signature: string,
+    secret: string
+  ): Promise<WebhookEvent> {
     try {
-      return await stripe.webhooks.constructEvent(payload, signature, secret);
-    } catch (error) {
-      if (error instanceof Error) {
-        throw new StripeWebhookError(`Webhook signature verification failed: ${error.message}`);
-      }
-      throw new StripeWebhookError('Webhook signature verification failed: Unknown error');
+      return stripe.webhooks.constructEvent(payload, signature, secret);
+    } catch (error: any) {
+      throw new StripeWebhookError(`Webhook signature verification failed: ${error.message}`);
     }
   }
 
-  async handleEvent(event: WebhookEvent): Promise<void> {
-    let retries = 0;
-    let lastError: Error | null = null;
+  public async handleEvent(event: WebhookEvent): Promise<void> {
+    const handler = this.getEventHandler(event.type);
+    if (!handler) {
+      console.warn(`Unhandled event type: ${event.type}`);
+      return;
+    }
 
+    let retries = 0;
     while (retries < this.maxRetries) {
       try {
-        await this.processEvent(event);
+        await handler(event.data.object);
         return;
       } catch (error) {
-        lastError = error instanceof Error ? error : new Error('Unknown error occurred');
         retries++;
-        if (retries < this.maxRetries) {
-          await this.delay(this.retryDelay * retries);
+        if (retries === this.maxRetries) {
+          throw error;
         }
+        await new Promise(resolve => setTimeout(resolve, this.retryDelay * retries));
       }
     }
-
-    // Log failed event after all retries
-    await this.logFailedEvent(event, lastError);
-    throw lastError;
   }
 
-  private async processEvent(event: WebhookEvent): Promise<void> {
-    switch (event.type) {
-      case 'checkout.session.completed':
-        await this.handleCheckoutSessionCompleted(event.data.object);
-        break;
-      case 'customer.subscription.updated':
-        await this.handleSubscriptionUpdated(event.data.object);
-        break;
-      case 'customer.subscription.deleted':
-        await this.handleSubscriptionDeleted(event.data.object);
-        break;
-      default:
-        console.log(`Unhandled event type: ${event.type}`);
-    }
+  private getEventHandler(type: string): ((data: any) => Promise<void>) | null {
+    const handlers: Record<string, (data: any) => Promise<void>> = {
+      'checkout.session.completed': this.handleCheckoutSessionCompleted.bind(this),
+      'customer.subscription.updated': this.handleSubscriptionUpdated.bind(this),
+      'customer.subscription.deleted': this.handleSubscriptionDeleted.bind(this),
+    };
+    return handlers[type] || null;
   }
 
   private async handleCheckoutSessionCompleted(session: any): Promise<void> {
     const subscription = await stripe.subscriptions.retrieve(session.subscription as string);
     
-    await prisma.subscription.create({
-      data: {
-        userId: session.metadata?.userId!,
-        planId: session.metadata?.planId!,
-        stripeSubscriptionId: subscription.id,
-        stripeCustomerId: session.customer as string,
-        status: subscription.status.toUpperCase() as SubscriptionStatus,
-        currentPeriodStart: new Date(subscription.current_period_start * 1000),
-        currentPeriodEnd: new Date(subscription.current_period_end * 1000),
-        cancelAtPeriodEnd: subscription.cancel_at_period_end,
-      },
+    await this.databaseService.createSubscription({
+      user: { connect: { id: session.metadata?.userId } },
+      plan: { connect: { id: session.metadata?.planId } },
+      stripeSubscriptionId: subscription.id,
+      stripeCustomerId: session.customer as string,
+      status: subscription.status.toUpperCase() as SubscriptionStatus,
+      currentPeriodStart: new Date(subscription.current_period_start * 1000),
+      currentPeriodEnd: new Date(subscription.current_period_end * 1000),
+      cancelAtPeriodEnd: subscription.cancel_at_period_end,
     });
   }
 
   private async handleSubscriptionUpdated(subscription: any): Promise<void> {
-    await prisma.subscription.update({
-      where: {
-        stripeSubscriptionId: subscription.id,
-      },
-      data: {
+    await this.databaseService.updateSubscription(
+      subscription.id,
+      {
         status: subscription.status.toUpperCase() as SubscriptionStatus,
         currentPeriodStart: new Date(subscription.current_period_start * 1000),
         currentPeriodEnd: new Date(subscription.current_period_end * 1000),
         cancelAtPeriodEnd: subscription.cancel_at_period_end,
-      },
-    });
+      }
+    );
   }
 
   private async handleSubscriptionDeleted(subscription: any): Promise<void> {
-    await prisma.subscription.update({
-      where: {
-        stripeSubscriptionId: subscription.id,
-      },
-      data: {
+    await this.databaseService.updateSubscription(
+      subscription.id,
+      {
         status: 'CANCELED' as SubscriptionStatus,
         currentPeriodEnd: new Date(subscription.current_period_end * 1000),
         cancelAtPeriodEnd: true,
-      },
-    });
-  }
-
-  private async logFailedEvent(event: WebhookEvent, error: Error | null): Promise<void> {
-    // Since webhookLog doesn't exist in the schema, we'll log to console for now
-    console.error('Failed webhook event:', {
-      eventId: event.id,
-      eventType: event.type,
-      payload: event.data,
-      error: error?.message || 'Unknown error',
-      retries: this.maxRetries,
-      status: 'FAILED',
-    });
-  }
-
-  private delay(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
+      }
+    );
   }
 } 

@@ -2,6 +2,7 @@ import { clerkMiddleware } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { rateLimitMiddleware } from "./middleware/rate-limit";
+import { validationMiddleware } from "./middleware/validation";
 import { prisma } from "@/lib/prisma";
 
 // Define routes that don't require authentication
@@ -34,10 +35,24 @@ const RATE_LIMITED_ROUTES = [
   "/api/analytics(.*)",
 ];
 
+// Define routes that require validation
+const VALIDATED_ROUTES = [
+  "/api/prompts(.*)",
+  "/api/community(.*)",
+];
+
 export default clerkMiddleware(async (auth, req: NextRequest) => {
+  // Add security headers
+  const response = NextResponse.next();
+  response.headers.set('X-Content-Type-Options', 'nosniff');
+  response.headers.set('X-Frame-Options', 'DENY');
+  response.headers.set('X-XSS-Protection', '1; mode=block');
+  response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+  response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+  
   // Handle public routes
   if (publicRoutes.some((route) => req.nextUrl.pathname.match(new RegExp(`^${route}$`)))) {
-    return NextResponse.next();
+    return response;
   }
 
   // Handle unauthenticated users
@@ -50,9 +65,17 @@ export default clerkMiddleware(async (auth, req: NextRequest) => {
 
   // Apply rate limiting to API routes
   if (RATE_LIMITED_ROUTES.some((route) => req.nextUrl.pathname.match(new RegExp(`^${route}$`)))) {
-    const rateLimitResponse = rateLimitMiddleware(req);
+    const rateLimitResponse = await rateLimitMiddleware(req);
     if (rateLimitResponse) {
       return rateLimitResponse;
+    }
+  }
+
+  // Apply input validation to API routes
+  if (VALIDATED_ROUTES.some((route) => req.nextUrl.pathname.match(new RegExp(`^${route}$`)))) {
+    const validationResponse = validationMiddleware(req);
+    if (validationResponse) {
+      return validationResponse;
     }
   }
 
@@ -68,7 +91,7 @@ export default clerkMiddleware(async (auth, req: NextRequest) => {
     }
   }
 
-  return NextResponse.next();
+  return response;
 });
 
 export const config = {
