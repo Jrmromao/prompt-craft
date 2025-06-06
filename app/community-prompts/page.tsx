@@ -15,7 +15,7 @@ export const metadata: Metadata = {
 
 async function getPublicPrompts() {
   return prisma.prompt.findMany({
-    where: { isPublic: true, isApproved: true },
+    where: { isPublic: true },
     orderBy: [
       { upvotes: 'desc' },
       { createdAt: 'desc' },

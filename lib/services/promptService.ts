@@ -1,23 +1,11 @@
 import { prisma } from '@/lib/prisma';
 import { Role, PlanType } from '@/utils/constants';
-import { Prisma } from '@prisma/client';
+import { Prisma, Prompt as PrismaPrompt } from '@prisma/client';
 
-interface Prompt {
-  id: string;
-  userId: string;
-  name: string;
-  description: string | null;
-  content: string;
-  isPublic: boolean;
-  promptType: string;
-  metadata: any | null;
-  createdAt: Date;
-  updatedAt: Date;
+// Use Prisma's generated type instead of custom interface
+type Prompt = PrismaPrompt & {
   tags: { id: string; name: string }[];
-  isApproved: boolean;
-  upvotes: number;
-  slug: string;
-}
+};
 
 export class PromptService {
   private static instance: PromptService;
@@ -49,8 +37,6 @@ export class PromptService {
       description?: string;
       content: string;
       isPublic?: boolean;
-      promptType?: string;
-      metadata?: any;
       tags?: string[];
     }
   ): Promise<Prompt> {
@@ -107,9 +93,12 @@ export class PromptService {
     }
 
     // Create or find tags
-    const tagOperations = (data.tags || []).map(tagName => ({
-      where: { name: tagName },
-      create: { name: tagName },
+    const tagOperations = (data.tags || []).map(tag => ({
+      where: { name: tag },
+      create: { 
+        name: tag,
+        slug: tag.toLowerCase().replace(/\s+/g, '-')
+      }
     }));
 
     // Create prompt with tags and unique slug
@@ -120,8 +109,6 @@ export class PromptService {
         description: data.description,
         content: data.content,
         isPublic: data.isPublic || false,
-        promptType: data.promptType || 'text',
-        metadata: data.metadata || null,
         slug: uniqueSlug,
         tags: {
           connectOrCreate: tagOperations,
@@ -223,7 +210,10 @@ export class PromptService {
       set: [], // Clear existing tags
       connectOrCreate: updates.tags.map(tag => ({
         where: { name: tag.name },
-        create: { name: tag.name },
+        create: { 
+          name: tag.name,
+          slug: tag.name.toLowerCase().replace(/\s+/g, '-')
+        },
       })),
     } : undefined;
 
@@ -263,7 +253,7 @@ export class PromptService {
   public async approvePrompt(promptId: string): Promise<Prompt> {
     return prisma.prompt.update({
       where: { id: promptId },
-      data: { isApproved: true },
+      data: { isPublic: true },
       include: { tags: true },
     }) as Promise<Prompt>;
   }
@@ -276,7 +266,7 @@ export class PromptService {
   // Admin: Get prompts pending review (public but not approved)
   public async getPendingPrompts(): Promise<Prompt[]> {
     return prisma.prompt.findMany({
-      where: { isPublic: true, isApproved: false },
+      where: { isPublic: true },
       orderBy: { createdAt: 'desc' },
       include: { tags: true },
     }) as Promise<Prompt[]>;
@@ -290,20 +280,19 @@ export class PromptService {
       data: { upvotes: { increment: 1 } },
       include: { tags: true },
     });
-    if (!prompt.isApproved && prompt.upvotes >= threshold) {
+    if (prompt.upvotes >= threshold) {
       await prisma.prompt.update({
         where: { id: promptId },
-        data: { isApproved: true },
+        data: { isPublic: true },
       });
-      prompt.isApproved = true;
     }
     return prompt as Prompt;
   }
 
-  // Get top N public, approved prompts for landing page/SEO
+  // Get top N public prompts for landing page/SEO
   public async getFeaturedPrompts(limit: number = 3): Promise<Prompt[]> {
     return prisma.prompt.findMany({
-      where: { isPublic: true, isApproved: true },
+      where: { isPublic: true },
       orderBy: [
         { upvotes: 'desc' },
         { createdAt: 'desc' },

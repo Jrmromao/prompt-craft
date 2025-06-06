@@ -13,8 +13,8 @@ interface PageProps {
 // Move to services/prompt.ts in a real app
 async function getPrompt(slug: string) {
   try {
-    return await prisma.prompt.findUnique({
-      where: { slug, isPublic: true, isApproved: true },
+    return await prisma.prompt.findFirst({
+      where: { slug, isPublic: true },
       include: { tags: true },
     });
   } catch (error) {

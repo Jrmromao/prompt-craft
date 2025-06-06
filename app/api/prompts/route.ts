@@ -89,7 +89,6 @@ export async function POST(req: Request) {
         content,
         isPublic: isPublic || false,
         tags: tags || [],
-        metadata: { llmResult },
       });
     } else if (userPlanType === PlanType.LITE) {
       const promptCount = await prisma.prompt.count({ where: { userId: user.id } });
@@ -100,7 +99,6 @@ export async function POST(req: Request) {
           content,
           isPublic: isPublic || false,
           tags: tags || [],
-          metadata: { llmResult },
         });
       }
     }

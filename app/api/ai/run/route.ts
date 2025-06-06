@@ -68,9 +68,8 @@ export async function POST(req: Request) {
       await prisma.playgroundRun.create({
         data: {
           userId: user.id,
-          prompt,
-          result: result || null,
-          status: 'SUCCESS'
+          input: prompt,
+          output: result || null
         }
       });
 

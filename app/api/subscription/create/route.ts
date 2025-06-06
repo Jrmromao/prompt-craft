@@ -1,11 +1,8 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { prisma } from '@/lib/prisma';
-import Stripe from 'stripe';
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2025-02-24.acacia',
-});
+import { StripeService } from '@/lib/services/stripe/stripeService';
+import { StripeCheckoutError } from '@/lib/services/stripe/errors';
 
 export async function POST(req: Request) {
   try {
@@ -44,15 +41,15 @@ export async function POST(req: Request) {
       return new NextResponse('Plan not found', { status: 404 });
     }
 
+    const stripeService = StripeService.getInstance();
+
     // Create or get Stripe customer
     let customerId = user.stripeCustomerId;
     if (!customerId) {
-      const customer = await stripe.customers.create({
+      const customer = await stripeService.createCustomer({
         email: user.email,
-        metadata: {
-          userId: user.id,
-          clerkId: user.clerkId,
-        },
+        userId: user.id,
+        clerkId: user.clerkId,
       });
       customerId = customer.id;
       
@@ -63,41 +60,25 @@ export async function POST(req: Request) {
       });
     }
 
-    // Create Stripe checkout session
-    const session = await stripe.checkout.sessions.create({
-      customer: customerId,
-      line_items: [
-        {
-          price_data: {
-            currency: 'usd',
-            product_data: {
-              name: planData.name,
-              description: `${planData.credits} credits per ${planData.period.toLowerCase()}`,
-            },
-            unit_amount: Math.round(planData.price * 100), // Convert to cents
-            recurring: {
-              interval: planData.period.toLowerCase() as 'week' | 'month',
-            },
-          },
-          quantity: 1,
-        },
-      ],
-      mode: 'subscription',
-      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?success=true`,
-      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/pricing?canceled=true`,
-      metadata: {
-        userId: user.id,
-        planId: planData.id,
-      },
+    // Create checkout session
+    const session = await stripeService.createCheckoutSession({
+      customerId,
+      planId: planData.stripeProductId,
+      userId: user.id,
+      successUrl: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?success=true`,
+      cancelUrl: `${process.env.NEXT_PUBLIC_APP_URL}/pricing?canceled=true`,
     });
 
     if (!session.url) {
-      return new NextResponse('Failed to create checkout session', { status: 500 });
+      throw new StripeCheckoutError('Failed to create checkout session');
     }
 
     return NextResponse.json({ url: session.url });
   } catch (error) {
     console.error('Subscription creation error:', error);
+    if (error instanceof StripeCheckoutError) {
+      return new NextResponse(error.message, { status: 400 });
+    }
     return new NextResponse('Internal Server Error', { status: 500 });
   }
 } 

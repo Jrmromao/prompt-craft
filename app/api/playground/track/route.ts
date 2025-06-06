@@ -26,7 +26,8 @@ export async function POST(req: Request) {
       data: {
         userId: user.id,
         promptId: promptId || null,
-        status: 'SUCCESS'
+        input: '', // Empty string since we're just tracking usage
+        output: null
       }
     });
 
