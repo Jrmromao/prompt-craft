@@ -4,6 +4,9 @@ import AnalyticsCharts from './components/AnalyticsCharts';
 import { Badge } from '@/components/ui/badge';
 import { Users, FileText, Activity, TrendingUp, BarChart2, Clock, Star, Copy } from 'lucide-react';
 
+// Mark this page as dynamic
+export const dynamic = 'force-dynamic';
+
 async function getAnalytics() {
   try {
     const analyticsService = AnalyticsService.getInstance();

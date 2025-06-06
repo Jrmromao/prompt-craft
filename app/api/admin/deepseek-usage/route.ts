@@ -3,6 +3,9 @@ import { auth } from '@clerk/nextjs/server';
 import { DeepseekCostService } from '@/lib/services/deepseekCostService';
 import { prisma } from '@/lib/prisma';
 
+// Mark this route as dynamic
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
   try {
     const { userId: clerkId } = await auth();

@@ -3,10 +3,20 @@ import type { NextRequest } from 'next/server';
 import { Redis } from '@upstash/redis';
 
 // Initialize Redis client for distributed rate limiting
-const redis = new Redis({
-  url: process.env.UPSTASH_REDIS_REST_URL || '',
-  token: process.env.UPSTASH_REDIS_REST_TOKEN || '',
-});
+let redis: Redis | null = null;
+
+try {
+  if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
+    redis = new Redis({
+      url: process.env.UPSTASH_REDIS_REST_URL,
+      token: process.env.UPSTASH_REDIS_REST_TOKEN,
+    });
+  } else {
+    console.warn('Redis configuration missing. Rate limiting will be disabled.');
+  }
+} catch (error) {
+  console.error('Failed to initialize Redis client:', error);
+}
 
 // Rate limit configuration
 const RATE_LIMIT_WINDOW = 60 * 1000; // 1 minute in milliseconds
@@ -23,6 +33,11 @@ export async function rateLimitMiddleware(request: NextRequest) {
         'Content-Type': 'application/json',
       },
     });
+  }
+
+  // If Redis is not available, skip rate limiting
+  if (!redis) {
+    return null;
   }
 
   // Get IP from headers or use a fallback
