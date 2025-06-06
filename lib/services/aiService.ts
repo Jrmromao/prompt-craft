@@ -79,75 +79,105 @@ export class AIService {
   }
 
   private async generateWithDeepseek(options: GenerateOptions): Promise<string> {
-    // Implement Deepseek API call
-    const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${this.DEEPSEEK_API_KEY}`,
-      },
-      body: JSON.stringify({
-        model: 'deepseek-chat',
-        messages: [{ role: 'user', content: options.prompt }],
-        max_tokens: options.maxTokens || 1000,
-        temperature: options.temperature || 0.7,
-      }),
-    });
+    try {
+      const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${this.DEEPSEEK_API_KEY}`,
+        },
+        body: JSON.stringify({
+          model: 'deepseek-chat',
+          messages: [{ role: 'user', content: options.prompt }],
+          max_tokens: options.maxTokens || 1000,
+          temperature: options.temperature || 0.7,
+        }),
+      });
 
-    if (!response.ok) {
-      throw new Error('Failed to generate text with Deepseek');
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(`Failed to generate text with Deepseek: ${errorData.error?.message || response.statusText}`);
+      }
+
+      const data = await response.json();
+      if (!data.choices?.[0]?.message?.content) {
+        throw new Error('Invalid response format from Deepseek API');
+      }
+      return data.choices[0].message.content;
+    } catch (error: any) {
+      if (error.message.includes('Failed to generate text')) {
+        throw error;
+      }
+      throw new Error(`Deepseek API error: ${error.message}`);
     }
-
-    const data = await response.json();
-    return data.choices[0].message.content;
   }
 
   private async generateWithGPT4(options: GenerateOptions): Promise<string> {
-    // Implement GPT-4 API call
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${this.OPENAI_API_KEY}`,
-      },
-      body: JSON.stringify({
-        model: 'gpt-4',
-        messages: [{ role: 'user', content: options.prompt }],
-        max_tokens: options.maxTokens || 1000,
-        temperature: options.temperature || 0.7,
-      }),
-    });
+    try {
+      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${this.OPENAI_API_KEY}`,
+        },
+        body: JSON.stringify({
+          model: 'gpt-4',
+          messages: [{ role: 'user', content: options.prompt }],
+          max_tokens: options.maxTokens || 1000,
+          temperature: options.temperature || 0.7,
+        }),
+      });
 
-    if (!response.ok) {
-      throw new Error('Failed to generate text with GPT-4');
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(`Failed to generate text with GPT-4: ${errorData.error?.message || response.statusText}`);
+      }
+
+      const data = await response.json();
+      if (!data.choices?.[0]?.message?.content) {
+        throw new Error('Invalid response format from OpenAI API');
+      }
+      return data.choices[0].message.content;
+    } catch (error: any) {
+      if (error.message.includes('Failed to generate text')) {
+        throw error;
+      }
+      throw new Error(`OpenAI API error: ${error.message}`);
     }
-
-    const data = await response.json();
-    return data.choices[0].message.content;
   }
 
   private async generateWithClaude(options: GenerateOptions): Promise<string> {
-    // Implement Claude API call
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': this.ANTHROPIC_API_KEY,
-        'anthropic-version': '2023-06-01',
-      },
-      body: JSON.stringify({
-        model: 'claude-3-opus-20240229',
-        messages: [{ role: 'user', content: options.prompt }],
-        max_tokens: options.maxTokens || 1000,
-        temperature: options.temperature || 0.7,
-      }),
-    });
+    try {
+      const response = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': this.ANTHROPIC_API_KEY,
+          'anthropic-version': '2023-06-01',
+        },
+        body: JSON.stringify({
+          model: 'claude-3-opus-20240229',
+          messages: [{ role: 'user', content: options.prompt }],
+          max_tokens: options.maxTokens || 1000,
+          temperature: options.temperature || 0.7,
+        }),
+      });
 
-    if (!response.ok) {
-      throw new Error('Failed to generate text with Claude');
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(`Failed to generate text with Claude: ${errorData.error?.message || response.statusText}`);
+      }
+
+      const data = await response.json();
+      if (!data.content?.[0]?.text) {
+        throw new Error('Invalid response format from Claude API');
+      }
+      return data.content[0].text;
+    } catch (error: any) {
+      if (error.message.includes('Failed to generate text')) {
+        throw error;
+      }
+      throw new Error(`Claude API error: ${error.message}`);
     }
-
-    const data = await response.json();
-    return data.content[0].text;
   }
 } 

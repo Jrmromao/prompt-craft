@@ -370,6 +370,9 @@ model Attachment {
 model PlaygroundRun {
   id        String   @id @default(cuid())
   userId    String
+  prompt    String
+  result    String?
+  status    String   @default("SUCCESS")
   createdAt DateTime @default(now())
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 

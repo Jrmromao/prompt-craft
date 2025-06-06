@@ -1,11 +1,11 @@
 export type PromptType = 'text' | 'image' | 'video' | 'music' | 'software' | 'medical';
 
 export interface PromptPayload {
-  name: string;
-  description: string;
+  name?: string;
+  description?: string;
   content: string;
-  isPublic: boolean;
-  tags: string[];
+  isPublic?: boolean;
+  tags?: string[];
   tone?: string;
   format?: string;
   wordCount?: string;

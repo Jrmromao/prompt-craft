@@ -8,14 +8,14 @@ export async function POST(req: Request) {
   try {
     const { userId } = await auth();
     if (!userId) {
-      return new NextResponse('Unauthorized', { status: 401 });
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const body = await req.json();
     const { prompt, model = 'deepseek', maxTokens = 1000, temperature = 0.7 } = body;
 
     if (!prompt) {
-      return new NextResponse('Prompt is required', { status: 400 });
+      return NextResponse.json({ error: 'Prompt is required' }, { status: 400 });
     }
 
     // Get user from database
@@ -24,7 +24,7 @@ export async function POST(req: Request) {
     });
 
     if (!user) {
-      return new NextResponse('User not found', { status: 404 });
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
     // Check credit balance
@@ -48,8 +48,6 @@ export async function POST(req: Request) {
       maxTokens,
       temperature,
     });
-
-    
 
     // Deduct credits
     await prisma.user.update({
@@ -77,15 +75,24 @@ export async function POST(req: Request) {
     console.error('Error generating text:', error);
     
     // Handle specific errors
-    if (error.message.includes('access to this model')) {
+    if (error.message?.includes('access to this model')) {
       return NextResponse.json({
         error: error.message,
         upgradeRequired: true,
       }, { status: 403 });
     }
 
+    // Handle AI service errors
+    if (error.message?.includes('Failed to generate text')) {
+      return NextResponse.json({
+        error: error.message,
+      }, { status: 500 });
+    }
+
+    // Handle any other errors
     return NextResponse.json({
-      error: 'Failed to generate text',
+      error: 'An unexpected error occurred',
+      details: error.message,
     }, { status: 500 });
   }
 } 
