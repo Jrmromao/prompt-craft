@@ -37,9 +37,10 @@ interface Comment {
 
 interface CommentLiteProps {
   id: string;
+  onCountChange?: (count: number) => void;
 }
 
-export function CommentLite({ id }: CommentLiteProps) {
+export function CommentLite({ id, onCountChange }: CommentLiteProps) {
   const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState('');
   const [isLoading, setIsLoading] = useState(true);
@@ -113,6 +114,12 @@ export function CommentLite({ id }: CommentLiteProps) {
     }, 10000); // every 10 seconds
     return () => clearInterval(interval);
   }, [id]);
+
+  useEffect(() => {
+    if (onCountChange) {
+      onCountChange(totalComments);
+    }
+  }, [totalComments, onCountChange]);
 
   const loadMore = async () => {
     if (isLoadingMore || !hasMore) return;

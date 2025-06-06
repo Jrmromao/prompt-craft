@@ -17,6 +17,8 @@ import type { NavBarUser } from '@/components/layout/NavBar';
 import { NavBar } from '@/components/layout/NavBar';
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import { InsufficientCreditsDialog } from '@/components/prompts/InsufficientCreditsDialog';
+import Playground from "../../../components/Playground";
+import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 const PROMPT_TYPES: { value: PromptType; label: string; icon: any; description: string; color: string }[] = [
   { 
@@ -825,6 +827,24 @@ export default function ClientPromptCreate({ user }: { user: NavBarUser }) {
                     required
                     className="min-h-[120px] font-mono"
                   />
+                  {/* Test in Playground Button & Modal */}
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        className="mt-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700"
+                      >
+                        Test in Playground
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-2xl">
+                      <DialogHeader>
+                        <DialogTitle>Test Prompt in Playground</DialogTitle>
+                      </DialogHeader>
+                      <Playground initialPrompt={formData.content} />
+                    </DialogContent>
+                  </Dialog>
                 </div>
                 {/* Image Description Option - Only for text type prompts */}
                 {promptType === "text" && (

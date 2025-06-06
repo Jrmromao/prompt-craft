@@ -1,6 +1,7 @@
 "use client";
 
-import React from 'react';
+import React, { useState } from 'react';
+import ReactMarkdown from 'react-markdown';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
@@ -10,11 +11,15 @@ import { VoteButton } from '@/components/VoteButton';
 import {CommentLite } from '@/components/CommentLite'
 import { Analytics } from '@/components/Analytics';
 import { VersionHistory } from '@/components/VersionHistory';
-import { NavBar } from '@/components/layout/NavBar';
-import { ArrowLeft, Share2, BookmarkPlus, Copy } from 'lucide-react';
+import { NavBarWrapper } from '@/components/layout/NavBarWrapper';
+import { ArrowLeft, Share2, BookmarkPlus, Copy, Check, Star, Eye, Clock, Tag, User, MessageCircle, Play } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from 'sonner';
 import { Comments } from './Comments';
+import Playground from './Playground';
+import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
+import { Separator } from './ui/separator';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
 
 interface Tag {
   id: string;
@@ -44,22 +49,152 @@ export interface PromptContentProps {
 
 export function PromptContent({ user, prompt }: PromptContentProps) {
   const displayName = user?.name || 'Guest';
+  const [commentCount, setCommentCount] = useState<number>(0);
+  const [upvotes, setUpvotes] = useState<number>(prompt.upvotes);
+  const [copied, setCopied] = useState(false);
 
-  const copyToClipboard = () => {
-    navigator.clipboard.writeText(prompt.content);
+  const copyToClipboard = async () => {
+    await navigator.clipboard.writeText(prompt.content);
+    setCopied(true);
     toast.success('Prompt copied to clipboard!');
+    // Track copy event
+    fetch(`/api/prompts/${prompt.id}/copy`, { method: 'POST' });
+    setTimeout(() => setCopied(false), 1000);
+  };
+
+  const sharePrompt = () => {
+    navigator.clipboard.writeText(window.location.href);
+    toast.success('Link copied to clipboard!');
   };
 
   return (
     <div className="min-h-screen bg-white dark:bg-black text-gray-900 dark:text-white">
-      <main className="max-w-4xl mx-auto px-4 py-16">
-        <h1 className="text-4xl font-bold mb-8">Prompt</h1>
-        <section className="w-full max-w-3xl bg-card border border-border rounded-2xl shadow-lg p-8">
-          <div className="prose prose-sm md:prose-base prose-headings:text-foreground prose-p:text-muted-foreground prose-li:text-foreground max-w-none">
-            {/* Prompt content goes here */}
-            <p>This is the prompt content. User: {displayName}</p>
-          </div>
-        </section>
+      <NavBarWrapper />
+      <main className="max-w-4xl mx-auto px-4 py-8">
+        {/* Back Navigation */}
+        <div className="mb-6">
+          <Link href="/community-prompts" className="inline-flex items-center text-sm text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400">
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Community Prompts
+          </Link>
+        </div>
+
+        {/* Main Content */}
+        <div className="grid gap-6">
+          {/* Prompt Header Card */}
+          <Card className="border-2 border-purple-100 dark:border-purple-900/30">
+            <CardContent className="p-6">
+              <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-6">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-2">
+                    <h1 className="text-3xl font-bold text-purple-700 dark:text-purple-300">{prompt.name}</h1>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={sharePrompt}>
+                            <Share2 className="h-4 w-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>Share this prompt</TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
+                  
+                  {prompt.description && (
+                    <p className="text-gray-600 dark:text-gray-300 mb-4">{prompt.description}</p>
+                  )}
+
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    {prompt.tags.map(tag => (
+                      <Badge key={tag.id} className="bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300">
+                        <Tag className="w-3 h-3 mr-1" />
+                        {tag.name}
+                      </Badge>
+                    ))}
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
+                    <div className="flex items-center gap-1">
+                      <User className="w-4 h-4" />
+                      {displayName}
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Clock className="w-4 h-4" />
+                      {new Date(prompt.createdAt).toLocaleDateString()}
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Eye className="w-4 h-4" />
+                      {upvotes} upvotes
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-3">
+                  <VoteButton id={prompt.id} initialUpvotes={upvotes} onVoteChange={setUpvotes} />
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button className="bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700 w-full">
+                        <Play className="w-4 h-4 mr-2" />
+                        Test in Playground
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-2xl">
+                      <DialogHeader>
+                        <DialogTitle>Test this Prompt in Playground</DialogTitle>
+                      </DialogHeader>
+                      <Playground initialPrompt={prompt.content} />
+                    </DialogContent>
+                  </Dialog>
+                  <Button
+                    variant="outline"
+                    className={`flex items-center gap-2 border-gray-300 dark:border-gray-700 transition-all duration-200 ${copied ? 'bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300' : ''}`}
+                    onClick={copyToClipboard}
+                    disabled={copied}
+                  >
+                    {copied ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
+                    {copied ? 'Copied!' : 'Copy Prompt'}
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Tabs Section */}
+          <Card>
+            <CardContent className="p-6">
+              <Tabs defaultValue="content" className="w-full">
+                <TabsList className="mb-4">
+                  <TabsTrigger value="content">Content</TabsTrigger>
+                  <TabsTrigger value="comments">
+                    Comments {commentCount > 0 && <span className="ml-1 text-xs bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded-full px-2 py-0.5">{commentCount}</span>}
+                  </TabsTrigger>
+                  <TabsTrigger value="analytics">Analytics</TabsTrigger>
+                  <TabsTrigger value="history">Version History</TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="content" className="mt-0">
+                  <div className="prose prose-sm md:prose-base prose-headings:text-foreground prose-p:text-muted-foreground prose-li:text-foreground max-w-none">
+                    <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4 text-sm overflow-x-auto border border-gray-100 dark:border-gray-800 text-gray-800 dark:text-gray-200">
+                      <ReactMarkdown>{prompt.content}</ReactMarkdown>
+                    </div>
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="comments" className="mt-0">
+                  <CommentLite id={prompt.id} onCountChange={setCommentCount} />
+                </TabsContent>
+
+                <TabsContent value="analytics" className="mt-0">
+                  <Analytics promptId={prompt.id} upvotes={upvotes} />
+                </TabsContent>
+
+                <TabsContent value="history" className="mt-0">
+                  <VersionHistory id={prompt.id} />
+                </TabsContent>
+              </Tabs>
+            </CardContent>
+          </Card>
+        </div>
       </main>
     </div>
   );

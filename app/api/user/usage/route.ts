@@ -26,7 +26,26 @@ export async function GET(request: Request) {
     return new NextResponse("Unauthorized", { status: 401 });
   }
 
-  // Get the last 7 days of usage
+  // Get the user's planType
+  const user = await prisma.user.findUnique({
+    where: { clerkId: userId },
+    select: { planType: true },
+  });
+  if (!user) {
+    return new NextResponse("User not found", { status: 404 });
+  }
+
+  // Get Playground runs for the current month
+  const now = new Date();
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  const playgroundRunsCount = await prisma.playgroundRun.count({
+    where: {
+      userId,
+      createdAt: { gte: startOfMonth },
+    },
+  });
+
+  // Get the last 7 days of prompt generation usage (existing logic)
   const sevenDaysAgo = new Date();
   sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
@@ -65,5 +84,9 @@ export async function GET(request: Request) {
     });
   }
 
-  return NextResponse.json(data);
+  return NextResponse.json({
+    planType: user.planType,
+    playgroundRunsThisMonth: playgroundRunsCount,
+    promptGenerationUsage: data,
+  });
 } 

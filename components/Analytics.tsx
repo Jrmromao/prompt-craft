@@ -10,12 +10,17 @@ import { toast } from 'sonner';
 
 interface AnalyticsProps {
   promptId: string;
+  upvotes?: number;
 }
 
 interface AnalyticsData {
-  views: number;
-  uses: number;
-  avgRating: number;
+  viewCount: number;
+  usageCount: number;
+  upvotes: number;
+  _count: {
+    comments: number;
+    votes: number;
+  };
   recentViews: Array<{
     id: string;
     createdAt: string;
@@ -27,7 +32,7 @@ interface AnalyticsData {
   recentUsages: Array<{
     id: string;
     createdAt: string;
-    success: boolean;
+    result?: string;
     user: {
       name: string | null;
       imageUrl: string | null;
@@ -35,7 +40,7 @@ interface AnalyticsData {
   }>;
 }
 
-export function Analytics({ promptId }: AnalyticsProps) {
+export function Analytics({ promptId, upvotes }: AnalyticsProps) {
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -84,7 +89,7 @@ export function Analytics({ promptId }: AnalyticsProps) {
             <Eye className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{analytics.views}</div>
+            <div className="text-2xl font-bold">{analytics.viewCount}</div>
           </CardContent>
         </Card>
         <Card>
@@ -93,7 +98,7 @@ export function Analytics({ promptId }: AnalyticsProps) {
             <Play className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{analytics.uses}</div>
+            <div className="text-2xl font-bold">{analytics.usageCount}</div>
           </CardContent>
         </Card>
         <Card>
@@ -102,7 +107,7 @@ export function Analytics({ promptId }: AnalyticsProps) {
             <ThumbsUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{analytics.avgRating}</div>
+            <div className="text-2xl font-bold">{typeof upvotes === 'number' ? upvotes : analytics.upvotes}</div>
           </CardContent>
         </Card>
         <Card>
@@ -111,7 +116,7 @@ export function Analytics({ promptId }: AnalyticsProps) {
             <MessageSquare className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{analytics.recentViews.length}</div>
+            <div className="text-2xl font-bold">{analytics._count.comments}</div>
           </CardContent>
         </Card>
       </div>
@@ -160,7 +165,7 @@ export function Analytics({ promptId }: AnalyticsProps) {
                   })}
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  {usage.success ? 'Success' : 'Failed'}
+                  {usage.result ? usage.result : ''}
                 </p>
               </div>
             </div>

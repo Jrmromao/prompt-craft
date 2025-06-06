@@ -48,6 +48,8 @@ model User {
   supportTickets SupportTicket[]
   assignedTickets SupportTicket[] @relation("AssignedTickets")
   messages      Message[]
+  playgroundRuns PlaygroundRun[]
+  promptCopies  PromptCopy[]
 
   @@index([clerkId])
   @@index([email])
@@ -112,6 +114,8 @@ model Prompt {
   usages      PromptUsage[]
   versions    PromptVersion[]
   branches    PromptBranch[]
+  copyCount   Int      @default(0)
+  copies      PromptCopy[]
 
   // Analytics fields
   viewCount   Int      @default(0)
@@ -297,6 +301,20 @@ model PromptBranch {
   @@index([promptId])
 }
 
+model PromptCopy {
+  id        String   @id @default(cuid())
+  promptId  String
+  userId    String?
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+  prompt    Prompt   @relation(fields: [promptId], references: [id], onDelete: Cascade)
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([promptId])
+  @@index([userId])
+}
+
 model SupportTicket {
   id          String       @id @default(cuid())
   title       String
@@ -344,6 +362,16 @@ model Attachment {
   ticket    SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
 
   @@index([ticketId])
+}
+
+model PlaygroundRun {
+  id        String   @id @default(cuid())
+  userId    String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([createdAt])
 }
 
 enum Role {
