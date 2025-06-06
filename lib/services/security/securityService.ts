@@ -2,7 +2,7 @@ import { Redis } from '@upstash/redis';
 import { Ratelimit } from '@upstash/ratelimit';
 import { prisma } from '@/lib/prisma';
 import { NextRequest } from 'next/server';
-import { AuditService } from "@/lib/services/auditService";
+import { AuditService } from '@/lib/services/auditService';
 
 // Rate limit configurations
 const RATE_LIMIT_CONFIGS = {
@@ -15,19 +15,28 @@ const RATE_LIMIT_CONFIGS = {
 const rateLimiters = {
   stripeApi: new Ratelimit({
     redis: Redis.fromEnv(),
-    limiter: Ratelimit.slidingWindow(RATE_LIMIT_CONFIGS.STRIPE_API.requests, RATE_LIMIT_CONFIGS.STRIPE_API.window),
+    limiter: Ratelimit.slidingWindow(
+      RATE_LIMIT_CONFIGS.STRIPE_API.requests,
+      RATE_LIMIT_CONFIGS.STRIPE_API.window
+    ),
     analytics: true,
     prefix: 'ratelimit_stripe_api',
   }),
   webhook: new Ratelimit({
     redis: Redis.fromEnv(),
-    limiter: Ratelimit.slidingWindow(RATE_LIMIT_CONFIGS.WEBHOOK.requests, RATE_LIMIT_CONFIGS.WEBHOOK.window),
+    limiter: Ratelimit.slidingWindow(
+      RATE_LIMIT_CONFIGS.WEBHOOK.requests,
+      RATE_LIMIT_CONFIGS.WEBHOOK.window
+    ),
     analytics: true,
     prefix: 'ratelimit_webhook',
   }),
   general: new Ratelimit({
     redis: Redis.fromEnv(),
-    limiter: Ratelimit.slidingWindow(RATE_LIMIT_CONFIGS.GENERAL.requests, RATE_LIMIT_CONFIGS.GENERAL.window),
+    limiter: Ratelimit.slidingWindow(
+      RATE_LIMIT_CONFIGS.GENERAL.requests,
+      RATE_LIMIT_CONFIGS.GENERAL.window
+    ),
     analytics: true,
     prefix: 'ratelimit_general',
   }),
@@ -55,7 +64,8 @@ export class SecurityService {
   public validateRequest(req: NextRequest): { isValid: boolean; error?: string } {
     // Validate request size
     const contentLength = parseInt(req.headers.get('content-length') || '0');
-    if (contentLength > 1024 * 1024) { // 1MB limit
+    if (contentLength > 1024 * 1024) {
+      // 1MB limit
       return { isValid: false, error: 'Request payload too large' };
     }
 
@@ -94,22 +104,15 @@ export class SecurityService {
   }
 
   // Webhook signature verification
-  public verifyWebhookSignature(
-    payload: string,
-    signature: string,
-    secret: string
-  ): boolean {
+  public verifyWebhookSignature(payload: string, signature: string, secret: string): boolean {
     try {
       const crypto = require('crypto');
       const hmac = crypto.createHmac('sha256', secret);
       const digest = hmac.update(payload).digest('hex');
-      return crypto.timingSafeEqual(
-        Buffer.from(signature),
-        Buffer.from(digest)
-      );
+      return crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(digest));
     } catch (error) {
       console.error('Webhook signature verification failed:', error);
       return false;
     }
   }
-} 
+}

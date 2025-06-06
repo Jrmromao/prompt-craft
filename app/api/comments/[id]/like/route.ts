@@ -21,7 +21,7 @@ export async function POST(
 
     const comment = await prisma.comment.findUnique({
       where: { id: commentId },
-      select: { promptId: true }
+      select: { promptId: true },
     });
 
     if (!comment) {
@@ -55,9 +55,11 @@ export async function POST(
   } catch (error) {
     console.error('Error toggling comment like:', error);
     return NextResponse.json(
-      { error: 'Internal server error', details: error instanceof Error ? error.message : 'An unknown error occurred' },
+      {
+        error: 'Internal server error',
+        details: error instanceof Error ? error.message : 'An unknown error occurred',
+      },
       { status: 500 }
     );
   }
 }
-  

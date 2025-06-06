@@ -14,7 +14,7 @@ export async function POST(req: Request) {
     // Get user
     const user = await prisma.user.findUnique({
       where: { clerkId },
-      select: { id: true }
+      select: { id: true },
     });
 
     if (!user) {
@@ -27,8 +27,8 @@ export async function POST(req: Request) {
         userId: user.id,
         promptId: promptId || null,
         input: '', // Empty string since we're just tracking usage
-        output: null
-      }
+        output: null,
+      },
     });
 
     // If promptId is provided, increment the prompt's usage count
@@ -37,18 +37,15 @@ export async function POST(req: Request) {
         where: { id: promptId },
         data: {
           usageCount: {
-            increment: 1
-          }
-        }
+            increment: 1,
+          },
+        },
       });
     }
 
     return NextResponse.json({ success: true });
   } catch (error: any) {
     console.error('Error in /api/playground/track:', error);
-    return NextResponse.json(
-      { error: error.message || 'Internal server error' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: error.message || 'Internal server error' }, { status: 500 });
   }
-} 
+}

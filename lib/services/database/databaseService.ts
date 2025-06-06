@@ -37,7 +37,7 @@ export class DatabaseService {
   // Optimized query methods with caching
   public async getSubscriptionWithCache(userId: string) {
     const cacheKey = `subscription:${userId}`;
-    
+
     // Try to get from cache
     const cached = await this.getCached(cacheKey);
     if (cached) {
@@ -62,7 +62,7 @@ export class DatabaseService {
 
   public async getPlanWithCache(planId: string) {
     const cacheKey = `plan:${planId}`;
-    
+
     // Try to get from cache
     const cached = await this.getCached(cacheKey);
     if (cached) {
@@ -86,7 +86,7 @@ export class DatabaseService {
   public async withTransaction<T>(
     operations: (tx: Prisma.TransactionClient) => Promise<T>
   ): Promise<T> {
-    return await prisma.$transaction(async (tx) => {
+    return await prisma.$transaction(async tx => {
       try {
         return await operations(tx);
       } catch (error) {
@@ -98,11 +98,8 @@ export class DatabaseService {
   }
 
   // Optimized subscription update with transaction and cache invalidation
-  public async updateSubscription(
-    subscriptionId: string,
-    data: Prisma.SubscriptionUpdateInput
-  ) {
-    return await this.withTransaction(async (tx) => {
+  public async updateSubscription(subscriptionId: string, data: Prisma.SubscriptionUpdateInput) {
+    return await this.withTransaction(async tx => {
       const subscription = await tx.subscription.update({
         where: { id: subscriptionId },
         data,
@@ -119,10 +116,8 @@ export class DatabaseService {
   }
 
   // Optimized subscription creation with transaction
-  public async createSubscription(
-    data: Prisma.SubscriptionCreateInput
-  ) {
-    return await this.withTransaction(async (tx) => {
+  public async createSubscription(data: Prisma.SubscriptionCreateInput) {
+    return await this.withTransaction(async tx => {
       const subscription = await tx.subscription.create({
         data,
         include: {
@@ -131,11 +126,7 @@ export class DatabaseService {
       });
 
       // Cache the new subscription
-      await this.setCache(
-        `subscription:${subscription.userId}`,
-        subscription,
-        CACHE_TTL.MEDIUM
-      );
+      await this.setCache(`subscription:${subscription.userId}`, subscription, CACHE_TTL.MEDIUM);
 
       return subscription;
     });
@@ -148,7 +139,7 @@ export class DatabaseService {
       data: Prisma.SubscriptionUpdateInput;
     }>
   ) {
-    return await this.withTransaction(async (tx) => {
+    return await this.withTransaction(async tx => {
       const results = await Promise.all(
         updates.map(({ id, data }) =>
           tx.subscription.update({
@@ -162,13 +153,9 @@ export class DatabaseService {
       );
 
       // Invalidate caches
-      await Promise.all(
-        results.map((sub) =>
-          this.redis.del(`subscription:${sub.userId}`)
-        )
-      );
+      await Promise.all(results.map(sub => this.redis.del(`subscription:${sub.userId}`)));
 
       return results;
     });
   }
-} 
+}

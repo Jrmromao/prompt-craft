@@ -1,7 +1,7 @@
-import DashboardClient from "@/components/dashboard/DashboardClient";
-import { redirect } from "next/navigation";
-import { DashboardService } from "@/lib/services/dashboardService";
-import { currentUser } from "@clerk/nextjs/server";
+import DashboardClient from '@/components/dashboard/DashboardClient';
+import { redirect } from 'next/navigation';
+import { DashboardService } from '@/lib/services/dashboardService';
+import { currentUser } from '@clerk/nextjs/server';
 import { AdminPromptReviewDialog } from '@/components/dashboard/AdminPromptReviewDialog';
 
 // Types for serializable props
@@ -59,7 +59,7 @@ export default async function DashboardPage() {
   const clerkUser = await currentUser();
 
   if (!clerkUser) {
-    redirect("/sign-in?redirect_url=/dashboard");
+    redirect('/sign-in?redirect_url=/dashboard');
   }
 
   const dashboardService = DashboardService.getInstance();
@@ -79,9 +79,9 @@ export default async function DashboardPage() {
       <>
         <DashboardClient
           user={{
-            name: user.name || "User",
+            name: user.name || 'User',
             email: user.email,
-            imageUrl: (user as any).imageUrl || "",
+            imageUrl: (user as any).imageUrl || '',
             id: user.id,
             clerkId: user.clerkId,
             credits: user.credits,
@@ -91,19 +91,17 @@ export default async function DashboardPage() {
             updatedAt: user.updatedAt,
             creditCap: user.creditCap,
             lastCreditReset: user.lastCreditReset,
-            stripeCustomerId: (user as any).stripeCustomerId || "",
+            stripeCustomerId: (user as any).stripeCustomerId || '',
           }}
           prompts={prompts}
           creditHistory={creditHistory}
           usageData={usageData}
         />
-        {isAdmin && (
-          <AdminPromptReviewDialog />
-        )}
+        {isAdmin && <AdminPromptReviewDialog />}
       </>
     );
   } catch (error) {
-    console.error("Error loading dashboard data:", error);
-    redirect("/sign-in?redirect_url=/dashboard");
+    console.error('Error loading dashboard data:', error);
+    redirect('/sign-in?redirect_url=/dashboard');
   }
 }

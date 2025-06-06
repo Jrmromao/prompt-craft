@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+import { prisma } from '@/lib/prisma';
 
 export class AuditService {
   private static instance: AuditService;
@@ -18,7 +18,7 @@ export class AuditService {
     userId,
     ipAddress,
     details,
-    status = 'success'
+    status = 'success',
   }: {
     action: string;
     resource: string;
@@ -120,4 +120,4 @@ export class AuditService {
       },
     });
   }
-} 
+}

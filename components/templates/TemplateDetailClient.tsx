@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
@@ -33,7 +33,7 @@ export function TemplateDetailClient({ templateId }: { templateId: string }) {
     description: '',
     content: '',
     isPublic: false,
-    tags: ''
+    tags: '',
   });
 
   useEffect(() => {
@@ -54,7 +54,7 @@ export function TemplateDetailClient({ templateId }: { templateId: string }) {
         description: data.description || '',
         content: data.content,
         isPublic: data.isPublic,
-        tags: data.tags.join(', ')
+        tags: data.tags.join(', '),
       });
     } catch (error) {
       console.error('Error fetching template:', error);
@@ -79,7 +79,10 @@ export function TemplateDetailClient({ templateId }: { templateId: string }) {
         },
         body: JSON.stringify({
           ...formData,
-          tags: formData.tags.split(',').map(tag => tag.trim()).filter(Boolean),
+          tags: formData.tags
+            .split(',')
+            .map(tag => tag.trim())
+            .filter(Boolean),
         }),
       });
 
@@ -139,15 +142,17 @@ export function TemplateDetailClient({ templateId }: { templateId: string }) {
 
   if (!template) {
     return (
-      <div className={`min-h-screen p-6 transition-colors duration-300 ${theme === 'dark' ? 'bg-black text-white' : 'bg-white text-gray-900'}`}>
-        <div className="max-w-4xl mx-auto">
-          <div className="flex items-center space-x-4 mb-8">
+      <div
+        className={`min-h-screen p-6 transition-colors duration-300 ${theme === 'dark' ? 'bg-black text-white' : 'bg-white text-gray-900'}`}
+      >
+        <div className="mx-auto max-w-4xl">
+          <div className="mb-8 flex items-center space-x-4">
             <Button
               variant="outline"
               onClick={() => router.push('/templates')}
               className="flex items-center"
             >
-              <ArrowLeft className="w-4 h-4 mr-2" />
+              <ArrowLeft className="mr-2 h-4 w-4" />
               Back to Templates
             </Button>
           </div>
@@ -158,15 +163,17 @@ export function TemplateDetailClient({ templateId }: { templateId: string }) {
   }
 
   return (
-    <div className={`min-h-screen p-6 transition-colors duration-300 ${theme === 'dark' ? 'bg-black text-white' : 'bg-white text-gray-900'}`}>
-      <div className="max-w-4xl mx-auto">
-        <div className="flex items-center justify-between mb-8">
+    <div
+      className={`min-h-screen p-6 transition-colors duration-300 ${theme === 'dark' ? 'bg-black text-white' : 'bg-white text-gray-900'}`}
+    >
+      <div className="mx-auto max-w-4xl">
+        <div className="mb-8 flex items-center justify-between">
           <Button
             variant="outline"
             onClick={() => router.push('/templates')}
             className="flex items-center"
           >
-            <ArrowLeft className="w-4 h-4 mr-2" />
+            <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Templates
           </Button>
           <Button
@@ -175,7 +182,7 @@ export function TemplateDetailClient({ templateId }: { templateId: string }) {
             disabled={isLoading}
             className="flex items-center"
           >
-            <Trash2 className="w-4 h-4 mr-2" />
+            <Trash2 className="mr-2 h-4 w-4" />
             Delete Template
           </Button>
         </div>
@@ -186,7 +193,7 @@ export function TemplateDetailClient({ templateId }: { templateId: string }) {
             <Input
               id="name"
               value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              onChange={e => setFormData({ ...formData, name: e.target.value })}
               placeholder="Enter template name"
               required
             />
@@ -197,7 +204,7 @@ export function TemplateDetailClient({ templateId }: { templateId: string }) {
             <Textarea
               id="description"
               value={formData.description}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              onChange={e => setFormData({ ...formData, description: e.target.value })}
               placeholder="Enter template description"
             />
           </div>
@@ -207,7 +214,7 @@ export function TemplateDetailClient({ templateId }: { templateId: string }) {
             <Textarea
               id="content"
               value={formData.content}
-              onChange={(e) => setFormData({ ...formData, content: e.target.value })}
+              onChange={e => setFormData({ ...formData, content: e.target.value })}
               placeholder="Enter template content"
               className="min-h-[300px]"
               required
@@ -219,7 +226,7 @@ export function TemplateDetailClient({ templateId }: { templateId: string }) {
             <Input
               id="tags"
               value={formData.tags}
-              onChange={(e) => setFormData({ ...formData, tags: e.target.value })}
+              onChange={e => setFormData({ ...formData, tags: e.target.value })}
               placeholder="e.g., marketing, social, business"
             />
           </div>
@@ -228,7 +235,7 @@ export function TemplateDetailClient({ templateId }: { templateId: string }) {
             <Switch
               id="isPublic"
               checked={formData.isPublic}
-              onCheckedChange={(checked) => setFormData({ ...formData, isPublic: checked })}
+              onCheckedChange={checked => setFormData({ ...formData, isPublic: checked })}
             />
             <Label htmlFor="isPublic">Make template public</Label>
           </div>
@@ -239,7 +246,7 @@ export function TemplateDetailClient({ templateId }: { templateId: string }) {
               className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
               disabled={isLoading}
             >
-              <Save className="w-4 h-4 mr-2" />
+              <Save className="mr-2 h-4 w-4" />
               {isLoading ? 'Saving...' : 'Save Changes'}
             </Button>
           </div>
@@ -247,4 +254,4 @@ export function TemplateDetailClient({ templateId }: { templateId: string }) {
       </div>
     </div>
   );
-} 
+}

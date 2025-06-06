@@ -1,6 +1,6 @@
-import { auth } from "@clerk/nextjs/server";
-import { prisma } from "@/lib/prisma";
-import { redirect } from "next/navigation";
+import { auth } from '@clerk/nextjs/server';
+import { prisma } from '@/lib/prisma';
+import { redirect } from 'next/navigation';
 
 export async function validateSubscription() {
   const { userId } = await auth();
@@ -36,4 +36,4 @@ export async function validateSubscription() {
 
   // If user has used their free prompt and has no subscription, redirect to pricing
   return { canCreate: false, redirectTo: '/pricing' };
-} 
+}

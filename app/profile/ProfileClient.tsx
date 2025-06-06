@@ -1,49 +1,77 @@
-"use client";
+'use client';
 
-import { useState, useEffect, Suspense } from "react";
-import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
-import { User, BarChart2, CreditCard as BillingIcon, FileText, Settings, LogOut, Sparkles, ShieldUser, Pencil, Circle, Lock } from "lucide-react";
-import { NavBar } from "@/components/layout/NavBar";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-import dynamic from "next/dynamic";
-import { useClerk, UserProfile } from "@clerk/nextjs";
-import { ProfileForm } from "./profile-form";
-import { Role, PlanType } from "@prisma/client";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { useRouter, useSearchParams } from "next/navigation";
-import useSWR from "swr";
-import { useState as useReactState } from "react";
-import { AreaChart, Area, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer, CartesianGrid } from "recharts";
-import { toast } from "sonner";
-import { ErrorBoundary } from "@/components/ErrorBoundary";
-import Link from "next/link";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
+import { useState, useEffect, Suspense } from 'react';
+import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
+import {
+  User,
+  BarChart2,
+  CreditCard as BillingIcon,
+  FileText,
+  Settings,
+  LogOut,
+  Sparkles,
+  ShieldUser,
+  Pencil,
+  Circle,
+  Lock,
+} from 'lucide-react';
+import { NavBar } from '@/components/layout/NavBar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
+import dynamic from 'next/dynamic';
+import { useClerk, UserProfile } from '@clerk/nextjs';
+import { ProfileForm } from './profile-form';
+import { Role, PlanType } from '@prisma/client';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { useRouter, useSearchParams } from 'next/navigation';
+import useSWR from 'swr';
+import { useState as useReactState } from 'react';
+import {
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  Tooltip as RechartsTooltip,
+  ResponsiveContainer,
+  CartesianGrid,
+} from 'recharts';
+import { toast } from 'sonner';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
+import Link from 'next/link';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
+import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
 import type { KeyedMutator } from 'swr';
-import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { useSidebarStore } from "@/components/layout/NavBarWrapper";
+import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { useSidebarStore } from '@/components/layout/NavBarWrapper';
 import { useTheme } from '@/components/ThemeProvider';
 
-const Sheet = dynamic(() => import("@/components/ui/sheet").then(mod => mod.Sheet), { ssr: false });
-const SheetContent = dynamic(() => import("@/components/ui/sheet").then(mod => mod.SheetContent), { ssr: false });
+const Sheet = dynamic(() => import('@/components/ui/sheet').then(mod => mod.Sheet), {
+  ssr: false,
+});
+const SheetContent = dynamic(() => import('@/components/ui/sheet').then(mod => mod.SheetContent), {
+  ssr: false,
+});
 
 const accountOptions = [
-  { label: "Overview", icon: User, href: "overview" },
-  { label: "Usage", icon: BarChart2, href: "usage" },
-  { label: "Billing", icon: BillingIcon, href: "billing" },
-  { label: "Settings", icon: Settings, href: "settings" },
-  { label: "Security", icon: ShieldUser, href: "security" },
+  { label: 'Overview', icon: User, href: 'overview' },
+  { label: 'Usage', icon: BarChart2, href: 'usage' },
+  { label: 'Billing', icon: BillingIcon, href: 'billing' },
+  { label: 'Settings', icon: Settings, href: 'settings' },
+  { label: 'Security', icon: ShieldUser, href: 'security' },
 ];
-const workspaceOptions = [
-  { label: "My Prompts", icon: FileText, href: "prompts" },
-];
+const workspaceOptions = [{ label: 'My Prompts', icon: FileText, href: 'prompts' }];
 
 const PRIVATE_PROMPT_LIMITS = {
   [PlanType.FREE]: 5,
@@ -112,7 +140,12 @@ function SettingsSection(props: SettingsSectionProps) {
   const [isSaving, setIsSaving] = useState(false);
   const { setTheme } = useTheme();
   if (isLoading && !data) {
-    return <div className="p-8"><div className="animate-pulse h-8 w-1/2 bg-muted rounded mb-4" /><div className="animate-pulse h-32 w-full bg-muted rounded" /></div>;
+    return (
+      <div className="p-8">
+        <div className="mb-4 h-8 w-1/2 animate-pulse rounded bg-muted" />
+        <div className="h-32 w-full animate-pulse rounded bg-muted" />
+      </div>
+    );
   }
   if (error) {
     return <div className="text-red-500">Failed to load settings.</div>;
@@ -122,17 +155,17 @@ function SettingsSection(props: SettingsSectionProps) {
     const previous = data;
     mutate({ ...data, [type]: newData }, false); // Optimistic update
     try {
-      const response = await fetch("/api/settings", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+      const response = await fetch('/api/settings', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ type, data: newData }),
       });
-      if (!response.ok) throw new Error("Failed to update settings");
-      toast.success("Settings updated");
+      if (!response.ok) throw new Error('Failed to update settings');
+      toast.success('Settings updated');
       mutate(); // Revalidate
     } catch (error) {
       mutate(previous, false); // Rollback
-      toast.error("Failed to update settings. Please try again.");
+      toast.error('Failed to update settings. Please try again.');
     } finally {
       setIsSaving(false);
     }
@@ -140,7 +173,7 @@ function SettingsSection(props: SettingsSectionProps) {
   const handleThemeChange = (value: string) => {
     if (value === 'light' || value === 'dark' || value === 'system') {
       setTheme(value);
-      handleSettingsUpdate("theme", { ...data.themeSettings, theme: value });
+      handleSettingsUpdate('theme', { ...data.themeSettings, theme: value });
     }
   };
   return (
@@ -156,7 +189,12 @@ function SettingsSection(props: SettingsSectionProps) {
             <Label>Marketing Emails</Label>
             <Switch
               checked={data.emailPreferences.marketingEmails}
-              onCheckedChange={(checked) => handleSettingsUpdate("email", { ...data.emailPreferences, marketingEmails: checked })}
+              onCheckedChange={checked =>
+                handleSettingsUpdate('email', {
+                  ...data.emailPreferences,
+                  marketingEmails: checked,
+                })
+              }
               disabled={isSaving}
             />
           </div>
@@ -164,7 +202,9 @@ function SettingsSection(props: SettingsSectionProps) {
             <Label>Product Updates</Label>
             <Switch
               checked={data.emailPreferences.productUpdates}
-              onCheckedChange={(checked) => handleSettingsUpdate("email", { ...data.emailPreferences, productUpdates: checked })}
+              onCheckedChange={checked =>
+                handleSettingsUpdate('email', { ...data.emailPreferences, productUpdates: checked })
+              }
               disabled={isSaving}
             />
           </div>
@@ -172,7 +212,9 @@ function SettingsSection(props: SettingsSectionProps) {
             <Label>Security Alerts</Label>
             <Switch
               checked={data.emailPreferences.securityAlerts}
-              onCheckedChange={(checked) => handleSettingsUpdate("email", { ...data.emailPreferences, securityAlerts: checked })}
+              onCheckedChange={checked =>
+                handleSettingsUpdate('email', { ...data.emailPreferences, securityAlerts: checked })
+              }
               disabled={isSaving}
             />
           </div>
@@ -189,7 +231,12 @@ function SettingsSection(props: SettingsSectionProps) {
             <Label>Email Notifications</Label>
             <Switch
               checked={data.notificationSettings.emailNotifications}
-              onCheckedChange={(checked) => handleSettingsUpdate("notifications", { ...data.notificationSettings, emailNotifications: checked })}
+              onCheckedChange={checked =>
+                handleSettingsUpdate('notifications', {
+                  ...data.notificationSettings,
+                  emailNotifications: checked,
+                })
+              }
               disabled={isSaving}
             />
           </div>
@@ -197,7 +244,12 @@ function SettingsSection(props: SettingsSectionProps) {
             <Label>Push Notifications</Label>
             <Switch
               checked={data.notificationSettings.pushNotifications}
-              onCheckedChange={(checked) => handleSettingsUpdate("notifications", { ...data.notificationSettings, pushNotifications: checked })}
+              onCheckedChange={checked =>
+                handleSettingsUpdate('notifications', {
+                  ...data.notificationSettings,
+                  pushNotifications: checked,
+                })
+              }
               disabled={isSaving}
             />
           </div>
@@ -205,7 +257,12 @@ function SettingsSection(props: SettingsSectionProps) {
             <Label>Browser Notifications</Label>
             <Switch
               checked={data.notificationSettings.browserNotifications}
-              onCheckedChange={(checked) => handleSettingsUpdate("notifications", { ...data.notificationSettings, browserNotifications: checked })}
+              onCheckedChange={checked =>
+                handleSettingsUpdate('notifications', {
+                  ...data.notificationSettings,
+                  browserNotifications: checked,
+                })
+              }
               disabled={isSaving}
             />
           </div>
@@ -243,36 +300,48 @@ function SettingsSection(props: SettingsSectionProps) {
 
 function SecuritySection({ data, error, isLoading, mutate }: SecuritySectionProps) {
   if (isLoading) {
-    return <div className="p-8 text-center text-muted-foreground">Loading security settings...</div>;
+    return (
+      <div className="p-8 text-center text-muted-foreground">Loading security settings...</div>
+    );
   }
   if (error || !data) {
     return <div className="p-8 text-center text-red-500">Failed to load security settings.</div>;
   }
   return (
-    <section className="w-full flex flex-col px-8">
-      <h2 className="text-2xl font-bold mb-2 w-full max-w-4xl flex items-center gap-2">
-        <Lock className="w-6 h-6 text-[#5A43F1]" aria-hidden="true" />
+    <section className="flex w-full flex-col px-8">
+      <h2 className="mb-2 flex w-full max-w-4xl items-center gap-2 text-2xl font-bold">
+        <Lock className="h-6 w-6 text-[#5A43F1]" aria-hidden="true" />
         Authentication
       </h2>
       <p className="mb-2 w-full max-w-4xl text-muted-foreground">
         Manage your account security and authentication settings.
       </p>
-      <div className="flex items-center gap-2 mb-6 w-full max-w-4xl bg-muted/60 rounded-lg px-4 py-2 shadow-sm border border-border">
-        <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-white border border-border mr-2">
-          <svg width="18" height="18" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect width="32" height="32" rx="16" fill="#fff"/>
-            <path d="M16 6C10.477 6 6 10.477 6 16C6 21.523 10.477 26 16 26C21.523 26 26 21.523 26 16C26 10.477 21.523 6 16 6ZM16 24C11.589 24 8 20.411 8 16C8 11.589 11.589 8 16 8C20.411 8 24 11.589 24 16C24 20.411 20.411 24 16 24ZM16 10C13.243 10 11 12.243 11 15C11 17.757 13.243 20 16 20C18.757 20 21 17.757 21 15C21 12.243 18.757 10 16 10ZM16 18C14.346 18 13 16.654 13 15C13 13.346 14.346 12 16 12C17.654 12 19 13.346 19 15C19 16.654 17.654 18 16 18Z" fill="#5A43F1"/>
+      <div className="mb-6 flex w-full max-w-4xl items-center gap-2 rounded-lg border border-border bg-muted/60 px-4 py-2 shadow-sm">
+        <span className="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full border border-border bg-white">
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 32 32"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <rect width="32" height="32" rx="16" fill="#fff" />
+            <path
+              d="M16 6C10.477 6 6 10.477 6 16C6 21.523 10.477 26 16 26C21.523 26 26 21.523 26 16C26 10.477 21.523 6 16 6ZM16 24C11.589 24 8 20.411 8 16C8 11.589 11.589 8 16 8C20.411 8 24 11.589 24 16C24 20.411 20.411 24 16 24ZM16 10C13.243 10 11 12.243 11 15C11 17.757 13.243 20 16 20C18.757 20 21 17.757 21 15C21 12.243 18.757 10 16 10ZM16 18C14.346 18 13 16.654 13 15C13 13.346 14.346 12 16 12C17.654 12 19 13.346 19 15C19 16.654 17.654 18 16 18Z"
+              fill="#5A43F1"
+            />
           </svg>
         </span>
-        <span className="text-xs text-muted-foreground font-medium">Authentication powered by <span className="font-semibold text-[#5A43F1]">Clerk</span></span>
+        <span className="text-xs font-medium text-muted-foreground">
+          Authentication powered by <span className="font-semibold text-[#5A43F1]">Clerk</span>
+        </span>
       </div>
       <div className="w-full max-w-4xl">
         <UserProfile
-        routing="hash"
+          routing="hash"
           appearance={{
             elements: {
-              card: "rounded-lg shadow-none bg-background w-full",
-            
+              card: 'rounded-lg shadow-none bg-background w-full',
             },
           }}
         />
@@ -281,9 +350,18 @@ function SecuritySection({ data, error, isLoading, mutate }: SecuritySectionProp
   );
 }
 
-function ProfileHeader({ user, status, statusColor, statusLabel, isPro, canUpgrade, creditPercentage, router }: {
+function ProfileHeader({
+  user,
+  status,
+  statusColor,
+  statusLabel,
+  isPro,
+  canUpgrade,
+  creditPercentage,
+  router,
+}: {
   user: ProfileClientProps['user'];
-  status: "active" | "trial" | "suspended";
+  status: 'active' | 'trial' | 'suspended';
   statusColor: string;
   statusLabel: string;
   isPro: boolean;
@@ -292,52 +370,62 @@ function ProfileHeader({ user, status, statusColor, statusLabel, isPro, canUpgra
   router: ReturnType<typeof useRouter>;
 }) {
   return (
-    <Card className="relative overflow-hidden flex flex-col md:flex-row items-stretch gap-0 p-8 bg-card border border-border rounded-2xl shadow-lg">
+    <Card className="relative flex flex-col items-stretch gap-0 overflow-hidden rounded-2xl border border-border bg-card p-8 shadow-lg md:flex-row">
       {/* Gradient background */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute -top-10 -left-10 w-40 h-40 bg-gradient-to-br from-purple-500/20 to-pink-500/10 rounded-full blur-2xl animate-pulse" />
-        <div className="absolute bottom-0 right-0 w-32 h-32 bg-gradient-to-tr from-pink-500/10 to-purple-500/20 rounded-full blur-2xl animate-pulse-slow" />
+      <div className="pointer-events-none absolute inset-0">
+        <div className="absolute -left-10 -top-10 h-40 w-40 animate-pulse rounded-full bg-gradient-to-br from-purple-500/20 to-pink-500/10 blur-2xl" />
+        <div className="animate-pulse-slow absolute bottom-0 right-0 h-32 w-32 rounded-full bg-gradient-to-tr from-pink-500/10 to-purple-500/20 blur-2xl" />
       </div>
       {/* 2-column layout */}
-      <div className="flex flex-1 flex-col justify-center z-10 gap-2 md:gap-3">
-        <div className="flex items-center gap-3 flex-wrap">
-          <span className="text-2xl font-bold text-foreground flex items-center gap-2">
-            {user.name || "Unnamed User"}
-            <span className="inline-flex items-center ml-1">
-              <Circle className={`w-3 h-3 mr-1 ${statusColor}`} />
+      <div className="z-10 flex flex-1 flex-col justify-center gap-2 md:gap-3">
+        <div className="flex flex-wrap items-center gap-3">
+          <span className="flex items-center gap-2 text-2xl font-bold text-foreground">
+            {user.name || 'Unnamed User'}
+            <span className="ml-1 inline-flex items-center">
+              <Circle className={`mr-1 h-3 w-3 ${statusColor}`} />
               <span className="text-xs text-muted-foreground">{statusLabel}</span>
             </span>
           </span>
-          <Badge className={`bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs font-semibold px-2 py-0.5 ${isPro ? "shadow-[0_0_8px_2px_rgba(168,85,247,0.4)]" : ""}`}>{isPro && <Sparkles className="w-3 h-3 animate-spin-slow mr-1" />}{user.planType}</Badge>
+          <Badge
+            className={`bg-gradient-to-r from-purple-500 to-pink-500 px-2 py-0.5 text-xs font-semibold text-white ${isPro ? 'shadow-[0_0_8px_2px_rgba(168,85,247,0.4)]' : ''}`}
+          >
+            {isPro && <Sparkles className="animate-spin-slow mr-1 h-3 w-3" />}
+            {user.planType}
+          </Badge>
         </div>
-        <div className="flex items-center gap-2 mt-1">
-          {user.planType === "FREE" && (
+        <div className="mt-1 flex items-center gap-2">
+          {user.planType === 'FREE' && (
             <Button
               size="sm"
-              className="bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold shadow hover:from-purple-700 hover:to-pink-700 transition px-4 py-1 text-sm"
-              onClick={() => router.push("/pricing")}
+              className="bg-gradient-to-r from-purple-600 to-pink-600 px-4 py-1 text-sm font-semibold text-white shadow transition hover:from-purple-700 hover:to-pink-700"
+              onClick={() => router.push('/pricing')}
             >
               Upgrade Plan
             </Button>
           )}
         </div>
-        <div className="text-sm text-muted-foreground mt-2">{user.email}</div>
-        <div className="text-xs text-muted-foreground capitalize">{user.role}</div>
+        <div className="mt-2 text-sm text-muted-foreground">{user.email}</div>
+        <div className="text-xs capitalize text-muted-foreground">{user.role}</div>
       </div>
       {/* Credits Widget (right column) */}
-      <div className="flex flex-col justify-center items-end min-w-[260px] z-10 md:pl-12 mt-8 md:mt-0">
-        <div className="flex items-center gap-2 mb-1">
+      <div className="z-10 mt-8 flex min-w-[260px] flex-col items-end justify-center md:mt-0 md:pl-12">
+        <div className="mb-1 flex items-center gap-2">
           <span className="text-xs font-medium text-muted-foreground">Credits</span>
-          <Sparkles className="w-4 h-4 text-purple-400 animate-pulse" />
+          <Sparkles className="h-4 w-4 animate-pulse text-purple-400" />
         </div>
-        <div className="flex items-center w-full gap-2">
-          <Progress value={creditPercentage} className="h-2 flex-1 bg-muted [&>div]:bg-gradient-to-r [&>div]:from-purple-500 [&>div]:to-pink-500" />
-          <span className="text-xs font-semibold text-muted-foreground whitespace-nowrap ml-2">{user.credits} / {user.creditCap}</span>
+        <div className="flex w-full items-center gap-2">
+          <Progress
+            value={creditPercentage}
+            className="h-2 flex-1 bg-muted [&>div]:bg-gradient-to-r [&>div]:from-purple-500 [&>div]:to-pink-500"
+          />
+          <span className="ml-2 whitespace-nowrap text-xs font-semibold text-muted-foreground">
+            {user.credits} / {user.creditCap}
+          </span>
           {canUpgrade && (
             <Button
               size="sm"
-              className="ml-2 px-3 py-0.5 rounded bg-gradient-to-r from-purple-600 to-pink-600 text-white text-xs font-semibold shadow hover:from-purple-700 hover:to-pink-700 transition"
-              onClick={() => router.push("/billing")}
+              className="ml-2 rounded bg-gradient-to-r from-purple-600 to-pink-600 px-3 py-0.5 text-xs font-semibold text-white shadow transition hover:from-purple-700 hover:to-pink-700"
+              onClick={() => router.push('/billing')}
             >
               Upgrade
             </Button>
@@ -356,20 +444,21 @@ function ProfileContent({ user, currentPath }: ProfileClientProps) {
   const creditPercentage = (user.credits / user.creditCap) * 100;
 
   // --- Tab State Management ---
-  const initialTab = searchParams.get("tab") || "overview";
+  const initialTab = searchParams.get('tab') || 'overview';
   const [activeTab, setActiveTab] = useState(initialTab);
 
   // Keep tab in sync with URL
   useEffect(() => {
-    const urlTab = searchParams.get("tab") || "overview";
+    const urlTab = searchParams.get('tab') || 'overview';
     setActiveTab(urlTab);
   }, [searchParams]);
 
   // Simulate status (in real app, fetch from subscription)
-  const status: "active" | "trial" | "suspended" = "active";
-  const statusColor = status === "active" ? "bg-green-500" : status === "trial" ? "bg-yellow-400" : "bg-red-500";
+  const status: 'active' | 'trial' | 'suspended' = 'active';
+  const statusColor =
+    status === 'active' ? 'bg-green-500' : status === 'trial' ? 'bg-yellow-400' : 'bg-red-500';
   const statusLabel = status.charAt(0).toUpperCase() + status.slice(1);
-  const isPro = user.planType === "PRO";
+  const isPro = user.planType === 'PRO';
   const canUpgrade = !isPro;
 
   // Sidebar click handler
@@ -385,60 +474,60 @@ function ProfileContent({ user, currentPath }: ProfileClientProps) {
   }
 
   const SidebarContent = (
-    <div className="flex flex-col h-full">
+    <div className="flex h-full flex-col">
       <div className="flex-1 overflow-y-auto">
         <div className="mb-8">
-          <div className="text-xs font-semibold text-muted-foreground mb-2">Account</div>
-          <nav className="flex flex-col gap-1 mb-6">
+          <div className="mb-2 text-xs font-semibold text-muted-foreground">Account</div>
+          <nav className="mb-6 flex flex-col gap-1">
             {accountOptions.map(opt => (
               <button
                 key={opt.label}
-                onClick={() => handleSidebarClick(opt.href.replace("/profile", "") || "overview")}
-                className={`relative flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition w-full text-left
-                  ${activeTab === (opt.href.replace("/profile", "") || "overview") ? "bg-accent text-foreground" : "text-muted-foreground hover:bg-accent hover:text-foreground"}`}
+                onClick={() => handleSidebarClick(opt.href.replace('/profile', '') || 'overview')}
+                className={`relative flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm font-medium transition ${activeTab === (opt.href.replace('/profile', '') || 'overview') ? 'bg-accent text-foreground' : 'text-muted-foreground hover:bg-accent hover:text-foreground'}`}
                 data-testid={`sidebar-${opt.label.toLowerCase()}-button`}
               >
-                {activeTab === (opt.href.replace("/profile", "") || "overview") && (
-                  <span className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 rounded bg-purple-500" />
+                {activeTab === (opt.href.replace('/profile', '') || 'overview') && (
+                  <span className="absolute left-0 top-1/2 h-6 w-1 -translate-y-1/2 rounded bg-purple-500" />
                 )}
-                <opt.icon className="w-4 h-4 text-purple-400" />
+                <opt.icon className="h-4 w-4 text-purple-400" />
                 {opt.label}
               </button>
             ))}
           </nav>
           <Separator />
-          <div className="text-xs font-semibold text-muted-foreground mt-6 mb-2">Workspace</div>
+          <div className="mb-2 mt-6 text-xs font-semibold text-muted-foreground">Workspace</div>
           <nav className="flex flex-col gap-1">
             {workspaceOptions.map(opt => (
               <button
                 key={opt.label}
-                onClick={() => handleSidebarClick("prompts")}
-                className={`relative flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition w-full text-left
-                  ${activeTab === "prompts" ? "bg-accent text-foreground" : "text-muted-foreground hover:bg-accent hover:text-foreground"}`}
+                onClick={() => handleSidebarClick('prompts')}
+                className={`relative flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm font-medium transition ${activeTab === 'prompts' ? 'bg-accent text-foreground' : 'text-muted-foreground hover:bg-accent hover:text-foreground'}`}
               >
-                {activeTab === "prompts" && (
-                  <span className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 rounded bg-purple-500" />
+                {activeTab === 'prompts' && (
+                  <span className="absolute left-0 top-1/2 h-6 w-1 -translate-y-1/2 rounded bg-purple-500" />
                 )}
-                <opt.icon className="w-4 h-4 text-purple-400" />
+                <opt.icon className="h-4 w-4 text-purple-400" />
                 {opt.label}
               </button>
             ))}
           </nav>
         </div>
       </div>
-      <div className="mt-auto pt-4 border-t border-border flex flex-col items-center">
+      <div className="mt-auto flex flex-col items-center border-t border-border pt-4">
         <button
           onClick={() => signOut()}
-          className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition w-full justify-center"
+          className="flex w-full items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-red-600 transition hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20"
         >
-          <LogOut className="w-4 h-4" /> Sign out
+          <LogOut className="h-4 w-4" /> Sign out
         </button>
       </div>
     </div>
   );
 
   function UsageStatsSection() {
-    const { data, error, isLoading } = useSWR<UsageData>("/api/profile/usage", (url: string) => fetch(url).then(r => r.json()));
+    const { data, error, isLoading } = useSWR<UsageData>('/api/profile/usage', (url: string) =>
+      fetch(url).then(r => r.json())
+    );
     const [dots, setDots] = useState(0);
 
     useEffect(() => {
@@ -449,39 +538,51 @@ function ProfileContent({ user, currentPath }: ProfileClientProps) {
     }, []);
 
     if (isLoading) {
-      return <div className="p-8 text-center text-muted-foreground">Loading usage{'.'.repeat(dots)}</div>;
+      return (
+        <div className="p-8 text-center text-muted-foreground">Loading usage{'.'.repeat(dots)}</div>
+      );
     }
     if (error || !data) {
       return <div className="p-8 text-center text-red-500">Failed to load usage data.</div>;
     }
 
-    const { totalCreditsUsed, creditsRemaining, creditCap, lastCreditReset, totalRequests, dailyUsage, recentActivity } = data;
+    const {
+      totalCreditsUsed,
+      creditsRemaining,
+      creditCap,
+      lastCreditReset,
+      totalRequests,
+      dailyUsage,
+      recentActivity,
+    } = data;
 
     return (
       <div className="flex flex-col gap-8">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
           <div className="rounded-lg bg-muted p-4 text-center">
-            <div className="text-xs text-muted-foreground mb-1">Credits Used</div>
+            <div className="mb-1 text-xs text-muted-foreground">Credits Used</div>
             <div className="text-xl font-bold">{totalCreditsUsed}</div>
           </div>
           <div className="rounded-lg bg-muted p-4 text-center">
-            <div className="text-xs text-muted-foreground mb-1">Credits Remaining</div>
+            <div className="mb-1 text-xs text-muted-foreground">Credits Remaining</div>
             <div className="text-xl font-bold">{creditsRemaining}</div>
           </div>
           <div className="rounded-lg bg-muted p-4 text-center">
-            <div className="text-xs text-muted-foreground mb-1">Total Requests</div>
+            <div className="mb-1 text-xs text-muted-foreground">Total Requests</div>
             <div className="text-xl font-bold">{totalRequests}</div>
           </div>
           <div className="rounded-lg bg-muted p-4 text-center">
-            <div className="text-xs text-muted-foreground mb-1">Last Reset</div>
-            <div className="text-sm font-semibold">{lastCreditReset ? new Date(lastCreditReset).toLocaleDateString() : "-"}</div>
+            <div className="mb-1 text-xs text-muted-foreground">Last Reset</div>
+            <div className="text-sm font-semibold">
+              {lastCreditReset ? new Date(lastCreditReset).toLocaleDateString() : '-'}
+            </div>
           </div>
         </div>
         <div className="mt-4">
-          <div className="flex items-center justify-between mb-2">
-            <div className="font-semibold text-sm">Daily Usage (last 30 days)</div>
+          <div className="mb-2 flex items-center justify-between">
+            <div className="text-sm font-semibold">Daily Usage (last 30 days)</div>
           </div>
-          <div className="w-full h-48 md:h-56 bg-background rounded-xl border border-border">
+          <div className="h-48 w-full rounded-xl border border-border bg-background md:h-56">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={dailyUsage} margin={{ top: 16, right: 24, left: 0, bottom: 0 }}>
                 <defs>
@@ -498,20 +599,25 @@ function ProfileContent({ user, currentPath }: ProfileClientProps) {
                     return `${date.getDate()}/${date.getMonth() + 1}`;
                   }}
                   fontSize={12}
-                  tick={{ fill: "#a1a1aa" }}
+                  tick={{ fill: '#a1a1aa' }}
                   minTickGap={4}
                 />
                 <YAxis
                   fontSize={12}
-                  tick={{ fill: "#a1a1aa" }}
+                  tick={{ fill: '#a1a1aa' }}
                   width={32}
                   axisLine={false}
                   tickLine={false}
                 />
                 <RechartsTooltip
-                  contentStyle={{ background: "#fff", borderRadius: 8, border: "1px solid #e5e7eb", color: "#333" }}
+                  contentStyle={{
+                    background: '#fff',
+                    borderRadius: 8,
+                    border: '1px solid #e5e7eb',
+                    color: '#333',
+                  }}
                   labelFormatter={d => `Date: ${new Date(d).toLocaleDateString()}`}
-                  formatter={v => [`${v} credits`, "Used"]}
+                  formatter={v => [`${v} credits`, 'Used']}
                 />
                 <Area
                   type="monotone"
@@ -520,8 +626,8 @@ function ProfileContent({ user, currentPath }: ProfileClientProps) {
                   fillOpacity={1}
                   fill="url(#usageGradient)"
                   strokeWidth={3}
-                  dot={{ r: 3, stroke: "#a855f7", strokeWidth: 2, fill: "#fff" }}
-                  activeDot={{ r: 5, fill: "#a855f7" }}
+                  dot={{ r: 3, stroke: '#a855f7', strokeWidth: 2, fill: '#fff' }}
+                  activeDot={{ r: 5, fill: '#a855f7' }}
                 />
               </AreaChart>
             </ResponsiveContainer>
@@ -529,9 +635,9 @@ function ProfileContent({ user, currentPath }: ProfileClientProps) {
         </div>
         {/* Recent Activity Table */}
         <div>
-          <div className="font-semibold text-sm mb-2">Recent Activity</div>
+          <div className="mb-2 text-sm font-semibold">Recent Activity</div>
           <div className="overflow-x-auto">
-            <table className="min-w-full text-sm border rounded-lg">
+            <table className="min-w-full rounded-lg border text-sm">
               <thead>
                 <tr className="bg-muted">
                   <th className="px-3 py-2 text-left font-semibold">Date</th>
@@ -542,12 +648,18 @@ function ProfileContent({ user, currentPath }: ProfileClientProps) {
               </thead>
               <tbody>
                 {recentActivity.length === 0 && (
-                  <tr><td colSpan={4} className="text-center py-4 text-muted-foreground">No recent activity</td></tr>
+                  <tr>
+                    <td colSpan={4} className="py-4 text-center text-muted-foreground">
+                      No recent activity
+                    </td>
+                  </tr>
                 )}
                 {recentActivity.map((a, i) => (
                   <tr key={i} className="border-t">
-                    <td className="px-3 py-2 whitespace-nowrap">{new Date(a.date).toLocaleString()}</td>
-                    <td className="px-3 py-2">{a.description || "-"}</td>
+                    <td className="whitespace-nowrap px-3 py-2">
+                      {new Date(a.date).toLocaleString()}
+                    </td>
+                    <td className="px-3 py-2">{a.description || '-'}</td>
                     <td className="px-3 py-2 text-right">{a.amount}</td>
                     <td className="px-3 py-2 capitalize">{a.type}</td>
                   </tr>
@@ -561,10 +673,12 @@ function ProfileContent({ user, currentPath }: ProfileClientProps) {
   }
 
   function BillingSection() {
-    const { data, error, isLoading, mutate } = useSWR("/api/billing/overview", (url) => fetch(url).then(r => r.json()));
+    const { data, error, isLoading, mutate } = useSWR('/api/billing/overview', url =>
+      fetch(url).then(r => r.json())
+    );
     const [portalLoading, setPortalLoading] = useReactState(false);
-    const [search, setSearch] = useReactState("");
-    const [debouncedSearch, setDebouncedSearch] = useReactState("");
+    const [search, setSearch] = useReactState('');
+    const [debouncedSearch, setDebouncedSearch] = useReactState('');
 
     // Debounce search input
     useEffect(() => {
@@ -580,42 +694,55 @@ function ProfileContent({ user, currentPath }: ProfileClientProps) {
     }
 
     const { subscription, invoices, paymentMethods } = data;
-    const plan = subscription?.items?.data?.[0]?.price?.nickname || "Unknown";
-    const renewal = subscription?.current_period_end ? new Date(subscription.current_period_end * 1000).toLocaleDateString() : "-";
-    const status = subscription?.status || "Unknown";
+    const plan = subscription?.items?.data?.[0]?.price?.nickname || 'Unknown';
+    const renewal = subscription?.current_period_end
+      ? new Date(subscription.current_period_end * 1000).toLocaleDateString()
+      : '-';
+    const status = subscription?.status || 'Unknown';
     const card = paymentMethods?.[0];
 
     // Filter invoices by search
     const filteredInvoices = (invoices || []).filter((inv: any) => {
       if (!debouncedSearch) return true;
       const date = new Date(inv.created * 1000).toLocaleDateString();
-      const amount = (inv.amount_paid / 100).toLocaleString(undefined, { style: 'currency', currency: inv.currency.toUpperCase() });
+      const amount = (inv.amount_paid / 100).toLocaleString(undefined, {
+        style: 'currency',
+        currency: inv.currency.toUpperCase(),
+      });
       return (
         date.includes(debouncedSearch) ||
         amount.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
-        (inv.status || "").toLowerCase().includes(debouncedSearch.toLowerCase())
+        (inv.status || '').toLowerCase().includes(debouncedSearch.toLowerCase())
       );
     });
 
     return (
       <div className="flex flex-col gap-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="rounded-lg bg-muted p-6 flex flex-col gap-2">
-            <div className="text-xs text-muted-foreground mb-1">Current Plan</div>
-            <div className="text-lg font-bold flex items-center gap-2">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+          <div className="flex flex-col gap-2 rounded-lg bg-muted p-6">
+            <div className="mb-1 text-xs text-muted-foreground">Current Plan</div>
+            <div className="flex items-center gap-2 text-lg font-bold">
               {plan}
-              <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${status === "active" ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700"}`}>{status}</span>
+              <span
+                className={`rounded-full px-2 py-0.5 text-xs font-semibold ${status === 'active' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}
+              >
+                {status}
+              </span>
             </div>
             <div className="text-xs text-muted-foreground">Renews: {renewal}</div>
           </div>
-          <div className="rounded-lg bg-muted p-6 flex flex-col gap-2">
-            <div className="text-xs text-muted-foreground mb-1">Payment Method</div>
+          <div className="flex flex-col gap-2 rounded-lg bg-muted p-6">
+            <div className="mb-1 text-xs text-muted-foreground">Payment Method</div>
             {card ? (
               <div className="flex items-center gap-2">
                 <span className="text-lg">💳</span>
                 <span className="font-mono">**** **** **** {card.card.last4}</span>
-                <span className="text-xs text-muted-foreground">{card.card.brand.toUpperCase()}</span>
-                <span className="text-xs text-muted-foreground">Exp {card.card.exp_month}/{card.card.exp_year}</span>
+                <span className="text-xs text-muted-foreground">
+                  {card.card.brand.toUpperCase()}
+                </span>
+                <span className="text-xs text-muted-foreground">
+                  Exp {card.card.exp_month}/{card.card.exp_year}
+                </span>
               </div>
             ) : (
               <div className="text-muted-foreground">No card on file</div>
@@ -624,39 +751,39 @@ function ProfileContent({ user, currentPath }: ProfileClientProps) {
         </div>
         <div>
           <button
-            className="px-4 py-2 rounded bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold shadow hover:from-purple-700 hover:to-pink-700 transition disabled:opacity-60"
+            className="rounded bg-gradient-to-r from-purple-600 to-pink-600 px-4 py-2 font-semibold text-white shadow transition hover:from-purple-700 hover:to-pink-700 disabled:opacity-60"
             disabled={portalLoading}
             onClick={async () => {
               setPortalLoading(true);
               try {
-                const res = await fetch("/api/billing/portal", { method: "POST" });
-                if (!res.ok) throw new Error("Failed to create portal session");
+                const res = await fetch('/api/billing/portal', { method: 'POST' });
+                if (!res.ok) throw new Error('Failed to create portal session');
                 const { url } = await res.json();
                 window.location.href = url;
               } catch (err) {
-                toast.error("Could not open Stripe portal. Please try again.");
+                toast.error('Could not open Stripe portal. Please try again.');
               } finally {
                 setPortalLoading(false);
               }
             }}
           >
-            {portalLoading ? "Loading..." : "Manage Subscription"}
+            {portalLoading ? 'Loading...' : 'Manage Subscription'}
           </button>
         </div>
         <div>
-          <div className="font-semibold text-sm mb-2 flex items-center gap-4">
+          <div className="mb-2 flex items-center gap-4 text-sm font-semibold">
             <span>Invoices</span>
             <input
               type="text"
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder="Search by date, status, or amount..."
-              className="ml-auto px-3 py-1.5 rounded border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+              className="ml-auto rounded border border-border bg-background px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
               style={{ maxWidth: 260 }}
             />
           </div>
           <div className="overflow-x-auto">
-            <table className="min-w-full text-sm border rounded-lg">
+            <table className="min-w-full rounded-lg border text-sm">
               <thead>
                 <tr className="bg-muted">
                   <th className="px-3 py-2 text-left font-semibold">Date</th>
@@ -667,16 +794,34 @@ function ProfileContent({ user, currentPath }: ProfileClientProps) {
               </thead>
               <tbody>
                 {filteredInvoices.length === 0 && (
-                  <tr><td colSpan={4} className="text-center py-4 text-muted-foreground">No invoices</td></tr>
+                  <tr>
+                    <td colSpan={4} className="py-4 text-center text-muted-foreground">
+                      No invoices
+                    </td>
+                  </tr>
                 )}
                 {filteredInvoices.map((inv: any, i: number) => (
                   <tr key={i} className="border-t">
-                    <td className="px-3 py-2 whitespace-nowrap">{new Date(inv.created * 1000).toLocaleDateString()}</td>
-                    <td className="px-3 py-2">{(inv.amount_paid / 100).toLocaleString(undefined, { style: 'currency', currency: inv.currency.toUpperCase() })}</td>
+                    <td className="whitespace-nowrap px-3 py-2">
+                      {new Date(inv.created * 1000).toLocaleDateString()}
+                    </td>
+                    <td className="px-3 py-2">
+                      {(inv.amount_paid / 100).toLocaleString(undefined, {
+                        style: 'currency',
+                        currency: inv.currency.toUpperCase(),
+                      })}
+                    </td>
                     <td className="px-3 py-2 capitalize">{inv.status}</td>
                     <td className="px-3 py-2">
                       {inv.invoice_pdf ? (
-                        <a href={inv.invoice_pdf} target="_blank" rel="noopener noreferrer" className="text-purple-600 underline">PDF</a>
+                        <a
+                          href={inv.invoice_pdf}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-purple-600 underline"
+                        >
+                          PDF
+                        </a>
                       ) : (
                         <span className="text-muted-foreground">-</span>
                       )}
@@ -692,27 +837,32 @@ function ProfileContent({ user, currentPath }: ProfileClientProps) {
   }
 
   function PromptsSection() {
-    const [search, setSearch] = useReactState("");
-    const [debouncedSearch, setDebouncedSearch] = useReactState("");
+    const [search, setSearch] = useReactState('');
+    const [debouncedSearch, setDebouncedSearch] = useReactState('');
     useEffect(() => {
       const t = setTimeout(() => setDebouncedSearch(search), 300);
       return () => clearTimeout(t);
     }, [search]);
-    const { data, error, isLoading, mutate } = useSWR(`/api/prompts?search=${encodeURIComponent(debouncedSearch)}`, (url) => fetch(url).then(r => r.json()));
+    const { data, error, isLoading, mutate } = useSWR(
+      `/api/prompts?search=${encodeURIComponent(debouncedSearch)}`,
+      url => fetch(url).then(r => r.json())
+    );
 
     return (
       <div className="flex flex-col gap-6">
-        <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4 mb-2">
+        <div className="mb-2 flex flex-col gap-2 md:flex-row md:items-center md:gap-4">
           <input
             type="text"
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="Search prompts..."
-            className="px-3 py-1.5 rounded border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 w-full md:w-64"
+            className="w-full rounded border border-border bg-background px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 md:w-64"
           />
           <button
-            className="ml-auto px-4 py-2 rounded bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold shadow hover:from-purple-700 hover:to-pink-700 transition"
-            onClick={() => { /* TODO: open create prompt dialog */ }}
+            className="ml-auto rounded bg-gradient-to-r from-purple-600 to-pink-600 px-4 py-2 font-semibold text-white shadow transition hover:from-purple-700 hover:to-pink-700"
+            onClick={() => {
+              /* TODO: open create prompt dialog */
+            }}
           >
             + Create Prompt
           </button>
@@ -723,7 +873,7 @@ function ProfileContent({ user, currentPath }: ProfileClientProps) {
           <div className="p-8 text-center text-red-500">Failed to load prompts.</div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="min-w-full text-sm border rounded-lg">
+            <table className="min-w-full rounded-lg border text-sm">
               <thead>
                 <tr className="bg-muted">
                   <th className="px-3 py-2 text-left font-semibold">Title</th>
@@ -734,14 +884,20 @@ function ProfileContent({ user, currentPath }: ProfileClientProps) {
               </thead>
               <tbody>
                 {data?.prompts?.length === 0 && (
-                  <tr><td colSpan={4} className="text-center py-4 text-muted-foreground">No prompts found</td></tr>
+                  <tr>
+                    <td colSpan={4} className="py-4 text-center text-muted-foreground">
+                      No prompts found
+                    </td>
+                  </tr>
                 )}
                 {data?.prompts?.map((p: any) => (
                   <tr key={p.id} className="border-t">
                     <td className="px-3 py-2 font-semibold">{p.name}</td>
-                    <td className="px-3 py-2 capitalize">{p.promptType || "-"}</td>
-                    <td className="px-3 py-2 whitespace-nowrap">{new Date(p.createdAt).toLocaleDateString()}</td>
-                    <td className="px-3 py-2 text-muted-foreground">{p.description || "-"}</td>
+                    <td className="px-3 py-2 capitalize">{p.promptType || '-'}</td>
+                    <td className="whitespace-nowrap px-3 py-2">
+                      {new Date(p.createdAt).toLocaleDateString()}
+                    </td>
+                    <td className="px-3 py-2 text-muted-foreground">{p.description || '-'}</td>
                   </tr>
                 ))}
               </tbody>
@@ -754,27 +910,30 @@ function ProfileContent({ user, currentPath }: ProfileClientProps) {
 
   // SWR setup at the top of ProfileClient
   const fetcher = (url: string) => fetch(url).then(r => r.json());
-  const { data: settingsData, error: settingsError, isLoading: settingsLoading, mutate: mutateSettings } = useSWR(
-    '/api/settings',
-    fetcher,
-    {
-      dedupingInterval: 30000, // 30 seconds
-      revalidateOnFocus: false,
-    }
-  );
-  const { data: loginHistory, error: loginHistoryError, isLoading: loginHistoryLoading, mutate: mutateLoginHistory } = useSWR(
-    '/api/settings/login-history',
-    fetcher,
-    {
-      dedupingInterval: 30000,
-      revalidateOnFocus: false,
-    }
-  );
+  const {
+    data: settingsData,
+    error: settingsError,
+    isLoading: settingsLoading,
+    mutate: mutateSettings,
+  } = useSWR('/api/settings', fetcher, {
+    dedupingInterval: 30000, // 30 seconds
+    revalidateOnFocus: false,
+  });
+  const {
+    data: loginHistory,
+    error: loginHistoryError,
+    isLoading: loginHistoryLoading,
+    mutate: mutateLoginHistory,
+  } = useSWR('/api/settings/login-history', fetcher, {
+    dedupingInterval: 30000,
+    revalidateOnFocus: false,
+  });
 
   const { data: promptStats } = useSWR('/api/prompts/stats', fetcher);
   const privatePromptLimit = PRIVATE_PROMPT_LIMITS[user.planType as PlanType];
   const privatePromptCount = promptStats?.privatePromptCount || 0;
-  const privatePromptPercentage = privatePromptLimit === Infinity ? 0 : (privatePromptCount / privatePromptLimit) * 100;
+  const privatePromptPercentage =
+    privatePromptLimit === Infinity ? 0 : (privatePromptCount / privatePromptLimit) * 100;
 
   return (
     <>
@@ -782,62 +941,85 @@ function ProfileContent({ user, currentPath }: ProfileClientProps) {
       <div className="min-h-screen bg-background">
         {/* Mobile/Tablet Sidebar Drawer */}
         <Sheet open={sidebarOpen} onOpenChange={closeSidebar}>
-          <SheetContent side="left" className="p-0 w-64">
-            <ErrorBoundary>
-              {SidebarContent}
-            </ErrorBoundary>
+          <SheetContent side="left" className="w-64 p-0">
+            <ErrorBoundary>{SidebarContent}</ErrorBoundary>
           </SheetContent>
         </Sheet>
-        <div className="flex w-full max-w-7xl mx-auto pt-8 px-4 gap-8">
+        <div className="mx-auto flex w-full max-w-7xl gap-8 px-4 pt-8">
           {/* Desktop Sidebar */}
           <ErrorBoundary>
-            <aside className="w-72 shrink-0 hidden md:flex flex-col bg-card rounded-2xl py-8 px-6 h-fit mt-4 border border-border">
+            <aside className="mt-4 hidden h-fit w-72 shrink-0 flex-col rounded-2xl border border-border bg-card px-6 py-8 md:flex">
               {SidebarContent}
             </aside>
           </ErrorBoundary>
           {/* Main Content */}
-          <main className="flex-1 max-w-[1180px] w-full mx-auto flex flex-col gap-8">
+          <main className="mx-auto flex w-full max-w-[1180px] flex-1 flex-col gap-8">
             {/* Profile Header Card */}
             <ErrorBoundary>
-              <ProfileHeader user={user} status={status} statusColor={statusColor} statusLabel={statusLabel} isPro={isPro} canUpgrade={canUpgrade} creditPercentage={creditPercentage} router={router} />
+              <ProfileHeader
+                user={user}
+                status={status}
+                statusColor={statusColor}
+                statusLabel={statusLabel}
+                isPro={isPro}
+                canUpgrade={canUpgrade}
+                creditPercentage={creditPercentage}
+                router={router}
+              />
             </ErrorBoundary>
             {/* Tabs for profile sections */}
             <ErrorBoundary>
               <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
                 <TabsContent value="overview">
-                  <Card className="p-8 bg-card border border-border rounded-2xl shadow-lg">
+                  <Card className="rounded-2xl border border-border bg-card p-8 shadow-lg">
                     <div className="space-y-8">
-                      <ProfileForm user={{
-                        ...user,
-                        role: user.role as Role,
-                        planType: user.planType as PlanType,
-                      }} />
+                      <ProfileForm
+                        user={{
+                          ...user,
+                          role: user.role as Role,
+                          planType: user.planType as PlanType,
+                        }}
+                      />
                     </div>
                   </Card>
                 </TabsContent>
                 <TabsContent value="usage">
-                  <Card className="p-8 bg-card border border-border rounded-2xl shadow-lg">
+                  <Card className="rounded-2xl border border-border bg-card p-8 shadow-lg">
                     <UsageStatsSection />
-                  </Card> 
+                  </Card>
                 </TabsContent>
                 <TabsContent value="billing">
-                  <Card className="p-8 bg-card border border-border rounded-2xl shadow-lg">
+                  <Card className="rounded-2xl border border-border bg-card p-8 shadow-lg">
                     <BillingSection />
                   </Card>
                 </TabsContent>
                 <TabsContent value="prompts">
-                  <Card className="p-8 bg-card border border-border rounded-2xl shadow-lg">
+                  <Card className="rounded-2xl border border-border bg-card p-8 shadow-lg">
                     <PromptsSection />
                   </Card>
                 </TabsContent>
                 <TabsContent value="settings">
-                  <Card className="p-8 bg-card border border-border rounded-2xl shadow-lg">
-                    <SettingsSection data={settingsData} error={settingsError} isLoading={settingsLoading} mutate={mutateSettings} />
+                  <Card className="rounded-2xl border border-border bg-card p-8 shadow-lg">
+                    <SettingsSection
+                      data={settingsData}
+                      error={settingsError}
+                      isLoading={settingsLoading}
+                      mutate={mutateSettings}
+                    />
                   </Card>
                 </TabsContent>
                 <TabsContent value="security">
-                  <Card className="p-8 bg-card border border-border rounded-2xl shadow-lg">
-                    <SecuritySection data={settingsData} error={settingsError} isLoading={settingsLoading} mutate={mutateSettings} loginHistory={loginHistory} loginHistoryError={loginHistoryError} loginHistoryLoading={loginHistoryLoading} mutateLoginHistory={mutateLoginHistory} />
+                  <Card className="rounded-2xl border border-border bg-card p-8 shadow-lg">
+                    <SecuritySection
+                      data={settingsData}
+                      error={settingsError}
+                      isLoading={settingsLoading}
+                      mutate={mutateSettings}
+                      loginHistory={loginHistory}
+                      loginHistoryError={loginHistoryError}
+                      loginHistoryLoading={loginHistoryLoading}
+                      mutateLoginHistory={mutateLoginHistory}
+                    />
                   </Card>
                 </TabsContent>
               </Tabs>
@@ -855,4 +1037,4 @@ export function ProfileClient({ user, currentPath }: ProfileClientProps) {
       <ProfileContent user={user} currentPath={currentPath} />
     </Suspense>
   );
-} 
+}

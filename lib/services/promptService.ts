@@ -58,14 +58,16 @@ export class PromptService {
       const privatePromptLimit = this.PRIVATE_PROMPT_LIMITS[planType];
       if (privatePromptLimit !== Infinity) {
         const privatePromptCount = await prisma.prompt.count({
-          where: { 
+          where: {
             userId,
             isPublic: false,
           },
         });
 
         if (privatePromptCount >= privatePromptLimit) {
-          throw new Error(`You have reached your private prompt limit of ${privatePromptLimit}. Please upgrade to save more private prompts.`);
+          throw new Error(
+            `You have reached your private prompt limit of ${privatePromptLimit}. Please upgrade to save more private prompts.`
+          );
         }
       }
     }
@@ -78,13 +80,15 @@ export class PromptService {
       });
 
       if (promptCount >= promptLimit) {
-        throw new Error(`You have reached your prompt limit of ${promptLimit}. Please upgrade to save more prompts.`);
+        throw new Error(
+          `You have reached your prompt limit of ${promptLimit}. Please upgrade to save more prompts.`
+        );
       }
     }
 
     // Generate a unique slug for the prompt
     const { aiSlugify } = await import('./slugService');
-    let baseSlug = await aiSlugify(data.name, data.description || '');
+    const baseSlug = await aiSlugify(data.name, data.description || '');
     let uniqueSlug = baseSlug;
     let i = 1;
     while (await prisma.prompt.findFirst({ where: { slug: uniqueSlug } })) {
@@ -95,10 +99,10 @@ export class PromptService {
     // Create or find tags
     const tagOperations = (data.tags || []).map(tag => ({
       where: { name: tag },
-      create: { 
+      create: {
         name: tag,
-        slug: tag.toLowerCase().replace(/\s+/g, '-')
-      }
+        slug: tag.toLowerCase().replace(/\s+/g, '-'),
+      },
     }));
 
     // Create prompt with tags and unique slug
@@ -136,26 +140,27 @@ export class PromptService {
     const skip = (page - 1) * limit;
 
     const where: Prisma.PromptWhereInput = {
-      OR: [
-        { userId },
-        ...(includePublic ? [{ isPublic: true }] : []),
-      ],
-      ...(tags?.length ? {
-        tags: {
-          some: {
-            name: {
-              in: tags,
+      OR: [{ userId }, ...(includePublic ? [{ isPublic: true }] : [])],
+      ...(tags?.length
+        ? {
+            tags: {
+              some: {
+                name: {
+                  in: tags,
+                },
+              },
             },
-          },
-        },
-      } : {}),
-      ...(search ? {
-        OR: [
-          { name: { contains: search, mode: Prisma.QueryMode.insensitive } },
-          { content: { contains: search, mode: Prisma.QueryMode.insensitive } },
-          { description: { contains: search, mode: Prisma.QueryMode.insensitive } },
-        ],
-      } : {}),
+          }
+        : {}),
+      ...(search
+        ? {
+            OR: [
+              { name: { contains: search, mode: Prisma.QueryMode.insensitive } },
+              { content: { contains: search, mode: Prisma.QueryMode.insensitive } },
+              { description: { contains: search, mode: Prisma.QueryMode.insensitive } },
+            ],
+          }
+        : {}),
     };
 
     const [prompts, total] = await Promise.all([
@@ -188,11 +193,7 @@ export class PromptService {
     return prompt as Prompt | null;
   }
 
-  public async updatePrompt(
-    id: string,
-    userId: string,
-    updates: Partial<Prompt>
-  ): Promise<Prompt> {
+  public async updatePrompt(id: string, userId: string, updates: Partial<Prompt>): Promise<Prompt> {
     const prompt = await prisma.prompt.findUnique({
       where: { id },
     });
@@ -206,16 +207,18 @@ export class PromptService {
     }
 
     // Handle tag updates if provided
-    const tagOperations = updates.tags ? {
-      set: [], // Clear existing tags
-      connectOrCreate: updates.tags.map(tag => ({
-        where: { name: tag.name },
-        create: { 
-          name: tag.name,
-          slug: tag.name.toLowerCase().replace(/\s+/g, '-')
-        },
-      })),
-    } : undefined;
+    const tagOperations = updates.tags
+      ? {
+          set: [], // Clear existing tags
+          connectOrCreate: updates.tags.map(tag => ({
+            where: { name: tag.name },
+            create: {
+              name: tag.name,
+              slug: tag.name.toLowerCase().replace(/\s+/g, '-'),
+            },
+          })),
+        }
+      : undefined;
 
     const updatedPrompt = await prisma.prompt.update({
       where: { id },
@@ -293,10 +296,7 @@ export class PromptService {
   public async getFeaturedPrompts(limit: number = 3): Promise<Prompt[]> {
     return prisma.prompt.findMany({
       where: { isPublic: true },
-      orderBy: [
-        { upvotes: 'desc' },
-        { createdAt: 'desc' },
-      ],
+      orderBy: [{ upvotes: 'desc' }, { createdAt: 'desc' }],
       include: { tags: true },
       take: limit,
     }) as Promise<Prompt[]>;

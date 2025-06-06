@@ -1,14 +1,14 @@
-"use client";
-import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Loader2, Copy, Check, AlertCircle, Play, History, Settings } from "lucide-react";
-import { toast } from "sonner";
-import { cn } from "@/lib/utils";
+'use client';
+import { useState, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Loader2, Copy, Check, AlertCircle, Play, History, Settings } from 'lucide-react';
+import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
 
 interface PlaygroundProps {
   initialPrompt?: string;
@@ -24,22 +24,29 @@ interface Usage {
   playgroundRunsThisMonth: number;
 }
 
-export default function Playground({ initialPrompt = "", disabled = false, onResult, className = "", showTitle = true, promptId }: PlaygroundProps) {
+export default function Playground({
+  initialPrompt = '',
+  disabled = false,
+  onResult,
+  className = '',
+  showTitle = true,
+  promptId,
+}: PlaygroundProps) {
   const [prompt, setPrompt] = useState(initialPrompt);
-  const [output, setOutput] = useState("");
-  const [error, setError] = useState("");
+  const [output, setOutput] = useState('');
+  const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [showUpgrade, setShowUpgrade] = useState(false);
   const [usage, setUsage] = useState<Usage | null>(null);
   const [isOverLimit, setIsOverLimit] = useState(false);
   const [copied, setCopied] = useState(false);
-  const [activeTab, setActiveTab] = useState("prompt");
+  const [activeTab, setActiveTab] = useState('prompt');
 
   useEffect(() => {
     async function fetchUsage() {
       try {
-        const res = await fetch("/api/user/usage");
-        if (!res.ok) throw new Error("Failed to fetch usage");
+        const res = await fetch('/api/user/usage');
+        if (!res.ok) throw new Error('Failed to fetch usage');
         const data = await res.json();
         setUsage(data);
         // Check if user has exceeded their limit
@@ -51,7 +58,7 @@ export default function Playground({ initialPrompt = "", disabled = false, onRes
         const limit = TIER_LIMITS[data.planType];
         setIsOverLimit(limit !== null && data.playgroundRunsThisMonth >= limit);
       } catch (e) {
-        console.error("Error fetching usage:", e);
+        console.error('Error fetching usage:', e);
       }
     }
     fetchUsage();
@@ -63,54 +70,57 @@ export default function Playground({ initialPrompt = "", disabled = false, onRes
       return;
     }
     setLoading(true);
-    setOutput("");
-    setError("");
+    setOutput('');
+    setError('');
     try {
       // First, check if we can run the prompt
-      const checkRes = await fetch("/api/playground/check", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      const checkRes = await fetch('/api/playground/check', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ promptId }),
       });
 
       if (!checkRes.ok) {
         const checkData = await checkRes.json();
-        if (checkData.error?.includes('Insufficient credits') || checkData.error?.includes('upgrade')) {
+        if (
+          checkData.error?.includes('Insufficient credits') ||
+          checkData.error?.includes('upgrade')
+        ) {
           setShowUpgrade(true);
           throw new Error(checkData.error);
         }
-        throw new Error(checkData.error || "Failed to check playground usage");
+        throw new Error(checkData.error || 'Failed to check playground usage');
       }
 
       // If check passes, run the prompt
-      const res = await fetch("/api/ai/run", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      const res = await fetch('/api/ai/run', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ prompt, promptId }),
       });
-      
+
       const data = await res.json();
-      
+
       if (!res.ok) {
         if (data.error?.includes('Insufficient credits') || data.error?.includes('upgrade')) {
           setShowUpgrade(true);
           throw new Error(data.error);
         }
-        throw new Error(data.error || "Failed to run prompt");
+        throw new Error(data.error || 'Failed to run prompt');
       }
-      
-      setOutput(data.result || "No output");
-      if (onResult) onResult(data.result || "No output");
+
+      setOutput(data.result || 'No output');
+      if (onResult) onResult(data.result || 'No output');
 
       // Track the usage
       try {
-        await fetch("/api/playground/track", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
+        await fetch('/api/playground/track', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ promptId }),
         });
       } catch (trackError) {
-        console.error("Error tracking playground usage:", trackError);
+        console.error('Error tracking playground usage:', trackError);
       }
 
       // Refetch usage after a run
@@ -121,7 +131,7 @@ export default function Playground({ initialPrompt = "", disabled = false, onRes
         });
       }
     } catch (e: any) {
-      setError(e.message || "Unknown error");
+      setError(e.message || 'Unknown error');
     } finally {
       setLoading(false);
     }
@@ -131,24 +141,24 @@ export default function Playground({ initialPrompt = "", disabled = false, onRes
     try {
       await navigator.clipboard.writeText(text);
       setCopied(true);
-      toast.success("Copied to clipboard!");
+      toast.success('Copied to clipboard!');
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
-      toast.error("Failed to copy to clipboard");
+      toast.error('Failed to copy to clipboard');
     }
   };
 
   return (
-    <Card className={cn("w-full", className)}>
-      <CardHeader className={cn("pb-2", !showTitle && "hidden")}>
+    <Card className={cn('w-full', className)}>
+      <CardHeader className={cn('pb-2', !showTitle && 'hidden')}>
         <div className="flex items-center justify-between gap-x-3">
           <CardTitle className="text-xl">Prompt Playground</CardTitle>
           {usage && (
-            <Badge variant={usage.planType === "PRO" ? "default" : "secondary"}>
+            <Badge variant={usage.planType === 'PRO' ? 'default' : 'secondary'}>
               {usage.planType} Plan
-              {usage.planType !== "PRO" && (
+              {usage.planType !== 'PRO' && (
                 <span className="ml-2">
-                  ({usage.playgroundRunsThisMonth}/{usage.planType === "FREE" ? 20 : 300} runs)
+                  ({usage.playgroundRunsThisMonth}/{usage.planType === 'FREE' ? 20 : 300} runs)
                 </span>
               )}
             </Badge>
@@ -159,15 +169,15 @@ export default function Playground({ initialPrompt = "", disabled = false, onRes
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="prompt" className="flex items-center gap-2">
-              <Play className="w-4 h-4" />
+              <Play className="h-4 w-4" />
               Prompt
             </TabsTrigger>
             <TabsTrigger value="output" className="flex items-center gap-2" disabled={!output}>
-              <History className="w-4 h-4" />
+              <History className="h-4 w-4" />
               Output
             </TabsTrigger>
           </TabsList>
-          
+
           <TabsContent value="prompt" className="mt-4">
             <div className="space-y-4">
               <div className="relative">
@@ -181,13 +191,13 @@ export default function Playground({ initialPrompt = "", disabled = false, onRes
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="absolute top-2 right-2"
+                  className="absolute right-2 top-2"
                   onClick={() => handleCopy(prompt)}
                 >
-                  {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                  {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                 </Button>
               </div>
-              
+
               <Button
                 className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700"
                 onClick={runPrompt}
@@ -195,14 +205,14 @@ export default function Playground({ initialPrompt = "", disabled = false, onRes
               >
                 {loading ? (
                   <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Running...
                   </>
                 ) : isOverLimit ? (
-                  "Upgrade for more runs"
+                  'Upgrade for more runs'
                 ) : (
                   <>
-                    <Play className="w-4 h-4 mr-2" />
+                    <Play className="mr-2 h-4 w-4" />
                     Run Prompt
                   </>
                 )}
@@ -216,18 +226,14 @@ export default function Playground({ initialPrompt = "", disabled = false, onRes
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <h3 className="text-sm font-medium">AI Output</h3>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleCopy(output)}
-                    >
-                      {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                    <Button variant="ghost" size="icon" onClick={() => handleCopy(output)}>
+                      {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                     </Button>
                   </div>
                   <pre className="whitespace-pre-wrap text-sm">{output}</pre>
                 </div>
               ) : (
-                <div className="flex items-center justify-center h-full text-gray-500">
+                <div className="flex h-full items-center justify-center text-gray-500">
                   No output yet. Run a prompt to see results.
                 </div>
               )}
@@ -236,29 +242,29 @@ export default function Playground({ initialPrompt = "", disabled = false, onRes
         </Tabs>
 
         {showUpgrade && (
-          <div className="p-4 bg-yellow-100 dark:bg-yellow-900/20 border border-yellow-300 dark:border-yellow-800 rounded-md">
+          <div className="rounded-md border border-yellow-300 bg-yellow-100 p-4 dark:border-yellow-800 dark:bg-yellow-900/20">
             <div className="flex items-start gap-2">
-              <AlertCircle className="w-5 h-5 text-yellow-600 dark:text-yellow-400 mt-0.5" />
+              <AlertCircle className="mt-0.5 h-5 w-5 text-yellow-600 dark:text-yellow-400" />
               <div>
-                <h4 className="font-medium text-yellow-800 dark:text-yellow-200">You've run out of credits!</h4>
-                <p className="text-sm text-yellow-700 dark:text-yellow-300 mt-1">
-                  {error?.includes('Insufficient credits') ? (
-                    "You need more credits to continue using the Playground. Please purchase more credits to continue."
-                  ) : error?.includes('upgrade') ? (
-                    "This feature requires a Pro subscription. Please upgrade your plan to continue."
-                  ) : (
-                    "You've reached your Playground run limit for this month. Upgrade your plan for more runs!"
-                  )}
+                <h4 className="font-medium text-yellow-800 dark:text-yellow-200">
+                  You've run out of credits!
+                </h4>
+                <p className="mt-1 text-sm text-yellow-700 dark:text-yellow-300">
+                  {error?.includes('Insufficient credits')
+                    ? 'You need more credits to continue using the Playground. Please purchase more credits to continue.'
+                    : error?.includes('upgrade')
+                      ? 'This feature requires a Pro subscription. Please upgrade your plan to continue.'
+                      : "You've reached your Playground run limit for this month. Upgrade your plan for more runs!"}
                 </p>
               </div>
             </div>
           </div>
         )}
-        
+
         {error && !showUpgrade && (
-          <div className="p-4 bg-red-100 dark:bg-red-900/20 border border-red-300 dark:border-red-800 rounded-md">
+          <div className="rounded-md border border-red-300 bg-red-100 p-4 dark:border-red-800 dark:bg-red-900/20">
             <div className="flex items-start gap-2">
-              <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400 mt-0.5" />
+              <AlertCircle className="mt-0.5 h-5 w-5 text-red-600 dark:text-red-400" />
               <p className="text-sm text-red-700 dark:text-red-300">{error}</p>
             </div>
           </div>
@@ -266,4 +272,4 @@ export default function Playground({ initialPrompt = "", disabled = false, onRes
       </CardContent>
     </Card>
   );
-} 
+}

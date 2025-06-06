@@ -1,7 +1,7 @@
-import { prisma } from "@/lib/prisma";
-import type { User } from "@prisma/client";
-import { subDays, format } from "date-fns";
-import { userUpdateSchema } from "@/lib/validations/user";
+import { prisma } from '@/lib/prisma';
+import type { User } from '@prisma/client';
+import { subDays, format } from 'date-fns';
+import { userUpdateSchema } from '@/lib/validations/user';
 
 /**
  * Fetches a user profile by Clerk ID.
@@ -9,7 +9,7 @@ import { userUpdateSchema } from "@/lib/validations/user";
  * @returns User object or null if not found
  */
 export async function getProfileByClerkId(clerkId: string): Promise<User | null> {
-  if (!clerkId) throw new Error("Clerk ID is required");
+  if (!clerkId) throw new Error('Clerk ID is required');
   const user = await prisma.user.findUnique({
     where: { clerkId },
   });
@@ -30,7 +30,7 @@ export type UsageStats = {
  * Fetches usage stats and daily usage for the user by Clerk ID.
  */
 export async function getUsageStatsByClerkId(clerkId: string): Promise<UsageStats | null> {
-  if (!clerkId) throw new Error("Clerk ID is required");
+  if (!clerkId) throw new Error('Clerk ID is required');
   const user = await prisma.user.findUnique({
     where: { clerkId },
   });
@@ -46,7 +46,7 @@ export async function getUsageStatsByClerkId(clerkId: string): Promise<UsageStat
       userId: user.id,
       createdAt: { gte: since, lte: now },
     },
-    orderBy: { createdAt: "asc" },
+    orderBy: { createdAt: 'asc' },
   });
 
   // Aggregate daily usage
@@ -54,9 +54,9 @@ export async function getUsageStatsByClerkId(clerkId: string): Promise<UsageStat
   const dailyUsage: { date: string; used: number }[] = [];
   for (let i = days - 1; i >= 0; i--) {
     const day = subDays(now, i);
-    const dayStr = format(day, "yyyy-MM-dd");
+    const dayStr = format(day, 'yyyy-MM-dd');
     const used = creditHistory
-      .filter(h => format(h.createdAt, "yyyy-MM-dd") === dayStr)
+      .filter(h => format(h.createdAt, 'yyyy-MM-dd') === dayStr)
       .reduce((sum, h) => sum + Math.abs(h.amount), 0);
     dailyUsage.push({ date: dayStr, used });
   }
@@ -68,7 +68,7 @@ export async function getUsageStatsByClerkId(clerkId: string): Promise<UsageStat
   // Recent activity (last 15, newest first)
   const recent = await prisma.creditHistory.findMany({
     where: { userId: user.id },
-    orderBy: { createdAt: "desc" },
+    orderBy: { createdAt: 'desc' },
     take: 15,
   });
   const recentActivity = recent.map(h => ({
@@ -89,10 +89,7 @@ export async function getUsageStatsByClerkId(clerkId: string): Promise<UsageStat
   };
 }
 
-export async function updateProfile(
-  clerkId: string,
-  data: Partial<User>
-): Promise<User> {
+export async function updateProfile(clerkId: string, data: Partial<User>): Promise<User> {
   // Validate the update data
   const validatedData = userUpdateSchema.parse(data);
 
@@ -102,4 +99,4 @@ export async function updateProfile(
   });
 }
 
-export type { User }; 
+export type { User };

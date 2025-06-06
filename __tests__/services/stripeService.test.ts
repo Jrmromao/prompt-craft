@@ -68,9 +68,7 @@ describe('StripeService', () => {
 
       expect(stripe.checkout.sessions.create).toHaveBeenCalledWith({
         customer: 'cus_test',
-        line_items: [
-          { price: 'plan_test', quantity: 1 },
-        ],
+        line_items: [{ price: 'plan_test', quantity: 1 }],
         mode: 'subscription',
         success_url: 'https://success.url',
         cancel_url: 'https://cancel.url',
@@ -212,4 +210,4 @@ describe('StripeService', () => {
       expect(result).toEqual({ data: [{ id: 'inv_1' }, { id: 'inv_2' }] });
     });
   });
-}); 
+});

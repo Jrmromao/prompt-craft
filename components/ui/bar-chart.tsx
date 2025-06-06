@@ -1,4 +1,11 @@
-import { Bar, BarChart as RechartsBarChart, ResponsiveContainer, XAxis, YAxis, Tooltip } from "recharts";
+import {
+  Bar,
+  BarChart as RechartsBarChart,
+  ResponsiveContainer,
+  XAxis,
+  YAxis,
+  Tooltip,
+} from 'recharts';
 
 interface BarChartProps {
   data: any[];
@@ -8,24 +15,12 @@ interface BarChartProps {
   valueFormatter: (value: any) => string;
 }
 
-export function BarChart({
-  data,
-  index,
-  categories,
-  colors,
-  valueFormatter,
-}: BarChartProps) {
+export function BarChart({ data, index, categories, colors, valueFormatter }: BarChartProps) {
   return (
     <div className="h-[400px] w-full">
       <ResponsiveContainer width="100%" height="100%">
         <RechartsBarChart data={data}>
-          <XAxis
-            dataKey={index}
-            stroke="#888888"
-            fontSize={12}
-            tickLine={false}
-            axisLine={false}
-          />
+          <XAxis dataKey={index} stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
           <YAxis
             stroke="#888888"
             fontSize={12}
@@ -61,15 +56,10 @@ export function BarChart({
             }}
           />
           {categories.map((category, i) => (
-            <Bar
-              key={category}
-              dataKey={category}
-              fill={colors[i]}
-              radius={[4, 4, 0, 0]}
-            />
+            <Bar key={category} dataKey={category} fill={colors[i]} radius={[4, 4, 0, 0]} />
           ))}
         </RechartsBarChart>
       </ResponsiveContainer>
     </div>
   );
-} 
+}

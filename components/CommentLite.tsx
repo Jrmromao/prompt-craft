@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import { useEffect, useState } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -16,7 +16,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+} from '@/components/ui/alert-dialog';
 
 const COMMENTS_PER_PAGE = 10;
 const MAX_CHARACTERS = 280;
@@ -63,36 +63,48 @@ export function CommentLite({ id, onCountChange }: CommentLiteProps) {
           ...comment,
           liked: comment.liked || false,
         }));
-        
+
         if (pageNum === 1) {
           setComments(commentsWithLikes);
           // Initialize like states
-          const likeStates = commentsWithLikes.reduce((acc: { [key: string]: boolean }, comment: Comment) => {
-            acc[comment.id] = comment.liked || false;
-            return acc;
-          }, {});
+          const likeStates = commentsWithLikes.reduce(
+            (acc: { [key: string]: boolean }, comment: Comment) => {
+              acc[comment.id] = comment.liked || false;
+              return acc;
+            },
+            {}
+          );
           setLikedComments(likeStates);
-          
+
           // Initialize like counts
-          const counts = commentsWithLikes.reduce((acc: { [key: string]: number }, comment: Comment) => {
-            acc[comment.id] = comment._count?.likes || 0;
-            return acc;
-          }, {});
+          const counts = commentsWithLikes.reduce(
+            (acc: { [key: string]: number }, comment: Comment) => {
+              acc[comment.id] = comment._count?.likes || 0;
+              return acc;
+            },
+            {}
+          );
           setLikeCounts(counts);
         } else {
           setComments(prev => [...prev, ...commentsWithLikes]);
           // Update like states for new comments
-          const newLikeStates = commentsWithLikes.reduce((acc: { [key: string]: boolean }, comment: Comment) => {
-            acc[comment.id] = comment.liked || false;
-            return acc;
-          }, {});
+          const newLikeStates = commentsWithLikes.reduce(
+            (acc: { [key: string]: boolean }, comment: Comment) => {
+              acc[comment.id] = comment.liked || false;
+              return acc;
+            },
+            {}
+          );
           setLikedComments(prev => ({ ...prev, ...newLikeStates }));
-          
+
           // Update like counts for new comments
-          const newCounts = commentsWithLikes.reduce((acc: { [key: string]: number }, comment: Comment) => {
-            acc[comment.id] = comment._count?.likes || 0;
-            return acc;
-          }, {});
+          const newCounts = commentsWithLikes.reduce(
+            (acc: { [key: string]: number }, comment: Comment) => {
+              acc[comment.id] = comment._count?.likes || 0;
+              return acc;
+            },
+            {}
+          );
           setLikeCounts(prev => ({ ...prev, ...newCounts }));
         }
         setTotalComments(data.total);
@@ -160,9 +172,7 @@ export function CommentLite({ id, onCountChange }: CommentLiteProps) {
       }
 
       const data = await response.json();
-      setComments(prev => prev.map(comment => 
-        comment.id === tempId ? data : comment
-      ));
+      setComments(prev => prev.map(comment => (comment.id === tempId ? data : comment)));
     } catch (error) {
       console.error('Error posting comment:', error);
       toast.error('Failed to post comment');
@@ -181,7 +191,7 @@ export function CommentLite({ id, onCountChange }: CommentLiteProps) {
     }));
     setLikeCounts(prev => ({
       ...prev,
-      [commentId]: wasLiked ? (prev[commentId] - 1) : (prev[commentId] + 1),
+      [commentId]: wasLiked ? prev[commentId] - 1 : prev[commentId] + 1,
     }));
 
     try {
@@ -209,7 +219,7 @@ export function CommentLite({ id, onCountChange }: CommentLiteProps) {
       }));
       setLikeCounts(prev => ({
         ...prev,
-        [commentId]: wasLiked ? (prev[commentId] + 1) : (prev[commentId] - 1),
+        [commentId]: wasLiked ? prev[commentId] + 1 : prev[commentId] - 1,
       }));
     }
   };
@@ -250,37 +260,39 @@ export function CommentLite({ id, onCountChange }: CommentLiteProps) {
 
   const renderComment = (comment: Comment) => {
     return (
-      <div key={comment.id} className="relative w-full max-w-xl min-w-0 overflow-x-auto">
-        <div className="flex gap-3 min-w-0">
+      <div key={comment.id} className="relative w-full min-w-0 max-w-xl overflow-x-auto">
+        <div className="flex min-w-0 gap-3">
           <div className="relative z-10">
             <Avatar className="h-8 w-8">
               <AvatarImage src={comment.user.imageUrl || undefined} />
-              <AvatarFallback>
-                {comment.user.name?.[0]?.toUpperCase() || 'A'}
-              </AvatarFallback>
+              <AvatarFallback>{comment.user.name?.[0]?.toUpperCase() || 'A'}</AvatarFallback>
             </Avatar>
           </div>
-          <div className="flex-1 min-w-0">
+          <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2">
-              <p className="font-medium text-sm">{comment.user.name || 'Anonymous'}</p>
+              <p className="text-sm font-medium">{comment.user.name || 'Anonymous'}</p>
               <span className="text-xs text-gray-500 dark:text-gray-400">
                 {formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true })}
               </span>
             </div>
-            <p className="text-sm text-gray-900 dark:text-gray-100 break-words">{comment.content}</p>
-            <div className="flex items-center gap-4 mt-2">
+            <p className="break-words text-sm text-gray-900 dark:text-gray-100">
+              {comment.content}
+            </p>
+            <div className="mt-2 flex items-center gap-4">
               <button
                 onClick={() => handleLike(comment.id)}
-                className={`text-xs flex items-center gap-2 transition-colors ${likedComments[comment.id] ? 'text-pink-500' : 'text-gray-500 dark:text-gray-400 hover:text-pink-500'}`}
+                className={`flex items-center gap-2 text-xs transition-colors ${likedComments[comment.id] ? 'text-pink-500' : 'text-gray-500 hover:text-pink-500 dark:text-gray-400'}`}
                 title="Like"
               >
-                <Heart className={`h-3 w-3 ${likedComments[comment.id] ? 'fill-pink-500' : 'fill-none'}`} />
+                <Heart
+                  className={`h-3 w-3 ${likedComments[comment.id] ? 'fill-pink-500' : 'fill-none'}`}
+                />
                 <span className="min-w-[1.5rem] text-right">{likeCounts[comment.id] || 0}</span>
                 <span>Like</span>
               </button>
               <button
                 onClick={() => handleDeleteClick(comment.id)}
-                className="text-xs text-red-500 hover:text-red-700 transition-colors flex items-center gap-1"
+                className="flex items-center gap-1 text-xs text-red-500 transition-colors hover:text-red-700"
                 title="Delete comment"
               >
                 <Trash2 className="h-3 w-3" />
@@ -296,14 +308,14 @@ export function CommentLite({ id, onCountChange }: CommentLiteProps) {
   if (isLoading) {
     return (
       <div className="space-y-4">
-        <div className="h-8 w-32 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+        <div className="h-8 w-32 animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
         <div className="space-y-4">
           {[...Array(3)].map((_, i) => (
             <div key={i} className="flex items-start gap-4">
-              <div className="h-10 w-10 bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
-              <div className="space-y-2 flex-1">
-                <div className="h-4 w-24 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
-                <div className="h-4 w-full bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+              <div className="h-10 w-10 animate-pulse rounded-full bg-gray-200 dark:bg-gray-700" />
+              <div className="flex-1 space-y-2">
+                <div className="h-4 w-24 animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
+                <div className="h-4 w-full animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
               </div>
             </div>
           ))}
@@ -330,16 +342,18 @@ export function CommentLite({ id, onCountChange }: CommentLiteProps) {
             <Textarea
               placeholder="Add a comment..."
               value={newComment}
-              onChange={(e) => setNewComment(e.target.value)}
+              onChange={e => setNewComment(e.target.value)}
               className="min-h-[80px] resize-none text-sm"
               maxLength={MAX_CHARACTERS}
             />
             <div className="flex items-center justify-between">
-              <span className={`text-xs ${newComment.length > MAX_CHARACTERS * 0.8 ? 'text-orange-500' : 'text-gray-500 dark:text-gray-400'}`}>
+              <span
+                className={`text-xs ${newComment.length > MAX_CHARACTERS * 0.8 ? 'text-orange-500' : 'text-gray-500 dark:text-gray-400'}`}
+              >
                 {newComment.length}/{MAX_CHARACTERS}
               </span>
-              <Button 
-                type="submit" 
+              <Button
+                type="submit"
                 disabled={!newComment.trim() || newComment.length > MAX_CHARACTERS}
                 size="sm"
               >
@@ -385,7 +399,10 @@ export function CommentLite({ id, onCountChange }: CommentLiteProps) {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel onClick={handleDeleteCancel}>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteConfirm} className="bg-red-500 hover:bg-red-600">
+            <AlertDialogAction
+              onClick={handleDeleteConfirm}
+              className="bg-red-500 hover:bg-red-600"
+            >
               Delete
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -393,4 +410,4 @@ export function CommentLite({ id, onCountChange }: CommentLiteProps) {
       </AlertDialog>
     </div>
   );
-} 
+}

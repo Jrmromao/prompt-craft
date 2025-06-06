@@ -7,8 +7,8 @@ import { Role, PlanType } from '@/utils/constants';
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
-  const search = searchParams.get("search") || "";
-  const featured = searchParams.get("featured") === "true";
+  const search = searchParams.get('search') || '';
+  const featured = searchParams.get('featured') === 'true';
 
   if (featured) {
     try {
@@ -17,16 +17,13 @@ export async function GET(req: Request) {
       return NextResponse.json({ prompts: featuredPrompts });
     } catch (error) {
       console.error('Error fetching featured prompts:', error);
-      return NextResponse.json(
-        { error: 'Failed to fetch featured prompts' },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: 'Failed to fetch featured prompts' }, { status: 500 });
     }
   }
 
   const { userId } = await auth();
   if (!userId) {
-    return new NextResponse("Unauthorized", { status: 401 });
+    return new NextResponse('Unauthorized', { status: 401 });
   }
 
   const prompts = await prisma.prompt.findMany({
@@ -34,12 +31,12 @@ export async function GET(req: Request) {
       user: { clerkId: userId },
       OR: search
         ? [
-            { name: { contains: search, mode: "insensitive" } },
-            { description: { contains: search, mode: "insensitive" } },
+            { name: { contains: search, mode: 'insensitive' } },
+            { description: { contains: search, mode: 'insensitive' } },
           ]
         : undefined,
     },
-    orderBy: { createdAt: "desc" },
+    orderBy: { createdAt: 'desc' },
     take: 30,
   });
 
@@ -53,10 +50,7 @@ export async function POST(req: Request) {
     const { content, isPublic, tags } = body;
 
     if (!title || !content) {
-      return NextResponse.json(
-        { error: 'Title and content are required' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Title and content are required' }, { status: 400 });
     }
 
     // 1. Get user and role
@@ -110,15 +104,9 @@ export async function POST(req: Request) {
     });
   } catch (err) {
     if (err instanceof Error && err.message.includes('prompt limit')) {
-      return NextResponse.json(
-        { error: err.message },
-        { status: 403 }
-      );
+      return NextResponse.json({ error: err.message }, { status: 403 });
     }
     console.error('Error saving prompt:', err);
-    return NextResponse.json(
-      { error: 'Failed to save prompt' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to save prompt' }, { status: 500 });
   }
-} 
+}

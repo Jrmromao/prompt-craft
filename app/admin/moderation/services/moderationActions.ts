@@ -1,10 +1,10 @@
-import { prisma } from "@/lib/prisma";
+import { prisma } from '@/lib/prisma';
 
-export type ModerationAction = "approve" | "reject" | "delete";
+export type ModerationAction = 'approve' | 'reject' | 'delete';
 
 interface ModerateContentParams {
   contentId: string;
-  contentType: "prompt" | "comment";
+  contentType: 'prompt' | 'comment';
   action: ModerationAction;
   reason: string;
 }
@@ -15,23 +15,23 @@ export async function moderateContent({
   action,
   reason,
 }: ModerateContentParams) {
-  if (contentType === "prompt") {
-    if (action === "delete") {
+  if (contentType === 'prompt') {
+    if (action === 'delete') {
       await prisma.prompt.delete({
         where: { id: contentId },
       });
-    } else if (action === "reject") {
+    } else if (action === 'reject') {
       await prisma.prompt.update({
         where: { id: contentId },
         data: { isPublic: false },
       });
     }
   } else {
-    if (action === "delete") {
+    if (action === 'delete') {
       await prisma.comment.delete({
         where: { id: contentId },
       });
-    } else if (action === "reject") {
+    } else if (action === 'reject') {
       await prisma.comment.update({
         where: { id: contentId },
         data: { hidden: true },
@@ -44,7 +44,7 @@ export async function moderateContent({
     data: {
       action: `MODERATE_${action.toUpperCase()}`,
       resource: contentType.toUpperCase(),
-      status: "SUCCESS",
+      status: 'SUCCESS',
       details: {
         reason,
         action,
@@ -57,27 +57,27 @@ export async function moderateContent({
 
 export async function bulkModerateContent(
   contentIds: string[],
-  contentType: "prompt" | "comment",
+  contentType: 'prompt' | 'comment',
   action: ModerationAction,
   reason: string
 ) {
-  if (contentType === "prompt") {
-    if (action === "delete") {
+  if (contentType === 'prompt') {
+    if (action === 'delete') {
       await prisma.prompt.deleteMany({
         where: { id: { in: contentIds } },
       });
-    } else if (action === "reject") {
+    } else if (action === 'reject') {
       await prisma.prompt.updateMany({
         where: { id: { in: contentIds } },
         data: { isPublic: false },
       });
     }
   } else {
-    if (action === "delete") {
+    if (action === 'delete') {
       await prisma.comment.deleteMany({
         where: { id: { in: contentIds } },
       });
-    } else if (action === "reject") {
+    } else if (action === 'reject') {
       await prisma.comment.updateMany({
         where: { id: { in: contentIds } },
         data: { hidden: true },
@@ -87,12 +87,12 @@ export async function bulkModerateContent(
 
   // Create audit log entries for each item
   await Promise.all(
-    contentIds.map((contentId) =>
+    contentIds.map(contentId =>
       prisma.auditLog.create({
         data: {
           action: `BULK_MODERATE_${action.toUpperCase()}`,
           resource: contentType.toUpperCase(),
-          status: "SUCCESS",
+          status: 'SUCCESS',
           details: {
             reason,
             action,
@@ -103,4 +103,4 @@ export async function bulkModerateContent(
       })
     )
   );
-} 
+}

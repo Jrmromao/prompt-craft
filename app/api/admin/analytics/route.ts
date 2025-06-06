@@ -4,30 +4,26 @@ import { headers } from 'next/headers';
 
 export async function GET() {
   try {
-    const [
-      totalUsers,
-      totalPrompts,
-      totalUsage,
-      dashboardOverview,
-      recentLogs
-    ] = await Promise.all([
-      prisma.user.count(),
-      prisma.prompt.count(),
-      prisma.promptUsage.count(),
-      getDashboardOverview(),
-      prisma.auditLog.findMany({
-        take: 10,
-        orderBy: { timestamp: 'desc' },
-        include: {
-          user: {
-            select: {
-              name: true,
-              email: true,
+    const [totalUsers, totalPrompts, totalUsage, dashboardOverview, recentLogs] = await Promise.all(
+      [
+        prisma.user.count(),
+        prisma.prompt.count(),
+        prisma.promptUsage.count(),
+        getDashboardOverview(),
+        prisma.auditLog.findMany({
+          take: 10,
+          orderBy: { timestamp: 'desc' },
+          include: {
+            user: {
+              select: {
+                name: true,
+                email: true,
+              },
             },
           },
-        },
-      }),
-    ]);
+        }),
+      ]
+    );
 
     return NextResponse.json({
       totalUsers,
@@ -38,10 +34,7 @@ export async function GET() {
     });
   } catch (error) {
     console.error('Error fetching analytics:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch analytics' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to fetch analytics' }, { status: 500 });
   }
 }
 
@@ -49,67 +42,62 @@ async function getDashboardOverview() {
   const thirtyDaysAgo = new Date();
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-  const [
-    totalPromptViews,
-    totalPromptCopies,
-    mostPopularPrompt,
-    mostActiveUser,
-    recentActivity
-  ] = await Promise.all([
-    prisma.promptUsage.count({
-      where: {
-        createdAt: {
-          gte: thirtyDaysAgo,
-        },
-      },
-    }),
-    prisma.promptCopy.count({
-      where: {
-        createdAt: {
-          gte: thirtyDaysAgo,
-        },
-      },
-    }),
-    prisma.prompt.findFirst({
-      orderBy: {
-        usages: {
-          _count: 'desc',
-        },
-      },
-      include: {
-        user: {
-          select: {
-            name: true,
+  const [totalPromptViews, totalPromptCopies, mostPopularPrompt, mostActiveUser, recentActivity] =
+    await Promise.all([
+      prisma.promptUsage.count({
+        where: {
+          createdAt: {
+            gte: thirtyDaysAgo,
           },
         },
-      },
-    }),
-    prisma.user.findFirst({
-      orderBy: {
-        promptUsages: {
-          _count: 'desc',
-        },
-      },
-    }),
-    prisma.promptUsage.findMany({
-      take: 10,
-      orderBy: {
-        createdAt: 'desc',
-      },
-      include: {
-        user: {
-          select: {
-            name: true,
+      }),
+      prisma.promptCopy.count({
+        where: {
+          createdAt: {
+            gte: thirtyDaysAgo,
           },
         },
-        prompt: {
-          select: {
-            name: true,
+      }),
+      prisma.prompt.findFirst({
+        orderBy: {
+          usages: {
+            _count: 'desc',
           },
         },
-      },
-    }),
-  ]);
+        include: {
+          user: {
+            select: {
+              name: true,
+            },
+          },
+        },
+      }),
+      prisma.user.findFirst({
+        orderBy: {
+          promptUsages: {
+            _count: 'desc',
+          },
+        },
+      }),
+      prisma.promptUsage.findMany({
+        take: 10,
+        orderBy: {
+          createdAt: 'desc',
+        },
+        include: {
+          user: {
+            select: {
+              name: true,
+            },
+          },
+          prompt: {
+            select: {
+              name: true,
+            },
+          },
+        },
+      }),
+    ]);
 
   return {
     totalPromptViews,
@@ -120,4 +108,4 @@ async function getDashboardOverview() {
       usages: recentActivity,
     },
   };
-} 
+}

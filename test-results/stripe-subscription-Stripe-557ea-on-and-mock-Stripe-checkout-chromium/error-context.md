@@ -52,5 +52,5 @@ Received: "http://localhost:3000/pricing"
 > 34 |     expect(page.url()).toBe('https://mocked-checkout.stripe.com/session');
      |                        ^ Error: expect(received).toBe(expected) // Object.is equality
   35 |   });
-  36 | }); 
+  36 | });
 ```

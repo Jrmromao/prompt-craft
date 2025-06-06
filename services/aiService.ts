@@ -54,4 +54,4 @@ export async function generateMusicPrompt(payload: PromptPayload) {
 
   // Add music-specific processing here
   return sendPromptToLLM(payload);
-} 
+}

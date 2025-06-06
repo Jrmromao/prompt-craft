@@ -1,4 +1,10 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
 import { CreditCard, Sparkles, Plus } from 'lucide-react';
@@ -52,10 +58,10 @@ export function InsufficientCreditsDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px] bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800">
+      <DialogContent className="border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900 sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-2xl font-bold text-gray-900 dark:text-white">
-            <Sparkles className="w-6 h-6 text-purple-500" />
+            <Sparkles className="h-6 w-6 text-purple-500" />
             Insufficient Credits
           </DialogTitle>
           <DialogDescription className="text-gray-500 dark:text-gray-400">
@@ -65,15 +71,15 @@ export function InsufficientCreditsDialog({
 
         <div className="space-y-6 py-4">
           <div className="space-y-2">
-            <div className="flex justify-between items-center text-sm">
+            <div className="flex items-center justify-between text-sm">
               <span className="text-gray-500 dark:text-gray-400">Current Credits:</span>
               <span className="font-medium text-gray-900 dark:text-white">{currentCredits}</span>
             </div>
-            <div className="flex justify-between items-center text-sm">
+            <div className="flex items-center justify-between text-sm">
               <span className="text-gray-500 dark:text-gray-400">Required Credits:</span>
               <span className="font-medium text-gray-900 dark:text-white">{requiredCredits}</span>
             </div>
-            <div className="flex justify-between items-center text-sm">
+            <div className="flex items-center justify-between text-sm">
               <span className="text-gray-500 dark:text-gray-400">Missing Credits:</span>
               <span className="font-medium text-red-500">{missingCredits}</span>
             </div>
@@ -82,9 +88,9 @@ export function InsufficientCreditsDialog({
           <div className="space-y-4">
             <Button
               onClick={handlePurchase}
-              className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white flex items-center justify-center gap-2"
+              className="flex w-full items-center justify-center gap-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700"
             >
-              <CreditCard className="w-5 h-5" />
+              <CreditCard className="h-5 w-5" />
               Purchase Credits
             </Button>
 
@@ -93,9 +99,9 @@ export function InsufficientCreditsDialog({
               <Button
                 onClick={handleAddCreditsDev}
                 variant="outline"
-                className="w-full border-yellow-200 dark:border-yellow-800 text-yellow-600 dark:text-yellow-400 hover:bg-yellow-50 dark:hover:bg-yellow-900/20 flex items-center justify-center gap-2"
+                className="flex w-full items-center justify-center gap-2 border-yellow-200 text-yellow-600 hover:bg-yellow-50 dark:border-yellow-800 dark:text-yellow-400 dark:hover:bg-yellow-900/20"
               >
-                <Plus className="w-5 h-5" />
+                <Plus className="h-5 w-5" />
                 [DEV] Add 100 Credits
               </Button>
             )}
@@ -103,7 +109,7 @@ export function InsufficientCreditsDialog({
             <Button
               variant="outline"
               onClick={() => onOpenChange(false)}
-              className="w-full border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800"
+              className="w-full border-gray-200 text-gray-700 hover:bg-gray-100 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-800"
             >
               Cancel
             </Button>
@@ -112,4 +118,4 @@ export function InsufficientCreditsDialog({
       </DialogContent>
     </Dialog>
   );
-} 
+}

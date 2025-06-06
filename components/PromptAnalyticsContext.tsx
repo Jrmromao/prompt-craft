@@ -33,20 +33,41 @@ interface PromptAnalyticsProviderProps {
   children: ReactNode;
 }
 
-export function PromptAnalyticsProvider({ initialCopyCount, initialViewCount, initialUsageCount, initialCommentCount, children }: PromptAnalyticsProviderProps) {
+export function PromptAnalyticsProvider({
+  initialCopyCount,
+  initialViewCount,
+  initialUsageCount,
+  initialCommentCount,
+  children,
+}: PromptAnalyticsProviderProps) {
   const [copyCount, setCopyCount] = useState(initialCopyCount);
   const [viewCount, setViewCount] = useState(initialViewCount);
   const [usageCount, setUsageCount] = useState(initialUsageCount);
   const [commentCount, setCommentCount] = useState(initialCommentCount);
 
-  const incrementCopyCount = () => setCopyCount((c) => c + 1);
-  const incrementViewCount = () => setViewCount((c) => c + 1);
-  const incrementUsageCount = () => setUsageCount((c) => c + 1);
-  const incrementCommentCount = () => setCommentCount((c) => c + 1);
+  const incrementCopyCount = () => setCopyCount(c => c + 1);
+  const incrementViewCount = () => setViewCount(c => c + 1);
+  const incrementUsageCount = () => setUsageCount(c => c + 1);
+  const incrementCommentCount = () => setCommentCount(c => c + 1);
 
   return (
-    <PromptAnalyticsContext.Provider value={{ copyCount, setCopyCount, incrementCopyCount, viewCount, setViewCount, incrementViewCount, usageCount, setUsageCount, incrementUsageCount, commentCount, setCommentCount, incrementCommentCount }}>
+    <PromptAnalyticsContext.Provider
+      value={{
+        copyCount,
+        setCopyCount,
+        incrementCopyCount,
+        viewCount,
+        setViewCount,
+        incrementViewCount,
+        usageCount,
+        setUsageCount,
+        incrementUsageCount,
+        commentCount,
+        setCommentCount,
+        incrementCommentCount,
+      }}
+    >
       {children}
     </PromptAnalyticsContext.Provider>
   );
-} 
+}

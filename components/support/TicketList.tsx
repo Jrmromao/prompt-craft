@@ -72,12 +72,12 @@ export function TicketList() {
         {[...Array(3)].map((_, i) => (
           <Card key={i} className="animate-pulse">
             <CardHeader>
-              <div className="h-4 w-1/4 bg-gray-200 rounded" />
+              <div className="h-4 w-1/4 rounded bg-gray-200" />
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
-                <div className="h-4 w-3/4 bg-gray-200 rounded" />
-                <div className="h-4 w-1/2 bg-gray-200 rounded" />
+                <div className="h-4 w-3/4 rounded bg-gray-200" />
+                <div className="h-4 w-1/2 rounded bg-gray-200" />
               </div>
             </CardContent>
           </Card>
@@ -92,7 +92,7 @@ export function TicketList() {
         <h2 className="text-2xl font-bold">Support Tickets</h2>
         <Link href="/support/new">
           <Button>
-            <Plus className="h-4 w-4 mr-2" />
+            <Plus className="mr-2 h-4 w-4" />
             New Ticket
           </Button>
         </Link>
@@ -106,19 +106,15 @@ export function TicketList() {
         </Card>
       ) : (
         <div className="space-y-4">
-          {tickets.map((ticket) => (
+          {tickets.map(ticket => (
             <Link key={ticket.id} href={`/support/tickets/${ticket.id}`}>
-              <Card className="hover:border-primary transition-colors">
+              <Card className="transition-colors hover:border-primary">
                 <CardHeader>
                   <div className="flex items-center justify-between">
                     <CardTitle className="text-lg">{ticket.title}</CardTitle>
                     <div className="flex items-center gap-2">
-                      <Badge className={statusColors[ticket.status]}>
-                        {ticket.status}
-                      </Badge>
-                      <Badge className={priorityColors[ticket.priority]}>
-                        {ticket.priority}
-                      </Badge>
+                      <Badge className={statusColors[ticket.status]}>{ticket.status}</Badge>
+                      <Badge className={priorityColors[ticket.priority]}>{ticket.priority}</Badge>
                     </div>
                   </div>
                 </CardHeader>
@@ -143,4 +139,4 @@ export function TicketList() {
       )}
     </div>
   );
-} 
+}

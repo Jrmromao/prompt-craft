@@ -1,8 +1,8 @@
-const nextJest = require("next/jest");
+const nextJest = require('next/jest');
 
 const createJestConfig = nextJest({
   // Provide the path to your Next.js app to load next.config.js and .env files in your test environment
-  dir: "./",
+  dir: './',
 });
 
 // Add any custom config to be passed to Jest
@@ -13,9 +13,12 @@ const customJestConfig = {
     '^@/(.*)$': '<rootDir>/$1',
   },
   transform: {
-    '^.+\\.(ts|tsx)$': ['ts-jest', {
-      tsconfig: 'tsconfig.json',
-    }],
+    '^.+\\.(ts|tsx)$': [
+      'ts-jest',
+      {
+        tsconfig: 'tsconfig.json',
+      },
+    ],
   },
   testMatch: ['**/__tests__/**/*.test.(ts|tsx)'],
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],

@@ -1,13 +1,13 @@
 // scripts/backfillSlugs.ts
-import { PrismaClient } from "@prisma/client";
-import { aiSlugify } from "@/lib/services/slugService";
+import { PrismaClient } from '@prisma/client';
+import { aiSlugify } from '@/lib/services/slugService';
 
 const prisma = new PrismaClient();
 
 async function main() {
-  const prompts = await prisma.prompt.findMany({ where: { slug: "" } });
+  const prompts = await prisma.prompt.findMany({ where: { slug: '' } });
   for (const prompt of prompts) {
-    const slug = await aiSlugify(prompt.name, prompt.description || "");
+    const slug = await aiSlugify(prompt.name, prompt.description || '');
     // Ensure uniqueness (append id if needed)
     let uniqueSlug = slug;
     let i = 1;

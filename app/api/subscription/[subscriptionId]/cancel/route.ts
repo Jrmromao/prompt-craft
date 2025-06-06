@@ -50,4 +50,4 @@ export async function POST(
     console.error('Error canceling subscription:', error);
     return new Response('Internal Server Error', { status: 500 });
   }
-} 
+}

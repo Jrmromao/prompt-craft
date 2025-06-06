@@ -1,23 +1,23 @@
-"use client";
+'use client';
 
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { ReportedContentTable } from "./ReportedContentTable";
-import { ColumnDef, Table } from "@tanstack/react-table";
-import { ReportedPrompt, ReportedComment } from "../services/moderationService";
-import { formatDistanceToNow } from "date-fns";
-import { useState, useRef } from "react";
-import { ReviewDialog } from "./ReviewDialog";
-import { ReportDetails } from "./ReportDetails";
-import { moderateContent, bulkModerateContent } from "../services/moderationActions";
-import { toast } from "sonner";
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { ReportedContentTable } from './ReportedContentTable';
+import { ColumnDef, Table } from '@tanstack/react-table';
+import { ReportedPrompt, ReportedComment } from '../services/moderationService';
+import { formatDistanceToNow } from 'date-fns';
+import { useState, useRef } from 'react';
+import { ReviewDialog } from './ReviewDialog';
+import { ReportDetails } from './ReportDetails';
+import { moderateContent, bulkModerateContent } from '../services/moderationActions';
+import { toast } from 'sonner';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Checkbox } from "@/components/ui/checkbox";
+} from '@/components/ui/dropdown-menu';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -27,7 +27,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+} from '@/components/ui/alert-dialog';
 
 interface ModerationTablesProps {
   reportedPrompts: ReportedPrompt[];
@@ -36,7 +36,7 @@ interface ModerationTablesProps {
 
 interface SelectedContent {
   id: string;
-  type: "prompt" | "comment";
+  type: 'prompt' | 'comment';
   name?: string;
   content: string;
   author: {
@@ -59,13 +59,10 @@ interface Report {
   };
 }
 
-export function ModerationTables({
-  reportedPrompts,
-  reportedComments,
-}: ModerationTablesProps) {
+export function ModerationTables({ reportedPrompts, reportedComments }: ModerationTablesProps) {
   const [selectedContent, setSelectedContent] = useState<SelectedContent | null>(null);
   const [selectedReports, setSelectedReports] = useState<{
-    type: "prompt" | "comment";
+    type: 'prompt' | 'comment';
     reports: Array<{
       id: string;
       reason: string;
@@ -78,8 +75,8 @@ export function ModerationTables({
   } | null>(null);
 
   const [bulkAction, setBulkAction] = useState<{
-    type: "prompt" | "comment";
-    action: "approve" | "reject" | "delete";
+    type: 'prompt' | 'comment';
+    action: 'approve' | 'reject' | 'delete';
     contentIds: string[];
   } | null>(null);
 
@@ -88,18 +85,18 @@ export function ModerationTables({
 
   const promptColumns: ColumnDef<ReportedPrompt>[] = [
     {
-      id: "select",
+      id: 'select',
       header: ({ table }) => (
         <Checkbox
           checked={table.getIsAllPageRowsSelected()}
-          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+          onCheckedChange={value => table.toggleAllPageRowsSelected(!!value)}
           aria-label="Select all"
         />
       ),
       cell: ({ row }) => (
         <Checkbox
           checked={row.getIsSelected()}
-          onCheckedChange={(value) => row.toggleSelected(!!value)}
+          onCheckedChange={value => row.toggleSelected(!!value)}
           aria-label="Select row"
         />
       ),
@@ -107,24 +104,24 @@ export function ModerationTables({
       enableHiding: false,
     },
     {
-      accessorKey: "name",
-      header: "Prompt",
+      accessorKey: 'name',
+      header: 'Prompt',
     },
     {
-      accessorKey: "author",
-      header: "Author",
+      accessorKey: 'author',
+      header: 'Author',
       cell: ({ row }) => {
         const author = row.original.author;
         return author.name || author.email;
       },
     },
     {
-      accessorKey: "reportCount",
-      header: "Reports",
+      accessorKey: 'reportCount',
+      header: 'Reports',
     },
     {
-      accessorKey: "lastReportedAt",
-      header: "Last Report",
+      accessorKey: 'lastReportedAt',
+      header: 'Last Report',
       cell: ({ row }) => {
         return formatDistanceToNow(row.original.lastReportedAt, {
           addSuffix: true,
@@ -132,7 +129,7 @@ export function ModerationTables({
       },
     },
     {
-      id: "actions",
+      id: 'actions',
       cell: ({ row }) => {
         return (
           <div className="flex space-x-2">
@@ -141,7 +138,7 @@ export function ModerationTables({
               size="sm"
               onClick={() => {
                 setSelectedReports({
-                  type: "prompt",
+                  type: 'prompt',
                   reports: row.original.reports,
                 });
               }}
@@ -154,7 +151,7 @@ export function ModerationTables({
               onClick={() => {
                 setSelectedContent({
                   id: row.original.id,
-                  type: "prompt",
+                  type: 'prompt',
                   name: row.original.name,
                   content: row.original.name,
                   author: row.original.author,
@@ -173,18 +170,18 @@ export function ModerationTables({
 
   const commentColumns: ColumnDef<ReportedComment>[] = [
     {
-      id: "select",
+      id: 'select',
       header: ({ table }) => (
         <Checkbox
           checked={table.getIsAllPageRowsSelected()}
-          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+          onCheckedChange={value => table.toggleAllPageRowsSelected(!!value)}
           aria-label="Select all"
         />
       ),
       cell: ({ row }) => (
         <Checkbox
           checked={row.getIsSelected()}
-          onCheckedChange={(value) => row.toggleSelected(!!value)}
+          onCheckedChange={value => row.toggleSelected(!!value)}
           aria-label="Select row"
         />
       ),
@@ -192,27 +189,27 @@ export function ModerationTables({
       enableHiding: false,
     },
     {
-      accessorKey: "content",
-      header: "Comment",
+      accessorKey: 'content',
+      header: 'Comment',
       cell: ({ row }) => {
-        return row.original.content.substring(0, 50) + "...";
+        return row.original.content.substring(0, 50) + '...';
       },
     },
     {
-      accessorKey: "author",
-      header: "Author",
+      accessorKey: 'author',
+      header: 'Author',
       cell: ({ row }) => {
         const author = row.original.author;
         return author.name || author.email;
       },
     },
     {
-      accessorKey: "reportCount",
-      header: "Reports",
+      accessorKey: 'reportCount',
+      header: 'Reports',
     },
     {
-      accessorKey: "lastReportedAt",
-      header: "Last Report",
+      accessorKey: 'lastReportedAt',
+      header: 'Last Report',
       cell: ({ row }) => {
         return formatDistanceToNow(row.original.lastReportedAt, {
           addSuffix: true,
@@ -220,7 +217,7 @@ export function ModerationTables({
       },
     },
     {
-      id: "actions",
+      id: 'actions',
       cell: ({ row }) => {
         return (
           <div className="flex space-x-2">
@@ -229,7 +226,7 @@ export function ModerationTables({
               size="sm"
               onClick={() => {
                 setSelectedReports({
-                  type: "comment",
+                  type: 'comment',
                   reports: row.original.reports,
                 });
               }}
@@ -242,7 +239,7 @@ export function ModerationTables({
               onClick={() => {
                 setSelectedContent({
                   id: row.original.id,
-                  type: "comment",
+                  type: 'comment',
                   content: row.original.content,
                   author: row.original.author,
                   reportCount: row.original.reportCount,
@@ -260,8 +257,8 @@ export function ModerationTables({
 
   const handleModeration = async (
     contentId: string,
-    contentType: "prompt" | "comment",
-    action: "approve" | "reject" | "delete",
+    contentType: 'prompt' | 'comment',
+    action: 'approve' | 'reject' | 'delete',
     reason: string
   ) => {
     try {
@@ -271,30 +268,33 @@ export function ModerationTables({
         action,
         reason,
       });
-      toast.success("Content moderated successfully");
+      toast.success('Content moderated successfully');
       // TODO: Refresh the data
     } catch (error) {
-      toast.error("Failed to moderate content");
+      toast.error('Failed to moderate content');
     }
   };
 
   const handleBulkModeration = async (
     contentIds: string[],
-    contentType: "prompt" | "comment",
-    action: "approve" | "reject" | "delete",
+    contentType: 'prompt' | 'comment',
+    action: 'approve' | 'reject' | 'delete',
     reason: string
   ) => {
     try {
       await bulkModerateContent(contentIds, contentType, action, reason);
-      toast.success("Content moderated successfully");
+      toast.success('Content moderated successfully');
       // TODO: Refresh the data
     } catch (error) {
-      toast.error("Failed to moderate content");
+      toast.error('Failed to moderate content');
     }
   };
 
-  const handleBulkAction = (type: "prompt" | "comment", action: "approve" | "reject" | "delete") => {
-    const table = type === "prompt" ? promptsTableRef.current : commentsTableRef.current;
+  const handleBulkAction = (
+    type: 'prompt' | 'comment',
+    action: 'approve' | 'reject' | 'delete'
+  ) => {
+    const table = type === 'prompt' ? promptsTableRef.current : commentsTableRef.current;
     if (!table) return;
 
     const selectedRows = table.getSelectedRowModel().rows;
@@ -306,7 +306,7 @@ export function ModerationTables({
     setBulkAction({
       type,
       action,
-      contentIds: selectedRows.map((row) => row.original.id),
+      contentIds: selectedRows.map(row => row.original.id),
     });
   };
 
@@ -331,7 +331,7 @@ export function ModerationTables({
       {selectedContent && (
         <ReviewDialog
           open={!!selectedContent}
-          onOpenChange={(open) => !open && setSelectedContent(null)}
+          onOpenChange={open => !open && setSelectedContent(null)}
           content={selectedContent}
           onModerate={handleModeration}
         />
@@ -340,22 +340,19 @@ export function ModerationTables({
       {selectedReports && (
         <ReportDetails
           open={!!selectedReports}
-          onOpenChange={(open) => !open && setSelectedReports(null)}
+          onOpenChange={open => !open && setSelectedReports(null)}
           reports={selectedReports.reports}
         />
       )}
 
       {bulkAction && (
-        <AlertDialog
-          open={!!bulkAction}
-          onOpenChange={(open) => !open && setBulkAction(null)}
-        >
+        <AlertDialog open={!!bulkAction} onOpenChange={open => !open && setBulkAction(null)}>
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>Confirm Bulk Action</AlertDialogTitle>
               <AlertDialogDescription>
-                Are you sure you want to {bulkAction.action} {bulkAction.contentIds.length}{" "}
-                {bulkAction.type === "prompt" ? "prompts" : "comments"}? This action cannot be
+                Are you sure you want to {bulkAction.action} {bulkAction.contentIds.length}{' '}
+                {bulkAction.type === 'prompt' ? 'prompts' : 'comments'}? This action cannot be
                 undone.
               </AlertDialogDescription>
             </AlertDialogHeader>
@@ -380,4 +377,4 @@ export function ModerationTables({
       )}
     </div>
   );
-} 
+}

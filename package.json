@@ -2,6 +2,7 @@
   "name": "PromptCraft",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "test": "jest",
     "test:watch": "jest --watch",
@@ -11,8 +12,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
-    "lint:fix": "next lint --fix",
+    "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
+    "lint:fix": "eslint . --ext .js,.jsx,.ts,.tsx --fix",
     "lint:strict": "eslint . --max-warnings 0",
     "lint:types": "tsc --noEmit",
     "lint:all": "yarn lint && yarn lint:types && yarn lint:strict",
@@ -21,7 +22,7 @@
     "validate:env": "ts-node scripts/validate-env.ts",
     "backup": "ts-node scripts/backup.ts",
     "backup:schedule": "node -r ts-node/register scripts/schedule-backup.ts",
-    "format": "prettier --write .",
+    "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,md}\"",
     "format:check": "prettier --check .",
     "prepare": "husky"
   },
@@ -112,6 +113,7 @@
     "zustand": "^5.0.5"
   },
   "devDependencies": {
+    "@eslint/js": "^9.0.0",
     "@playwright/test": "^1.52.0",
     "@testing-library/dom": "^10.4.0",
     "@testing-library/jest-dom": "^6.6.3",
@@ -129,24 +131,26 @@
     "@typescript-eslint/parser": "^8.33.1",
     "@vitejs/plugin-react": "^4.5.1",
     "autoprefixer": "^10.0.1",
-    "eslint": "^8",
+    "eslint": "^9.0.0",
     "eslint-config-next": "14.1.0",
-    "eslint-config-prettier": "^10.1.5",
+    "eslint-config-prettier": "^9.0.0",
     "eslint-import-resolver-typescript": "^4.4.3",
     "eslint-plugin-import": "^2.31.0",
     "eslint-plugin-jsx-a11y": "^6.10.2",
     "eslint-plugin-prettier": "^5.4.1",
     "eslint-plugin-react-hooks": "^5.2.0",
+    "globals": "^14.0.0",
     "husky": "^9.1.7",
     "jest-environment-jsdom": "^29.7.0",
     "lint-staged": "^16.1.0",
     "node-mocks-http": "^1.17.2",
     "postcss": "^8",
-    "prettier": "^3.5.3",
-    "prettier-plugin-tailwindcss": "^0.6.12",
+    "prettier": "^3.0.0",
+    "prettier-plugin-tailwindcss": "^0.5.0",
     "tailwindcss": "^3.3.0",
     "ts-jest": "^29.3.2",
     "ts-node": "^10.9.2",
-    "typescript": "^5"
+    "typescript": "^5",
+    "typescript-eslint": "^8.33.1"
   }
 }

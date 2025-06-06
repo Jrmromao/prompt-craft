@@ -35,7 +35,7 @@ export async function generateApiKey(userId: string, data: ApiKey) {
   const prefix = 'pk_';
   const randomPart = await generateRandomString(32);
   const fullKey = `${prefix}${randomPart}`;
-  
+
   // Hash the key for storage
   const hashedKey = await hashString(fullKey);
 
@@ -101,14 +101,11 @@ export async function rotateApiKey(userId: string, keyId: string) {
 // Validate an API key
 export async function validateApiKey(key: string) {
   const hashedKey = await hashString(key);
-  
+
   const apiKey = await prisma.apiKey.findFirst({
     where: {
       hashedKey,
-      OR: [
-        { expiresAt: null },
-        { expiresAt: { gt: new Date() } },
-      ],
+      OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
     },
     include: {
       user: {
@@ -165,4 +162,4 @@ export async function cleanupExpiredKeys() {
       },
     },
   });
-} 
+}

@@ -15,7 +15,7 @@ export async function POST(req: Request) {
     // Get user's plan type
     const user = await prisma.user.findUnique({
       where: { clerkId },
-      select: { id: true, planType: true }
+      select: { id: true, planType: true },
     });
 
     if (!user) {
@@ -31,9 +31,9 @@ export async function POST(req: Request) {
       where: {
         userId: user.id,
         createdAt: {
-          gte: startOfMonth
-        }
-      }
+          gte: startOfMonth,
+        },
+      },
     });
 
     // Check if user has exceeded their limit
@@ -45,17 +45,14 @@ export async function POST(req: Request) {
 
     const limit = TIER_LIMITS[user.planType];
     if (limit !== null && runsThisMonth >= limit) {
-      return NextResponse.json(
-        { error: 'Playground run limit exceeded' },
-        { status: 429 }
-      );
+      return NextResponse.json({ error: 'Playground run limit exceeded' }, { status: 429 });
     }
 
     // If promptId is provided, check if user has access to this prompt
     if (promptId) {
       const prompt = await prisma.prompt.findUnique({
         where: { id: promptId },
-        select: { isPublic: true, userId: true }
+        select: { isPublic: true, userId: true },
       });
 
       if (!prompt) {
@@ -71,9 +68,6 @@ export async function POST(req: Request) {
     return NextResponse.json({ success: true });
   } catch (error: any) {
     console.error('Error in /api/playground/check:', error);
-    return NextResponse.json(
-      { error: error.message || 'Internal server error' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: error.message || 'Internal server error' }, { status: 500 });
   }
-} 
+}

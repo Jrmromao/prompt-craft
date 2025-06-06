@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from 'next/server';
 
 // Supported API versions
 export const SUPPORTED_VERSIONS = ['v1', 'v2'] as const;
-export type ApiVersion = typeof SUPPORTED_VERSIONS[number];
+export type ApiVersion = (typeof SUPPORTED_VERSIONS)[number];
 
 // Default API version
 export const DEFAULT_VERSION: ApiVersion = 'v1';
@@ -17,7 +17,7 @@ export function apiVersionMiddleware(req: NextRequest) {
   // Extract version from URL path
   const path = req.nextUrl.pathname;
   const versionMatch = path.match(/^\/api\/(v\d+)\//);
-  
+
   if (!versionMatch) {
     // If no version specified, use default version
     const newUrl = new URL(req.url);
@@ -47,14 +47,8 @@ export function apiVersionMiddleware(req: NextRequest) {
   const deprecationDate = VERSION_DEPRECATION_DATES[version];
   if (deprecationDate) {
     const response = NextResponse.next();
-    response.headers.set(
-      'Deprecation',
-      `true; date="${deprecationDate}"`
-    );
-    response.headers.set(
-      'Sunset',
-      deprecationDate
-    );
+    response.headers.set('Deprecation', `true; date="${deprecationDate}"`);
+    response.headers.set('Sunset', deprecationDate);
     return response;
   }
 
@@ -66,4 +60,4 @@ export function getApiVersion(req: NextRequest): ApiVersion {
   const path = req.nextUrl.pathname;
   const versionMatch = path.match(/^\/api\/(v\d+)\//);
   return (versionMatch?.[1] as ApiVersion) || DEFAULT_VERSION;
-} 
+}

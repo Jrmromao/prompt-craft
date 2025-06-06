@@ -31,7 +31,7 @@ export async function generateContent(payload: PromptPayload, model?: string) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({ prompt: payload.content, model }),
       cache: 'no-store',
@@ -40,13 +40,15 @@ export async function generateContent(payload: PromptPayload, model?: string) {
     if (!response.ok) {
       const data = await response.json();
       if (data.error === 'Insufficient credits') {
-        const error = new Error('Insufficient credits. Please purchase more credits to continue.') as ErrorWithResponse;
+        const error = new Error(
+          'Insufficient credits. Please purchase more credits to continue.'
+        ) as ErrorWithResponse;
         error.response = {
           data: {
             currentCredits: data.currentCredits,
             requiredCredits: data.requiredCredits,
-            missingCredits: data.missingCredits
-          }
+            missingCredits: data.missingCredits,
+          },
         };
         throw error;
       }
@@ -62,4 +64,4 @@ export async function generateContent(payload: PromptPayload, model?: string) {
     console.error('Error generating content:', error);
     throw error;
   }
-} 
+}

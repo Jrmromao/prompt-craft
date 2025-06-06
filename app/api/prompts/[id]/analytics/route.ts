@@ -3,10 +3,7 @@ import { auth } from '@clerk/nextjs/server';
 import { AnalyticsService } from '@/lib/services/analyticsService';
 import { AnalyticsTrackingService } from '@/lib/services/analyticsTrackingService';
 
-export async function POST(
-  request: NextRequest,
-  context: any
-) {
+export async function POST(request: NextRequest, context: any) {
   try {
     const { userId } = await auth();
     if (!userId) {
@@ -21,16 +18,16 @@ export async function POST(
   } catch (error) {
     console.error('Error tracking prompt view:', error);
     return NextResponse.json(
-      { error: 'Internal server error', details: error instanceof Error ? error.message : 'An unknown error occurred' },
+      {
+        error: 'Internal server error',
+        details: error instanceof Error ? error.message : 'An unknown error occurred',
+      },
       { status: 500 }
     );
   }
 }
 
-export async function GET(
-  request: NextRequest,
-  context: any
-) {
+export async function GET(request: NextRequest, context: any) {
   try {
     const { userId } = await auth();
     if (!userId) {
@@ -48,7 +45,10 @@ export async function GET(
   } catch (error) {
     console.error('Error getting prompt analytics:', error);
     return NextResponse.json(
-      { error: 'Internal server error', details: error instanceof Error ? error.message : 'An unknown error occurred' },
+      {
+        error: 'Internal server error',
+        details: error instanceof Error ? error.message : 'An unknown error occurred',
+      },
       { status: 500 }
     );
   }

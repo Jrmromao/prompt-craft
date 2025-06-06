@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import { useState, useEffect } from 'react';
 import { ThumbsUp, ThumbsDown } from 'lucide-react';
@@ -54,7 +54,7 @@ export function VoteButton({ id, initialUpvotes, onVoteChange }: VoteButtonProps
     // Optimistic update
     const previousVote = userVote;
     const previousUpvotes = upvotes;
-    
+
     // Calculate new upvotes based on previous state
     let newUpvotes = upvotes;
     if (previousVote === value) {
@@ -70,7 +70,7 @@ export function VoteButton({ id, initialUpvotes, onVoteChange }: VoteButtonProps
       newUpvotes += value;
       setUserVote(value);
     }
-    
+
     setUpvotes(newUpvotes);
     onVoteChange?.(newUpvotes);
 
@@ -109,28 +109,28 @@ export function VoteButton({ id, initialUpvotes, onVoteChange }: VoteButtonProps
       <button
         onClick={() => handleVote(1)}
         disabled={isLoading}
-        className={`p-2 rounded-full transition-colors ${
+        className={`rounded-full p-2 transition-colors ${
           userVote === 1
             ? 'bg-green-100 text-green-600 dark:bg-green-900 dark:text-green-400'
             : 'hover:bg-gray-100 dark:hover:bg-gray-800'
         }`}
         aria-label="Upvote"
       >
-        <ThumbsUp className="w-5 h-5" />
+        <ThumbsUp className="h-5 w-5" />
       </button>
       <span className="font-medium">{upvotes}</span>
       <button
         onClick={() => handleVote(-1)}
         disabled={isLoading}
-        className={`p-2 rounded-full transition-colors ${
+        className={`rounded-full p-2 transition-colors ${
           userVote === -1
             ? 'bg-red-100 text-red-600 dark:bg-red-900 dark:text-red-400'
             : 'hover:bg-gray-100 dark:hover:bg-gray-800'
         }`}
         aria-label="Downvote"
       >
-        <ThumbsDown className="w-5 h-5" />
+        <ThumbsDown className="h-5 w-5" />
       </button>
     </div>
   );
-} 
+}

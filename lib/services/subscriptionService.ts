@@ -32,7 +32,9 @@ export class SubscriptionService {
   }
 
   public async getSubscriptionDetails(userId: string): Promise<SubscriptionDetails> {
-    const subscription = await this.databaseService.getSubscriptionWithCache(userId) as SubscriptionWithPlan | null;
+    const subscription = (await this.databaseService.getSubscriptionWithCache(
+      userId
+    )) as SubscriptionWithPlan | null;
 
     if (!subscription || !subscription.plan) {
       return {
@@ -58,15 +60,13 @@ export class SubscriptionService {
     planId: string,
     autoRenew: boolean = true
   ): Promise<SubscriptionDetails> {
-    const plan = await this.databaseService.getPlanWithCache(planId) as Plan | null;
+    const plan = (await this.databaseService.getPlanWithCache(planId)) as Plan | null;
     if (!plan) throw new Error('Plan not found');
 
     const now = new Date();
-    const periodEnd = plan.period === Period.WEEKLY
-      ? addDays(now, 7)
-      : addMonths(now, 1);
+    const periodEnd = plan.period === Period.WEEKLY ? addDays(now, 7) : addMonths(now, 1);
 
-    const subscription = await this.databaseService.createSubscription({
+    const subscription = (await this.databaseService.createSubscription({
       user: { connect: { id: userId } },
       plan: { connect: { id: planId } },
       status: SubscriptionStatus.ACTIVE,
@@ -75,7 +75,7 @@ export class SubscriptionService {
       cancelAtPeriodEnd: !autoRenew,
       stripeCustomerId: '', // set as needed
       stripeSubscriptionId: '', // set as needed
-    }) as SubscriptionWithPlan;
+    })) as SubscriptionWithPlan;
 
     return {
       status: subscription.status,
@@ -87,13 +87,10 @@ export class SubscriptionService {
   }
 
   public async cancelSubscription(userId: string): Promise<SubscriptionDetails> {
-    const subscription = await this.databaseService.updateSubscription(
-      userId,
-      {
-        status: SubscriptionStatus.CANCELED,
-        cancelAtPeriodEnd: true,
-      }
-    ) as SubscriptionWithPlan;
+    const subscription = (await this.databaseService.updateSubscription(userId, {
+      status: SubscriptionStatus.CANCELED,
+      cancelAtPeriodEnd: true,
+    })) as SubscriptionWithPlan;
 
     // Update user role to FREE after cancellation
     await prisma.user.update({
@@ -114,16 +111,21 @@ export class SubscriptionService {
 
   public async updateSubscription(
     userId: string,
-    updates: Partial<{ planId: string; status: SubscriptionStatus; currentPeriodEnd: Date; cancelAtPeriodEnd: boolean; }>
+    updates: Partial<{
+      planId: string;
+      status: SubscriptionStatus;
+      currentPeriodEnd: Date;
+      cancelAtPeriodEnd: boolean;
+    }>
   ): Promise<SubscriptionDetails> {
-    const subscription = await this.databaseService.updateSubscription(
+    const subscription = (await this.databaseService.updateSubscription(
       userId,
       updates
-    ) as SubscriptionWithPlan;
+    )) as SubscriptionWithPlan;
 
     // Update user role if plan changes
     if (updates.planId) {
-      const plan = await this.databaseService.getPlanWithCache(updates.planId) as Plan | null;
+      const plan = (await this.databaseService.getPlanWithCache(updates.planId)) as Plan | null;
       if (plan) {
         await prisma.user.update({
           where: { id: userId },
@@ -184,9 +186,8 @@ export class SubscriptionService {
 
     if (!isAfter(subscription.currentPeriodEnd, now)) {
       // Calculate new period end
-      const newPeriodEnd = subscription.plan.period === Period.WEEKLY
-        ? addDays(now, 7)
-        : addMonths(now, 1);
+      const newPeriodEnd =
+        subscription.plan.period === Period.WEEKLY ? addDays(now, 7) : addMonths(now, 1);
 
       // Update subscription
       return this.updateSubscription(userId, {
@@ -205,7 +206,7 @@ export class SubscriptionService {
   }
 
   public async getPricing(planName: PlanType, period: Period): Promise<number> {
-    const plan = await this.databaseService.getPlanWithCache(planName) as Plan | null;
+    const plan = (await this.databaseService.getPlanWithCache(planName)) as Plan | null;
     if (!plan) {
       throw new Error(`Plan ${planName} not found`);
     }
@@ -217,4 +218,4 @@ export class SubscriptionService {
 
     throw new Error(`Plan ${planName} is not available for ${period} period`);
   }
-} 
+}

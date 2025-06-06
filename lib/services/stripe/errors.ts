@@ -75,4 +75,4 @@ export function handleStripeError(error: any): StripeServiceError {
 
   // Handle unknown errors
   return new StripeServiceError(`Unknown error: ${error.message || 'An unknown error occurred'}`);
-} 
+}

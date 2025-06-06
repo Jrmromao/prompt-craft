@@ -28,10 +28,7 @@ export async function GET(
     return NextResponse.json(ticket);
   } catch (error) {
     console.error('Error getting ticket:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
 
@@ -50,11 +47,7 @@ export async function POST(
     const validatedData = messageSchema.parse(body);
 
     const supportService = SupportService.getInstance();
-    const message = await supportService.addMessage(
-      params.id,
-      userId,
-      validatedData.content
-    );
+    const message = await supportService.addMessage(params.id, userId, validatedData.content);
 
     return NextResponse.json(message);
   } catch (error) {
@@ -62,10 +55,7 @@ export async function POST(
       return NextResponse.json({ error: error.errors }, { status: 400 });
     }
     console.error('Error adding message:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
 
@@ -84,25 +74,15 @@ export async function PATCH(
     const { status } = body;
 
     if (!status) {
-      return NextResponse.json(
-        { error: 'Status is required' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Status is required' }, { status: 400 });
     }
 
     const supportService = SupportService.getInstance();
-    const ticket = await supportService.updateTicketStatus(
-      params.id,
-      userId,
-      status
-    );
+    const ticket = await supportService.updateTicketStatus(params.id, userId, status);
 
     return NextResponse.json(ticket);
   } catch (error) {
     console.error('Error updating ticket:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
-} 
+}

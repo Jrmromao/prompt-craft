@@ -41,11 +41,14 @@ export class SupportService {
     });
   }
 
-  async getTickets(userId: string, filters?: {
-    status?: TicketStatus;
-    category?: Category;
-    priority?: Priority;
-  }) {
+  async getTickets(
+    userId: string,
+    filters?: {
+      status?: TicketStatus;
+      category?: Category;
+      priority?: Priority;
+    }
+  ) {
     return prisma.supportTicket.findMany({
       where: {
         userId,
@@ -147,11 +150,7 @@ export class SupportService {
     });
   }
 
-  async updateTicketStatus(
-    ticketId: string,
-    userId: string,
-    status: TicketStatus
-  ) {
+  async updateTicketStatus(ticketId: string, userId: string, status: TicketStatus) {
     return prisma.supportTicket.update({
       where: {
         id: ticketId,
@@ -179,4 +178,4 @@ export class SupportService {
       },
     });
   }
-} 
+}

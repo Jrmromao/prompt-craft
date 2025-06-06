@@ -25,7 +25,7 @@ describe('Settings API Routes', () => {
   });
 
   describe('Password Change', () => {
-    const createPasswordRequest = (currentPassword: string, newPassword: string) => 
+    const createPasswordRequest = (currentPassword: string, newPassword: string) =>
       new Request('http://localhost:3000/api/settings/password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -35,16 +35,16 @@ describe('Settings API Routes', () => {
     it('should change password successfully', async () => {
       // Mock auth
       vi.mocked(auth).mockResolvedValue({ userId: 'test-user-id' } as any);
-      
+
       // Mock password verification
       (clerkClient as any).users.verifyPassword.mockResolvedValue(true);
-      
+
       // Mock password update
       (clerkClient as any).users.updateUserPassword.mockResolvedValue(true);
 
       const request = createPasswordRequest('oldPassword123', 'newPassword123');
       const response = await POST(request);
-      
+
       expect(response.status).toBe(200);
       expect(await response.text()).toBe('Password updated successfully');
     });
@@ -54,7 +54,7 @@ describe('Settings API Routes', () => {
 
       const request = createPasswordRequest('oldPassword123', 'newPassword123');
       const response = await POST(request);
-      
+
       expect(response.status).toBe(401);
     });
 
@@ -64,19 +64,19 @@ describe('Settings API Routes', () => {
 
       const request = createPasswordRequest('wrongPassword', 'newPassword123');
       const response = await POST(request);
-      
+
       expect(response.status).toBe(400);
       expect(await response.text()).toBe('Current password is incorrect');
     });
   });
 
   describe('Login History', () => {
-    const createLoginHistoryRequest = () => 
+    const createLoginHistoryRequest = () =>
       new Request('http://localhost:3000/api/settings/login-history');
 
     it('should return login history successfully', async () => {
       vi.mocked(auth).mockResolvedValue({ userId: 'test-user-id' } as any);
-      
+
       const mockSessions = [
         {
           id: 'session-1',
@@ -93,7 +93,7 @@ describe('Settings API Routes', () => {
 
       const request = createLoginHistoryRequest();
       const response = await GET(request);
-      
+
       expect(response.status).toBe(200);
       const data = await response.json();
       expect(data).toHaveLength(1);
@@ -105,13 +105,13 @@ describe('Settings API Routes', () => {
 
       const request = createLoginHistoryRequest();
       const response = await GET(request);
-      
+
       expect(response.status).toBe(401);
     });
   });
 
   describe('Session Management', () => {
-    const createSessionRequest = (sessionId?: string) => 
+    const createSessionRequest = (sessionId?: string) =>
       new Request(
         `http://localhost:3000/api/settings/sessions${sessionId ? `?sessionId=${sessionId}` : ''}`,
         { method: 'DELETE' }
@@ -123,7 +123,7 @@ describe('Settings API Routes', () => {
 
       const request = createSessionRequest('test-session-id');
       const response = await DELETE(request);
-      
+
       expect(response.status).toBe(200);
       expect(await response.text()).toBe('Session revoked successfully');
     });
@@ -133,7 +133,7 @@ describe('Settings API Routes', () => {
 
       const request = createSessionRequest();
       const response = await DELETE(request);
-      
+
       expect(response.status).toBe(400);
       expect(await response.text()).toBe('Session ID is required');
     });
@@ -143,8 +143,8 @@ describe('Settings API Routes', () => {
 
       const request = createSessionRequest('test-session-id');
       const response = await DELETE(request);
-      
+
       expect(response.status).toBe(401);
     });
   });
-}); 
+});

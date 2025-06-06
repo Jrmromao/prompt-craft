@@ -29,4 +29,4 @@ export async function GET() {
     console.error('Error fetching subscription:', error);
     return new NextResponse('Internal Server Error', { status: 500 });
   }
-} 
+}

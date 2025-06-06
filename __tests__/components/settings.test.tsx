@@ -67,36 +67,36 @@ const mockLoginHistory = [
 
 jest.mock('swr', () => ({
   __esModule: true,
-  default: jest.fn((key) => {
+  default: jest.fn(key => {
     if (key === '/api/settings') {
       return {
         data: {
           emailPreferences: {
             marketingEmails: false,
             productUpdates: true,
-            securityAlerts: true
+            securityAlerts: true,
           },
           notificationSettings: {
             emailNotifications: true,
             pushNotifications: false,
-            browserNotifications: true
+            browserNotifications: true,
           },
           languagePreferences: {
-            language: 'en'
+            language: 'en',
           },
           themeSettings: {
             theme: 'light',
-            accentColor: 'purple'
+            accentColor: 'purple',
           },
           securitySettings: {
             twoFactorEnabled: false,
-            sessionTimeout: 30
+            sessionTimeout: 30,
           },
-          sessions: []
+          sessions: [],
         },
         error: null,
         isLoading: false,
-        mutate: jest.fn()
+        mutate: jest.fn(),
       };
     }
     if (key === '/api/settings/login-history') {
@@ -106,21 +106,21 @@ jest.mock('swr', () => ({
             id: '1',
             device: 'Chrome on MacOS',
             location: 'San Francisco, CA',
-            lastActive: '2024-03-20T10:00:00Z'
-          }
+            lastActive: '2024-03-20T10:00:00Z',
+          },
         ],
         error: null,
         isLoading: false,
-        mutate: jest.fn()
+        mutate: jest.fn(),
       };
     }
     return {
       data: null,
       error: null,
       isLoading: true,
-      mutate: jest.fn()
+      mutate: jest.fn(),
     };
-  })
+  }),
 }));
 
 describe.skip('Settings Components', () => {
@@ -297,4 +297,4 @@ describe.skip('Settings Components', () => {
       });
     });
   });
-}); 
+});

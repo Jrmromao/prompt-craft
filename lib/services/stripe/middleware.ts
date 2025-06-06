@@ -12,10 +12,10 @@ export async function validateSubscriptionStatus(
       include: {
         subscription: {
           include: {
-            plan: true
-          }
-        }
-      }
+            plan: true,
+          },
+        },
+      },
     });
 
     if (!user || !user.subscription) {
@@ -62,7 +62,7 @@ export function validateSubscriptionTransition(
     incomplete_expired: ['active'],
     past_due: ['active', 'canceled', 'unpaid'],
     trialing: ['active', 'canceled', 'past_due'],
-    unpaid: ['active', 'canceled']
+    unpaid: ['active', 'canceled'],
   };
 
   return validTransitions[currentStatus]?.includes(newStatus) || false;
@@ -73,47 +73,52 @@ export function getSubscriptionStatusDisplay(status: SubscriptionStatus): {
   color: string;
   description: string;
 } {
-  const statusConfig: Record<SubscriptionStatus, { label: string; color: string; description: string }> = {
+  const statusConfig: Record<
+    SubscriptionStatus,
+    { label: string; color: string; description: string }
+  > = {
     active: {
       label: 'Active',
       color: 'green',
-      description: 'Your subscription is active and in good standing.'
+      description: 'Your subscription is active and in good standing.',
     },
     canceled: {
       label: 'Canceled',
       color: 'gray',
-      description: 'Your subscription has been canceled and will end at the current period.'
+      description: 'Your subscription has been canceled and will end at the current period.',
     },
     incomplete: {
       label: 'Incomplete',
       color: 'yellow',
-      description: 'Your subscription requires additional action to become active.'
+      description: 'Your subscription requires additional action to become active.',
     },
     incomplete_expired: {
       label: 'Expired',
       color: 'red',
-      description: 'Your subscription setup has expired.'
+      description: 'Your subscription setup has expired.',
     },
     past_due: {
       label: 'Past Due',
       color: 'orange',
-      description: 'Your subscription payment is past due.'
+      description: 'Your subscription payment is past due.',
     },
     trialing: {
       label: 'Trial',
       color: 'blue',
-      description: 'Your subscription is in trial period.'
+      description: 'Your subscription is in trial period.',
     },
     unpaid: {
       label: 'Unpaid',
       color: 'red',
-      description: 'Your subscription payment has failed.'
-    }
+      description: 'Your subscription payment has failed.',
+    },
   };
 
-  return statusConfig[status] || {
-    label: 'Unknown',
-    color: 'gray',
-    description: 'Unknown subscription status.'
-  };
-} 
+  return (
+    statusConfig[status] || {
+      label: 'Unknown',
+      color: 'gray',
+      description: 'Unknown subscription status.',
+    }
+  );
+}

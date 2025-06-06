@@ -1,9 +1,9 @@
 'use client';
 
-import { usePathname } from "next/navigation";
-import { NavBar } from "./NavBar";
-import { useUser } from "@clerk/nextjs";
-import { create } from "zustand";
+import { usePathname } from 'next/navigation';
+import { NavBar } from './NavBar';
+import { useUser } from '@clerk/nextjs';
+import { create } from 'zustand';
 
 interface SidebarStore {
   isOpen: boolean;
@@ -11,7 +11,7 @@ interface SidebarStore {
   close: () => void;
 }
 
-export const useSidebarStore = create<SidebarStore>((set) => ({
+export const useSidebarStore = create<SidebarStore>(set => ({
   isOpen: false,
   open: () => set({ isOpen: true }),
   close: () => set({ isOpen: false }),
@@ -19,10 +19,10 @@ export const useSidebarStore = create<SidebarStore>((set) => ({
 
 export function NavBarWrapper() {
   const pathname = usePathname();
-  const isLandingPage = pathname === "/";
+  const isLandingPage = pathname === '/';
   const { user, isSignedIn } = useUser();
   const { open } = useSidebarStore();
-  
+
   if (isLandingPage) {
     return null;
   }
@@ -34,6 +34,6 @@ export function NavBarWrapper() {
         imageUrl: user.imageUrl,
       }
     : undefined;
-  
+
   return <NavBar user={navUser} onMenuClick={open} />;
-} 
+}

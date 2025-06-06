@@ -1,12 +1,12 @@
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
   DropdownMenuSeparator,
-} from "@/components/ui/dropdown-menu";
+} from '@/components/ui/dropdown-menu';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -16,11 +16,11 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { MoreHorizontal, Pencil, Trash2, UserX, UserCheck, Ban } from "lucide-react";
-import { Role, UserStatus } from "@prisma/client";
-import { updateUserRole, updateUserStatus } from "../actions";
-import { toast } from "sonner";
+} from '@/components/ui/alert-dialog';
+import { MoreHorizontal, Pencil, Trash2, UserX, UserCheck, Ban } from 'lucide-react';
+import { Role, UserStatus } from '@prisma/client';
+import { updateUserRole, updateUserStatus } from '../actions';
+import { toast } from 'sonner';
 
 interface UserActionsProps {
   userId: string;
@@ -38,18 +38,18 @@ export function UserActions({ userId, currentRole, currentStatus, onEdit }: User
   const handleRoleChange = async (newRole: Role) => {
     try {
       await updateUserRole(userId, newRole);
-      toast.success("User role updated successfully");
+      toast.success('User role updated successfully');
     } catch (error) {
-      toast.error("Failed to update user role");
+      toast.error('Failed to update user role');
     }
   };
 
   const handleStatusChange = async (newStatus: UserStatus) => {
     try {
       await updateUserStatus(userId, newStatus);
-      toast.success("User status updated successfully");
+      toast.success('User status updated successfully');
     } catch (error) {
-      toast.error("Failed to update user status");
+      toast.error('Failed to update user status');
     }
   };
 
@@ -97,8 +97,8 @@ export function UserActions({ userId, currentRole, currentStatus, onEdit }: User
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the user
-              account and remove their data from our servers.
+              This action cannot be undone. This will permanently delete the user account and remove
+              their data from our servers.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -106,7 +106,7 @@ export function UserActions({ userId, currentRole, currentStatus, onEdit }: User
             <AlertDialogAction
               onClick={() => {
                 // TODO: Implement delete user
-                toast.error("Delete user functionality not implemented yet");
+                toast.error('Delete user functionality not implemented yet');
                 setShowDeleteDialog(false);
               }}
               className="bg-red-600 hover:bg-red-700"
@@ -122,8 +122,8 @@ export function UserActions({ userId, currentRole, currentStatus, onEdit }: User
           <AlertDialogHeader>
             <AlertDialogTitle>Suspend User</AlertDialogTitle>
             <AlertDialogDescription>
-              This will prevent the user from accessing their account. They will
-              not be able to log in until you reactivate their account.
+              This will prevent the user from accessing their account. They will not be able to log
+              in until you reactivate their account.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -146,8 +146,8 @@ export function UserActions({ userId, currentRole, currentStatus, onEdit }: User
           <AlertDialogHeader>
             <AlertDialogTitle>Ban User</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently ban the user from the platform. They will not
-              be able to create a new account or access any features.
+              This will permanently ban the user from the platform. They will not be able to create
+              a new account or access any features.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -170,8 +170,8 @@ export function UserActions({ userId, currentRole, currentStatus, onEdit }: User
           <AlertDialogHeader>
             <AlertDialogTitle>Activate User</AlertDialogTitle>
             <AlertDialogDescription>
-              This will reactivate the user's account. They will be able to access
-              all features again.
+              This will reactivate the user's account. They will be able to access all features
+              again.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -190,4 +190,4 @@ export function UserActions({ userId, currentRole, currentStatus, onEdit }: User
       </AlertDialog>
     </>
   );
-} 
+}

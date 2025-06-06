@@ -1,6 +1,6 @@
-import '@testing-library/jest-dom'
-import { vi } from 'vitest'
-import React from 'react'
+import '@testing-library/jest-dom';
+import { vi } from 'vitest';
+import React from 'react';
 
 // Mock next/navigation
 vi.mock('next/navigation', () => ({
@@ -12,15 +12,15 @@ vi.mock('next/navigation', () => ({
   }),
   usePathname: () => '',
   useSearchParams: () => new URLSearchParams(),
-}))
+}));
 
 // Mock next/image
 vi.mock('next/image', () => ({
   default: (props: any) => {
     // eslint-disable-next-line @next/next/no-img-element
-    return React.createElement('img', props)
+    return React.createElement('img', props);
   },
-}))
+}));
 
 // Mock Clerk
 vi.mock('@clerk/nextjs', () => ({
@@ -50,9 +50,9 @@ vi.mock('@clerk/nextjs', () => ({
     sessionId: 'test-session-id',
     getToken: vi.fn(),
   }),
-}))
+}));
 
 // Mock sonner toast
 vi.mock('sonner', () => ({
   toast: vi.fn(),
-})) 
+}));

@@ -1,6 +1,6 @@
-import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
-import { auth } from "@clerk/nextjs/server";
+import { NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
+import { auth } from '@clerk/nextjs/server';
 
 interface PromptUsage {
   creditsUsed: number;
@@ -9,21 +9,21 @@ interface PromptUsage {
 
 export async function GET(request: Request) {
   const { userId } = await auth();
-  
+
   if (!userId) {
-    return new NextResponse("Unauthorized", { status: 401 });
+    return new NextResponse('Unauthorized', { status: 401 });
   }
 
   const { searchParams } = new URL(request.url);
-  const targetUserId = searchParams.get("userId");
+  const targetUserId = searchParams.get('userId');
 
   if (!targetUserId) {
-    return new NextResponse("User ID is required", { status: 400 });
+    return new NextResponse('User ID is required', { status: 400 });
   }
 
   // Verify the requesting user has access to this data
   if (targetUserId !== userId) {
-    return new NextResponse("Unauthorized", { status: 401 });
+    return new NextResponse('Unauthorized', { status: 401 });
   }
 
   // Get the user's planType
@@ -32,7 +32,7 @@ export async function GET(request: Request) {
     select: { planType: true },
   });
   if (!user) {
-    return new NextResponse("User not found", { status: 404 });
+    return new NextResponse('User not found', { status: 404 });
   }
 
   // Get Playground runs for the current month
@@ -61,13 +61,13 @@ export async function GET(request: Request) {
       createdAt: true,
     },
     orderBy: {
-      createdAt: "asc",
+      createdAt: 'asc',
     },
   });
 
   // Group generations by date and sum credits
   const usageByDate = generations.reduce((acc: Record<string, number>, gen: PromptUsage) => {
-    const date = gen.createdAt.toISOString().split("T")[0];
+    const date = gen.createdAt.toISOString().split('T')[0];
     acc[date] = (acc[date] || 0) + gen.creditsUsed;
     return acc;
   }, {});
@@ -77,7 +77,7 @@ export async function GET(request: Request) {
   for (let i = 0; i < 7; i++) {
     const date = new Date();
     date.setDate(date.getDate() - i);
-    const dateStr = date.toISOString().split("T")[0];
+    const dateStr = date.toISOString().split('T')[0];
     data.unshift({
       date: dateStr,
       credits: usageByDate[dateStr] || 0,
@@ -89,4 +89,4 @@ export async function GET(request: Request) {
     playgroundRunsThisMonth: playgroundRunsCount,
     promptGenerationUsage: data,
   });
-} 
+}

@@ -22,4 +22,4 @@ export interface PromptPayload {
   mood?: string;
   length?: string;
   instruments?: string;
-} 
+}

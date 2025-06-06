@@ -1,14 +1,6 @@
-import { useEffect, useState } from "react";
-import { Card } from "@/components/ui/card";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-} from "recharts";
+import { useEffect, useState } from 'react';
+import { Card } from '@/components/ui/card';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { format } from 'date-fns';
 
 interface UsageData {
@@ -37,7 +29,7 @@ export function UsageChart({ userId, usageData }: UsageChartProps) {
         const usageData = await response.json();
         setData(usageData);
       } catch (error) {
-        console.error("Failed to fetch usage data:", error);
+        console.error('Failed to fetch usage data:', error);
       } finally {
         setLoading(false);
       }
@@ -51,19 +43,16 @@ export function UsageChart({ userId, usageData }: UsageChartProps) {
 
   return (
     <Card className="p-6">
-      <h2 className="text-2xl font-bold mb-6">Usage Statistics</h2>
+      <h2 className="mb-6 text-2xl font-bold">Usage Statistics</h2>
       <div className="h-[300px]">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={data}>
             <CartesianGrid strokeDasharray="3 3" />
-            <XAxis
-              dataKey="date"
-              tickFormatter={(date) => format(new Date(date), 'yyyy-MM-dd')}
-            />
+            <XAxis dataKey="date" tickFormatter={date => format(new Date(date), 'yyyy-MM-dd')} />
             <YAxis />
             <Tooltip
-              labelFormatter={(date) => format(new Date(date), 'yyyy-MM-dd')}
-              formatter={(value: number) => [`${value} credits`, "Credits Used"]}
+              labelFormatter={date => format(new Date(date), 'yyyy-MM-dd')}
+              formatter={(value: number) => [`${value} credits`, 'Credits Used']}
             />
             <Bar dataKey="credits" fill="#8884d8" />
           </BarChart>
@@ -71,4 +60,4 @@ export function UsageChart({ userId, usageData }: UsageChartProps) {
       </div>
     </Card>
   );
-} 
+}

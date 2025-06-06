@@ -58,7 +58,7 @@ export function CreditHistory({ transactions, isLoading }: CreditHistoryProps) {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {transactions.map((transaction) => (
+          {transactions.map(transaction => (
             <TableRow key={transaction.id}>
               <TableCell className="text-sm text-muted-foreground">
                 {formatDistanceToNow(new Date(transaction.createdAt), { addSuffix: true })}
@@ -68,7 +68,8 @@ export function CreditHistory({ transactions, isLoading }: CreditHistoryProps) {
               </TableCell>
               <TableCell>{transaction.description}</TableCell>
               <TableCell className={`text-right font-medium ${getAmountColor(transaction.amount)}`}>
-                {getAmountPrefix(transaction.amount)}{transaction.amount}
+                {getAmountPrefix(transaction.amount)}
+                {transaction.amount}
               </TableCell>
             </TableRow>
           ))}
@@ -83,4 +84,4 @@ export function CreditHistory({ transactions, isLoading }: CreditHistoryProps) {
       </Table>
     </div>
   );
-} 
+}

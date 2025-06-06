@@ -1,16 +1,16 @@
-import { render, screen, fireEvent, waitFor, act } from "@testing-library/react";
-import { ProfileForm } from "@/app/profile/profile-form";
-import { Role, PlanType } from "@prisma/client";
-import { useRouter } from "next/navigation";
-import { toast } from "sonner";
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
+import { ProfileForm } from '@/app/profile/profile-form';
+import { Role, PlanType } from '@prisma/client';
+import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 
 // Mock next/navigation
-jest.mock("next/navigation", () => ({
+jest.mock('next/navigation', () => ({
   useRouter: jest.fn(),
 }));
 
 // Mock sonner toast
-jest.mock("sonner", () => ({
+jest.mock('sonner', () => ({
   toast: {
     success: jest.fn(),
     error: jest.fn(),
@@ -20,22 +20,22 @@ jest.mock("sonner", () => ({
 // Mock fetch
 global.fetch = jest.fn();
 
-describe("ProfileForm", () => {
+describe('ProfileForm', () => {
   const mockUser = {
-    id: "user-123",
-    name: "John Doe",
-    email: "john@example.com",
-    role: "USER" as Role,
-    planType: "FREE" as PlanType,
+    id: 'user-123',
+    name: 'John Doe',
+    email: 'john@example.com',
+    role: 'USER' as Role,
+    planType: 'FREE' as PlanType,
     credits: 100,
     creditCap: 1000,
-    bio: "Test bio",
-    jobTitle: "Software Engineer",
-    location: "San Francisco",
-    company: "Test Company",
-    website: "https://example.com",
-    twitter: "@johndoe",
-    linkedin: "https://linkedin.com/in/johndoe",
+    bio: 'Test bio',
+    jobTitle: 'Software Engineer',
+    location: 'San Francisco',
+    company: 'Test Company',
+    website: 'https://example.com',
+    twitter: '@johndoe',
+    linkedin: 'https://linkedin.com/in/johndoe',
   };
 
   const mockRouter = {
@@ -52,7 +52,7 @@ describe("ProfileForm", () => {
     jest.resetAllMocks();
   });
 
-  it("renders all form fields correctly", () => {
+  it('renders all form fields correctly', () => {
     render(<ProfileForm user={mockUser} />);
 
     // Check if all form fields are rendered
@@ -67,7 +67,7 @@ describe("ProfileForm", () => {
     expect(screen.getByLabelText(/linkedin/i)).toBeInTheDocument();
   });
 
-  it("pre-fills form fields with user data", () => {
+  it('pre-fills form fields with user data', () => {
     render(<ProfileForm user={mockUser} />);
 
     // Check if form fields are pre-filled with user data
@@ -82,50 +82,50 @@ describe("ProfileForm", () => {
     expect(screen.getByLabelText(/linkedin/i)).toHaveValue(mockUser.linkedin);
   });
 
-  it("disables email field", () => {
+  it('disables email field', () => {
     render(<ProfileForm user={mockUser} />);
     expect(screen.getByLabelText(/email/i)).toBeDisabled();
   });
 
-  it("shows loading state during form submission", async () => {
+  it('shows loading state during form submission', async () => {
     const mockFetch = global.fetch as jest.Mock;
-    mockFetch.mockImplementationOnce(() => 
-      new Promise((resolve) => setTimeout(() => resolve({ ok: true }), 100))
+    mockFetch.mockImplementationOnce(
+      () => new Promise(resolve => setTimeout(() => resolve({ ok: true }), 100))
     );
 
     render(<ProfileForm user={mockUser} />);
-    
-    const submitButton = screen.getByRole("button", { name: /save changes/i });
-    
+
+    const submitButton = screen.getByRole('button', { name: /save changes/i });
+
     await act(async () => {
       fireEvent.click(submitButton);
     });
 
     // Check if button shows loading state
-    expect(screen.getByRole("button", { name: /saving/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /saving/i })).toBeInTheDocument();
     expect(submitButton).toBeDisabled();
 
     // Wait for submission to complete
     await waitFor(() => {
-      expect(screen.getByRole("button", { name: /save changes/i })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /save changes/i })).toBeInTheDocument();
     });
   });
 
-  it("handles successful form submission", async () => {
+  it('handles successful form submission', async () => {
     (global.fetch as jest.Mock).mockResolvedValueOnce({ ok: true });
 
     render(<ProfileForm user={mockUser} />);
-    
-    const submitButton = screen.getByRole("button", { name: /save changes/i });
-    
+
+    const submitButton = screen.getByRole('button', { name: /save changes/i });
+
     await act(async () => {
       fireEvent.click(submitButton);
     });
 
     await waitFor(() => {
-      expect(global.fetch).toHaveBeenCalledWith("/api/profile", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+      expect(global.fetch).toHaveBeenCalledWith('/api/profile', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: mockUser.name,
           email: mockUser.email,
@@ -138,39 +138,39 @@ describe("ProfileForm", () => {
           linkedin: mockUser.linkedin,
         }),
       });
-      expect(toast.success).toHaveBeenCalledWith("Profile updated successfully");
+      expect(toast.success).toHaveBeenCalledWith('Profile updated successfully');
       expect(mockRouter.refresh).toHaveBeenCalled();
     });
   });
 
-  it("handles form submission error", async () => {
-    (global.fetch as jest.Mock).mockRejectedValueOnce(new Error("Network error"));
+  it('handles form submission error', async () => {
+    (global.fetch as jest.Mock).mockRejectedValueOnce(new Error('Network error'));
 
     render(<ProfileForm user={mockUser} />);
-    
-    const submitButton = screen.getByRole("button", { name: /save changes/i });
-    
+
+    const submitButton = screen.getByRole('button', { name: /save changes/i });
+
     await act(async () => {
       fireEvent.click(submitButton);
     });
 
     await waitFor(() => {
-      expect(toast.error).toHaveBeenCalledWith("Failed to update profile. Please try again.");
+      expect(toast.error).toHaveBeenCalledWith('Failed to update profile. Please try again.');
     });
   });
 
-  it("validates form fields", async () => {
+  it('validates form fields', async () => {
     render(<ProfileForm user={mockUser} />);
-    
+
     // Clear required fields
     const nameInput = screen.getByLabelText(/name/i);
-    
+
     await act(async () => {
       fireEvent.change(nameInput, { target: { value: '' } });
     });
-    
-    const submitButton = screen.getByRole("button", { name: /save changes/i });
-    
+
+    const submitButton = screen.getByRole('button', { name: /save changes/i });
+
     await act(async () => {
       fireEvent.click(submitButton);
     });
@@ -183,4 +183,4 @@ describe("ProfileForm", () => {
     // Check if form submission was prevented
     expect(global.fetch).not.toHaveBeenCalled();
   });
-}); 
+});

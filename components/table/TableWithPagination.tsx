@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState } from 'react';
 import {
   Table,
   TableBody,
@@ -6,15 +6,15 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
+} from '@/components/ui/table';
+import { Button } from '@/components/ui/button';
 import {
   ColumnDef,
   flexRender,
   getCoreRowModel,
   useReactTable,
   getPaginationRowModel,
-} from "@tanstack/react-table";
+} from '@tanstack/react-table';
 
 const PAGE_SIZE_OPTIONS = [5, 10, 20];
 
@@ -25,7 +25,12 @@ interface TableWithPaginationProps<T> {
   renderDialog?: (row: T | null, setRow: (row: T | null) => void) => React.ReactNode;
 }
 
-export function TableWithPagination<T>({ columns, data, title, renderDialog }: TableWithPaginationProps<T>) {
+export function TableWithPagination<T>({
+  columns,
+  data,
+  title,
+  renderDialog,
+}: TableWithPaginationProps<T>) {
   const [pageSize, setPageSize] = useState<number>(PAGE_SIZE_OPTIONS[0]);
   const [pageIndex, setPageIndex] = useState<number>(0);
   const [selectedRow, setSelectedRow] = useState<T | null>(null);
@@ -65,17 +70,17 @@ export function TableWithPagination<T>({ columns, data, title, renderDialog }: T
   return (
     <div className="space-y-4">
       {title && <h2 className="text-2xl font-bold">{title}</h2>}
-      <div className="rounded-xl border bg-white dark:bg-[#18122B] shadow-sm overflow-x-auto">
+      <div className="overflow-x-auto rounded-xl border bg-white shadow-sm dark:bg-[#18122B]">
         <Table>
           <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => (
+            {table.getHeaderGroups().map(headerGroup => (
               <TableRow key={headerGroup.id} className="bg-gray-50 dark:bg-[#201a36]">
-                {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id} className="px-4 py-3 text-sm font-semibold text-gray-700 dark:text-gray-200">
-                    {flexRender(
-                      header.column.columnDef.header,
-                      header.getContext()
-                    )}
+                {headerGroup.headers.map(header => (
+                  <TableHead
+                    key={header.id}
+                    className="px-4 py-3 text-sm font-semibold text-gray-700 dark:text-gray-200"
+                  >
+                    {flexRender(header.column.columnDef.header, header.getContext())}
                   </TableHead>
                 ))}
               </TableRow>
@@ -84,7 +89,7 @@ export function TableWithPagination<T>({ columns, data, title, renderDialog }: T
           <TableBody>
             {table.getRowModel().rows.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={columns.length} className="text-center py-8 text-gray-400">
+                <TableCell colSpan={columns.length} className="py-8 text-center text-gray-400">
                   No data found.
                 </TableCell>
               </TableRow>
@@ -92,11 +97,9 @@ export function TableWithPagination<T>({ columns, data, title, renderDialog }: T
               table.getRowModel().rows.map((row, idx) => (
                 <TableRow
                   key={row.id}
-                  className={
-                    `transition-colors ${idx % 2 === 0 ? 'bg-white dark:bg-[#18122B]' : 'bg-gray-50 dark:bg-[#221c3a]'} hover:bg-purple-50 dark:hover:bg-purple-900/30`
-                  }
+                  className={`transition-colors ${idx % 2 === 0 ? 'bg-white dark:bg-[#18122B]' : 'bg-gray-50 dark:bg-[#221c3a]'} hover:bg-purple-50 dark:hover:bg-purple-900/30`}
                 >
-                  {row.getVisibleCells().map((cell) => (
+                  {row.getVisibleCells().map(cell => (
                     <TableCell key={cell.id} className="px-4 py-2 align-middle">
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </TableCell>
@@ -107,24 +110,28 @@ export function TableWithPagination<T>({ columns, data, title, renderDialog }: T
           </TableBody>
         </Table>
       </div>
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+      <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
         <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
           <span>Rows per page:</span>
           <select
-            className="border rounded px-2 py-1 bg-transparent dark:bg-[#18122B]"
+            className="rounded border bg-transparent px-2 py-1 dark:bg-[#18122B]"
             value={pageSize}
             onChange={handlePageSizeChange}
           >
-            {PAGE_SIZE_OPTIONS.map((size) => (
-              <option key={size} value={size}>{size}</option>
+            {PAGE_SIZE_OPTIONS.map(size => (
+              <option key={size} value={size}>
+                {size}
+              </option>
             ))}
           </select>
           <span className="ml-4">
             Page <b>{pageIndex + 1}</b> of <b>{totalPages}</b>
           </span>
-          <span className="ml-4">Total: <b>{totalResults}</b></span>
+          <span className="ml-4">
+            Total: <b>{totalResults}</b>
+          </span>
         </div>
-        <div className="flex items-center gap-2 justify-end">
+        <div className="flex items-center justify-end gap-2">
           <Button
             variant="outline"
             size="sm"
@@ -162,4 +169,4 @@ export function TableWithPagination<T>({ columns, data, title, renderDialog }: T
       {renderDialog && renderDialog(selectedRow, setSelectedRow)}
     </div>
   );
-} 
+}

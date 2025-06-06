@@ -34,57 +34,63 @@ export function useCredits() {
     }
   }, [userId]);
 
-  const handleUpgrade = useCallback(async (plan: PlanType, period: Period) => {
-    if (!userId) return;
+  const handleUpgrade = useCallback(
+    async (plan: PlanType, period: Period) => {
+      if (!userId) return;
 
-    try {
-      setIsLoading(true);
-      const response = await fetch('/api/subscription/upgrade', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ plan, period }),
-      });
+      try {
+        setIsLoading(true);
+        const response = await fetch('/api/subscription/upgrade', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ plan, period }),
+        });
 
-      if (!response.ok) {
-        throw new Error('Failed to upgrade subscription');
+        if (!response.ok) {
+          throw new Error('Failed to upgrade subscription');
+        }
+
+        // Refresh credit state after upgrade
+        await fetchCreditState();
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'An error occurred');
+      } finally {
+        setIsLoading(false);
       }
+    },
+    [userId, fetchCreditState]
+  );
 
-      // Refresh credit state after upgrade
-      await fetchCreditState();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
-    } finally {
-      setIsLoading(false);
-    }
-  }, [userId, fetchCreditState]);
+  const handleTopUp = useCallback(
+    async (amount: number) => {
+      if (!userId) return;
 
-  const handleTopUp = useCallback(async (amount: number) => {
-    if (!userId) return;
+      try {
+        setIsLoading(true);
+        const response = await fetch('/api/credits/top-up', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ amount }),
+        });
 
-    try {
-      setIsLoading(true);
-      const response = await fetch('/api/credits/top-up', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ amount }),
-      });
+        if (!response.ok) {
+          throw new Error('Failed to top up credits');
+        }
 
-      if (!response.ok) {
-        throw new Error('Failed to top up credits');
+        // Refresh credit state after top-up
+        await fetchCreditState();
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'An error occurred');
+      } finally {
+        setIsLoading(false);
       }
-
-      // Refresh credit state after top-up
-      await fetchCreditState();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
-    } finally {
-      setIsLoading(false);
-    }
-  }, [userId, fetchCreditState]);
+    },
+    [userId, fetchCreditState]
+  );
 
   // Fetch initial credit state
   useEffect(() => {
@@ -105,4 +111,4 @@ export function useCredits() {
     upgrade: handleUpgrade,
     topUp: handleTopUp,
   };
-} 
+}

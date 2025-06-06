@@ -1,17 +1,17 @@
-import { AuditService } from "@/lib/services/auditService";
-import { getRequestId } from "@/middleware/request-id";
-import type { NextRequest } from "next/server";
+import { AuditService } from '@/lib/services/auditService';
+import { getRequestId } from '@/middleware/request-id';
+import type { NextRequest } from 'next/server';
 
-export type AuditLogAction = 
-  | "USER_LOGIN"
-  | "USER_LOGOUT"
-  | "USER_CREATE"
-  | "USER_UPDATE"
-  | "USER_DELETE"
-  | "API_CALL"
-  | "SECURITY_EVENT"
-  | "DATA_ACCESS"
-  | "CONFIGURATION_CHANGE";
+export type AuditLogAction =
+  | 'USER_LOGIN'
+  | 'USER_LOGOUT'
+  | 'USER_CREATE'
+  | 'USER_UPDATE'
+  | 'USER_DELETE'
+  | 'API_CALL'
+  | 'SECURITY_EVENT'
+  | 'DATA_ACCESS'
+  | 'CONFIGURATION_CHANGE';
 
 export interface AuditLogEntry {
   action: AuditLogAction;
@@ -43,15 +43,15 @@ export class AuditLogger {
   public async log(entry: AuditLogEntry): Promise<void> {
     try {
       const requestId = this.request ? getRequestId(this.request) : undefined;
-      const ipAddress = this.request?.headers.get("x-forwarded-for") || entry.ipAddress || "";
-      const userAgent = this.request?.headers.get("user-agent") || entry.userAgent || "";
+      const ipAddress = this.request?.headers.get('x-forwarded-for') || entry.ipAddress || '';
+      const userAgent = this.request?.headers.get('user-agent') || entry.userAgent || '';
 
       await AuditService.logAction({
         action: entry.action,
         userId: entry.userId || null,
         ipAddress: ipAddress || null,
         resource: entry.resource,
-        status: entry.status || "SUCCESS",
+        status: entry.status || 'SUCCESS',
         details: {
           ...entry.details,
           requestId,
@@ -59,7 +59,7 @@ export class AuditLogger {
         },
       });
     } catch (error) {
-      console.error("Failed to create audit log:", error);
+      console.error('Failed to create audit log:', error);
       // Don't throw the error to prevent disrupting the main application flow
     }
   }
@@ -101,11 +101,11 @@ export class AuditLogger {
     status?: string
   ): Promise<void> {
     await this.log({
-      action: "API_CALL",
+      action: 'API_CALL',
       userId,
       resource,
       details,
       status,
     });
   }
-} 
+}

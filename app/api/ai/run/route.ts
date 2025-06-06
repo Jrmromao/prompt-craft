@@ -20,7 +20,7 @@ export async function POST(req: Request) {
     // Get user's plan type
     const user = await prisma.user.findUnique({
       where: { clerkId },
-      select: { id: true, planType: true }
+      select: { id: true, planType: true },
     });
 
     if (!user) {
@@ -36,9 +36,9 @@ export async function POST(req: Request) {
       where: {
         userId: user.id,
         createdAt: {
-          gte: startOfMonth
-        }
-      }
+          gte: startOfMonth,
+        },
+      },
     });
 
     // Check if user has exceeded their limit
@@ -50,33 +50,30 @@ export async function POST(req: Request) {
 
     const limit = TIER_LIMITS[user.planType];
     if (limit !== null && runsThisMonth >= limit) {
-      return NextResponse.json(
-        { error: 'Playground run limit exceeded' },
-        { status: 429 }
-      );
+      return NextResponse.json({ error: 'Playground run limit exceeded' }, { status: 429 });
     }
 
     // Run the prompt
     const payload: PromptPayload = {
       content: prompt,
-      promptType: 'text'
+      promptType: 'text',
     };
     try {
       const result = await sendPromptToLLM(payload);
-      
+
       // Record the playground run
       await prisma.playgroundRun.create({
         data: {
           userId: user.id,
           input: prompt,
-          output: result || null
-        }
+          output: result || null,
+        },
       });
 
       return NextResponse.json({ result });
     } catch (error: any) {
       console.error('Error running prompt:', error);
-      
+
       // Handle specific errors
       if (error.message?.includes('Insufficient credits')) {
         return NextResponse.json(
@@ -90,7 +87,7 @@ export async function POST(req: Request) {
           { status: 403 }
         );
       }
-      
+
       return NextResponse.json(
         { error: error.message || 'Internal server error' },
         { status: 500 }
@@ -98,9 +95,6 @@ export async function POST(req: Request) {
     }
   } catch (error: any) {
     console.error('Error in /api/ai/run:', error);
-    return NextResponse.json(
-      { error: error.message || 'Internal server error' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: error.message || 'Internal server error' }, { status: 500 });
   }
-} 
+}

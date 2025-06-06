@@ -3,22 +3,22 @@ import { z } from 'zod';
 const envSchema = z.object({
   // Database
   DATABASE_URL: z.string().url(),
-  
+
   // Authentication
   NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: z.string().min(1),
   CLERK_SECRET_KEY: z.string().min(1),
-  
+
   // Redis
   UPSTASH_REDIS_REST_URL: z.string().url(),
   UPSTASH_REDIS_REST_TOKEN: z.string().min(1),
-  
+
   // API Keys
   OPENAI_API_KEY: z.string().min(1),
-  
+
   // App
   NODE_ENV: z.enum(['development', 'production', 'test']),
   NEXT_PUBLIC_APP_URL: z.string().url(),
-  
+
   // Optional variables
   SENTRY_DSN: z.string().url().optional(),
   ANALYTICS_ID: z.string().optional(),
@@ -40,4 +40,4 @@ export function validateEnv() {
 export type Env = z.infer<typeof envSchema>;
 
 // Export validated environment variables
-export const env = envSchema.parse(process.env); 
+export const env = envSchema.parse(process.env);

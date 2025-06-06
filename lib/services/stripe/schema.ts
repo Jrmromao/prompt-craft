@@ -1,6 +1,13 @@
 import { Stripe } from 'stripe';
 
-export type SubscriptionStatus = 'active' | 'canceled' | 'incomplete' | 'incomplete_expired' | 'past_due' | 'trialing' | 'unpaid';
+export type SubscriptionStatus =
+  | 'active'
+  | 'canceled'
+  | 'incomplete'
+  | 'incomplete_expired'
+  | 'past_due'
+  | 'trialing'
+  | 'unpaid';
 
 export interface Plan {
   id: string;
@@ -144,4 +151,4 @@ export interface UpdateCustomerParams {
   phone?: string;
   metadata?: Record<string, string>;
   defaultPaymentMethod?: string;
-} 
+}

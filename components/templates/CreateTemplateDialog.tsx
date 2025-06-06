@@ -23,7 +23,7 @@ export function CreateTemplateDialog({ open, onOpenChange, onSuccess }: CreateTe
     description: '',
     content: '',
     isPublic: false,
-    tags: ''
+    tags: '',
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -38,7 +38,10 @@ export function CreateTemplateDialog({ open, onOpenChange, onSuccess }: CreateTe
         },
         body: JSON.stringify({
           ...formData,
-          tags: formData.tags.split(',').map(tag => tag.trim()).filter(Boolean),
+          tags: formData.tags
+            .split(',')
+            .map(tag => tag.trim())
+            .filter(Boolean),
         }),
       });
 
@@ -58,7 +61,7 @@ export function CreateTemplateDialog({ open, onOpenChange, onSuccess }: CreateTe
         description: '',
         content: '',
         isPublic: false,
-        tags: ''
+        tags: '',
       });
     } catch (error) {
       toast({
@@ -83,7 +86,7 @@ export function CreateTemplateDialog({ open, onOpenChange, onSuccess }: CreateTe
             <Input
               id="name"
               value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              onChange={e => setFormData({ ...formData, name: e.target.value })}
               placeholder="Enter template name"
               required
             />
@@ -94,7 +97,7 @@ export function CreateTemplateDialog({ open, onOpenChange, onSuccess }: CreateTe
             <Textarea
               id="description"
               value={formData.description}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              onChange={e => setFormData({ ...formData, description: e.target.value })}
               placeholder="Enter template description"
             />
           </div>
@@ -104,7 +107,7 @@ export function CreateTemplateDialog({ open, onOpenChange, onSuccess }: CreateTe
             <Textarea
               id="content"
               value={formData.content}
-              onChange={(e) => setFormData({ ...formData, content: e.target.value })}
+              onChange={e => setFormData({ ...formData, content: e.target.value })}
               placeholder="Enter template content"
               className="min-h-[200px]"
               required
@@ -116,7 +119,7 @@ export function CreateTemplateDialog({ open, onOpenChange, onSuccess }: CreateTe
             <Input
               id="tags"
               value={formData.tags}
-              onChange={(e) => setFormData({ ...formData, tags: e.target.value })}
+              onChange={e => setFormData({ ...formData, tags: e.target.value })}
               placeholder="e.g., marketing, social, business"
             />
           </div>
@@ -125,7 +128,7 @@ export function CreateTemplateDialog({ open, onOpenChange, onSuccess }: CreateTe
             <Switch
               id="isPublic"
               checked={formData.isPublic}
-              onCheckedChange={(checked) => setFormData({ ...formData, isPublic: checked })}
+              onCheckedChange={checked => setFormData({ ...formData, isPublic: checked })}
             />
             <Label htmlFor="isPublic">Make template public</Label>
           </div>
@@ -151,4 +154,4 @@ export function CreateTemplateDialog({ open, onOpenChange, onSuccess }: CreateTe
       </DialogContent>
     </Dialog>
   );
-} 
+}

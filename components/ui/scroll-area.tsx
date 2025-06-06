@@ -1,6 +1,6 @@
-import * as React from "react"
-import * as ScrollAreaPrimitive from "@radix-ui/react-scroll-area"
-import { cn } from "@/lib/utils"
+import * as React from 'react';
+import * as ScrollAreaPrimitive from '@radix-ui/react-scroll-area';
+import { cn } from '@/lib/utils';
 
 const ScrollArea = React.forwardRef<
   React.ElementRef<typeof ScrollAreaPrimitive.Root>,
@@ -8,27 +8,27 @@ const ScrollArea = React.forwardRef<
 >(({ className, children, ...props }, ref) => (
   <ScrollAreaPrimitive.Root
     ref={ref}
-    className={cn("relative overflow-hidden", className)}
+    className={cn('relative overflow-hidden', className)}
     {...props}
   >
-    <ScrollAreaPrimitive.Viewport className="w-full h-full rounded-[inherit]">
+    <ScrollAreaPrimitive.Viewport className="h-full w-full rounded-[inherit]">
       {children}
     </ScrollAreaPrimitive.Viewport>
     <ScrollAreaPrimitive.Scrollbar
       orientation="vertical"
-      className="flex select-none touch-none p-0.5 bg-transparent transition-colors duration-150 ease-out hover:bg-gray-100 dark:hover:bg-gray-800 border-l border-gray-200 dark:border-gray-800"
+      className="flex touch-none select-none border-l border-gray-200 bg-transparent p-0.5 transition-colors duration-150 ease-out hover:bg-gray-100 dark:border-gray-800 dark:hover:bg-gray-800"
     >
-      <ScrollAreaPrimitive.Thumb className="flex-1 bg-gray-300 dark:bg-gray-700 rounded-full relative" />
+      <ScrollAreaPrimitive.Thumb className="relative flex-1 rounded-full bg-gray-300 dark:bg-gray-700" />
     </ScrollAreaPrimitive.Scrollbar>
     <ScrollAreaPrimitive.Scrollbar
       orientation="horizontal"
-      className="flex select-none touch-none p-0.5 bg-transparent transition-colors duration-150 ease-out hover:bg-gray-100 dark:hover:bg-gray-800 border-t border-gray-200 dark:border-gray-800"
+      className="flex touch-none select-none border-t border-gray-200 bg-transparent p-0.5 transition-colors duration-150 ease-out hover:bg-gray-100 dark:border-gray-800 dark:hover:bg-gray-800"
     >
-      <ScrollAreaPrimitive.Thumb className="flex-1 bg-gray-300 dark:bg-gray-700 rounded-full relative" />
+      <ScrollAreaPrimitive.Thumb className="relative flex-1 rounded-full bg-gray-300 dark:bg-gray-700" />
     </ScrollAreaPrimitive.Scrollbar>
     <ScrollAreaPrimitive.Corner />
   </ScrollAreaPrimitive.Root>
-))
-ScrollArea.displayName = ScrollAreaPrimitive.Root.displayName
+));
+ScrollArea.displayName = ScrollAreaPrimitive.Root.displayName;
 
-export { ScrollArea } 
+export { ScrollArea };

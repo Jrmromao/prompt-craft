@@ -16,7 +16,7 @@ export class CommentService {
     // Get the database user ID from the Clerk user ID
     const user = await prisma.user.findUnique({
       where: { clerkId: clerkUserId },
-      select: { id: true }
+      select: { id: true },
     });
 
     if (!user) {
@@ -26,7 +26,7 @@ export class CommentService {
     // Check if the comment exists and get its promptId
     const comment = await prisma.comment.findUnique({
       where: { id: commentId },
-      select: { promptId: true }
+      select: { promptId: true },
     });
 
     if (!comment) {
@@ -74,7 +74,7 @@ export class CommentService {
     // Get the database user ID from the Clerk user ID
     const user = await prisma.user.findUnique({
       where: { clerkId: clerkUserId },
-      select: { id: true }
+      select: { id: true },
     });
 
     if (!user) {
@@ -84,7 +84,7 @@ export class CommentService {
     // Check if the comment exists and belongs to the user
     const comment = await prisma.comment.findUnique({
       where: { id: commentId },
-      select: { userId: true }
+      select: { userId: true },
     });
 
     if (!comment) {
@@ -97,20 +97,15 @@ export class CommentService {
 
     // Delete the comment
     await prisma.comment.delete({
-      where: { id: commentId }
+      where: { id: commentId },
     });
   }
 
-  async createComment(
-    promptId: string,
-    clerkUserId: string,
-    content: string,
-    parentId?: string
-  ) {
+  async createComment(promptId: string, clerkUserId: string, content: string, parentId?: string) {
     // Get the database user ID from the Clerk user ID
     const user = await prisma.user.findUnique({
       where: { clerkId: clerkUserId },
-      select: { id: true }
+      select: { id: true },
     });
 
     if (!user) {
@@ -180,7 +175,7 @@ export class CommentService {
 
     // Get like status for current user
     const commentsWithLikes = await Promise.all(
-      comments.map(async (comment) => {
+      comments.map(async comment => {
         let liked = false;
         const like = await prisma.commentLike.findFirst({
           where: {
@@ -200,4 +195,4 @@ export class CommentService {
       total,
     };
   }
-} 
+}

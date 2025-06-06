@@ -1,13 +1,8 @@
-"use client";
+'use client';
 
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { formatDistanceToNow } from "date-fns";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { formatDistanceToNow } from 'date-fns';
 
 interface Report {
   id: string;
@@ -34,16 +29,11 @@ export function ReportDetails({ open, onOpenChange, reports }: ReportDetailsProp
         </DialogHeader>
         <ScrollArea className="h-[400px] pr-4">
           <div className="space-y-4">
-            {reports.map((report) => (
-              <div
-                key={report.id}
-                className="rounded-lg border p-4 space-y-2"
-              >
-                <div className="flex justify-between items-start">
+            {reports.map(report => (
+              <div key={report.id} className="space-y-2 rounded-lg border p-4">
+                <div className="flex items-start justify-between">
                   <div>
-                    <p className="font-medium">
-                      {report.user.name || report.user.email}
-                    </p>
+                    <p className="font-medium">{report.user.name || report.user.email}</p>
                     <p className="text-sm text-gray-500">
                       {formatDistanceToNow(report.createdAt, {
                         addSuffix: true,
@@ -59,4 +49,4 @@ export function ReportDetails({ open, onOpenChange, reports }: ReportDetailsProp
       </DialogContent>
     </Dialog>
   );
-} 
+}

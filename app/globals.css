@@ -106,12 +106,14 @@ body {
 }
 
 .fade-in-up {
-  animation: fadeInUp 0.7s cubic-bezier(.4,0,.2,1);
+  animation: fadeInUp 0.7s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Wave Animation */
 @keyframes wave {
-  0%, 60%, 100% {
+  0%,
+  60%,
+  100% {
     transform: initial;
   }
   30% {

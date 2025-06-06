@@ -69,9 +69,7 @@ export function UpgradeModal({
       <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
           <DialogTitle>
-            {missingCredits
-              ? `Need ${missingCredits} more credits?`
-              : 'Upgrade Your Plan'}
+            {missingCredits ? `Need ${missingCredits} more credits?` : 'Upgrade Your Plan'}
           </DialogTitle>
           <DialogDescription>
             {missingCredits
@@ -81,21 +79,17 @@ export function UpgradeModal({
         </DialogHeader>
 
         <div className="grid gap-4 py-4">
-          {PLANS.map((plan) => (
+          {PLANS.map(plan => (
             <div
               key={plan.type}
               className={`rounded-lg border p-4 ${
-                selectedPlan === plan.type
-                  ? 'border-primary bg-primary/5'
-                  : 'border-border'
+                selectedPlan === plan.type ? 'border-primary bg-primary/5' : 'border-border'
               }`}
             >
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="font-semibold">{plan.name}</h3>
-                  <p className="text-sm text-muted-foreground">
-                    {plan.description}
-                  </p>
+                  <p className="text-sm text-muted-foreground">{plan.description}</p>
                 </div>
                 <Button
                   variant={selectedPlan === plan.type ? 'default' : 'outline'}
@@ -159,11 +153,9 @@ export function UpgradeModal({
           <Button variant="outline" onClick={onClose}>
             Cancel
           </Button>
-          <Button onClick={handleUpgrade}>
-            Upgrade Now
-          </Button>
+          <Button onClick={handleUpgrade}>Upgrade Now</Button>
         </div>
       </DialogContent>
     </Dialog>
   );
-} 
+}

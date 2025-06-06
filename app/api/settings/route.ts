@@ -1,5 +1,5 @@
-import { NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
+import { NextResponse } from 'next/server';
+import { auth } from '@clerk/nextjs/server';
 import {
   getUserSettings,
   updateEmailPreferences,
@@ -7,17 +7,17 @@ import {
   updateThemeSettings,
   generateApiKey,
   revokeApiKey,
-} from "@/app/services/settingsService";
+} from '@/app/services/settingsService';
 
 export async function GET() {
   const { userId } = await auth();
   if (!userId) {
-    return new NextResponse("Unauthorized", { status: 401 });
+    return new NextResponse('Unauthorized', { status: 401 });
   }
 
   const settings = await getUserSettings(userId);
   if (!settings) {
-    return new NextResponse("Not found", { status: 404 });
+    return new NextResponse('Not found', { status: 404 });
   }
 
   return NextResponse.json(settings);
@@ -26,7 +26,7 @@ export async function GET() {
 export async function PATCH(req: Request) {
   const { userId } = await auth();
   if (!userId) {
-    return new NextResponse("Unauthorized", { status: 401 });
+    return new NextResponse('Unauthorized', { status: 401 });
   }
 
   try {
@@ -35,22 +35,22 @@ export async function PATCH(req: Request) {
 
     let result;
     switch (type) {
-      case "email":
+      case 'email':
         result = await updateEmailPreferences(userId, data);
         break;
-      case "notifications":
+      case 'notifications':
         result = await updateNotificationSettings(userId, data);
         break;
-      case "theme":
+      case 'theme':
         result = await updateThemeSettings(userId, data);
         break;
       default:
-        return new NextResponse("Invalid settings type", { status: 400 });
+        return new NextResponse('Invalid settings type', { status: 400 });
     }
 
     return NextResponse.json(result);
   } catch (error) {
-    console.error("Settings update error:", error);
-    return new NextResponse("Internal error", { status: 500 });
+    console.error('Settings update error:', error);
+    return new NextResponse('Internal error', { status: 500 });
   }
-} 
+}

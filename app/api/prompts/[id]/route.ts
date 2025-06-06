@@ -23,9 +23,6 @@ export async function GET(request: Request) {
     return NextResponse.json(prompt);
   } catch (error) {
     console.error('Error fetching prompt:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
-} 
+}

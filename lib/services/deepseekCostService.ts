@@ -2,12 +2,12 @@ import { prisma } from '@/lib/prisma';
 
 export class DeepseekCostService {
   private static instance: DeepseekCostService;
-  
+
   // DeepSeek API pricing (per million tokens)
   private readonly PRICING = {
     INPUT_CACHE_HIT: 0.07,
     INPUT_CACHE_MISS: 0.27,
-    OUTPUT: 1.10
+    OUTPUT: 1.1,
   };
 
   private constructor() {}
@@ -37,11 +37,11 @@ export class DeepseekCostService {
         inputTokens: true,
         outputTokens: true,
         isCacheHit: true,
-        createdAt: true
+        createdAt: true,
       },
       orderBy: {
-        createdAt: 'asc'
-      }
+        createdAt: 'asc',
+      },
     });
 
     // Calculate totals
@@ -51,8 +51,10 @@ export class DeepseekCostService {
     const cacheHitRate = usage.length > 0 ? (cacheHits / usage.length) * 100 : 0;
 
     // Calculate costs
-    const inputCacheHitCost = (totalInputTokens * (cacheHitRate / 100) * this.PRICING.INPUT_CACHE_HIT) / 1000000;
-    const inputCacheMissCost = (totalInputTokens * ((100 - cacheHitRate) / 100) * this.PRICING.INPUT_CACHE_MISS) / 1000000;
+    const inputCacheHitCost =
+      (totalInputTokens * (cacheHitRate / 100) * this.PRICING.INPUT_CACHE_HIT) / 1000000;
+    const inputCacheMissCost =
+      (totalInputTokens * ((100 - cacheHitRate) / 100) * this.PRICING.INPUT_CACHE_MISS) / 1000000;
     const outputCost = (totalOutputTokens * this.PRICING.OUTPUT) / 1000000;
     const totalCost = inputCacheHitCost + inputCacheMissCost + outputCost;
 
@@ -64,18 +66,21 @@ export class DeepseekCostService {
           date,
           inputTokens: 0,
           outputTokens: 0,
-          cost: 0
+          cost: 0,
         };
       }
       acc[date].inputTokens += u.inputTokens;
       acc[date].outputTokens += u.outputTokens;
-      
+
       // Calculate cost for this usage
       const isCacheHit = u.isCacheHit;
-      const inputCost = (u.inputTokens * (isCacheHit ? this.PRICING.INPUT_CACHE_HIT : this.PRICING.INPUT_CACHE_MISS)) / 1000000;
+      const inputCost =
+        (u.inputTokens *
+          (isCacheHit ? this.PRICING.INPUT_CACHE_HIT : this.PRICING.INPUT_CACHE_MISS)) /
+        1000000;
       const outputCost = (u.outputTokens * this.PRICING.OUTPUT) / 1000000;
       acc[date].cost += inputCost + outputCost;
-      
+
       return acc;
     }, {});
 
@@ -84,7 +89,7 @@ export class DeepseekCostService {
       totalOutputTokens,
       totalCost,
       cacheHitRate,
-      usageByDay: Object.values(usageByDay)
+      usageByDay: Object.values(usageByDay),
     };
   }
 
@@ -107,14 +112,14 @@ export class DeepseekCostService {
       where: {
         createdAt: {
           gte: startOfMonth,
-          lte: now
-        }
+          lte: now,
+        },
       },
       select: {
         inputTokens: true,
         outputTokens: true,
-        isCacheHit: true
-      }
+        isCacheHit: true,
+      },
     });
 
     // Calculate totals
@@ -124,8 +129,10 @@ export class DeepseekCostService {
     const cacheHitRate = usage.length > 0 ? (cacheHits / usage.length) * 100 : 0;
 
     // Calculate costs
-    const inputCacheHitCost = (totalInputTokens * (cacheHitRate / 100) * this.PRICING.INPUT_CACHE_HIT) / 1000000;
-    const inputCacheMissCost = (totalInputTokens * ((100 - cacheHitRate) / 100) * this.PRICING.INPUT_CACHE_MISS) / 1000000;
+    const inputCacheHitCost =
+      (totalInputTokens * (cacheHitRate / 100) * this.PRICING.INPUT_CACHE_HIT) / 1000000;
+    const inputCacheMissCost =
+      (totalInputTokens * ((100 - cacheHitRate) / 100) * this.PRICING.INPUT_CACHE_MISS) / 1000000;
     const outputCost = (totalOutputTokens * this.PRICING.OUTPUT) / 1000000;
 
     const totalCost = inputCacheHitCost + inputCacheMissCost + outputCost;
@@ -138,8 +145,8 @@ export class DeepseekCostService {
       breakdown: {
         inputCacheHit: inputCacheHitCost,
         inputCacheMiss: inputCacheMissCost,
-        output: outputCost
-      }
+        output: outputCost,
+      },
     };
   }
-} 
+}

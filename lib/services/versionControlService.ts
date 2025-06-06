@@ -119,10 +119,7 @@ export class VersionControlService {
     const removedTags = [...oldTags].filter(tag => !newTags.has(tag));
     // Metadata diff
     const metadataDiff = [];
-    const allKeys = new Set([
-      ...Object.keys(v1.metadata || {}),
-      ...Object.keys(v2.metadata || {}),
-    ]);
+    const allKeys = new Set([...Object.keys(v1.metadata || {}), ...Object.keys(v2.metadata || {})]);
     for (const key of allKeys) {
       const oldVal = v1.metadata?.[key];
       const newVal = v2.metadata?.[key];
@@ -144,19 +141,19 @@ export class VersionControlService {
   // Compare metadata between versions
   private compareMetadata(metadata1: any, metadata2: any) {
     const changes: { field: string; oldValue: any; newValue: any }[] = [];
-    
+
     // Compare each metadata field
     const allFields = new Set([...Object.keys(metadata1 || {}), ...Object.keys(metadata2 || {})]);
-    
+
     allFields.forEach(field => {
       const oldValue = metadata1?.[field];
       const newValue = metadata2?.[field];
-      
+
       if (JSON.stringify(oldValue) !== JSON.stringify(newValue)) {
         changes.push({
           field,
           oldValue,
-          newValue
+          newValue,
         });
       }
     });
@@ -168,14 +165,14 @@ export class VersionControlService {
   private compareTags(tags1: { name: string }[], tags2: { name: string }[]) {
     const oldTags = new Set(tags1.map(t => t.name));
     const newTags = new Set(tags2.map(t => t.name));
-    
+
     const added = [...newTags].filter(tag => !oldTags.has(tag));
     const removed = [...oldTags].filter(tag => !newTags.has(tag));
-    
+
     return {
       added,
       removed,
-      unchanged: [...oldTags].filter(tag => newTags.has(tag))
+      unchanged: [...oldTags].filter(tag => newTags.has(tag)),
     };
   }
 
@@ -206,10 +203,10 @@ export class VersionControlService {
     return {
       diff: differences,
       isMajor: added > 100 || removed > 100, // Major changes if more than 100 words changed
-      isMinor: (added > 20 || removed > 20) && (added <= 100 && removed <= 100), // Minor changes if 20-100 words changed
+      isMinor: (added > 20 || removed > 20) && added <= 100 && removed <= 100, // Minor changes if 20-100 words changed
       added,
       removed,
       total,
     };
   }
-} 
+}

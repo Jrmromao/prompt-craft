@@ -1,18 +1,18 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Role, PlanType } from "@prisma/client";
-import { toast } from "sonner";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
-import { Loader2, AlertTriangle } from "lucide-react";
-import { userProfileSchema } from "@/lib/validations/user";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Role, PlanType } from '@prisma/client';
+import { toast } from 'sonner';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
+import { Loader2, AlertTriangle } from 'lucide-react';
+import { userProfileSchema } from '@/lib/validations/user';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
 import {
   Form,
   FormControl,
@@ -21,8 +21,8 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+} from '@/components/ui/form';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   Dialog,
   DialogContent,
@@ -31,7 +31,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog";
+} from '@/components/ui/dialog';
 
 type ProfileFormValues = z.infer<typeof userProfileSchema>;
 
@@ -60,43 +60,43 @@ export function ProfileForm({ user }: ProfileFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [avatarUrl, setAvatarUrl] = useState(user.imageUrl || "");
+  const [avatarUrl, setAvatarUrl] = useState(user.imageUrl || '');
 
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(userProfileSchema),
     defaultValues: {
-      name: user.name || "",
-      email: user.email || "",
-      bio: user.bio || "",
-      jobTitle: user.jobTitle || "",
-      location: user.location || "",
-      company: user.company || "",
-      website: user.website || "",
-      twitter: user.twitter || "",
-      linkedin: user.linkedin || "",
+      name: user.name || '',
+      email: user.email || '',
+      bio: user.bio || '',
+      jobTitle: user.jobTitle || '',
+      location: user.location || '',
+      company: user.company || '',
+      website: user.website || '',
+      twitter: user.twitter || '',
+      linkedin: user.linkedin || '',
     },
   });
 
   async function onSubmit(data: ProfileFormValues) {
     try {
       setIsLoading(true);
-      const response = await fetch("/api/profile", {
-        method: "PATCH",
+      const response = await fetch('/api/profile', {
+        method: 'PATCH',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify(data),
       });
 
       if (!response.ok) {
-        throw new Error("Failed to update profile");
+        throw new Error('Failed to update profile');
       }
 
-      toast.success("Profile updated successfully");
+      toast.success('Profile updated successfully');
       router.refresh();
     } catch (error) {
-      console.error("Error updating profile:", error);
-      toast.error("Failed to update profile. Please try again.");
+      console.error('Error updating profile:', error);
+      toast.error('Failed to update profile. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -107,18 +107,18 @@ export function ProfileForm({ user }: ProfileFormProps) {
   const handleDeleteAccount = async () => {
     try {
       setIsDeleting(true);
-      const response = await fetch("/api/profile", {
-        method: "DELETE",
+      const response = await fetch('/api/profile', {
+        method: 'DELETE',
       });
-      
+
       if (!response.ok) {
-        throw new Error("Failed to delete account");
+        throw new Error('Failed to delete account');
       }
-      
-      toast.success("Account deleted successfully");
-      router.push("/");
+
+      toast.success('Account deleted successfully');
+      router.push('/');
     } catch (error) {
-      toast.error("Failed to delete account");
+      toast.error('Failed to delete account');
     } finally {
       setIsDeleting(false);
       setShowDeleteDialog(false);
@@ -128,7 +128,6 @@ export function ProfileForm({ user }: ProfileFormProps) {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-    
         <Card>
           <CardHeader>
             <CardTitle>Personal Information</CardTitle>
@@ -159,9 +158,7 @@ export function ProfileForm({ user }: ProfileFormProps) {
                   <FormControl>
                     <Input {...field} disabled={true} />
                   </FormControl>
-                  <FormDescription>
-                    Your email address cannot be changed.
-                  </FormDescription>
+                  <FormDescription>Your email address cannot be changed.</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -239,9 +236,7 @@ export function ProfileForm({ user }: ProfileFormProps) {
         <Card>
           <CardHeader>
             <CardTitle>Social Links</CardTitle>
-            <CardDescription>
-              Add your social media profiles and website.
-            </CardDescription>
+            <CardDescription>Add your social media profiles and website.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <FormField
@@ -289,7 +284,7 @@ export function ProfileForm({ user }: ProfileFormProps) {
         <Card className="border-red-200 dark:border-red-900">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-red-600 dark:text-red-400">
-              <AlertTriangle className="w-5 h-5" />
+              <AlertTriangle className="h-5 w-5" />
               Danger Zone
             </CardTitle>
             <CardDescription className="text-red-600/80 dark:text-red-400/80">
@@ -298,28 +293,28 @@ export function ProfileForm({ user }: ProfileFormProps) {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              <div className="flex items-center justify-between p-4 rounded-lg border border-red-200 dark:border-red-900 bg-red-50/50 dark:bg-red-950/50">
+              <div className="flex items-center justify-between rounded-lg border border-red-200 bg-red-50/50 p-4 dark:border-red-900 dark:bg-red-950/50">
                 <div className="space-y-1">
-                  <h4 className="text-sm font-medium text-red-900 dark:text-red-100">Delete Account</h4>
+                  <h4 className="text-sm font-medium text-red-900 dark:text-red-100">
+                    Delete Account
+                  </h4>
                   <p className="text-sm text-red-600/80 dark:text-red-400/80">
                     Permanently delete your account and all associated data.
                   </p>
                 </div>
                 <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
                   <DialogTrigger asChild>
-                    <Button variant="destructive">
-                      Delete Account
-                    </Button>
+                    <Button variant="destructive">Delete Account</Button>
                   </DialogTrigger>
                   <DialogContent>
                     <DialogHeader>
                       <DialogTitle className="flex items-center gap-2 text-red-600 dark:text-red-400">
-                        <AlertTriangle className="w-5 h-5" />
+                        <AlertTriangle className="h-5 w-5" />
                         Delete Account
                       </DialogTitle>
                       <DialogDescription className="text-red-600/80 dark:text-red-400/80">
-                        Are you absolutely sure? This action cannot be undone. This will permanently delete your account
-                        and remove all associated data from our servers.
+                        Are you absolutely sure? This action cannot be undone. This will permanently
+                        delete your account and remove all associated data from our servers.
                       </DialogDescription>
                     </DialogHeader>
                     <DialogFooter>
@@ -341,7 +336,7 @@ export function ProfileForm({ user }: ProfileFormProps) {
                             Deleting...
                           </>
                         ) : (
-                          "Delete Account"
+                          'Delete Account'
                         )}
                       </Button>
                     </DialogFooter>
@@ -360,11 +355,11 @@ export function ProfileForm({ user }: ProfileFormProps) {
                 Saving...
               </>
             ) : (
-              "Save Changes"
+              'Save Changes'
             )}
           </Button>
         </div>
       </form>
     </Form>
   );
-} 
+}

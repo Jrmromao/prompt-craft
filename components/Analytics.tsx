@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -77,10 +77,10 @@ export function Analytics({ promptId, upvotes }: AnalyticsProps) {
   if (isLoading) {
     return (
       <div className="space-y-4">
-        <div className="h-8 w-32 bg-gray-200 rounded animate-pulse" />
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+        <div className="h-8 w-32 animate-pulse rounded bg-gray-200" />
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-5">
           {[...Array(5)].map((_, i) => (
-            <div key={i} className="h-24 bg-gray-200 rounded animate-pulse" />
+            <div key={i} className="h-24 animate-pulse rounded bg-gray-200" />
           ))}
         </div>
       </div>
@@ -93,7 +93,7 @@ export function Analytics({ promptId, upvotes }: AnalyticsProps) {
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-5">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Views</CardTitle>
@@ -118,7 +118,9 @@ export function Analytics({ promptId, upvotes }: AnalyticsProps) {
             <ThumbsUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{typeof upvotes === 'number' ? upvotes : analytics.upvotes}</div>
+            <div className="text-2xl font-bold">
+              {typeof upvotes === 'number' ? upvotes : analytics.upvotes}
+            </div>
           </CardContent>
         </Card>
         <Card>
@@ -142,4 +144,4 @@ export function Analytics({ promptId, upvotes }: AnalyticsProps) {
       </div>
     </div>
   );
-} 
+}

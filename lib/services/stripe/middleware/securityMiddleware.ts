@@ -64,4 +64,4 @@ export async function stripeSecurityMiddleware(req: NextRequest) {
   });
 
   return null;
-} 
+}

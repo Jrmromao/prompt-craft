@@ -1,7 +1,6 @@
 // @ts-nocheck
 const { PrismaClient } = require('@prisma/client');
 
-
 const { randomUUID } = require('crypto');
 const prisma = new PrismaClient();
 
@@ -19,7 +18,7 @@ async function main() {
       email: 'admin@PromptCraft.com',
       name: 'Admin User',
       role: 'ADMIN',
-      planType: 'PRO'
+      planType: 'PRO',
     },
   });
 
@@ -107,7 +106,8 @@ async function main() {
     {
       name: 'Business Plan Generator',
       description: 'Create a comprehensive business plan outline.',
-      content: 'Help me create a business plan for a [type of business]. Include market analysis, financial projections, and marketing strategy.',
+      content:
+        'Help me create a business plan for a [type of business]. Include market analysis, financial projections, and marketing strategy.',
       isPublic: true,
       isApproved: true,
       upvotes: 150,
@@ -118,7 +118,8 @@ async function main() {
     {
       name: 'Investment Analysis',
       description: 'Analyze investment opportunities.',
-      content: 'Analyze the potential risks and returns of investing in [specific investment]. Consider market conditions, historical performance, and future outlook.',
+      content:
+        'Analyze the potential risks and returns of investing in [specific investment]. Consider market conditions, historical performance, and future outlook.',
       isPublic: true,
       isApproved: true,
       upvotes: 180,
@@ -129,7 +130,8 @@ async function main() {
     {
       name: 'Blog Post Outline',
       description: 'Generate a structured blog post outline.',
-      content: 'Create a detailed outline for a blog post about [topic]. Include main points, subheadings, and key takeaways.',
+      content:
+        'Create a detailed outline for a blog post about [topic]. Include main points, subheadings, and key takeaways.',
       isPublic: true,
       isApproved: true,
       upvotes: 95,
@@ -140,7 +142,8 @@ async function main() {
     {
       name: 'Email Template Generator',
       description: 'Create professional email templates.',
-      content: 'Write a professional email template for [purpose]. Include subject line, greeting, body, and closing.',
+      content:
+        'Write a professional email template for [purpose]. Include subject line, greeting, body, and closing.',
       isPublic: true,
       isApproved: true,
       upvotes: 110,
@@ -151,7 +154,8 @@ async function main() {
     {
       name: 'Code Review Assistant',
       description: 'Get help reviewing your code.',
-      content: 'Review this code snippet and suggest improvements for performance, readability, and best practices: [code]',
+      content:
+        'Review this code snippet and suggest improvements for performance, readability, and best practices: [code]',
       isPublic: true,
       isApproved: true,
       upvotes: 160,
@@ -162,7 +166,8 @@ async function main() {
     {
       name: 'API Documentation Generator',
       description: 'Generate API documentation.',
-      content: 'Create comprehensive API documentation for this endpoint: [endpoint details]. Include parameters, responses, and examples.',
+      content:
+        'Create comprehensive API documentation for this endpoint: [endpoint details]. Include parameters, responses, and examples.',
       isPublic: true,
       isApproved: true,
       upvotes: 130,
@@ -173,7 +178,8 @@ async function main() {
     {
       name: 'UI/UX Feedback',
       description: 'Get feedback on your design.',
-      content: 'Review this UI/UX design and provide feedback on usability, accessibility, and visual appeal: [design details]',
+      content:
+        'Review this UI/UX design and provide feedback on usability, accessibility, and visual appeal: [design details]',
       isPublic: true,
       isApproved: true,
       upvotes: 140,
@@ -184,7 +190,8 @@ async function main() {
     {
       name: 'Color Palette Generator',
       description: 'Generate harmonious color palettes.',
-      content: 'Create a color palette for a [type of project] that conveys [mood/emotion]. Include primary, secondary, and accent colors.',
+      content:
+        'Create a color palette for a [type of project] that conveys [mood/emotion]. Include primary, secondary, and accent colors.',
       isPublic: true,
       isApproved: true,
       upvotes: 125,
@@ -195,7 +202,8 @@ async function main() {
     {
       name: 'Study Guide Creator',
       description: 'Create comprehensive study guides.',
-      content: 'Create a study guide for [subject/topic]. Include key concepts, examples, and practice questions.',
+      content:
+        'Create a study guide for [subject/topic]. Include key concepts, examples, and practice questions.',
       isPublic: true,
       isApproved: true,
       upvotes: 170,
@@ -206,7 +214,8 @@ async function main() {
     {
       name: 'Lesson Plan Generator',
       description: 'Generate detailed lesson plans.',
-      content: 'Create a lesson plan for teaching [subject] to [grade level]. Include objectives, activities, and assessment methods.',
+      content:
+        'Create a lesson plan for teaching [subject] to [grade level]. Include objectives, activities, and assessment methods.',
       isPublic: true,
       isApproved: true,
       upvotes: 145,
@@ -217,7 +226,8 @@ async function main() {
     {
       name: 'Workout Plan Generator',
       description: 'Create personalized workout plans.',
-      content: 'Design a [duration] workout plan for [fitness goal]. Include exercises, sets, reps, and rest periods.',
+      content:
+        'Design a [duration] workout plan for [fitness goal]. Include exercises, sets, reps, and rest periods.',
       isPublic: true,
       isApproved: true,
       upvotes: 155,
@@ -228,7 +238,8 @@ async function main() {
     {
       name: 'Meal Planner',
       description: 'Generate healthy meal plans.',
-      content: 'Create a [duration] meal plan for [dietary requirements]. Include recipes, nutritional information, and shopping list.',
+      content:
+        'Create a [duration] meal plan for [dietary requirements]. Include recipes, nutritional information, and shopping list.',
       isPublic: true,
       isApproved: true,
       upvotes: 165,
@@ -239,7 +250,8 @@ async function main() {
     {
       name: 'AI Prompt Engineering Guide',
       description: 'Learn how to write effective AI prompts.',
-      content: 'Create a comprehensive guide for writing effective prompts for [AI model]. Include best practices, examples, and common pitfalls to avoid.',
+      content:
+        'Create a comprehensive guide for writing effective prompts for [AI model]. Include best practices, examples, and common pitfalls to avoid.',
       isPublic: true,
       isApproved: true,
       upvotes: 220,
@@ -251,7 +263,8 @@ async function main() {
     {
       name: 'ChatGPT Business Assistant',
       description: 'Use AI to improve your business operations.',
-      content: 'How can I use ChatGPT to improve [specific business process]? Provide step-by-step instructions and best practices.',
+      content:
+        'How can I use ChatGPT to improve [specific business process]? Provide step-by-step instructions and best practices.',
       isPublic: true,
       isApproved: true,
       upvotes: 190,
@@ -263,7 +276,8 @@ async function main() {
     {
       name: 'Viral Social Media Post',
       description: 'Create engaging social media content.',
-      content: 'Generate a viral social media post for [platform] about [topic]. Include hashtags and engagement prompts.',
+      content:
+        'Generate a viral social media post for [platform] about [topic]. Include hashtags and engagement prompts.',
       isPublic: true,
       isApproved: true,
       upvotes: 175,
@@ -275,7 +289,8 @@ async function main() {
     {
       name: 'LinkedIn Profile Optimizer',
       description: 'Optimize your LinkedIn profile for better visibility.',
-      content: 'Help me optimize my LinkedIn profile for [industry/role]. Include headline, summary, and experience section improvements.',
+      content:
+        'Help me optimize my LinkedIn profile for [industry/role]. Include headline, summary, and experience section improvements.',
       isPublic: true,
       isApproved: true,
       upvotes: 165,
@@ -287,7 +302,8 @@ async function main() {
     {
       name: 'Privacy Policy Generator',
       description: 'Create a compliant privacy policy.',
-      content: 'Generate a privacy policy for [type of business/website]. Include GDPR, CCPA, and other relevant compliance requirements.',
+      content:
+        'Generate a privacy policy for [type of business/website]. Include GDPR, CCPA, and other relevant compliance requirements.',
       isPublic: true,
       isApproved: true,
       upvotes: 145,
@@ -299,7 +315,8 @@ async function main() {
     {
       name: 'Terms of Service Template',
       description: 'Generate terms of service for your platform.',
-      content: 'Create terms of service for [type of platform/service]. Include user obligations, limitations, and dispute resolution.',
+      content:
+        'Create terms of service for [type of platform/service]. Include user obligations, limitations, and dispute resolution.',
       isPublic: true,
       isApproved: true,
       upvotes: 135,
@@ -311,7 +328,8 @@ async function main() {
     {
       name: 'Travel Itinerary Planner',
       description: 'Plan your perfect trip.',
-      content: 'Create a detailed travel itinerary for [destination] for [duration]. Include activities, accommodations, and local tips.',
+      content:
+        'Create a detailed travel itinerary for [destination] for [duration]. Include activities, accommodations, and local tips.',
       isPublic: true,
       isApproved: true,
       upvotes: 185,
@@ -323,7 +341,8 @@ async function main() {
     {
       name: 'Budget Travel Guide',
       description: 'Plan affordable travel experiences.',
-      content: 'Create a budget travel guide for [destination]. Include cost-saving tips, affordable accommodations, and free activities.',
+      content:
+        'Create a budget travel guide for [destination]. Include cost-saving tips, affordable accommodations, and free activities.',
       isPublic: true,
       isApproved: true,
       upvotes: 170,
@@ -335,7 +354,8 @@ async function main() {
     {
       name: 'Sales Pitch Generator',
       description: 'Create compelling sales pitches.',
-      content: 'Generate a sales pitch for [product/service] targeting [audience]. Include value proposition, benefits, and call to action.',
+      content:
+        'Generate a sales pitch for [product/service] targeting [audience]. Include value proposition, benefits, and call to action.',
       isPublic: true,
       isApproved: true,
       upvotes: 160,
@@ -347,7 +367,8 @@ async function main() {
     {
       name: 'Customer Service Response',
       description: 'Generate professional customer service responses.',
-      content: 'Create a professional response to a customer complaint about [issue]. Include apology, solution, and follow-up steps.',
+      content:
+        'Create a professional response to a customer complaint about [issue]. Include apology, solution, and follow-up steps.',
       isPublic: true,
       isApproved: true,
       upvotes: 150,
@@ -355,13 +376,15 @@ async function main() {
       userId: user.id,
       tags: [tagObjs[5].id],
       slug: 'customer-service-response-generator',
-    }
+    },
   ];
 
   for (const prompt of prompts) {
     await prisma.prompt.create({
       data: {
-        slug: prompt.slug || `${prompt.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${randomUUID().slice(0, 5)}`,
+        slug:
+          prompt.slug ||
+          `${prompt.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${randomUUID().slice(0, 5)}`,
         name: prompt.name,
         description: prompt.description,
         content: prompt.content,
@@ -370,9 +393,9 @@ async function main() {
         upvotes: prompt.upvotes,
         promptType: prompt.promptType,
         userId: prompt.userId,
-        
+
         tags: {
-          connect: prompt.tags.map((id) => ({ id })),
+          connect: prompt.tags.map(id => ({ id })),
         },
       },
     });
@@ -382,10 +405,10 @@ async function main() {
 }
 
 main()
-  .catch((e) => {
+  .catch(e => {
     console.error(e);
     process.exit(1);
   })
   .finally(async () => {
     await prisma.$disconnect();
-  }); 
+  });

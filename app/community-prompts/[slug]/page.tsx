@@ -26,18 +26,18 @@ async function getPrompt(slug: string) {
 // Move to utils/seo.ts in a real app
 function getPromptJsonLd(prompt: any) {
   return {
-    "@context": "https://schema.org",
-    "@type": "CreativeWork",
-    "name": prompt.name,
-    "description": prompt.description,
-    "url": `http://PromptCraft.co/community-prompts/${prompt.slug}`,
-    "keywords": prompt.tags.map((tag: any) => tag.name).join(", "),
-    "datePublished": prompt.createdAt.toISOString(),
-    "dateModified": prompt.updatedAt.toISOString(),
-    "author": {
-      "@type": "Organization",
-      "name": "PromptCraft"
-    }
+    '@context': 'https://schema.org',
+    '@type': 'CreativeWork',
+    name: prompt.name,
+    description: prompt.description,
+    url: `http://PromptCraft.co/community-prompts/${prompt.slug}`,
+    keywords: prompt.tags.map((tag: any) => tag.name).join(', '),
+    datePublished: prompt.createdAt.toISOString(),
+    dateModified: prompt.updatedAt.toISOString(),
+    author: {
+      '@type': 'Organization',
+      name: 'PromptCraft',
+    },
   };
 }
 
@@ -76,21 +76,21 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 function LoadingSkeleton() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <div className="container mx-auto py-8 px-4 max-w-4xl">
+      <div className="container mx-auto max-w-4xl px-4 py-8">
         <div className="animate-pulse space-y-8">
-          <div className="h-4 w-24 bg-gray-200 dark:bg-gray-700 rounded" />
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+          <div className="h-4 w-24 rounded bg-gray-200 dark:bg-gray-700" />
+          <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
             <div className="space-y-4">
-              <div className="h-8 w-3/4 bg-gray-200 dark:bg-gray-700 rounded" />
-              <div className="h-4 w-1/2 bg-gray-200 dark:bg-gray-700 rounded" />
-              <div className="h-32 bg-gray-200 dark:bg-gray-700 rounded" />
+              <div className="h-8 w-3/4 rounded bg-gray-200 dark:bg-gray-700" />
+              <div className="h-4 w-1/2 rounded bg-gray-200 dark:bg-gray-700" />
+              <div className="h-32 rounded bg-gray-200 dark:bg-gray-700" />
             </div>
           </div>
           <div className="space-y-4">
-            <div className="h-8 w-32 bg-gray-200 dark:bg-gray-700 rounded" />
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="h-8 w-32 rounded bg-gray-200 dark:bg-gray-700" />
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
               {[...Array(3)].map((_, i) => (
-                <div key={i} className="h-24 bg-gray-200 dark:bg-gray-700 rounded" />
+                <div key={i} className="h-24 rounded bg-gray-200 dark:bg-gray-700" />
               ))}
             </div>
           </div>
@@ -114,4 +114,4 @@ export default async function PromptDetailPage({ params }: PageProps) {
       />
     </Suspense>
   );
-} 
+}

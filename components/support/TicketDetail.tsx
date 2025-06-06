@@ -97,7 +97,7 @@ export function TicketDetail({ ticketId }: TicketDetailProps) {
 
       if (response.ok) {
         const message = await response.json();
-        setTicket((prev) =>
+        setTicket(prev =>
           prev
             ? {
                 ...prev,
@@ -124,12 +124,12 @@ export function TicketDetail({ ticketId }: TicketDetailProps) {
       <div className="space-y-4">
         <Card className="animate-pulse">
           <CardHeader>
-            <div className="h-6 w-3/4 bg-gray-200 rounded" />
+            <div className="h-6 w-3/4 rounded bg-gray-200" />
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
-              <div className="h-4 w-1/4 bg-gray-200 rounded" />
-              <div className="h-32 bg-gray-200 rounded" />
+              <div className="h-4 w-1/4 rounded bg-gray-200" />
+              <div className="h-32 rounded bg-gray-200" />
             </div>
           </CardContent>
         </Card>
@@ -150,11 +150,7 @@ export function TicketDetail({ ticketId }: TicketDetailProps) {
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-4">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => router.back()}
-        >
+        <Button variant="ghost" size="icon" onClick={() => router.back()}>
           <ArrowLeft className="h-4 w-4" />
         </Button>
         <h2 className="text-2xl font-bold">{ticket.title}</h2>
@@ -164,12 +160,8 @@ export function TicketDetail({ ticketId }: TicketDetailProps) {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Badge className={statusColors[ticket.status]}>
-                {ticket.status}
-              </Badge>
-              <Badge className={priorityColors[ticket.priority]}>
-                {ticket.priority}
-              </Badge>
+              <Badge className={statusColors[ticket.status]}>{ticket.status}</Badge>
+              <Badge className={priorityColors[ticket.priority]}>{ticket.priority}</Badge>
             </div>
             <span className="text-sm text-muted-foreground">
               Created{' '}
@@ -189,21 +181,17 @@ export function TicketDetail({ ticketId }: TicketDetailProps) {
       <div className="space-y-4">
         <h3 className="text-lg font-semibold">Messages</h3>
         <div className="space-y-4">
-          {ticket.messages.map((message) => (
+          {ticket.messages.map(message => (
             <Card key={message.id}>
               <CardContent className="pt-6">
                 <div className="flex items-start gap-4">
                   <Avatar>
                     <AvatarImage src={message.user.imageUrl || undefined} />
-                    <AvatarFallback>
-                      {message.user.name?.[0] || 'U'}
-                    </AvatarFallback>
+                    <AvatarFallback>{message.user.name?.[0] || 'U'}</AvatarFallback>
                   </Avatar>
                   <div className="flex-1 space-y-2">
                     <div className="flex items-center justify-between">
-                      <span className="font-medium">
-                        {message.user.name || 'Anonymous'}
-                      </span>
+                      <span className="font-medium">{message.user.name || 'Anonymous'}</span>
                       <span className="text-sm text-muted-foreground">
                         {formatDistanceToNow(new Date(message.createdAt), {
                           addSuffix: true,
@@ -222,7 +210,7 @@ export function TicketDetail({ ticketId }: TicketDetailProps) {
           <Textarea
             placeholder="Type your message..."
             value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
+            onChange={e => setNewMessage(e.target.value)}
             className="min-h-[100px]"
           />
           <div className="flex justify-end">
@@ -234,4 +222,4 @@ export function TicketDetail({ ticketId }: TicketDetailProps) {
       </div>
     </div>
   );
-} 
+}

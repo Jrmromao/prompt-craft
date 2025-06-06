@@ -55,7 +55,7 @@ export class AnalyticsService {
           'Content-Type': 'application/json',
         },
         cache: 'no-store',
-        next: { revalidate: 0 }
+        next: { revalidate: 0 },
       });
 
       if (!response.ok) {
@@ -83,7 +83,7 @@ export class AnalyticsService {
           'Content-Type': 'application/json',
         },
         cache: 'no-store',
-        next: { revalidate: 0 }
+        next: { revalidate: 0 },
       });
 
       if (!response.ok) {
@@ -106,7 +106,7 @@ export class AnalyticsService {
           'Content-Type': 'application/json',
         },
         cache: 'no-store',
-        next: { revalidate: 0 }
+        next: { revalidate: 0 },
       });
 
       if (!response.ok) {
@@ -119,4 +119,4 @@ export class AnalyticsService {
       throw error;
     }
   }
-} 
+}

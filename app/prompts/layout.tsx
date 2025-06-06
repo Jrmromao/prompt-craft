@@ -11,9 +11,5 @@ interface PromptsLayoutProps {
 }
 
 export default function PromptsLayout({ children }: PromptsLayoutProps) {
-  return (
-    <div className="min-h-screen">
-      {children}
-    </div>
-  );
-} 
+  return <div className="min-h-screen">{children}</div>;
+}

@@ -7,7 +7,8 @@ async function main() {
   const plans = [
     {
       name: 'FREE',
-      description: 'Perfect for trying out PromptCraft. Includes basic features and 10 credits per month.',
+      description:
+        'Perfect for trying out PromptCraft. Includes basic features and 10 credits per month.',
       price: 0,
       credits: 10,
       period: Period.MONTHLY,
@@ -16,7 +17,8 @@ async function main() {
     },
     {
       name: 'LITE',
-      description: 'For regular users who need more power. Get 250 credits weekly and access to advanced features.',
+      description:
+        'For regular users who need more power. Get 250 credits weekly and access to advanced features.',
       price: 9.99,
       credits: 250,
       period: Period.WEEKLY,
@@ -25,7 +27,8 @@ async function main() {
     },
     {
       name: 'PRO',
-      description: 'For power users and professionals. Get 1500 credits monthly, priority support, and all premium features.',
+      description:
+        'For power users and professionals. Get 1500 credits monthly, priority support, and all premium features.',
       price: 29.99,
       credits: 1500,
       period: Period.MONTHLY,
@@ -46,10 +49,10 @@ async function main() {
 }
 
 main()
-  .catch((e) => {
+  .catch(e => {
     console.error(e);
     process.exit(1);
   })
   .finally(async () => {
     await prisma.$disconnect();
-  }); 
+  });

@@ -1,27 +1,22 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { AnalyticsService } from "@/lib/services/analyticsService";
-import AnalyticsCharts from "./components/AnalyticsCharts";
-import { Badge } from "@/components/ui/badge";
-import { 
-  Users, 
-  FileText, 
-  Activity, 
-  TrendingUp, 
-  BarChart2, 
-  Clock,
-  Star,
-  Copy
-} from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { AnalyticsService } from '@/lib/services/analyticsService';
+import AnalyticsCharts from './components/AnalyticsCharts';
+import { Badge } from '@/components/ui/badge';
+import { Users, FileText, Activity, TrendingUp, BarChart2, Clock, Star, Copy } from 'lucide-react';
 
 async function getAnalytics() {
   try {
     const analyticsService = AnalyticsService.getInstance();
     const data = await analyticsService.getAnalytics();
-    
+
     // Calculate growth rate
-    const growthRate = data.dashboardOverview.totalPromptViews > 0 
-      ? ((data.dashboardOverview.totalPromptCopies / data.dashboardOverview.totalPromptViews) * 100).toFixed(1)
-      : 0;
+    const growthRate =
+      data.dashboardOverview.totalPromptViews > 0
+        ? (
+            (data.dashboardOverview.totalPromptCopies / data.dashboardOverview.totalPromptViews) *
+            100
+          ).toFixed(1)
+        : 0;
 
     return {
       totalUsers: data.totalUsers,
@@ -36,9 +31,9 @@ async function getAnalytics() {
         recentActivity: {
           usages: data.dashboardOverview.recentActivity.usages || [],
           views: [], // This will be populated from a separate endpoint if needed
-          copies: [] // This will be populated from a separate endpoint if needed
-        }
-      }
+          copies: [], // This will be populated from a separate endpoint if needed
+        },
+      },
     };
   } catch (error) {
     console.error('Error fetching analytics:', error);
@@ -58,9 +53,9 @@ async function getAnalytics() {
         recentActivity: {
           usages: [],
           views: [],
-          copies: []
-        }
-      }
+          copies: [],
+        },
+      },
     };
   }
 }
@@ -74,23 +69,25 @@ export default async function AnalyticsPage() {
       {/* Header Section */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Analytics Overview</h1>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+            Analytics Overview
+          </h1>
           <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
             Track platform growth and usage metrics
           </p>
         </div>
         <Badge variant="outline" className="px-3 py-1">
-          <BarChart2 className="w-4 h-4 mr-2" />
+          <BarChart2 className="mr-2 h-4 w-4" />
           Live Analytics
         </Badge>
       </div>
 
       {/* Key Metrics */}
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        <Card className="border-blue-200 bg-blue-50 dark:bg-blue-950 dark:border-blue-900">
+        <Card className="border-blue-200 bg-blue-50 dark:border-blue-900 dark:bg-blue-950">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium flex items-center gap-2 text-blue-700 dark:text-blue-300">
-              <Users className="w-5 h-5" /> Total Users
+            <CardTitle className="flex items-center gap-2 text-sm font-medium text-blue-700 dark:text-blue-300">
+              <Users className="h-5 w-5" /> Total Users
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -100,10 +97,10 @@ export default async function AnalyticsPage() {
           </CardContent>
         </Card>
 
-        <Card className="border-green-200 bg-green-50 dark:bg-green-950 dark:border-green-900">
+        <Card className="border-green-200 bg-green-50 dark:border-green-900 dark:bg-green-950">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium flex items-center gap-2 text-green-700 dark:text-green-300">
-              <FileText className="w-5 h-5" /> Total Prompts
+            <CardTitle className="flex items-center gap-2 text-sm font-medium text-green-700 dark:text-green-300">
+              <FileText className="h-5 w-5" /> Total Prompts
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -113,10 +110,10 @@ export default async function AnalyticsPage() {
           </CardContent>
         </Card>
 
-        <Card className="border-purple-200 bg-purple-50 dark:bg-purple-950 dark:border-purple-900">
+        <Card className="border-purple-200 bg-purple-50 dark:border-purple-900 dark:bg-purple-950">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium flex items-center gap-2 text-purple-700 dark:text-purple-300">
-              <Activity className="w-5 h-5" /> Total Usage
+            <CardTitle className="flex items-center gap-2 text-sm font-medium text-purple-700 dark:text-purple-300">
+              <Activity className="h-5 w-5" /> Total Usage
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -126,10 +123,10 @@ export default async function AnalyticsPage() {
           </CardContent>
         </Card>
 
-        <Card className="border-yellow-200 bg-yellow-50 dark:bg-yellow-950 dark:border-yellow-900">
+        <Card className="border-yellow-200 bg-yellow-50 dark:border-yellow-900 dark:bg-yellow-950">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium flex items-center gap-2 text-yellow-700 dark:text-yellow-300">
-              <TrendingUp className="w-5 h-5" /> Growth Rate
+            <CardTitle className="flex items-center gap-2 text-sm font-medium text-yellow-700 dark:text-yellow-300">
+              <TrendingUp className="h-5 w-5" /> Growth Rate
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -142,16 +139,16 @@ export default async function AnalyticsPage() {
 
       {/* Popular Content */}
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-2">
-        <Card className="border-indigo-200 bg-indigo-50 dark:bg-indigo-950 dark:border-indigo-900">
+        <Card className="border-indigo-200 bg-indigo-50 dark:border-indigo-900 dark:bg-indigo-950">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-indigo-700 dark:text-indigo-300">
-              <Star className="w-5 h-5" /> Most Popular Prompt
+              <Star className="h-5 w-5" /> Most Popular Prompt
             </CardTitle>
           </CardHeader>
           <CardContent>
             {dashboardOverview.mostPopularPrompt ? (
               <div className="space-y-2">
-                <div className="font-semibold text-lg text-indigo-900 dark:text-indigo-100">
+                <div className="text-lg font-semibold text-indigo-900 dark:text-indigo-100">
                   {dashboardOverview.mostPopularPrompt.name}
                 </div>
                 <div className="text-sm text-indigo-700 dark:text-indigo-300">
@@ -164,16 +161,16 @@ export default async function AnalyticsPage() {
           </CardContent>
         </Card>
 
-        <Card className="border-cyan-200 bg-cyan-50 dark:bg-cyan-950 dark:border-cyan-900">
+        <Card className="border-cyan-200 bg-cyan-50 dark:border-cyan-900 dark:bg-cyan-950">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-cyan-700 dark:text-cyan-300">
-              <Users className="w-5 h-5" /> Most Active User
+              <Users className="h-5 w-5" /> Most Active User
             </CardTitle>
           </CardHeader>
           <CardContent>
             {dashboardOverview.mostActiveUser ? (
               <div className="space-y-2">
-                <div className="font-semibold text-lg text-cyan-900 dark:text-cyan-100">
+                <div className="text-lg font-semibold text-cyan-900 dark:text-cyan-100">
                   {dashboardOverview.mostActiveUser.name ?? 'Unknown'}
                 </div>
                 <div className="text-sm text-cyan-700 dark:text-cyan-300">
@@ -191,14 +188,16 @@ export default async function AnalyticsPage() {
       <Card className="border border-gray-200 dark:border-gray-800">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Clock className="w-5 h-5 text-gray-500" />
+            <Clock className="h-5 w-5 text-gray-500" />
             Recent Activity
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
             <div className="space-y-4">
-              <h3 className="font-semibold text-gray-900 dark:text-gray-100">Recent Prompt Usages</h3>
+              <h3 className="font-semibold text-gray-900 dark:text-gray-100">
+                Recent Prompt Usages
+              </h3>
               <ul className="space-y-2">
                 {dashboardOverview.recentActivity.usages.map((u: any) => (
                   <li key={u.id} className="text-sm text-gray-600 dark:text-gray-300">
@@ -219,4 +218,4 @@ export default async function AnalyticsPage() {
       <AnalyticsCharts analytics={analytics} />
     </div>
   );
-} 
+}

@@ -55,4 +55,4 @@ export interface UpdateSubscriptionParams {
   subscriptionId: string;
   cancelAtPeriodEnd?: boolean;
   prorationBehavior?: 'always_invoice' | 'create_prorations' | 'none';
-} 
+}

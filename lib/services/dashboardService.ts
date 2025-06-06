@@ -1,7 +1,7 @@
-import { prisma } from "@/lib/prisma";
-import { Role, PlanType, Period, CreditType } from "@prisma/client";
-import { currentUser } from "@clerk/nextjs/server";
-import { Role as RoleConstant } from "@/utils/constants";
+import { prisma } from '@/lib/prisma';
+import { Role, PlanType, Period, CreditType } from '@prisma/client';
+import { currentUser } from '@clerk/nextjs/server';
+import { Role as RoleConstant } from '@/utils/constants';
 
 // Types for serializable props
 interface SerializableUserWithPlan {
@@ -74,13 +74,13 @@ export class DashboardService {
 
   private async getUser(clerkId: string) {
     if (!clerkId) {
-      throw new Error("Clerk ID is required");
+      throw new Error('Clerk ID is required');
     }
 
     // Check cache first
     const cached = this.userCache.get(clerkId);
     const now = Date.now();
-    if (cached && (now - cached.timestamp) < this.CACHE_TTL) {
+    if (cached && now - cached.timestamp < this.CACHE_TTL) {
       return cached.user;
     }
 
@@ -90,21 +90,21 @@ export class DashboardService {
         include: {
           subscription: {
             include: {
-              plan: true
-            }
-          }
-        }
+              plan: true,
+            },
+          },
+        },
       });
 
       if (!user) {
         // Get user data from Clerk
         const clerkUser = await currentUser();
         if (!clerkUser) {
-          throw new Error("User not authenticated");
+          throw new Error('User not authenticated');
         }
 
         if (!clerkUser.emailAddresses?.[0]?.emailAddress) {
-          throw new Error("Could not fetch user email from Clerk");
+          throw new Error('Could not fetch user email from Clerk');
         }
 
         // Create new user with email from Clerk
@@ -112,7 +112,7 @@ export class DashboardService {
           data: {
             clerkId,
             email: clerkUser.emailAddresses[0].emailAddress,
-            name: clerkUser.firstName || "User",
+            name: clerkUser.firstName || 'User',
             planType: PlanType.FREE,
             credits: 10,
             creditCap: 10,
@@ -121,10 +121,10 @@ export class DashboardService {
           include: {
             subscription: {
               include: {
-                plan: true
-              }
-            }
-          }
+                plan: true,
+              },
+            },
+          },
         });
         this.userCache.set(clerkId, { user: newUser, timestamp: now });
         return newUser;
@@ -134,8 +134,8 @@ export class DashboardService {
       this.userCache.set(clerkId, { user, timestamp: now });
       return user;
     } catch (error) {
-      console.error("Error fetching user:", error);
-      throw new Error("Failed to fetch or create user data");
+      console.error('Error fetching user:', error);
+      throw new Error('Failed to fetch or create user data');
     }
   }
 
@@ -144,17 +144,19 @@ export class DashboardService {
 
     return {
       ...user,
-      name: user.name || "User",
+      name: user.name || 'User',
       createdAt: user.createdAt.toISOString(),
       updatedAt: user.updatedAt.toISOString(),
       lastCreditReset: user.lastCreditReset.toISOString(),
-      plan: user.subscription?.plan ? {
-        ...user.subscription.plan,
-        createdAt: user.subscription.plan.createdAt.toISOString(),
-        updatedAt: user.subscription.plan.updatedAt.toISOString(),
-        type: user.subscription.plan.type,
-        period: user.subscription.plan.period,
-      } : null
+      plan: user.subscription?.plan
+        ? {
+            ...user.subscription.plan,
+            createdAt: user.subscription.plan.createdAt.toISOString(),
+            updatedAt: user.subscription.plan.updatedAt.toISOString(),
+            type: user.subscription.plan.type,
+            period: user.subscription.plan.period,
+          }
+        : null,
     };
   }
 
@@ -162,10 +164,10 @@ export class DashboardService {
     const user = await this.getUser(clerkId);
     const promptGenerations = await prisma.promptGeneration.findMany({
       where: { userId: user.id },
-      orderBy: { createdAt: "desc" },
+      orderBy: { createdAt: 'desc' },
       take: 10,
     });
-    return promptGenerations.map((gen) => ({
+    return promptGenerations.map(gen => ({
       id: gen.id,
       input: gen.input,
       output: gen.output,
@@ -177,24 +179,24 @@ export class DashboardService {
 
   public async getCreditHistory(clerkId: string): Promise<SerializableCreditHistory[]> {
     const user = await this.getUser(clerkId);
-    
+
     const creditHistory = await prisma.creditHistory.findMany({
       where: { userId: user.id },
-      orderBy: { createdAt: "desc" },
+      orderBy: { createdAt: 'desc' },
       take: 5,
     });
 
     return creditHistory.map(history => ({
       ...history,
       createdAt: history.createdAt.toISOString(),
-      description: history.description || "",
-      type: history.type
+      description: history.description || '',
+      type: history.type,
     }));
   }
 
   public async getUsageData(clerkId: string): Promise<UsageData[]> {
     const user = await this.getUser(clerkId);
-    
+
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
@@ -210,13 +212,13 @@ export class DashboardService {
         createdAt: true,
       },
       orderBy: {
-        createdAt: "asc",
+        createdAt: 'asc',
       },
     });
 
     // Group prompts by date and sum credits
     const usageByDate = promptGenerations.reduce((acc: Record<string, number>, generation) => {
-      const date = generation.createdAt.toISOString().split("T")[0];
+      const date = generation.createdAt.toISOString().split('T')[0];
       acc[date] = (acc[date] || 0) + generation.creditsUsed;
       return acc;
     }, {});
@@ -226,7 +228,7 @@ export class DashboardService {
     for (let i = 0; i < 7; i++) {
       const date = new Date();
       date.setDate(date.getDate() - i);
-      const dateStr = date.toISOString().split("T")[0];
+      const dateStr = date.toISOString().split('T')[0];
       usageData.unshift({
         date: dateStr,
         credits: usageByDate[dateStr] || 0,
@@ -235,4 +237,4 @@ export class DashboardService {
 
     return usageData;
   }
-} 
+}

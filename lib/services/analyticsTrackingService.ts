@@ -19,7 +19,7 @@ export class AnalyticsTrackingService {
     const userAgent = headersList.get('user-agent') ?? undefined;
     const ipAddress = headersList.get('x-forwarded-for') ?? undefined;
 
-    await prisma.$transaction(async (tx) => {
+    await prisma.$transaction(async tx => {
       // Create view record
       await tx.promptView.create({
         data: {
@@ -44,12 +44,8 @@ export class AnalyticsTrackingService {
   }
 
   // Track prompt usage
-  public async trackPromptUsage(
-    promptId: string,
-    userId: string,
-    result: any
-  ): Promise<void> {
-    await prisma.$transaction(async (tx) => {
+  public async trackPromptUsage(promptId: string, userId: string, result: any): Promise<void> {
+    await prisma.$transaction(async tx => {
       // Create usage record
       await tx.promptUsage.create({
         data: {
@@ -82,22 +78,19 @@ export class AnalyticsTrackingService {
     if (userId) {
       const dbUser = await prisma.user.findUnique({
         where: { clerkId: userId },
-        select: { id: true }
+        select: { id: true },
       });
       dbUserId = dbUser?.id;
     }
     const recentCopy = await prisma.promptCopy.findFirst({
       where: {
         promptId,
-        OR: [
-          { userId: dbUserId ?? undefined },
-          { ipAddress },
-        ],
+        OR: [{ userId: dbUserId ?? undefined }, { ipAddress }],
         createdAt: { gte: oneHourAgo },
       },
     });
     if (!recentCopy) {
-      await prisma.$transaction(async (tx) => {
+      await prisma.$transaction(async tx => {
         await tx.promptCopy.create({
           data: {
             promptId,
@@ -115,4 +108,4 @@ export class AnalyticsTrackingService {
       });
     }
   }
-} 
+}

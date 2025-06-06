@@ -1,28 +1,28 @@
-import { render, screen } from "@testing-library/react";
-import ProfilePage from "@/app/profile/page";
-import { auth } from "@clerk/nextjs/server";
-import { currentUser } from "@clerk/nextjs/server";
-import { getProfileByClerkId } from "@/app/services/profileService";
-import { Role, PlanType } from "@prisma/client";
+import { render, screen } from '@testing-library/react';
+import ProfilePage from '@/app/profile/page';
+import { auth } from '@clerk/nextjs/server';
+import { currentUser } from '@clerk/nextjs/server';
+import { getProfileByClerkId } from '@/app/services/profileService';
+import { Role, PlanType } from '@prisma/client';
 
 // Mock next/navigation
-jest.mock("next/navigation", () => ({
+jest.mock('next/navigation', () => ({
   redirect: jest.fn(),
 }));
 
 // Mock Clerk auth
-jest.mock("@clerk/nextjs/server", () => ({
+jest.mock('@clerk/nextjs/server', () => ({
   auth: jest.fn(),
   currentUser: jest.fn(),
 }));
 
 // Mock profile service
-jest.mock("@/app/services/profileService", () => ({
+jest.mock('@/app/services/profileService', () => ({
   getProfileByClerkId: jest.fn(),
 }));
 
 // Correctly mock the default export for ProfileClient
-jest.mock("@/app/profile/ProfileClient", () => ({
+jest.mock('@/app/profile/ProfileClient', () => ({
   __esModule: true,
   default: ({ user }: { user: any }) => (
     <div>
@@ -43,35 +43,35 @@ jest.mock("@/app/profile/ProfileClient", () => ({
 }));
 
 // Mock the PlanType enum
-jest.mock("@prisma/client", () => ({
+jest.mock('@prisma/client', () => ({
   Role: {
-    USER: "USER",
-    ADMIN: "ADMIN",
+    USER: 'USER',
+    ADMIN: 'ADMIN',
   },
   PlanType: {
-    FREE: "FREE",
-    LITE: "LITE",
-    PRO: "PRO",
+    FREE: 'FREE',
+    LITE: 'LITE',
+    PRO: 'PRO',
   },
 }));
 
-describe("ProfilePage", () => {
+describe('ProfilePage', () => {
   const mockUser = {
-    id: "user-123",
-    name: "John Doe",
-    email: "john@example.com",
-    imageUrl: "https://example.com/avatar.jpg",
-    role: "USER" as Role,
-    planType: "FREE" as PlanType,
+    id: 'user-123',
+    name: 'John Doe',
+    email: 'john@example.com',
+    imageUrl: 'https://example.com/avatar.jpg',
+    role: 'USER' as Role,
+    planType: 'FREE' as PlanType,
     credits: 100,
     creditCap: 1000,
-    bio: "Test bio",
-    jobTitle: "Software Engineer",
-    location: "San Francisco",
-    company: "Test Company",
-    website: "https://example.com",
-    twitter: "@johndoe",
-    linkedin: "https://linkedin.com/in/johndoe",
+    bio: 'Test bio',
+    jobTitle: 'Software Engineer',
+    location: 'San Francisco',
+    company: 'Test Company',
+    website: 'https://example.com',
+    twitter: '@johndoe',
+    linkedin: 'https://linkedin.com/in/johndoe',
   };
 
   beforeEach(() => {
@@ -82,37 +82,37 @@ describe("ProfilePage", () => {
     jest.resetAllMocks();
   });
 
-  it("redirects to sign-in if user is not authenticated", async () => {
+  it('redirects to sign-in if user is not authenticated', async () => {
     const mockAuth = auth as unknown as jest.Mock;
     const mockCurrentUser = currentUser as unknown as jest.Mock;
-    
+
     mockAuth.mockResolvedValueOnce({ userId: null });
     mockCurrentUser.mockResolvedValueOnce(null);
 
     await ProfilePage();
-    expect(require("next/navigation").redirect).toHaveBeenCalledWith("/sign-in");
+    expect(require('next/navigation').redirect).toHaveBeenCalledWith('/sign-in');
   });
 
-  it("redirects to sign-in if user is not found in database", async () => {
+  it('redirects to sign-in if user is not found in database', async () => {
     const mockAuth = auth as unknown as jest.Mock;
     const mockCurrentUser = currentUser as unknown as jest.Mock;
-    
-    mockAuth.mockResolvedValueOnce({ userId: "user-123" });
-    mockCurrentUser.mockResolvedValueOnce({ id: "user-123" });
+
+    mockAuth.mockResolvedValueOnce({ userId: 'user-123' });
+    mockCurrentUser.mockResolvedValueOnce({ id: 'user-123' });
     (getProfileByClerkId as jest.Mock).mockResolvedValueOnce(null);
 
     await ProfilePage();
-    expect(require("next/navigation").redirect).toHaveBeenCalledWith("/sign-in");
+    expect(require('next/navigation').redirect).toHaveBeenCalledWith('/sign-in');
   });
 
-  it("renders profile page with user data", async () => {
+  it('renders profile page with user data', async () => {
     const mockAuth = auth as unknown as jest.Mock;
     const mockCurrentUser = currentUser as unknown as jest.Mock;
-    
-    mockAuth.mockResolvedValueOnce({ userId: "user-123" });
-    mockCurrentUser.mockResolvedValueOnce({ 
-      id: "user-123",
-      imageUrl: "https://example.com/avatar.jpg",
+
+    mockAuth.mockResolvedValueOnce({ userId: 'user-123' });
+    mockCurrentUser.mockResolvedValueOnce({
+      id: 'user-123',
+      imageUrl: 'https://example.com/avatar.jpg',
     });
     (getProfileByClerkId as jest.Mock).mockResolvedValueOnce(mockUser);
 
@@ -135,4 +135,4 @@ describe("ProfilePage", () => {
     expect(screen.getByText(mockUser.twitter)).toBeInTheDocument();
     expect(screen.getByText(mockUser.linkedin)).toBeInTheDocument();
   });
-}); 
+});

@@ -8,7 +8,7 @@ export default async function Page() {
   const user = await currentUser();
 
   return (
-    <div className="min-h-screen bg-white dark:bg-black text-gray-900 dark:text-white flex flex-col">
+    <div className="flex min-h-screen flex-col bg-white text-gray-900 dark:bg-black dark:text-white">
       <main className="flex-1">
         <PromptCraftLandingClient />
       </main>

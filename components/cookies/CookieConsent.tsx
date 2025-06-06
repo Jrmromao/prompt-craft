@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState } from 'react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -8,7 +8,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+} from '@/components/ui/alert-dialog';
 
 interface CookiePopupProps {
   onAccept: () => void;
@@ -19,22 +19,22 @@ const CookiePopup: React.FC<CookiePopupProps> = ({ onAccept, onDecline }) => {
   const [showDialog, setShowDialog] = useState(false);
 
   useEffect(() => {
-    const consentStatus = localStorage.getItem("cookie-consent-status");
+    const consentStatus = localStorage.getItem('cookie-consent-status');
     if (!consentStatus) {
       setShowDialog(true);
-    } else if (consentStatus === "accepted") {
+    } else if (consentStatus === 'accepted') {
       onAccept();
     }
   }, [onAccept]);
 
   const handleAccept = () => {
-    localStorage.setItem("cookie-consent-status", "accepted");
+    localStorage.setItem('cookie-consent-status', 'accepted');
     setShowDialog(false);
     onAccept();
   };
 
   const handleDecline = () => {
-    localStorage.setItem("cookie-consent-status", "declined");
+    localStorage.setItem('cookie-consent-status', 'declined');
     setShowDialog(false);
     onDecline();
   };
@@ -46,27 +46,24 @@ const CookiePopup: React.FC<CookiePopupProps> = ({ onAccept, onDecline }) => {
           <AlertDialogTitle>Cookie Settings</AlertDialogTitle>
           <AlertDialogDescription className="space-y-3">
             <p>
-              We use cookies and similar technologies to help personalize
-              content, tailor and measure ads, and provide a better experience.
+              We use cookies and similar technologies to help personalize content, tailor and
+              measure ads, and provide a better experience.
             </p>
             <p>
-              By clicking &quot;Accept Cookies&quot;, you agree to this use of
-              cookies. You can change your cookie settings at any time by
-              clicking &quot;Cookie Settings&quot; in the footer.
+              By clicking &quot;Accept Cookies&quot;, you agree to this use of cookies. You can
+              change your cookie settings at any time by clicking &quot;Cookie Settings&quot; in the
+              footer.
             </p>
           </AlertDialogDescription>
         </AlertDialogHeader>
-        <AlertDialogFooter className="flex-col sm:flex-row gap-2">
-          <div className="flex flex-col sm:flex-row w-full sm:w-auto gap-2">
-            <AlertDialogCancel
-              onClick={handleDecline}
-              className="text-sm sm:mr-2"
-            >
+        <AlertDialogFooter className="flex-col gap-2 sm:flex-row">
+          <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+            <AlertDialogCancel onClick={handleDecline} className="text-sm sm:mr-2">
               Decline All
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleAccept}
-              className="text-sm bg-primary hover:bg-primary/90"
+              className="bg-primary text-sm hover:bg-primary/90"
             >
               Accept Cookies
             </AlertDialogAction>

@@ -100,90 +100,96 @@ export function usePrompts(options: UsePromptsOptions = {}) {
     };
   }, [debouncedFetch]);
 
-  const savePrompt = useCallback(async (data: {
-    name: string;
-    description?: string;
-    content: string;
-    isPublic: boolean;
-    promptType?: string;
-    metadata?: any;
-    tags: string[];
-  }) => {
-    if (!userId) return;
+  const savePrompt = useCallback(
+    async (data: {
+      name: string;
+      description?: string;
+      content: string;
+      isPublic: boolean;
+      promptType?: string;
+      metadata?: any;
+      tags: string[];
+    }) => {
+      if (!userId) return;
 
-    try {
-      setIsLoading(true);
-      const response = await fetch('/api/prompts', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-      });
+      try {
+        setIsLoading(true);
+        const response = await fetch('/api/prompts', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data),
+        });
 
-      if (!response.ok) {
-        throw new Error('Failed to save prompt');
+        if (!response.ok) {
+          throw new Error('Failed to save prompt');
+        }
+
+        await fetchPrompts();
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'An error occurred');
+        throw err;
+      } finally {
+        setIsLoading(false);
       }
+    },
+    [userId, fetchPrompts]
+  );
 
-      await fetchPrompts();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
-      throw err;
-    } finally {
-      setIsLoading(false);
-    }
-  }, [userId, fetchPrompts]);
+  const updatePrompt = useCallback(
+    async (id: string, data: Partial<Prompt>) => {
+      if (!userId) return;
 
-  const updatePrompt = useCallback(async (
-    id: string,
-    data: Partial<Prompt>
-  ) => {
-    if (!userId) return;
+      try {
+        setIsLoading(true);
+        const response = await fetch(`/api/prompts/${id}`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data),
+        });
 
-    try {
-      setIsLoading(true);
-      const response = await fetch(`/api/prompts/${id}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-      });
+        if (!response.ok) {
+          throw new Error('Failed to update prompt');
+        }
 
-      if (!response.ok) {
-        throw new Error('Failed to update prompt');
+        await fetchPrompts();
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'An error occurred');
+        throw err;
+      } finally {
+        setIsLoading(false);
       }
+    },
+    [userId, fetchPrompts]
+  );
 
-      await fetchPrompts();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
-      throw err;
-    } finally {
-      setIsLoading(false);
-    }
-  }, [userId, fetchPrompts]);
+  const deletePrompt = useCallback(
+    async (id: string) => {
+      if (!userId) return;
 
-  const deletePrompt = useCallback(async (id: string) => {
-    if (!userId) return;
+      try {
+        setIsLoading(true);
+        const response = await fetch(`/api/prompts/${id}`, {
+          method: 'DELETE',
+        });
 
-    try {
-      setIsLoading(true);
-      const response = await fetch(`/api/prompts/${id}`, {
-        method: 'DELETE',
-      });
+        if (!response.ok) {
+          throw new Error('Failed to delete prompt');
+        }
 
-      if (!response.ok) {
-        throw new Error('Failed to delete prompt');
+        await fetchPrompts();
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'An error occurred');
+        throw err;
+      } finally {
+        setIsLoading(false);
       }
-
-      await fetchPrompts();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
-      throw err;
-    } finally {
-      setIsLoading(false);
-    }
-  }, [userId, fetchPrompts]);
+    },
+    [userId, fetchPrompts]
+  );
 
   return {
     prompts,
@@ -195,4 +201,4 @@ export function usePrompts(options: UsePromptsOptions = {}) {
     deletePrompt,
     refresh: fetchPrompts,
   };
-} 
+}

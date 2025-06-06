@@ -20,9 +20,6 @@ export async function POST(
     return NextResponse.json(result);
   } catch (error) {
     console.error('Error toggling like:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
-} 
+}

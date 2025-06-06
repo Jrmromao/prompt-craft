@@ -8,9 +8,6 @@ export async function GET() {
     return NextResponse.json({ prompts: featuredPrompts });
   } catch (error) {
     console.error('Error fetching featured prompts:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch featured prompts' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to fetch featured prompts' }, { status: 500 });
   }
-} 
+}

@@ -27,15 +27,15 @@ interface CommunityPromptsClientProps {
 
 export default function CommunityPromptsClient({ user, prompts }: CommunityPromptsClientProps) {
   return (
-    <div className="min-h-screen bg-white dark:bg-black text-gray-900 dark:text-white">
-      <main className="max-w-7xl mx-auto px-4 py-16">
-        <h1 className="text-4xl font-bold mb-8">Community Prompts</h1>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {prompts.map((prompt) => (
+    <div className="min-h-screen bg-white text-gray-900 dark:bg-black dark:text-white">
+      <main className="mx-auto max-w-7xl px-4 py-16">
+        <h1 className="mb-8 text-4xl font-bold">Community Prompts</h1>
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {prompts.map(prompt => (
             <PromptCard key={prompt.id} prompt={prompt} isFeatured={false} />
           ))}
         </div>
       </main>
     </div>
   );
-} 
+}

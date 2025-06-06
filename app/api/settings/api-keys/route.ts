@@ -1,12 +1,7 @@
-import { NextResponse } from "next/server";
-import { auth, getAuth } from "@clerk/nextjs/server";
-import { z } from "zod";
-import {
-  generateApiKey,
-  rotateApiKey,
-  listApiKeys,
-  deleteApiKey,
-} from "@/utils/api-keys";
+import { NextResponse } from 'next/server';
+import { auth, getAuth } from '@clerk/nextjs/server';
+import { z } from 'zod';
+import { generateApiKey, rotateApiKey, listApiKeys, deleteApiKey } from '@/utils/api-keys';
 
 // Schema for creating a new API key
 const createApiKeySchema = z.object({
@@ -19,7 +14,7 @@ export async function POST(req: Request) {
   try {
     const { userId } = await auth();
     if (!userId) {
-      return new NextResponse("Unauthorized", { status: 401 });
+      return new NextResponse('Unauthorized', { status: 401 });
     }
 
     const body = await req.json();
@@ -39,17 +34,20 @@ export async function POST(req: Request) {
     return NextResponse.json(apiKey);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return new NextResponse(JSON.stringify({
-        error: "Validation Error",
-        details: error.errors,
-      }), {
-        status: 400,
-        headers: { "Content-Type": "application/json" },
-      });
+      return new NextResponse(
+        JSON.stringify({
+          error: 'Validation Error',
+          details: error.errors,
+        }),
+        {
+          status: 400,
+          headers: { 'Content-Type': 'application/json' },
+        }
+      );
     }
 
-    console.error("Error creating API key:", error);
-    return new NextResponse("Internal Server Error", { status: 500 });
+    console.error('Error creating API key:', error);
+    return new NextResponse('Internal Server Error', { status: 500 });
   }
 }
 
@@ -57,14 +55,14 @@ export async function GET(req: Request) {
   try {
     const { userId } = await auth();
     if (!userId) {
-      return new NextResponse("Unauthorized", { status: 401 });
+      return new NextResponse('Unauthorized', { status: 401 });
     }
 
     const apiKeys = await listApiKeys(userId);
     return NextResponse.json(apiKeys);
   } catch (error) {
-    console.error("Error listing API keys:", error);
-    return new NextResponse("Internal Server Error", { status: 500 });
+    console.error('Error listing API keys:', error);
+    return new NextResponse('Internal Server Error', { status: 500 });
   }
 }
 
@@ -72,20 +70,20 @@ export async function DELETE(req: Request) {
   try {
     const { userId } = await auth();
     if (!userId) {
-      return new NextResponse("Unauthorized", { status: 401 });
+      return new NextResponse('Unauthorized', { status: 401 });
     }
 
     const { searchParams } = new URL(req.url);
-    const keyId = searchParams.get("id");
+    const keyId = searchParams.get('id');
 
     if (!keyId) {
-      return new NextResponse("Missing key ID", { status: 400 });
+      return new NextResponse('Missing key ID', { status: 400 });
     }
 
     await deleteApiKey(userId, keyId);
     return new NextResponse(null, { status: 204 });
   } catch (error) {
-    console.error("Error deleting API key:", error);
-    return new NextResponse("Internal Server Error", { status: 500 });
+    console.error('Error deleting API key:', error);
+    return new NextResponse('Internal Server Error', { status: 500 });
   }
-} 
+}

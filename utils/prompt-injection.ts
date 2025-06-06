@@ -266,31 +266,31 @@ export function checkForPromptInjection(prompt: string): boolean {
 export function sanitizePrompt(prompt: string): string {
   // Remove any HTML tags
   let sanitized = prompt.replace(/<[^>]*>/g, '');
-  
+
   // Remove any script tags
   sanitized = sanitized.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
-  
+
   // Remove any JavaScript event handlers
   sanitized = sanitized.replace(/on\w+="[^"]*"/g, '');
   sanitized = sanitized.replace(/on\w+='[^']*'/g, '');
-  
+
   // Remove any JavaScript URLs
   sanitized = sanitized.replace(/javascript:[^"']*/g, '');
-  
+
   // Remove any data URLs
   sanitized = sanitized.replace(/data:[^"']*/g, '');
-  
+
   // Remove any VBScript
   sanitized = sanitized.replace(/vbscript:[^"']*/g, '');
-  
+
   // Remove any PHP code
   sanitized = sanitized.replace(/<\?php[^?]*\?>/g, '');
-  
+
   // Remove any ASP code
   sanitized = sanitized.replace(/<%.*?%>/g, '');
-  
+
   // Remove any SQL injection attempts
   sanitized = sanitized.replace(/[\'";]/g, '');
-  
+
   return sanitized;
-} 
+}

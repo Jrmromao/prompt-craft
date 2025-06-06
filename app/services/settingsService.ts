@@ -1,5 +1,5 @@
-import { prisma } from "@/lib/prisma";
-import { z } from "zod";
+import { prisma } from '@/lib/prisma';
+import { z } from 'zod';
 
 // Validation schemas
 export const emailPreferencesSchema = z.object({
@@ -15,7 +15,7 @@ export const notificationSettingsSchema = z.object({
 });
 
 export const themeSettingsSchema = z.object({
-  theme: z.enum(["light", "dark", "system"]),
+  theme: z.enum(['light', 'dark', 'system']),
 });
 
 export const apiKeySchema = z.object({
@@ -33,8 +33,8 @@ export type ApiKey = z.infer<typeof apiKeySchema>;
  * Get user settings by Clerk ID
  */
 export async function getUserSettings(clerkId: string) {
-  if (!clerkId) throw new Error("Clerk ID is required");
-  
+  if (!clerkId) throw new Error('Clerk ID is required');
+
   const user = await prisma.user.findUnique({
     where: { clerkId },
     select: {
@@ -70,25 +70,25 @@ export async function getUserSettings(clerkId: string) {
   };
 
   const defaultThemeSettings = {
-    theme: "system",
+    theme: 'system',
   };
 
   return {
-    emailPreferences: user.emailPreferences ? 
-      (typeof user.emailPreferences === 'string' ? 
-        JSON.parse(user.emailPreferences) : 
-        user.emailPreferences) : 
-      defaultEmailPreferences,
-    notificationSettings: user.notificationSettings ? 
-      (typeof user.notificationSettings === 'string' ? 
-        JSON.parse(user.notificationSettings) : 
-        user.notificationSettings) : 
-      defaultNotificationSettings,
-    themeSettings: user.themeSettings ? 
-      (typeof user.themeSettings === 'string' ? 
-        JSON.parse(user.themeSettings) : 
-        user.themeSettings) : 
-      defaultThemeSettings,
+    emailPreferences: user.emailPreferences
+      ? typeof user.emailPreferences === 'string'
+        ? JSON.parse(user.emailPreferences)
+        : user.emailPreferences
+      : defaultEmailPreferences,
+    notificationSettings: user.notificationSettings
+      ? typeof user.notificationSettings === 'string'
+        ? JSON.parse(user.notificationSettings)
+        : user.notificationSettings
+      : defaultNotificationSettings,
+    themeSettings: user.themeSettings
+      ? typeof user.themeSettings === 'string'
+        ? JSON.parse(user.themeSettings)
+        : user.themeSettings
+      : defaultThemeSettings,
     apiKeys: user.apiKeys,
   };
 }
@@ -98,7 +98,7 @@ export async function getUserSettings(clerkId: string) {
  */
 export async function updateEmailPreferences(clerkId: string, preferences: EmailPreferences) {
   const validatedData = emailPreferencesSchema.parse(preferences);
-  
+
   return prisma.user.update({
     where: { clerkId },
     data: { emailPreferences: validatedData },
@@ -110,7 +110,7 @@ export async function updateEmailPreferences(clerkId: string, preferences: Email
  */
 export async function updateNotificationSettings(clerkId: string, settings: NotificationSettings) {
   const validatedData = notificationSettingsSchema.parse(settings);
-  
+
   return prisma.user.update({
     where: { clerkId },
     data: { notificationSettings: validatedData },
@@ -122,7 +122,7 @@ export async function updateNotificationSettings(clerkId: string, settings: Noti
  */
 export async function updateThemeSettings(clerkId: string, settings: ThemeSettings) {
   const validatedData = themeSettingsSchema.parse(settings);
-  
+
   // Update both database and localStorage
   const result = await prisma.user.update({
     where: { clerkId },
@@ -143,13 +143,13 @@ export async function updateThemeSettings(clerkId: string, settings: ThemeSettin
 export async function generateApiKey(clerkId: string, keyData: ApiKey) {
   const validatedData = apiKeySchema.parse(keyData);
   const apiKey = `pk_${Math.random().toString(36).substring(2)}_${Date.now()}`;
-  
+
   const user = await prisma.user.findUnique({
     where: { clerkId },
     select: { id: true },
   });
 
-  if (!user) throw new Error("User not found");
+  if (!user) throw new Error('User not found');
 
   return prisma.apiKey.create({
     data: {
@@ -171,7 +171,7 @@ export async function revokeApiKey(clerkId: string, keyId: string) {
     select: { id: true },
   });
 
-  if (!user) throw new Error("User not found");
+  if (!user) throw new Error('User not found');
 
   return prisma.apiKey.delete({
     where: {
@@ -197,4 +197,4 @@ export async function revokeSession(clerkId: string, sessionId: string) {
   // This would typically integrate with Clerk's session management
   // For now, we'll return a mock implementation
   return true;
-} 
+}

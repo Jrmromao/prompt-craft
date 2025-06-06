@@ -1,6 +1,6 @@
 'use client';
 
-import React from "react";
+import React from 'react';
 
 interface PrivacyContentProps {
   user: {
@@ -12,12 +12,15 @@ interface PrivacyContentProps {
 
 export function PrivacyContent({ user }: PrivacyContentProps) {
   return (
-    <div className="min-h-screen bg-white dark:bg-black text-gray-900 dark:text-white">
-      <main className="max-w-4xl mx-auto px-4 py-16">
-        <h1 className="text-4xl font-bold mb-8">Privacy Policy</h1>
-        <section className="w-full max-w-3xl bg-card border border-border rounded-2xl shadow-lg p-8">
+    <div className="min-h-screen bg-white text-gray-900 dark:bg-black dark:text-white">
+      <main className="mx-auto max-w-4xl px-4 py-16">
+        <h1 className="mb-8 text-4xl font-bold">Privacy Policy</h1>
+        <section className="w-full max-w-3xl rounded-2xl border border-border bg-card p-8 shadow-lg">
           <div className="prose prose-sm md:prose-base prose-headings:text-foreground prose-p:text-muted-foreground prose-li:text-foreground max-w-none">
-            <p>Your privacy matters to us. This Privacy Policy explains how <strong>PromptCraft</strong> collects, uses, and protects your information.</p>
+            <p>
+              Your privacy matters to us. This Privacy Policy explains how{' '}
+              <strong>PromptCraft</strong> collects, uses, and protects your information.
+            </p>
 
             <h2>1. What We Collect</h2>
             <ul>
@@ -35,7 +38,9 @@ export function PrivacyContent({ user }: PrivacyContentProps) {
 
             <h2>3. Sharing Your Information</h2>
             <ul>
-              <li>We do <strong>not</strong> sell your personal information.</li>
+              <li>
+                We do <strong>not</strong> sell your personal information.
+              </li>
               <li>We may share data with trusted service providers to run PromptCraft.</li>
             </ul>
 
@@ -49,13 +54,18 @@ export function PrivacyContent({ user }: PrivacyContentProps) {
             </ul>
 
             <h2>6. Changes to This Policy</h2>
-            <p>We may update this Privacy Policy. Using PromptCraft after changes means you accept the new policy.</p>
+            <p>
+              We may update this Privacy Policy. Using PromptCraft after changes means you accept
+              the new policy.
+            </p>
 
             <h2>7. Contact Us</h2>
-            <p>Questions? Email us at <a href="mailto:legal@PromptCraft.co">legal@PromptCraft.co</a>.</p>
+            <p>
+              Questions? Email us at <a href="mailto:legal@PromptCraft.co">legal@PromptCraft.co</a>.
+            </p>
           </div>
         </section>
       </main>
     </div>
   );
-} 
+}

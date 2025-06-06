@@ -73,7 +73,7 @@ async function main() {
         userId: user.id,
         promptType: 'gpt-4',
         input: 'Summarize the theory of relativity.',
-        output: 'Einstein\'s theory of relativity explains... (summary)',
+        output: "Einstein's theory of relativity explains... (summary)",
         creditsUsed: 5,
         createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 2), // 2 days ago
       },
@@ -126,10 +126,10 @@ async function main() {
 }
 
 main()
-  .catch((e) => {
+  .catch(e => {
     console.error(e);
     process.exit(1);
   })
   .finally(async () => {
     await db.$disconnect();
-  }); 
+  });

@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import { useEffect, useState } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -101,9 +101,7 @@ export function Comments({ id }: CommentsProps) {
       }
 
       const data = await response.json();
-      setComments(prev => prev.map(comment => 
-        comment.id === tempId ? data : comment
-      ));
+      setComments(prev => prev.map(comment => (comment.id === tempId ? data : comment)));
     } catch (error) {
       console.error('Error posting comment:', error);
       toast.error('Failed to post comment');
@@ -116,14 +114,14 @@ export function Comments({ id }: CommentsProps) {
   if (isLoading) {
     return (
       <div className="space-y-4">
-        <div className="h-8 w-32 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+        <div className="h-8 w-32 animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
         <div className="space-y-4">
           {[...Array(3)].map((_, i) => (
             <div key={i} className="flex items-start gap-4">
-              <div className="h-10 w-10 bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
-              <div className="space-y-2 flex-1">
-                <div className="h-4 w-24 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
-                <div className="h-4 w-full bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+              <div className="h-10 w-10 animate-pulse rounded-full bg-gray-200 dark:bg-gray-700" />
+              <div className="flex-1 space-y-2">
+                <div className="h-4 w-24 animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
+                <div className="h-4 w-full animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
               </div>
             </div>
           ))}
@@ -138,7 +136,7 @@ export function Comments({ id }: CommentsProps) {
         <h3 className="text-lg font-semibold">Comments ({totalComments})</h3>
       </div>
 
-      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
+      <div className="rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800">
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="flex gap-4">
             <Avatar className="h-10 w-10">
@@ -149,28 +147,30 @@ export function Comments({ id }: CommentsProps) {
               <Textarea
                 placeholder="What's happening?"
                 value={newComment}
-                onChange={(e) => setNewComment(e.target.value)}
-                className="min-h-[100px] resize-none border-0 focus-visible:ring-0 focus-visible:ring-offset-0 p-0 text-lg"
+                onChange={e => setNewComment(e.target.value)}
+                className="min-h-[100px] resize-none border-0 p-0 text-lg focus-visible:ring-0 focus-visible:ring-offset-0"
                 maxLength={MAX_CHARACTERS}
               />
-              <div className="flex items-center justify-between border-t border-gray-200 dark:border-gray-700 pt-4">
+              <div className="flex items-center justify-between border-t border-gray-200 pt-4 dark:border-gray-700">
                 <div className="flex items-center gap-4 text-gray-500 dark:text-gray-400">
-                  <button type="button" className="hover:text-blue-500 transition-colors">
+                  <button type="button" className="transition-colors hover:text-blue-500">
                     <MessageCircle className="h-5 w-5" />
                   </button>
-                  <button type="button" className="hover:text-green-500 transition-colors">
+                  <button type="button" className="transition-colors hover:text-green-500">
                     <Heart className="h-5 w-5" />
                   </button>
-                  <button type="button" className="hover:text-blue-500 transition-colors">
+                  <button type="button" className="transition-colors hover:text-blue-500">
                     <Share2 className="h-5 w-5" />
                   </button>
                 </div>
                 <div className="flex items-center gap-4">
-                  <span className={`text-sm ${newComment.length > MAX_CHARACTERS * 0.8 ? 'text-orange-500' : 'text-gray-500 dark:text-gray-400'}`}>
+                  <span
+                    className={`text-sm ${newComment.length > MAX_CHARACTERS * 0.8 ? 'text-orange-500' : 'text-gray-500 dark:text-gray-400'}`}
+                  >
                     {newComment.length}/{MAX_CHARACTERS}
                   </span>
-                  <Button 
-                    type="submit" 
+                  <Button
+                    type="submit"
                     disabled={!newComment.trim() || newComment.length > MAX_CHARACTERS}
                     className="rounded-full px-4"
                   >
@@ -184,14 +184,15 @@ export function Comments({ id }: CommentsProps) {
       </div>
 
       <div className="space-y-4">
-        {comments.map((comment) => (
-          <div key={comment.id} className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
+        {comments.map(comment => (
+          <div
+            key={comment.id}
+            className="rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800"
+          >
             <div className="flex gap-4">
               <Avatar className="h-10 w-10">
                 <AvatarImage src={comment.user.imageUrl || undefined} />
-                <AvatarFallback>
-                  {comment.user.name?.[0]?.toUpperCase() || 'A'}
-                </AvatarFallback>
+                <AvatarFallback>{comment.user.name?.[0]?.toUpperCase() || 'A'}</AvatarFallback>
               </Avatar>
               <div className="flex-1 space-y-2">
                 <div className="flex items-center gap-2">
@@ -204,11 +205,11 @@ export function Comments({ id }: CommentsProps) {
                 </div>
                 <p className="text-gray-900 dark:text-gray-100">{comment.content}</p>
                 <div className="flex items-center gap-6 text-gray-500 dark:text-gray-400">
-                  <button className="hover:text-red-500 transition-colors flex items-center gap-2">
+                  <button className="flex items-center gap-2 transition-colors hover:text-red-500">
                     <Heart className="h-4 w-4" />
                     <span className="text-sm">Like</span>
                   </button>
-                  <button className="hover:text-blue-500 transition-colors flex items-center gap-2">
+                  <button className="flex items-center gap-2 transition-colors hover:text-blue-500">
                     <Share2 className="h-4 w-4" />
                     <span className="text-sm">Share</span>
                   </button>
@@ -224,7 +225,7 @@ export function Comments({ id }: CommentsProps) {
               variant="outline"
               onClick={loadMore}
               disabled={isLoadingMore}
-              className="w-full sm:w-auto rounded-full"
+              className="w-full rounded-full sm:w-auto"
             >
               {isLoadingMore ? (
                 <>
@@ -240,4 +241,4 @@ export function Comments({ id }: CommentsProps) {
       </div>
     </div>
   );
-} 
+}

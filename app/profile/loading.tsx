@@ -1,5 +1,5 @@
-import { Card } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Card } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function ProfileLoading() {
   return (
@@ -14,13 +14,13 @@ export default function ProfileLoading() {
         </div>
       </div>
 
-      <div className="flex w-full max-w-7xl mx-auto pt-8 px-4 gap-8">
+      <div className="mx-auto flex w-full max-w-7xl gap-8 px-4 pt-8">
         {/* Sidebar Skeleton */}
-        <aside className="w-72 shrink-0 hidden md:flex flex-col bg-card rounded-2xl py-8 px-6 h-fit mt-4 border border-border">
+        <aside className="mt-4 hidden h-fit w-72 shrink-0 flex-col rounded-2xl border border-border bg-card px-6 py-8 md:flex">
           <div className="space-y-4">
             <Skeleton className="h-4 w-24" />
             <div className="space-y-2">
-              {[1, 2, 3, 4].map((i) => (
+              {[1, 2, 3, 4].map(i => (
                 <Skeleton key={i} className="h-10 w-full" />
               ))}
             </div>
@@ -28,9 +28,9 @@ export default function ProfileLoading() {
         </aside>
 
         {/* Main Content Skeleton */}
-        <main className="flex-1 max-w-4xl w-full mx-auto flex flex-col gap-8">
+        <main className="mx-auto flex w-full max-w-4xl flex-1 flex-col gap-8">
           {/* Profile Header Card Skeleton */}
-          <Card className="relative overflow-hidden flex flex-col md:flex-row items-center md:items-start gap-6 p-8 bg-card border border-border rounded-2xl shadow-lg">
+          <Card className="relative flex flex-col items-center gap-6 overflow-hidden rounded-2xl border border-border bg-card p-8 shadow-lg md:flex-row md:items-start">
             <Skeleton className="h-20 w-20 rounded-full" />
             <div className="flex-1 space-y-4">
               <Skeleton className="h-8 w-48" />
@@ -40,22 +40,22 @@ export default function ProfileLoading() {
           </Card>
 
           {/* Profile Form Skeleton */}
-          <Card className="p-8 bg-card border border-border rounded-2xl shadow-lg">
+          <Card className="rounded-2xl border border-border bg-card p-8 shadow-lg">
             <div className="space-y-8">
               {/* Personal Information Section */}
               <div className="space-y-6">
                 <Skeleton className="h-6 w-48" />
                 <div className="space-y-4">
                   <div>
-                    <Skeleton className="h-4 w-24 mb-2" />
+                    <Skeleton className="mb-2 h-4 w-24" />
                     <Skeleton className="h-10 w-full" />
                   </div>
                   <div>
-                    <Skeleton className="h-4 w-24 mb-2" />
+                    <Skeleton className="mb-2 h-4 w-24" />
                     <Skeleton className="h-10 w-full" />
                   </div>
                   <div>
-                    <Skeleton className="h-4 w-24 mb-2" />
+                    <Skeleton className="mb-2 h-4 w-24" />
                     <Skeleton className="h-32 w-full" />
                   </div>
                 </div>
@@ -64,10 +64,10 @@ export default function ProfileLoading() {
               {/* Professional Information Section */}
               <div className="space-y-6">
                 <Skeleton className="h-6 w-48" />
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {[1, 2, 3, 4].map((i) => (
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                  {[1, 2, 3, 4].map(i => (
                     <div key={i}>
-                      <Skeleton className="h-4 w-24 mb-2" />
+                      <Skeleton className="mb-2 h-4 w-24" />
                       <Skeleton className="h-10 w-full" />
                     </div>
                   ))}
@@ -77,10 +77,10 @@ export default function ProfileLoading() {
               {/* Social Links Section */}
               <div className="space-y-6">
                 <Skeleton className="h-6 w-48" />
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {[1, 2].map((i) => (
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                  {[1, 2].map(i => (
                     <div key={i}>
-                      <Skeleton className="h-4 w-24 mb-2" />
+                      <Skeleton className="mb-2 h-4 w-24" />
                       <Skeleton className="h-10 w-full" />
                     </div>
                   ))}
@@ -92,13 +92,13 @@ export default function ProfileLoading() {
                 <Skeleton className="h-6 w-48" />
                 <div className="space-y-4">
                   <div>
-                    <Skeleton className="h-4 w-24 mb-2" />
+                    <Skeleton className="mb-2 h-4 w-24" />
                     <Skeleton className="h-6 w-32" />
                   </div>
                   <div>
-                    <Skeleton className="h-4 w-24 mb-2" />
+                    <Skeleton className="mb-2 h-4 w-24" />
                     <Skeleton className="h-2 w-full" />
-                    <Skeleton className="h-4 w-32 mt-2" />
+                    <Skeleton className="mt-2 h-4 w-32" />
                   </div>
                 </div>
               </div>
@@ -108,4 +108,4 @@ export default function ProfileLoading() {
       </div>
     </div>
   );
-} 
+}

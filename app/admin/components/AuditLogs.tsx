@@ -1,16 +1,16 @@
-"use client";
+'use client';
 
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Download, Filter, Search, ArrowUpDown } from "lucide-react";
-import { Input } from "@/components/ui/input";
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Download, Filter, Search, ArrowUpDown } from 'lucide-react';
+import { Input } from '@/components/ui/input';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from '@/components/ui/select';
 import {
   Table,
   TableBody,
@@ -18,8 +18,8 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
+} from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
 import {
   ColumnDef,
   flexRender,
@@ -29,8 +29,8 @@ import {
   getPaginationRowModel,
   SortingState,
   useReactTable,
-} from "@tanstack/react-table";
-import { useState } from "react";
+} from '@tanstack/react-table';
+import { useState } from 'react';
 
 interface AuditLog {
   id: string;
@@ -52,16 +52,16 @@ interface AuditLogsProps {
 
 export function AuditLogs({ logs }: AuditLogsProps) {
   const [sorting, setSorting] = useState<SortingState>([]);
-  const [globalFilter, setGlobalFilter] = useState("");
+  const [globalFilter, setGlobalFilter] = useState('');
 
   const columns: ColumnDef<AuditLog>[] = [
     {
-      accessorKey: "action",
+      accessorKey: 'action',
       header: ({ column }) => {
         return (
           <Button
             variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
           >
             Action
             <ArrowUpDown className="ml-2 h-4 w-4" />
@@ -70,12 +70,12 @@ export function AuditLogs({ logs }: AuditLogsProps) {
       },
     },
     {
-      accessorKey: "resource",
+      accessorKey: 'resource',
       header: ({ column }) => {
         return (
           <Button
             variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
           >
             Resource
             <ArrowUpDown className="ml-2 h-4 w-4" />
@@ -84,22 +84,22 @@ export function AuditLogs({ logs }: AuditLogsProps) {
       },
     },
     {
-      accessorKey: "user.name",
-      header: "User",
-      cell: ({ row }) => row.original.user?.name || "Unknown User",
+      accessorKey: 'user.name',
+      header: 'User',
+      cell: ({ row }) => row.original.user?.name || 'Unknown User',
     },
     {
-      accessorKey: "ipAddress",
-      header: "IP Address",
-      cell: ({ row }) => row.original.ipAddress || "N/A",
+      accessorKey: 'ipAddress',
+      header: 'IP Address',
+      cell: ({ row }) => row.original.ipAddress || 'N/A',
     },
     {
-      accessorKey: "timestamp",
+      accessorKey: 'timestamp',
       header: ({ column }) => {
         return (
           <Button
             variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
           >
             Timestamp
             <ArrowUpDown className="ml-2 h-4 w-4" />
@@ -109,26 +109,24 @@ export function AuditLogs({ logs }: AuditLogsProps) {
       cell: ({ row }) => new Date(row.original.timestamp).toLocaleString(),
     },
     {
-      accessorKey: "details",
-      header: "Details",
+      accessorKey: 'details',
+      header: 'Details',
       cell: ({ row }) => (
-        <div className="max-w-xs truncate">
-          {JSON.stringify(row.original.details)}
-        </div>
+        <div className="max-w-xs truncate">{JSON.stringify(row.original.details)}</div>
       ),
     },
     {
-      accessorKey: "status",
-      header: "Status",
+      accessorKey: 'status',
+      header: 'Status',
       cell: ({ row }) => (
         <Badge
           variant="outline"
           className={`${
-            row.original.status === "success"
-              ? "bg-green-50 text-green-700 border-green-200"
-              : row.original.status === "warning"
-              ? "bg-yellow-50 text-yellow-700 border-yellow-200"
-              : "bg-red-50 text-red-700 border-red-200"
+            row.original.status === 'success'
+              ? 'border-green-200 bg-green-50 text-green-700'
+              : row.original.status === 'warning'
+                ? 'border-yellow-200 bg-yellow-50 text-yellow-700'
+                : 'border-red-200 bg-red-50 text-red-700'
           }`}
         >
           {row.original.status.charAt(0).toUpperCase() + row.original.status.slice(1)}
@@ -153,26 +151,28 @@ export function AuditLogs({ logs }: AuditLogsProps) {
   });
 
   const handleExport = () => {
-    const headers = ["Action", "Resource", "User", "IP Address", "Timestamp", "Details", "Status"];
+    const headers = ['Action', 'Resource', 'User', 'IP Address', 'Timestamp', 'Details', 'Status'];
     const csvContent = [
-      headers.join(","),
-      ...logs.map((log) => [
-        log.action,
-        log.resource,
-        log.user?.name || "Unknown User",
-        log.ipAddress || "N/A",
-        log.timestamp.toISOString(),
-        JSON.stringify(log.details),
-        log.status,
-      ].join(",")),
-    ].join("\n");
+      headers.join(','),
+      ...logs.map(log =>
+        [
+          log.action,
+          log.resource,
+          log.user?.name || 'Unknown User',
+          log.ipAddress || 'N/A',
+          log.timestamp.toISOString(),
+          JSON.stringify(log.details),
+          log.status,
+        ].join(',')
+      ),
+    ].join('\n');
 
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const link = document.createElement("a");
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
-    link.setAttribute("href", url);
-    link.setAttribute("download", `audit-logs-${new Date().toISOString()}.csv`);
-    link.style.visibility = "hidden";
+    link.setAttribute('href', url);
+    link.setAttribute('download', `audit-logs-${new Date().toISOString()}.csv`);
+    link.style.visibility = 'hidden';
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -180,23 +180,23 @@ export function AuditLogs({ logs }: AuditLogsProps) {
 
   return (
     <Card className="p-6">
-      <div className="flex items-center justify-between mb-6">
+      <div className="mb-6 flex items-center justify-between">
         <h3 className="text-lg font-semibold text-gray-900">Audit Logs</h3>
         <Button onClick={handleExport} variant="outline" size="sm">
-          <Download className="w-4 h-4 mr-2" />
+          <Download className="mr-2 h-4 w-4" />
           Export Logs
         </Button>
       </div>
 
-      <div className="flex items-center space-x-4 mb-6">
+      <div className="mb-6 flex items-center space-x-4">
         <div className="flex-1">
           <div className="relative">
             <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-500" />
             <Input
               placeholder="Search logs..."
               className="pl-8"
-              value={globalFilter ?? ""}
-              onChange={(e) => setGlobalFilter(e.target.value)}
+              value={globalFilter ?? ''}
+              onChange={e => setGlobalFilter(e.target.value)}
             />
           </div>
         </div>
@@ -229,16 +229,13 @@ export function AuditLogs({ logs }: AuditLogsProps) {
       <div className="rounded-md border">
         <Table>
           <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => (
+            {table.getHeaderGroups().map(headerGroup => (
               <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => (
+                {headerGroup.headers.map(header => (
                   <TableHead key={header.id}>
                     {header.isPlaceholder
                       ? null
-                      : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
+                      : flexRender(header.column.columnDef.header, header.getContext())}
                   </TableHead>
                 ))}
               </TableRow>
@@ -246,27 +243,18 @@ export function AuditLogs({ logs }: AuditLogsProps) {
           </TableHeader>
           <TableBody>
             {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && "selected"}
-                >
-                  {row.getVisibleCells().map((cell) => (
+              table.getRowModel().rows.map(row => (
+                <TableRow key={row.id} data-state={row.getIsSelected() && 'selected'}>
+                  {row.getVisibleCells().map(cell => (
                     <TableCell key={cell.id}>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </TableCell>
                   ))}
                 </TableRow>
               ))
             ) : (
               <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className="h-24 text-center"
-                >
+                <TableCell colSpan={columns.length} className="h-24 text-center">
                   No results.
                 </TableCell>
               </TableRow>
@@ -295,4 +283,4 @@ export function AuditLogs({ logs }: AuditLogsProps) {
       </div>
     </Card>
   );
-} 
+}

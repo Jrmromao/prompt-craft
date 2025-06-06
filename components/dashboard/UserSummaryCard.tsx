@@ -1,8 +1,8 @@
-import { UserWithPlan } from "@/types/prisma";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { CreditCard, Zap, Calendar } from "lucide-react";
-import Link from "next/link";
+import { UserWithPlan } from '@/types/prisma';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { CreditCard, Zap, Calendar } from 'lucide-react';
+import Link from 'next/link';
 import { format } from 'date-fns';
 
 interface UserSummaryCardProps {
@@ -18,23 +18,21 @@ export function UserSummaryCard({ user }: UserSummaryCardProps) {
 
   return (
     <Card className="p-6">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <div className="flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
         <div className="space-y-4">
           <div className="flex items-center gap-2">
-            <CreditCard className="w-5 h-5 text-muted-foreground" />
+            <CreditCard className="h-5 w-5 text-muted-foreground" />
             <span className="text-2xl font-bold">{user.credits}</span>
             <span className="text-muted-foreground">credits available</span>
           </div>
 
           <div className="flex items-center gap-2">
-            <Zap className="w-5 h-5 text-muted-foreground" />
-            <span className="text-muted-foreground">
-              Plan: {user.plan?.name ?? "Free"}
-            </span>
+            <Zap className="h-5 w-5 text-muted-foreground" />
+            <span className="text-muted-foreground">Plan: {user.plan?.name ?? 'Free'}</span>
           </div>
 
           <div className="flex items-center gap-2">
-            <Calendar className="w-5 h-5 text-muted-foreground" />
+            <Calendar className="h-5 w-5 text-muted-foreground" />
             <span className="text-muted-foreground">
               Next reset: {format(nextReset, 'yyyy-MM-dd')}
             </span>
@@ -45,7 +43,7 @@ export function UserSummaryCard({ user }: UserSummaryCardProps) {
           <Button asChild>
             <Link href="/prompt">Use Prompt</Link>
           </Button>
-          {(user.plan?.name === "FREE" || user.credits < 10) && (
+          {(user.plan?.name === 'FREE' || user.credits < 10) && (
             <Button variant="outline" asChild>
               <Link href="/billing">Upgrade Plan</Link>
             </Button>
@@ -54,4 +52,4 @@ export function UserSummaryCard({ user }: UserSummaryCardProps) {
       </div>
     </Card>
   );
-} 
+}

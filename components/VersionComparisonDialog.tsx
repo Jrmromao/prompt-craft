@@ -1,9 +1,4 @@
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { VersionDiff } from './VersionDiff';
 
 interface VersionComparisonDialogProps {
@@ -30,7 +25,9 @@ export function VersionComparisonDialog({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl">
         <DialogHeader>
-          <DialogTitle className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent text-2xl font-bold">Version Comparison</DialogTitle>
+          <DialogTitle className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-2xl font-bold text-transparent">
+            Version Comparison
+          </DialogTitle>
         </DialogHeader>
         <VersionDiff
           version1={comparison.version1}
@@ -43,4 +40,4 @@ export function VersionComparisonDialog({
       </DialogContent>
     </Dialog>
   );
-} 
+}

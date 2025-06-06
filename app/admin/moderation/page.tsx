@@ -1,8 +1,8 @@
-import { getReportedContent, getModeratedWords } from "./services/moderationService";
-import { ModerationTables } from "./components/ModerationTables";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ModeratedWordsTable } from "./components/ModeratedWordsTable";
-import { ModeratedWordsSection } from "@/app/admin/moderation/components/ModeratedWordsSection";
+import { getReportedContent, getModeratedWords } from './services/moderationService';
+import { ModerationTables } from './components/ModerationTables';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ModeratedWordsTable } from './components/ModeratedWordsTable';
+import { ModeratedWordsSection } from '@/app/admin/moderation/components/ModeratedWordsSection';
 
 export default async function ModerationPage() {
   const { reportedPrompts, reportedComments } = await getReportedContent();
@@ -12,9 +12,7 @@ export default async function ModerationPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Content Moderation</h1>
-        <p className="mt-1 text-sm text-gray-500">
-          Review and manage reported content
-        </p>
+        <p className="mt-1 text-sm text-gray-500">Review and manage reported content</p>
       </div>
 
       <Tabs defaultValue="reported">
@@ -24,10 +22,7 @@ export default async function ModerationPage() {
           <TabsTrigger value="words">Moderated Words</TabsTrigger>
         </TabsList>
         <TabsContent value="reported">
-          <ModerationTables
-            reportedPrompts={reportedPrompts}
-            reportedComments={reportedComments}
-          />
+          <ModerationTables reportedPrompts={reportedPrompts} reportedComments={reportedComments} />
         </TabsContent>
         <TabsContent value="monthly">
           <div className="p-4">
@@ -42,4 +37,4 @@ export default async function ModerationPage() {
       </Tabs>
     </div>
   );
-} 
+}

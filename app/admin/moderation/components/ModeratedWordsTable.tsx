@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import {
   ColumnDef,
@@ -7,7 +7,7 @@ import {
   useReactTable,
   getSortedRowModel,
   SortingState,
-} from "@tanstack/react-table";
+} from '@tanstack/react-table';
 import {
   Table as UITable,
   TableBody,
@@ -15,17 +15,17 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
-import { useState } from "react";
-import { formatDistanceToNow, parseISO } from "date-fns";
+} from '@/components/ui/table';
+import { Button } from '@/components/ui/button';
+import { useState } from 'react';
+import { formatDistanceToNow, parseISO } from 'date-fns';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogFooter,
-} from "@/components/ui/dialog";
+} from '@/components/ui/dialog';
 
 interface ModeratedWord {
   id: string;
@@ -70,30 +70,30 @@ export function ModeratedWordsTable({ data, onRemoveWord }: ModeratedWordsTableP
 
   const columns: ColumnDef<ModeratedWord>[] = [
     {
-      accessorKey: "contentId",
-      header: "Word",
+      accessorKey: 'contentId',
+      header: 'Word',
     },
     {
-      accessorKey: "severity",
-      header: "Severity",
+      accessorKey: 'severity',
+      header: 'Severity',
     },
     {
-      accessorKey: "category",
-      header: "Category",
+      accessorKey: 'category',
+      header: 'Category',
     },
     {
-      accessorKey: "status",
-      header: "Status",
+      accessorKey: 'status',
+      header: 'Status',
     },
     {
-      accessorKey: "createdAt",
-      header: "Created",
+      accessorKey: 'createdAt',
+      header: 'Created',
       cell: ({ row }) => {
         return formatDate(row.original.createdAt);
       },
     },
     {
-      id: "actions",
+      id: 'actions',
       cell: ({ row }) => {
         return (
           <Button
@@ -124,16 +124,13 @@ export function ModeratedWordsTable({ data, onRemoveWord }: ModeratedWordsTableP
       <div className="rounded-md border">
         <UITable>
           <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => (
+            {table.getHeaderGroups().map(headerGroup => (
               <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => (
+                {headerGroup.headers.map(header => (
                   <TableHead key={header.id}>
                     {header.isPlaceholder
                       ? null
-                      : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
+                      : flexRender(header.column.columnDef.header, header.getContext())}
                   </TableHead>
                 ))}
               </TableRow>
@@ -141,27 +138,18 @@ export function ModeratedWordsTable({ data, onRemoveWord }: ModeratedWordsTableP
           </TableHeader>
           <TableBody>
             {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && "selected"}
-                >
-                  {row.getVisibleCells().map((cell) => (
+              table.getRowModel().rows.map(row => (
+                <TableRow key={row.id} data-state={row.getIsSelected() && 'selected'}>
+                  {row.getVisibleCells().map(cell => (
                     <TableCell key={cell.id}>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </TableCell>
                   ))}
                 </TableRow>
               ))
             ) : (
               <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className="h-24 text-center"
-                >
+                <TableCell colSpan={columns.length} className="h-24 text-center">
                   No moderated words found.
                 </TableCell>
               </TableRow>
@@ -174,7 +162,10 @@ export function ModeratedWordsTable({ data, onRemoveWord }: ModeratedWordsTableP
           <DialogHeader>
             <DialogTitle>Remove Word</DialogTitle>
           </DialogHeader>
-          <div>Are you sure you want to remove the word <span className="font-semibold">{selectedWord}</span>?</div>
+          <div>
+            Are you sure you want to remove the word{' '}
+            <span className="font-semibold">{selectedWord}</span>?
+          </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setConfirmDialogOpen(false)}>
               Cancel
@@ -187,4 +178,4 @@ export function ModeratedWordsTable({ data, onRemoveWord }: ModeratedWordsTableP
       </Dialog>
     </div>
   );
-} 
+}

@@ -1,8 +1,8 @@
-"use server";
+'use server';
 
-import { prisma } from "@/lib/prisma";
-import { revalidatePath } from "next/cache";
-import { Role, Prisma, UserStatus } from "@prisma/client";
+import { prisma } from '@/lib/prisma';
+import { revalidatePath } from 'next/cache';
+import { Role, Prisma, UserStatus } from '@prisma/client';
 
 export type UserData = {
   id: string;
@@ -37,23 +37,23 @@ export async function getUsers(search?: string, role?: Role) {
       createdAt: true,
     },
     orderBy: {
-      createdAt: "desc",
+      createdAt: 'desc',
     },
   });
 
-  return users.map((user) => ({
+  return users.map(user => ({
     ...user,
-    joinedAt: user.createdAt.toISOString().split("T")[0],
+    joinedAt: user.createdAt.toISOString().split('T')[0],
   }));
 }
 
-export async function updateUserStatus(userId: string, status: UserData["status"]) {
+export async function updateUserStatus(userId: string, status: UserData['status']) {
   await prisma.user.update({
     where: { id: userId },
     data: { status },
   });
 
-  revalidatePath("/admin/users");
+  revalidatePath('/admin/users');
 }
 
 export async function updateUserRole(userId: string, role: Role) {
@@ -62,5 +62,5 @@ export async function updateUserRole(userId: string, role: Role) {
     data: { role },
   });
 
-  revalidatePath("/admin/users");
-} 
+  revalidatePath('/admin/users');
+}

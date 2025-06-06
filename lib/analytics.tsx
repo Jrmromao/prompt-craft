@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import React, { createContext, useContext, useEffect, Suspense } from 'react';
 import { CookiePreferences } from '../components/cookies/CookieManager';
@@ -89,4 +89,4 @@ export function AnalyticsProvider(props: AnalyticsProviderProps) {
       <AnalyticsContent {...props} />
     </Suspense>
   );
-} 
+}

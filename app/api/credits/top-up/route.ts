@@ -14,10 +14,7 @@ export async function POST(req: Request) {
     const { amount } = body;
 
     if (!amount || amount <= 0) {
-      return NextResponse.json(
-        { error: 'Invalid amount' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Invalid amount' }, { status: 400 });
     }
 
     const creditService = CreditService.getInstance();
@@ -31,9 +28,6 @@ export async function POST(req: Request) {
     return NextResponse.json({ newBalance });
   } catch (error) {
     console.error('Error topping up credits:', error);
-    return NextResponse.json(
-      { error: 'Failed to top up credits' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to top up credits' }, { status: 500 });
   }
-} 
+}

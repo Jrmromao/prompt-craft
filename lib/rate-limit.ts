@@ -33,4 +33,4 @@ export async function rateLimitByUserId(userId: string) {
 // Rate limit by API key
 export async function rateLimitByApiKey(apiKey: string) {
   return rateLimit(`ratelimit_api_${apiKey}`);
-} 
+}

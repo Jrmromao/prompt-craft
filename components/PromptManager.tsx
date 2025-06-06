@@ -62,7 +62,9 @@ export function PromptManager({
   const [description, setDescription] = React.useState('');
   const [content, setContent] = React.useState('');
   const [isPublic, setIsPublic] = React.useState(false);
-  const [promptType, setPromptType] = React.useState<'text' | 'image' | 'video' | 'music' | 'software'>('text');
+  const [promptType, setPromptType] = React.useState<
+    'text' | 'image' | 'video' | 'music' | 'software'
+  >('text');
   const [tags, setTags] = React.useState<string[]>([]);
   const [newTag, setNewTag] = React.useState('');
   const [editingPrompt, setEditingPrompt] = React.useState<Prompt | null>(null);
@@ -102,7 +104,11 @@ export function PromptManager({
       resetForm();
       setIsDialogOpen(false);
     } catch (error) {
-      toast({ title: 'Error saving prompt', description: error instanceof Error ? error.message : String(error), variant: 'destructive' });
+      toast({
+        title: 'Error saving prompt',
+        description: error instanceof Error ? error.message : String(error),
+        variant: 'destructive',
+      });
       console.error('Error saving prompt:', error);
     }
   };
@@ -124,7 +130,11 @@ export function PromptManager({
         await onDelete(id);
         toast({ title: 'Prompt deleted successfully!' });
       } catch (error) {
-        toast({ title: 'Error deleting prompt', description: error instanceof Error ? error.message : String(error), variant: 'destructive' });
+        toast({
+          title: 'Error deleting prompt',
+          description: error instanceof Error ? error.message : String(error),
+          variant: 'destructive',
+        });
         console.error('Error deleting prompt:', error);
       }
     }
@@ -201,7 +211,7 @@ export function PromptManager({
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {prompts.map((prompt) => (
+        {prompts.map(prompt => (
           <div
             key={prompt.id}
             className="rounded-lg border p-4 shadow-sm transition-shadow hover:shadow-md"
@@ -210,40 +220,26 @@ export function PromptManager({
               <h3 className="font-semibold">{prompt.name}</h3>
               {currentUserId === prompt.userId && (
                 <div className="flex gap-2">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleEdit(prompt)}
-                  >
+                  <Button variant="ghost" size="sm" onClick={() => handleEdit(prompt)}>
                     Edit
                   </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleDelete(prompt.id)}
-                  >
+                  <Button variant="ghost" size="sm" onClick={() => handleDelete(prompt.id)}>
                     Delete
                   </Button>
                 </div>
               )}
             </div>
             {prompt.description && (
-              <p className="mt-2 text-sm text-muted-foreground">
-                {prompt.description}
-              </p>
+              <p className="mt-2 text-sm text-muted-foreground">{prompt.description}</p>
             )}
-            <p className="mt-2 text-sm text-muted-foreground line-clamp-3">
-              {prompt.content}
-            </p>
+            <p className="mt-2 line-clamp-3 text-sm text-muted-foreground">{prompt.content}</p>
             <div className="mt-4 flex flex-wrap gap-2">
-              {prompt.tags.map((tag) => (
+              {prompt.tags.map(tag => (
                 <Badge key={tag.id} variant="secondary">
                   {tag.name}
                 </Badge>
               ))}
-              {prompt.isPublic && (
-                <Badge variant="outline">Public</Badge>
-              )}
+              {prompt.isPublic && <Badge variant="outline">Public</Badge>}
               <Badge variant="outline">{prompt.promptType}</Badge>
             </div>
           </div>
@@ -273,4 +269,4 @@ export function PromptManager({
       />
     </div>
   );
-} 
+}

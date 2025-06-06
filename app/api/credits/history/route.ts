@@ -15,4 +15,4 @@ export async function GET() {
     console.error('Error fetching credit history:', error);
     return new NextResponse('Internal Server Error', { status: 500 });
   }
-} 
+}

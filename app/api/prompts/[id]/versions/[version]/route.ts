@@ -14,10 +14,7 @@ export async function GET(
     }
 
     if (!version) {
-      return NextResponse.json(
-        { error: 'Version parameter is required' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Version parameter is required' }, { status: 400 });
     }
 
     const versionControlService = VersionControlService.getInstance();
@@ -30,10 +27,7 @@ export async function GET(
     return NextResponse.json(versionData);
   } catch (error) {
     console.error('Error getting version:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
 
@@ -49,33 +43,21 @@ export async function POST(
     }
 
     if (!version) {
-      return NextResponse.json(
-        { error: 'Version parameter is required' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Version parameter is required' }, { status: 400 });
     }
 
     const { compareWith } = await request.json();
 
     if (!compareWith) {
-      return NextResponse.json(
-        { error: 'compareWith parameter is required' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'compareWith parameter is required' }, { status: 400 });
     }
 
     const versionControlService = VersionControlService.getInstance();
-    const result = await versionControlService.compareVersions(
-      version,
-      compareWith
-    );
+    const result = await versionControlService.compareVersions(version, compareWith);
 
     return NextResponse.json(result);
   } catch (error) {
     console.error('Error comparing versions:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

@@ -1,6 +1,6 @@
-"use client";
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
+'use client';
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
 
 interface UpvoteButtonProps {
   promptId: string;
@@ -16,12 +16,12 @@ export function UpvoteButton({ promptId, upvotes }: UpvoteButtonProps) {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`/api/prompts/${promptId}/upvote`, { method: "POST" });
-      if (!res.ok) throw new Error("Failed to upvote");
+      const res = await fetch(`/api/prompts/${promptId}/upvote`, { method: 'POST' });
+      if (!res.ok) throw new Error('Failed to upvote');
       const data = await res.json();
       setCount(data.upvotes);
     } catch (err) {
-      setError("Could not upvote. Please try again.");
+      setError('Could not upvote. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -32,7 +32,7 @@ export function UpvoteButton({ promptId, upvotes }: UpvoteButtonProps) {
       <Button onClick={handleUpvote} disabled={loading} aria-label="Upvote this prompt">
         ⬆️ Upvote ({count})
       </Button>
-      {error && <span className="text-red-500 text-sm">{error}</span>}
+      {error && <span className="text-sm text-red-500">{error}</span>}
     </div>
   );
-} 
+}

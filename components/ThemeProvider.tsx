@@ -39,8 +39,13 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     if (theme === 'system') {
       const updateSystemTheme = () => setResolvedTheme(getSystemTheme());
       updateSystemTheme();
-      window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', updateSystemTheme);
-      return () => window.matchMedia('(prefers-color-scheme: dark)').removeEventListener('change', updateSystemTheme);
+      window
+        .matchMedia('(prefers-color-scheme: dark)')
+        .addEventListener('change', updateSystemTheme);
+      return () =>
+        window
+          .matchMedia('(prefers-color-scheme: dark)')
+          .removeEventListener('change', updateSystemTheme);
     } else {
       setResolvedTheme(theme);
     }
@@ -57,7 +62,8 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     }
   }, [theme, resolvedTheme, mounted]);
 
-  const toggleTheme = () => setTheme((t) => (t === 'dark' ? 'light' : t === 'light' ? 'dark' : getSystemTheme()));
+  const toggleTheme = () =>
+    setTheme(t => (t === 'dark' ? 'light' : t === 'light' ? 'dark' : getSystemTheme()));
 
   return (
     <ThemeContext.Provider value={{ theme, resolvedTheme, setTheme, toggleTheme }}>
@@ -70,4 +76,4 @@ export function useTheme() {
   const ctx = useContext(ThemeContext);
   if (!ctx) throw new Error('useTheme must be used within ThemeProvider');
   return ctx;
-} 
+}

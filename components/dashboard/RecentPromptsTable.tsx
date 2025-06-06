@@ -1,7 +1,7 @@
-import { TableWithPagination } from "@/components/table/TableWithPagination";
-import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { useState } from "react";
+import { TableWithPagination } from '@/components/table/TableWithPagination';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { useState } from 'react';
 import { format } from 'date-fns';
 
 // PromptGeneration type for dashboard recent prompts
@@ -23,8 +23,8 @@ export function RecentPromptsTable({ prompts }: RecentPromptsTableProps) {
 
   const columns = [
     {
-      accessorKey: "input",
-      header: "Input",
+      accessorKey: 'input',
+      header: 'Input',
       cell: ({ row }: any) => (
         <div className="max-w-[220px] truncate" title={row.original.input}>
           {row.original.input}
@@ -32,33 +32,32 @@ export function RecentPromptsTable({ prompts }: RecentPromptsTableProps) {
       ),
     },
     {
-      accessorKey: "model",
-      header: "Model",
+      accessorKey: 'model',
+      header: 'Model',
       cell: ({ row }: any) => (
-        <span className="font-mono text-xs text-gray-700 dark:text-gray-300">{row.original.model}</span>
+        <span className="font-mono text-xs text-gray-700 dark:text-gray-300">
+          {row.original.model}
+        </span>
       ),
     },
     {
-      accessorKey: "creditsUsed",
-      header: "Credits",
+      accessorKey: 'creditsUsed',
+      header: 'Credits',
       cell: ({ row }: any) => (
-        <span className="font-semibold text-purple-700 dark:text-purple-300">{row.original.creditsUsed}</span>
+        <span className="font-semibold text-purple-700 dark:text-purple-300">
+          {row.original.creditsUsed}
+        </span>
       ),
     },
     {
-      accessorKey: "createdAt",
-      header: "Date",
-      cell: ({ row }: any) => (
-        <div>{format(new Date(row.original.createdAt), 'yyyy-MM-dd')}</div>
-      ),
+      accessorKey: 'createdAt',
+      header: 'Date',
+      cell: ({ row }: any) => <div>{format(new Date(row.original.createdAt), 'yyyy-MM-dd')}</div>,
     },
     {
-      id: "actions",
+      id: 'actions',
       cell: ({ row }: any) => (
-        <Button
-          variant="ghost"
-          onClick={() => setSelectedPrompt(row.original)}
-        >
+        <Button variant="ghost" onClick={() => setSelectedPrompt(row.original)}>
           View
         </Button>
       ),
@@ -80,11 +79,15 @@ export function RecentPromptsTable({ prompts }: RecentPromptsTableProps) {
               <div className="space-y-4">
                 <div>
                   <h3 className="font-semibold">Input:</h3>
-                  <p className="whitespace-pre-wrap" title={row.input}>{row.input}</p>
+                  <p className="whitespace-pre-wrap" title={row.input}>
+                    {row.input}
+                  </p>
                 </div>
                 <div>
                   <h3 className="font-semibold">Output:</h3>
-                  <p className="whitespace-pre-wrap" title={row.output}>{row.output}</p>
+                  <p className="whitespace-pre-wrap" title={row.output}>
+                    {row.output}
+                  </p>
                 </div>
               </div>
             )}
@@ -93,4 +96,4 @@ export function RecentPromptsTable({ prompts }: RecentPromptsTableProps) {
       )}
     />
   );
-} 
+}

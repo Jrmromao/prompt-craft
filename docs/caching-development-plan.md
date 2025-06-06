@@ -23,11 +23,13 @@ For the MVP (Minimum Viable Product), focus on caching strategies that deliver t
 Start with API and service layer caching for public and expensive data, then ensure client-side fetches use SWR/React Query. AI/LLM result caching and rate limiting are valuable but can be added after the core MVP is stable.
 
 ## Overview
+
 This plan outlines the steps to implement and improve caching across the application to enhance performance, scalability, and user experience. The plan covers API routes, service layer, client-side data fetching, AI/LLM results, and public/static pages.
 
 ---
 
 ## Goals
+
 - Reduce database and API load by serving cached data where appropriate
 - Improve response times for end-users
 - Lower operational costs (e.g., LLM API calls)
@@ -39,6 +41,7 @@ This plan outlines the steps to implement and improve caching across the applica
 ## Areas of Focus & Action Steps
 
 ### 1. API Route Caching (Server-Side)
+
 - **Goal:** Cache API responses for endpoints serving semi-static or public data.
 - **Actions:**
   - Use Next.js ISR/SSG or `revalidate` options for relevant API routes (e.g., `/api/prompts/featured`).
@@ -46,6 +49,7 @@ This plan outlines the steps to implement and improve caching across the applica
 - **Responsible:** Backend/Fullstack Developer
 
 ### 2. Service Layer Caching (Distributed)
+
 - **Goal:** Cache expensive or frequently accessed database queries.
 - **Actions:**
   - Integrate Redis (or similar) for distributed caching in service files (e.g., `PromptService`, `DashboardService`).
@@ -54,6 +58,7 @@ This plan outlines the steps to implement and improve caching across the applica
 - **Responsible:** Backend Developer
 
 ### 3. Client-Side Data Fetching
+
 - **Goal:** Ensure all client data fetching uses robust caching and revalidation.
 - **Actions:**
   - Refactor custom hooks (e.g., `usePrompts`) to use React Query or SWR for built-in caching and deduplication.
@@ -61,6 +66,7 @@ This plan outlines the steps to implement and improve caching across the applica
 - **Responsible:** Frontend Developer
 
 ### 4. AI/LLM API Result Caching
+
 - **Goal:** Avoid redundant LLM API calls for identical prompts.
 - **Actions:**
   - Implement caching for AI/LLM completions in the service layer (e.g., Redis with prompt+params as key).
@@ -68,6 +74,7 @@ This plan outlines the steps to implement and improve caching across the applica
 - **Responsible:** Backend Developer
 
 ### 5. Static Site Generation (SSG) / Incremental Static Regeneration (ISR)
+
 - **Goal:** Serve static HTML for public, rarely-changing pages.
 - **Actions:**
   - Use Next.js SSG/ISR for pages like community prompt details.
@@ -75,6 +82,7 @@ This plan outlines the steps to implement and improve caching across the applica
 - **Responsible:** Frontend/Fullstack Developer
 
 ### 6. Rate Limiting & Throttling
+
 - **Goal:** Prevent abuse and reduce backend load.
 - **Actions:**
   - Add rate limiting to public API endpoints (middleware or API handler level).
@@ -83,6 +91,7 @@ This plan outlines the steps to implement and improve caching across the applica
 ---
 
 ## Timeline & Milestones
+
 1. **Week 1:**
    - Audit all API routes and identify candidates for caching/ISR.
    - Set up Redis in development and staging environments.
@@ -99,6 +108,7 @@ This plan outlines the steps to implement and improve caching across the applica
 ---
 
 ## Risks & Mitigations
+
 - **Stale Data:** Use short TTLs and cache invalidation on data change.
 - **Cache Inconsistency:** Use distributed cache for multi-instance deployments.
 - **Security:** Never cache sensitive or user-specific data in public/shared caches.
@@ -106,6 +116,7 @@ This plan outlines the steps to implement and improve caching across the applica
 ---
 
 ## Success Criteria
+
 - Reduced average response time for cached endpoints by 50%+
 - Lower database/API call volume (monitor with metrics)
 - No major cache-related bugs or stale data incidents
@@ -114,6 +125,7 @@ This plan outlines the steps to implement and improve caching across the applica
 ---
 
 ## Review & Iteration
+
 - Review caching effectiveness after 1 month
 - Adjust TTLs, cache keys, and strategies as needed
-- Gather feedback from developers and users 
+- Gather feedback from developers and users

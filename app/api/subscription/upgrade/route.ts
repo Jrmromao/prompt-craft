@@ -14,40 +14,24 @@ export async function POST(req: Request) {
     const { plan, period } = body;
 
     if (!plan || !Object.values(PlanType).includes(plan)) {
-      return NextResponse.json(
-        { error: 'Invalid plan type' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Invalid plan type' }, { status: 400 });
     }
 
     if (!period || !Object.values(Period).includes(period)) {
-      return NextResponse.json(
-        { error: 'Invalid period' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Invalid period' }, { status: 400 });
     }
 
     // Validate plan and period combination
     if (plan === PlanType.PRO && period === Period.WEEKLY) {
-      return NextResponse.json(
-        { error: 'Pro plan is only available monthly' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Pro plan is only available monthly' }, { status: 400 });
     }
 
     const subscriptionService = SubscriptionService.getInstance();
-    const subscription = await subscriptionService.createSubscription(
-      userId,
-      plan,
-      period
-    );
+    const subscription = await subscriptionService.createSubscription(userId, plan, period);
 
     return NextResponse.json(subscription);
   } catch (error) {
     console.error('Error upgrading subscription:', error);
-    return NextResponse.json(
-      { error: 'Failed to upgrade subscription' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to upgrade subscription' }, { status: 500 });
   }
-} 
+}

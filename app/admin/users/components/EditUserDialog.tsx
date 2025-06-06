@@ -1,23 +1,23 @@
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogFooter,
-} from "@/components/ui/dialog";
+} from '@/components/ui/dialog';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Role } from "@prisma/client";
-import { toast } from "sonner";
+} from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Role } from '@prisma/client';
+import { toast } from 'sonner';
 
 interface EditUserDialogProps {
   user: {
@@ -31,13 +31,8 @@ interface EditUserDialogProps {
   onSave: (data: { name: string; role: Role }) => Promise<void>;
 }
 
-export function EditUserDialog({
-  user,
-  open,
-  onOpenChange,
-  onSave,
-}: EditUserDialogProps) {
-  const [name, setName] = useState(user.name || "");
+export function EditUserDialog({ user, open, onOpenChange, onSave }: EditUserDialogProps) {
+  const [name, setName] = useState(user.name || '');
   const [role, setRole] = useState<Role>(user.role);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -45,10 +40,10 @@ export function EditUserDialog({
     try {
       setIsLoading(true);
       await onSave({ name, role });
-      toast.success("User updated successfully");
+      toast.success('User updated successfully');
       onOpenChange(false);
     } catch (error) {
-      toast.error("Failed to update user");
+      toast.error('Failed to update user');
     } finally {
       setIsLoading(false);
     }
@@ -66,22 +61,17 @@ export function EditUserDialog({
             <Input
               id="name"
               value={name}
-              onChange={(e) => setName(e.target.value)}
+              onChange={e => setName(e.target.value)}
               placeholder="Enter user name"
             />
           </div>
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              value={user.email}
-              disabled
-              className="bg-gray-50"
-            />
+            <Input id="email" value={user.email} disabled className="bg-gray-50" />
           </div>
           <div className="space-y-2">
             <Label htmlFor="role">Role</Label>
-            <Select value={role} onValueChange={(value) => setRole(value as Role)}>
+            <Select value={role} onValueChange={value => setRole(value as Role)}>
               <SelectTrigger>
                 <SelectValue placeholder="Select role" />
               </SelectTrigger>
@@ -98,10 +88,10 @@ export function EditUserDialog({
             Cancel
           </Button>
           <Button onClick={handleSave} disabled={isLoading}>
-            {isLoading ? "Saving..." : "Save Changes"}
+            {isLoading ? 'Saving...' : 'Save Changes'}
           </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
   );
-} 
+}

@@ -8,10 +8,7 @@ const versionSchema = z.object({
   description: z.string().optional(),
 });
 
-export async function POST(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   try {
     const { userId } = await auth();
@@ -20,10 +17,7 @@ export async function POST(
     }
 
     if (!id) {
-      return NextResponse.json(
-        { error: 'Prompt ID is required' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Prompt ID is required' }, { status: 400 });
     }
 
     const body = await request.json();
@@ -44,24 +38,15 @@ export async function POST(
       return NextResponse.json({ error: error.errors }, { status: 400 });
     }
     console.error('Error creating version:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   try {
     if (!id) {
-      return NextResponse.json(
-        { error: 'Prompt ID is required' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Prompt ID is required' }, { status: 400 });
     }
 
     const versionControlService = VersionControlService.getInstance();
@@ -70,9 +55,6 @@ export async function GET(
     return NextResponse.json(versions);
   } catch (error) {
     console.error('Error getting versions:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
-} 
+}

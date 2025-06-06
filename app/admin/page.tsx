@@ -1,17 +1,32 @@
-"use client";
+'use client';
 
-import { Suspense, useState, useEffect } from "react";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Users, Activity, MessageSquare, BarChart2, Shield, CreditCard, History, Clock, ArrowUpRight, ArrowDownRight, Server, Database, Zap, Cpu } from "lucide-react";
-import { AnalyticsService } from "@/lib/services/analyticsService";
-import { AuditService } from "@/lib/services/auditService";
-import { AuditLogs } from "./components/AuditLogs";
-import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
-import { motion } from "framer-motion";
-import { DraggableQuickActions } from "./components/DraggableQuickActions";
-import { ApiUsageDialog } from "./components/ApiUsageDialog";
-import { DeepseekDialog } from "./components/DeepseekDialog";
+import { Suspense, useState, useEffect } from 'react';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import {
+  Users,
+  Activity,
+  MessageSquare,
+  BarChart2,
+  Shield,
+  CreditCard,
+  History,
+  Clock,
+  ArrowUpRight,
+  ArrowDownRight,
+  Server,
+  Database,
+  Zap,
+  Cpu,
+} from 'lucide-react';
+import { AnalyticsService } from '@/lib/services/analyticsService';
+import { AuditService } from '@/lib/services/auditService';
+import { AuditLogs } from './components/AuditLogs';
+import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
+import { motion } from 'framer-motion';
+import { DraggableQuickActions } from './components/DraggableQuickActions';
+import { ApiUsageDialog } from './components/ApiUsageDialog';
+import { DeepseekDialog } from './components/DeepseekDialog';
 
 interface Stats {
   totalUsers: number;
@@ -55,7 +70,7 @@ interface Stats {
 // Loading component for cards with shimmer effect
 function CardSkeleton() {
   return (
-    <Card className="p-6 overflow-hidden relative">
+    <Card className="relative overflow-hidden p-6">
       <div className="flex items-center justify-between">
         <div className="space-y-2">
           <Skeleton className="h-4 w-[100px]" />
@@ -72,10 +87,10 @@ function CardSkeleton() {
 // Loading component for quick actions with shimmer effect
 function QuickActionSkeleton() {
   return (
-    <Card className="p-6 overflow-hidden relative">
+    <Card className="relative overflow-hidden p-6">
       <div className="flex items-center space-x-4">
         <Skeleton className="h-12 w-12 rounded-lg" />
-        <div className="space-y-2 flex-1">
+        <div className="flex-1 space-y-2">
           <Skeleton className="h-4 w-[120px]" />
           <Skeleton className="h-4 w-[180px]" />
           <Skeleton className="h-4 w-[100px]" />
@@ -89,10 +104,10 @@ function QuickActionSkeleton() {
 // Loading component for system status
 function SystemStatusSkeleton() {
   return (
-    <Card className="p-6 overflow-hidden relative">
-      <Skeleton className="h-4 w-[100px] mb-4" />
+    <Card className="relative overflow-hidden p-6">
+      <Skeleton className="mb-4 h-4 w-[100px]" />
       <div className="space-y-4">
-        {[1, 2, 3].map((i) => (
+        {[1, 2, 3].map(i => (
           <div key={i} className="flex items-center justify-between">
             <Skeleton className="h-4 w-[60px]" />
             <Skeleton className="h-6 w-[80px]" />
@@ -107,14 +122,14 @@ function SystemStatusSkeleton() {
 // Loading component for recent activity
 function RecentActivitySkeleton() {
   return (
-    <Card className="p-6 lg:col-span-2 overflow-hidden relative">
-      <Skeleton className="h-4 w-[100px] mb-4" />
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {[1, 2].map((section) => (
+    <Card className="relative overflow-hidden p-6 lg:col-span-2">
+      <Skeleton className="mb-4 h-4 w-[100px]" />
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+        {[1, 2].map(section => (
           <div key={section}>
-            <Skeleton className="h-4 w-[120px] mb-2" />
+            <Skeleton className="mb-2 h-4 w-[120px]" />
             <div className="space-y-2">
-              {[1, 2, 3, 4, 5].map((item) => (
+              {[1, 2, 3, 4, 5].map(item => (
                 <div key={item} className="flex items-center space-x-3">
                   <Skeleton className="h-8 w-8 rounded-full" />
                   <div className="space-y-1">
@@ -157,7 +172,7 @@ export default function AdminDashboard() {
         });
         setStats(data);
       } catch (error) {
-        console.error("Error fetching analytics:", error);
+        console.error('Error fetching analytics:', error);
       }
     };
 
@@ -166,143 +181,143 @@ export default function AdminDashboard() {
 
   const cards = [
     {
-      title: "Total Users",
+      title: 'Total Users',
       value: stats?.totalUsers ?? 0,
       icon: Users,
-      description: "Total registered users",
+      description: 'Total registered users',
       trend: {
-        value: "+12%",
-        direction: "up",
-        period: "from last month"
+        value: '+12%',
+        direction: 'up',
+        period: 'from last month',
       },
-      color: "bg-blue-500",
-      status: "healthy"
+      color: 'bg-blue-500',
+      status: 'healthy',
     },
     {
-      title: "Active Users",
+      title: 'Active Users',
       value: stats?.dashboardOverview.totalPromptViews ?? 0,
       icon: Activity,
-      description: "Users active in last 30 days",
+      description: 'Users active in last 30 days',
       trend: {
-        value: "+8%",
-        direction: "up",
-        period: "from last month"
+        value: '+8%',
+        direction: 'up',
+        period: 'from last month',
       },
-      color: "bg-green-500",
-      status: "healthy"
+      color: 'bg-green-500',
+      status: 'healthy',
     },
     {
-      title: "Total Prompts",
+      title: 'Total Prompts',
       value: stats?.totalPrompts ?? 0,
       icon: MessageSquare,
-      description: "Community prompts created",
+      description: 'Community prompts created',
       trend: {
-        value: "+24%",
-        direction: "up",
-        period: "from last month"
+        value: '+24%',
+        direction: 'up',
+        period: 'from last month',
       },
-      color: "bg-purple-500",
-      status: "healthy"
+      color: 'bg-purple-500',
+      status: 'healthy',
     },
     {
-      title: "Total Usage",
+      title: 'Total Usage',
       value: stats?.totalUsage ?? 0,
       icon: BarChart2,
-      description: "Total prompt usages",
+      description: 'Total prompt usages',
       trend: {
-        value: "+18%",
-        direction: "up",
-        period: "from last month"
+        value: '+18%',
+        direction: 'up',
+        period: 'from last month',
       },
-      color: "bg-orange-500",
-      status: "healthy"
+      color: 'bg-orange-500',
+      status: 'healthy',
     },
     {
-      title: "Server Load",
-      value: "45%",
+      title: 'Server Load',
+      value: '45%',
       icon: Server,
-      description: "Current server utilization",
+      description: 'Current server utilization',
       trend: {
-        value: "-5%",
-        direction: "down",
-        period: "from last hour"
+        value: '-5%',
+        direction: 'down',
+        period: 'from last hour',
       },
-      color: "bg-indigo-500",
-      status: "healthy"
+      color: 'bg-indigo-500',
+      status: 'healthy',
     },
     {
-      title: "Database Health",
-      value: "99.9%",
+      title: 'Database Health',
+      value: '99.9%',
       icon: Database,
-      description: "Database uptime",
+      description: 'Database uptime',
       trend: {
-        value: "0.1%",
-        direction: "up",
-        period: "from last week"
+        value: '0.1%',
+        direction: 'up',
+        period: 'from last week',
       },
-      color: "bg-teal-500",
-      status: "healthy"
+      color: 'bg-teal-500',
+      status: 'healthy',
     },
     {
-      title: "API Response",
-      value: "125ms",
+      title: 'API Response',
+      value: '125ms',
       icon: Zap,
-      description: "Average response time",
+      description: 'Average response time',
       trend: {
-        value: "-15ms",
-        direction: "down",
-        period: "from last day"
+        value: '-15ms',
+        direction: 'down',
+        period: 'from last day',
       },
-      color: "bg-yellow-500",
-      status: "healthy"
+      color: 'bg-yellow-500',
+      status: 'healthy',
     },
     {
-      title: "AI Processing",
-      value: "2.3s",
+      title: 'AI Processing',
+      value: '2.3s',
       icon: Cpu,
-      description: "Average AI processing time",
+      description: 'Average AI processing time',
       trend: {
-        value: "-0.5s",
-        direction: "down",
-        period: "from last week"
+        value: '-0.5s',
+        direction: 'down',
+        period: 'from last week',
       },
-      color: "bg-pink-500",
-      status: "healthy"
-    }
+      color: 'bg-pink-500',
+      status: 'healthy',
+    },
   ];
 
   const quickActions = [
     {
-      title: "API Usage",
-      description: "View API usage statistics and costs",
+      title: 'API Usage',
+      description: 'View API usage statistics and costs',
       icon: <BarChart2 className="h-6 w-6" />,
-      onClick: () => setIsApiUsageDialogOpen(true)
+      onClick: () => setIsApiUsageDialogOpen(true),
     },
     {
-      title: "User Management",
-      description: "Manage user accounts and permissions",
+      title: 'User Management',
+      description: 'Manage user accounts and permissions',
       icon: <Users className="h-6 w-6" />,
-      onClick: () => {}
+      onClick: () => {},
     },
     {
-      title: "Activity Logs",
-      description: "View system activity and audit logs",
+      title: 'Activity Logs',
+      description: 'View system activity and audit logs',
       icon: <Activity className="h-6 w-6" />,
-      onClick: () => {}
+      onClick: () => {},
     },
     {
-      title: "Support Tickets",
-      description: "Manage user support requests",
+      title: 'Support Tickets',
+      description: 'Manage user support requests',
       icon: <MessageSquare className="h-6 w-6" />,
-      onClick: () => {}
-    }
+      onClick: () => {},
+    },
   ];
 
   const systemStatus = {
-    server: "Operational",
-    database: "Healthy",
-    api: "Operational",
-    lastChecked: new Date().toLocaleString()
+    server: 'Operational',
+    database: 'Healthy',
+    api: 'Operational',
+    lastChecked: new Date().toLocaleString(),
   };
 
   // Add DeepSeek cost tracking
@@ -327,28 +342,30 @@ export default function AdminDashboard() {
   }, []);
 
   // Update the AI API Cost badge with real data
-  const aiCostAction = quickActions.find(action => action.title === "API Usage");
+  const aiCostAction = quickActions.find(action => action.title === 'API Usage');
   if (aiCostAction && deepseekCosts) {
     console.log(`Current Month: $${deepseekCosts.totalCost.toFixed(2)}`);
   }
 
   // Add DeepSeek cost card to the stats overview
   const deepseekCostCard = {
-    title: "DeepSeek API Cost",
+    title: 'DeepSeek API Cost',
     value: deepseekCosts ? deepseekCosts.totalCost : 0,
     icon: BarChart2,
     description: "Current month's API usage cost",
-    trend: deepseekCosts ? {
-      value: `${deepseekCosts.cacheHitRate.toFixed(1)}%`,
-      direction: "up",
-      period: "cache hit rate"
-    } : {
-      value: "0%",
-      direction: "up",
-      period: "cache hit rate"
-    },
-    color: "bg-indigo-500",
-    status: "healthy"
+    trend: deepseekCosts
+      ? {
+          value: `${deepseekCosts.cacheHitRate.toFixed(1)}%`,
+          direction: 'up',
+          period: 'cache hit rate',
+        }
+      : {
+          value: '0%',
+          direction: 'up',
+          period: 'cache hit rate',
+        },
+    color: 'bg-indigo-500',
+    status: 'healthy',
   };
 
   // Add the cost card to the cards array
@@ -359,13 +376,15 @@ export default function AdminDashboard() {
       {/* Header Section */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Dashboard Overview</h1>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+            Dashboard Overview
+          </h1>
           <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
             Monitor platform activity and performance
           </p>
         </div>
         <Badge variant="outline" className="px-3 py-1">
-          <BarChart2 className="w-4 h-4 mr-2" />
+          <BarChart2 className="mr-2 h-4 w-4" />
           Live Analytics
         </Badge>
       </div>
@@ -373,11 +392,11 @@ export default function AdminDashboard() {
       {/* Stats Overview */}
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
         {cards.map((card, index) => (
-          <Card 
+          <Card
             key={card.title}
-            className="p-6 hover:shadow-lg transition-all duration-300 ease-in-out transform hover:-translate-y-1 group cursor-pointer"
+            className="group transform cursor-pointer p-6 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:shadow-lg"
             onClick={() => {
-              if (card.title === "DeepSeek API Cost") {
+              if (card.title === 'DeepSeek API Cost') {
                 setIsDeepseekDialogOpen(true);
               }
             }}
@@ -386,11 +405,15 @@ export default function AdminDashboard() {
               <div>
                 <div className="flex items-center space-x-2">
                   <p className="text-sm font-medium text-gray-600">{card.title}</p>
-                  <span className={`px-2 py-1 text-xs rounded-full ${
-                    card.status === 'healthy' ? 'bg-green-50 text-green-700' : 
-                    card.status === 'warning' ? 'bg-yellow-50 text-yellow-700' : 
-                    'bg-red-50 text-red-700'
-                  }`}>
+                  <span
+                    className={`rounded-full px-2 py-1 text-xs ${
+                      card.status === 'healthy'
+                        ? 'bg-green-50 text-green-700'
+                        : card.status === 'warning'
+                          ? 'bg-yellow-50 text-yellow-700'
+                          : 'bg-red-50 text-red-700'
+                    }`}
+                  >
                     {card.status.charAt(0).toUpperCase() + card.status.slice(1)}
                   </span>
                 </div>
@@ -400,18 +423,22 @@ export default function AdminDashboard() {
                 <p className="mt-1 text-sm text-gray-500">{card.description}</p>
                 <div className="mt-2 flex items-center text-sm">
                   {card.trend.direction === 'up' ? (
-                    <ArrowUpRight className="w-4 h-4 text-green-500 mr-1" />
+                    <ArrowUpRight className="mr-1 h-4 w-4 text-green-500" />
                   ) : (
-                    <ArrowDownRight className="w-4 h-4 text-red-500 mr-1" />
+                    <ArrowDownRight className="mr-1 h-4 w-4 text-red-500" />
                   )}
-                  <span className={card.trend.direction === 'up' ? 'text-green-600' : 'text-red-600'}>
+                  <span
+                    className={card.trend.direction === 'up' ? 'text-green-600' : 'text-red-600'}
+                  >
                     {card.trend.value}
                   </span>
-                  <span className="text-gray-500 ml-1">{card.trend.period}</span>
+                  <span className="ml-1 text-gray-500">{card.trend.period}</span>
                 </div>
               </div>
-              <div className={`p-3 rounded-lg ${card.color} text-white transition-all duration-300 group-hover:scale-110 group-hover:rotate-3`}>
-                <card.icon className="w-6 h-6" />
+              <div
+                className={`rounded-lg p-3 ${card.color} text-white transition-all duration-300 group-hover:rotate-3 group-hover:scale-110`}
+              >
+                <card.icon className="h-6 w-6" />
               </div>
             </div>
           </Card>
@@ -419,27 +446,31 @@ export default function AdminDashboard() {
       </div>
 
       {/* System Status and Recent Activity */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         {/* System Status */}
         <Suspense fallback={<SystemStatusSkeleton />}>
-          <Card className="p-6 hover:shadow-lg transition-all duration-300">
-            <h3 className="text-sm font-medium text-gray-500 mb-4">System Status</h3>
+          <Card className="p-6 transition-all duration-300 hover:shadow-lg">
+            <h3 className="mb-4 text-sm font-medium text-gray-500">System Status</h3>
             <div className="space-y-4">
-              {Object.entries(systemStatus).map(([key, value]) => (
-                key !== 'lastChecked' && (
-                  <div key={key} className="flex items-center justify-between group">
-                    <span className="text-sm text-gray-600 group-hover:text-gray-900 transition-colors duration-200">
-                      {key.charAt(0).toUpperCase() + key.slice(1)}
-                    </span>
-                    <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 group-hover:bg-green-100 transition-colors duration-200">
-                      {value}
-                    </Badge>
-                  </div>
-                )
-              ))}
-              <div className="pt-4 border-t">
+              {Object.entries(systemStatus).map(
+                ([key, value]) =>
+                  key !== 'lastChecked' && (
+                    <div key={key} className="group flex items-center justify-between">
+                      <span className="text-sm text-gray-600 transition-colors duration-200 group-hover:text-gray-900">
+                        {key.charAt(0).toUpperCase() + key.slice(1)}
+                      </span>
+                      <Badge
+                        variant="outline"
+                        className="border-green-200 bg-green-50 text-green-700 transition-colors duration-200 group-hover:bg-green-100"
+                      >
+                        {value}
+                      </Badge>
+                    </div>
+                  )
+              )}
+              <div className="border-t pt-4">
                 <div className="flex items-center text-xs text-gray-500">
-                  <Clock className="w-4 h-4 mr-1" />
+                  <Clock className="mr-1 h-4 w-4" />
                   Last checked: {systemStatus.lastChecked}
                 </div>
               </div>
@@ -450,46 +481,50 @@ export default function AdminDashboard() {
         {/* Recent Activity */}
         <Suspense fallback={<RecentActivitySkeleton />}>
           <div className="lg:col-span-2">
-            <Card className="p-6 hover:shadow-lg transition-all duration-300">
-              <h3 className="text-sm font-medium text-gray-500 mb-4">Recent Activity</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Card className="p-6 transition-all duration-300 hover:shadow-lg">
+              <h3 className="mb-4 text-sm font-medium text-gray-500">Recent Activity</h3>
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                 <div>
-                  <h4 className="text-xs font-medium text-gray-500 mb-2">Recent User Signups</h4>
+                  <h4 className="mb-2 text-xs font-medium text-gray-500">Recent User Signups</h4>
                   <div className="space-y-2">
-                    {stats?.dashboardOverview.recentActivity.usages.slice(0, 5).map((usage) => (
-                      <div 
-                        key={usage.id} 
-                        className="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-50 transition-all duration-200 group"
+                    {stats?.dashboardOverview.recentActivity.usages.slice(0, 5).map(usage => (
+                      <div
+                        key={usage.id}
+                        className="group flex items-center space-x-3 rounded-lg p-2 transition-all duration-200 hover:bg-gray-50"
                       >
-                        <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center group-hover:bg-gray-200 transition-colors duration-200">
-                          <Users className="w-4 h-4 text-gray-500 group-hover:text-gray-700 transition-colors duration-200" />
+                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 transition-colors duration-200 group-hover:bg-gray-200">
+                          <Users className="h-4 w-4 text-gray-500 transition-colors duration-200 group-hover:text-gray-700" />
                         </div>
                         <div>
-                          <p className="text-sm font-medium text-gray-900 group-hover:text-gray-700 transition-colors duration-200">
+                          <p className="text-sm font-medium text-gray-900 transition-colors duration-200 group-hover:text-gray-700">
                             {usage.user?.name || 'Unknown User'}
                           </p>
-                          <p className="text-xs text-gray-500">{new Date(usage.createdAt).toLocaleString()}</p>
+                          <p className="text-xs text-gray-500">
+                            {new Date(usage.createdAt).toLocaleString()}
+                          </p>
                         </div>
                       </div>
                     ))}
                   </div>
                 </div>
                 <div>
-                  <h4 className="text-xs font-medium text-gray-500 mb-2">Recent Prompt Usage</h4>
+                  <h4 className="mb-2 text-xs font-medium text-gray-500">Recent Prompt Usage</h4>
                   <div className="space-y-2">
-                    {stats?.dashboardOverview.recentActivity.usages.slice(0, 5).map((usage) => (
-                      <div 
-                        key={usage.id} 
-                        className="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-50 transition-all duration-200 group"
+                    {stats?.dashboardOverview.recentActivity.usages.slice(0, 5).map(usage => (
+                      <div
+                        key={usage.id}
+                        className="group flex items-center space-x-3 rounded-lg p-2 transition-all duration-200 hover:bg-gray-50"
                       >
-                        <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center group-hover:bg-gray-200 transition-colors duration-200">
-                          <MessageSquare className="w-4 h-4 text-gray-500 group-hover:text-gray-700 transition-colors duration-200" />
+                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 transition-colors duration-200 group-hover:bg-gray-200">
+                          <MessageSquare className="h-4 w-4 text-gray-500 transition-colors duration-200 group-hover:text-gray-700" />
                         </div>
                         <div>
-                          <p className="text-sm font-medium text-gray-900 group-hover:text-gray-700 transition-colors duration-200">
+                          <p className="text-sm font-medium text-gray-900 transition-colors duration-200 group-hover:text-gray-700">
                             {usage.prompt?.name || 'Unknown Prompt'}
                           </p>
-                          <p className="text-xs text-gray-500">{new Date(usage.createdAt).toLocaleString()}</p>
+                          <p className="text-xs text-gray-500">
+                            {new Date(usage.createdAt).toLocaleString()}
+                          </p>
                         </div>
                       </div>
                     ))}
@@ -505,7 +540,7 @@ export default function AdminDashboard() {
       <Card className="border border-gray-200 dark:border-gray-800">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Activity className="w-5 h-5 text-gray-500" />
+            <Activity className="h-5 w-5 text-gray-500" />
             Recent Audit Logs
           </CardTitle>
         </CardHeader>
@@ -513,7 +548,7 @@ export default function AdminDashboard() {
           <Suspense fallback={<CardSkeleton />}>
             {stats?.recentLogs && (
               <div className="space-y-4">
-                {stats.recentLogs.map((log) => (
+                {stats.recentLogs.map(log => (
                   <Card key={log.id} className="p-4">
                     <div className="flex items-center justify-between">
                       <div>
@@ -533,10 +568,7 @@ export default function AdminDashboard() {
       </Card>
 
       {/* API Usage Dialog */}
-      <ApiUsageDialog
-        open={isApiUsageDialogOpen}
-        onOpenChange={setIsApiUsageDialogOpen}
-      />
+      <ApiUsageDialog open={isApiUsageDialogOpen} onOpenChange={setIsApiUsageDialogOpen} />
 
       {/* DeepSeek Dialog */}
       <DeepseekDialog
@@ -546,4 +578,4 @@ export default function AdminDashboard() {
       />
     </div>
   );
-} 
+}

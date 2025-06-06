@@ -33,7 +33,7 @@ export function CreditUsageIndicator({
             {used} / {total} credits
           </span>
         </div>
-        
+
         <Progress
           value={percentage}
           className="h-2"
@@ -41,17 +41,12 @@ export function CreditUsageIndicator({
             backgroundColor: getProgressColor(percentage),
           }}
         />
-        
+
         <div className="flex items-center justify-between text-sm">
-          <span className="text-muted-foreground">
-            Resets in {formatDistanceToNow(periodEnd)}
-          </span>
-          
+          <span className="text-muted-foreground">Resets in {formatDistanceToNow(periodEnd)}</span>
+
           {percentage >= 75 && (
-            <button
-              onClick={onUpgrade}
-              className="text-primary hover:underline"
-            >
+            <button onClick={onUpgrade} className="text-primary hover:underline">
               Upgrade for more credits
             </button>
           )}
@@ -59,4 +54,4 @@ export function CreditUsageIndicator({
       </div>
     </Card>
   );
-} 
+}

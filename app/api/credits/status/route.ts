@@ -26,9 +26,6 @@ export async function GET() {
     });
   } catch (error) {
     console.error('Error fetching credit status:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch credit status' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to fetch credit status' }, { status: 500 });
   }
-} 
+}

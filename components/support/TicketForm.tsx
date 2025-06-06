@@ -74,14 +74,14 @@ export function TicketForm() {
   };
 
   return (
-    <Card className="max-w-2xl mx-auto shadow-lg rounded-xl border border-gray-200">
+    <Card className="mx-auto max-w-2xl rounded-xl border border-gray-200 shadow-lg">
       <CardHeader className="pb-2">
         <CardTitle className="text-xl font-semibold">Create Support Ticket</CardTitle>
       </CardHeader>
       <CardContent className="pt-0">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <FormField
                 control={form.control}
                 name="title"
@@ -118,10 +118,7 @@ export function TicketForm() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Category</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select category" />
@@ -145,10 +142,7 @@ export function TicketForm() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Priority</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select priority" />
@@ -167,11 +161,7 @@ export function TicketForm() {
               />
             </div>
             <div className="flex justify-end gap-2 pt-2">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => router.back()}
-              >
+              <Button type="button" variant="outline" onClick={() => router.back()}>
                 Cancel
               </Button>
               <Button type="submit" disabled={isSubmitting}>
@@ -183,4 +173,4 @@ export function TicketForm() {
       </CardContent>
     </Card>
   );
-} 
+}

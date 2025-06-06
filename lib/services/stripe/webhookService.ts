@@ -73,7 +73,7 @@ export class WebhookService {
 
   private async handleCheckoutSessionCompleted(session: any): Promise<void> {
     const subscription = await stripe.subscriptions.retrieve(session.subscription as string);
-    
+
     await this.databaseService.createSubscription({
       user: { connect: { id: session.metadata?.userId } },
       plan: { connect: { id: session.metadata?.planId } },
@@ -87,25 +87,19 @@ export class WebhookService {
   }
 
   private async handleSubscriptionUpdated(subscription: any): Promise<void> {
-    await this.databaseService.updateSubscription(
-      subscription.id,
-      {
-        status: subscription.status.toUpperCase() as SubscriptionStatus,
-        currentPeriodStart: new Date(subscription.current_period_start * 1000),
-        currentPeriodEnd: new Date(subscription.current_period_end * 1000),
-        cancelAtPeriodEnd: subscription.cancel_at_period_end,
-      }
-    );
+    await this.databaseService.updateSubscription(subscription.id, {
+      status: subscription.status.toUpperCase() as SubscriptionStatus,
+      currentPeriodStart: new Date(subscription.current_period_start * 1000),
+      currentPeriodEnd: new Date(subscription.current_period_end * 1000),
+      cancelAtPeriodEnd: subscription.cancel_at_period_end,
+    });
   }
 
   private async handleSubscriptionDeleted(subscription: any): Promise<void> {
-    await this.databaseService.updateSubscription(
-      subscription.id,
-      {
-        status: 'CANCELED' as SubscriptionStatus,
-        currentPeriodEnd: new Date(subscription.current_period_end * 1000),
-        cancelAtPeriodEnd: true,
-      }
-    );
+    await this.databaseService.updateSubscription(subscription.id, {
+      status: 'CANCELED' as SubscriptionStatus,
+      currentPeriodEnd: new Date(subscription.current_period_end * 1000),
+      cancelAtPeriodEnd: true,
+    });
   }
-} 
+}

@@ -29,15 +29,21 @@ export async function POST(req: Request) {
 
     // Check credit balance
     const requiredCredits = Math.ceil(maxTokens / 100); // 1 credit = 100 tokens
-    const creditCheck = await CreditService.getInstance().checkCreditBalance(user.id, requiredCredits);
+    const creditCheck = await CreditService.getInstance().checkCreditBalance(
+      user.id,
+      requiredCredits
+    );
 
     if (!creditCheck.hasEnoughCredits) {
-      return NextResponse.json({
-        error: 'Insufficient credits',
-        currentCredits: creditCheck.currentCredits,
-        requiredCredits: creditCheck.requiredCredits,
-        missingCredits: creditCheck.missingCredits,
-      }, { status: 402 });
+      return NextResponse.json(
+        {
+          error: 'Insufficient credits',
+          currentCredits: creditCheck.currentCredits,
+          requiredCredits: creditCheck.requiredCredits,
+          missingCredits: creditCheck.missingCredits,
+        },
+        { status: 402 }
+      );
     }
 
     // Generate text using AI service
@@ -73,26 +79,35 @@ export async function POST(req: Request) {
     return NextResponse.json({ text: generatedText });
   } catch (error: any) {
     console.error('Error generating text:', error);
-    
+
     // Handle specific errors
     if (error.message?.includes('access to this model')) {
-      return NextResponse.json({
-        error: error.message,
-        upgradeRequired: true,
-      }, { status: 403 });
+      return NextResponse.json(
+        {
+          error: error.message,
+          upgradeRequired: true,
+        },
+        { status: 403 }
+      );
     }
 
     // Handle AI service errors
     if (error.message?.includes('Failed to generate text')) {
-      return NextResponse.json({
-        error: error.message,
-      }, { status: 500 });
+      return NextResponse.json(
+        {
+          error: error.message,
+        },
+        { status: 500 }
+      );
     }
 
     // Handle any other errors
-    return NextResponse.json({
-      error: 'An unexpected error occurred',
-      details: error.message,
-    }, { status: 500 });
+    return NextResponse.json(
+      {
+        error: 'An unexpected error occurred',
+        details: error.message,
+      },
+      { status: 500 }
+    );
   }
-} 
+}

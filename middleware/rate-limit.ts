@@ -28,39 +28,42 @@ export async function rateLimitMiddleware(request: NextRequest) {
   // Get IP from headers or use a fallback
   const forwardedFor = request.headers.get('x-forwarded-for');
   const ip = forwardedFor ? forwardedFor.split(',')[0] : 'anonymous';
-  
+
   // Use Redis for distributed rate limiting
   const key = `rate-limit:${ip}`;
   const now = Date.now();
-  
+
   try {
     // Get current count from Redis
     const count = await redis.incr(key);
-    
+
     // Set expiry if this is the first request
     if (count === 1) {
       await redis.expire(key, Math.ceil(RATE_LIMIT_WINDOW / 1000));
     }
-    
+
     // Check if rate limit exceeded
     if (count > MAX_REQUESTS) {
       const ttl = await redis.ttl(key);
-      return new NextResponse(JSON.stringify({
-        error: 'Too Many Requests',
-        message: 'Rate limit exceeded. Please try again later.',
-      }), {
-        status: 429,
-        headers: {
-          'Content-Type': 'application/json',
-          'Retry-After': ttl.toString(),
-        },
-      });
+      return new NextResponse(
+        JSON.stringify({
+          error: 'Too Many Requests',
+          message: 'Rate limit exceeded. Please try again later.',
+        }),
+        {
+          status: 429,
+          headers: {
+            'Content-Type': 'application/json',
+            'Retry-After': ttl.toString(),
+          },
+        }
+      );
     }
-    
+
     return null;
   } catch (error) {
     console.error('Rate limiting error:', error);
     // Fail open in case of Redis errors
     return null;
   }
-} 
+}

@@ -1,23 +1,22 @@
-import { type ClassValue, clsx } from "clsx"
-import { twMerge } from "tailwind-merge"
+import { type ClassValue, clsx } from 'clsx';
+import { twMerge } from 'tailwind-merge';
 
 export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs))
+  return twMerge(clsx(inputs));
 }
-
 
 /**
  * Utility function to format date and time based on locale preferences
  * Default locale is set to Brazilian Portuguese (pt-BR)
  */
 export const formatDateTime = (
-    date: Date | string | number,
-    options?: {
-      locale?: string;
-      includeTime?: boolean;
-      includeSeconds?: boolean;
-      use24HourFormat?: boolean;
-    }
+  date: Date | string | number,
+  options?: {
+    locale?: string;
+    includeTime?: boolean;
+    includeSeconds?: boolean;
+    use24HourFormat?: boolean;
+  }
 ) => {
   // Default options
   const defaultOptions = {
@@ -67,8 +66,8 @@ export const formatDateTime = (
   const formatter = new Intl.DateTimeFormat(mergedOptions.locale, dateTimeFormatOptions);
   const dateOnlyFormatter = new Intl.DateTimeFormat(mergedOptions.locale, dateFormatOptions);
   const timeOnlyFormatter = mergedOptions.includeTime
-      ? new Intl.DateTimeFormat(mergedOptions.locale, timeFormatOptions)
-      : null;
+    ? new Intl.DateTimeFormat(mergedOptions.locale, timeFormatOptions)
+    : null;
 
   return {
     dateTime: formatter.format(dateObj),

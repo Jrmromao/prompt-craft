@@ -1,15 +1,10 @@
-import { useState } from "react";
-import { DateRange } from "react-day-picker";
-import { format } from "date-fns";
-import { DateRangePicker } from "@/components/ui/date-range-picker";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BarChart } from "@/components/ui/bar-chart";
+import { useState } from 'react';
+import { DateRange } from 'react-day-picker';
+import { format } from 'date-fns';
+import { DateRangePicker } from '@/components/ui/date-range-picker';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { BarChart } from '@/components/ui/bar-chart';
 
 interface ApiUsageDialogProps {
   open: boolean;
@@ -45,13 +40,13 @@ export function ApiUsageDialog({ open, onOpenChange }: ApiUsageDialogProps) {
       const response = await fetch(
         `/api/admin/deepseek-usage?startDate=${format(
           dateRange.from,
-          "yyyy-MM-dd"
-        )}&endDate=${format(dateRange.to, "yyyy-MM-dd")}`
+          'yyyy-MM-dd'
+        )}&endDate=${format(dateRange.to, 'yyyy-MM-dd')}`
       );
       const data = await response.json();
       setUsageData(data);
     } catch (error) {
-      console.error("Error fetching usage data:", error);
+      console.error('Error fetching usage data:', error);
     } finally {
       setLoading(false);
     }
@@ -71,25 +66,20 @@ export function ApiUsageDialog({ open, onOpenChange }: ApiUsageDialogProps) {
           <DialogTitle>API Usage Statistics</DialogTitle>
         </DialogHeader>
 
-        <div className="flex justify-end mb-4">
-          <DateRangePicker
-            value={dateRange}
-            onChange={handleDateRangeChange}
-          />
+        <div className="mb-4 flex justify-end">
+          <DateRangePicker value={dateRange} onChange={handleDateRangeChange} />
         </div>
 
         {loading ? (
-          <div className="flex items-center justify-center h-64">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          <div className="flex h-64 items-center justify-center">
+            <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-primary"></div>
           </div>
         ) : usageData ? (
           <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">
-                    Total Input Tokens
-                  </CardTitle>
+                  <CardTitle className="text-sm font-medium">Total Input Tokens</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">
@@ -99,9 +89,7 @@ export function ApiUsageDialog({ open, onOpenChange }: ApiUsageDialogProps) {
               </Card>
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">
-                    Total Output Tokens
-                  </CardTitle>
+                  <CardTitle className="text-sm font-medium">Total Output Tokens</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">
@@ -111,21 +99,15 @@ export function ApiUsageDialog({ open, onOpenChange }: ApiUsageDialogProps) {
               </Card>
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">
-                    Total Cost
-                  </CardTitle>
+                  <CardTitle className="text-sm font-medium">Total Cost</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">
-                    ${usageData.totalCost.toFixed(2)}
-                  </div>
+                  <div className="text-2xl font-bold">${usageData.totalCost.toFixed(2)}</div>
                 </CardContent>
               </Card>
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">
-                    Cache Hit Rate
-                  </CardTitle>
+                  <CardTitle className="text-sm font-medium">Cache Hit Rate</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">
@@ -141,19 +123,17 @@ export function ApiUsageDialog({ open, onOpenChange }: ApiUsageDialogProps) {
               </CardHeader>
               <CardContent>
                 <BarChart
-                  data={usageData.dailyUsage.map((day) => ({
-                    date: format(new Date(day.date), "MMM dd"),
-                    "Input Tokens": day.inputTokens,
-                    "Output Tokens": day.outputTokens,
+                  data={usageData.dailyUsage.map(day => ({
+                    date: format(new Date(day.date), 'MMM dd'),
+                    'Input Tokens': day.inputTokens,
+                    'Output Tokens': day.outputTokens,
                     Cost: day.cost,
                   }))}
                   index="date"
-                  categories={["Input Tokens", "Output Tokens", "Cost"]}
-                  colors={["blue", "green", "purple"]}
-                  valueFormatter={(value) =>
-                    typeof value === "number"
-                      ? value.toLocaleString()
-                      : value.toString()
+                  categories={['Input Tokens', 'Output Tokens', 'Cost']}
+                  colors={['blue', 'green', 'purple']}
+                  valueFormatter={value =>
+                    typeof value === 'number' ? value.toLocaleString() : value.toString()
                   }
                 />
               </CardContent>
@@ -167,4 +147,4 @@ export function ApiUsageDialog({ open, onOpenChange }: ApiUsageDialogProps) {
       </DialogContent>
     </Dialog>
   );
-} 
+}

@@ -1,18 +1,18 @@
-import { NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
-import { clerkClient } from "@clerk/nextjs/server";
+import { NextResponse } from 'next/server';
+import { auth } from '@clerk/nextjs/server';
+import { clerkClient } from '@clerk/nextjs/server';
 
 export async function POST(request: Request) {
   try {
     const { userId } = await auth();
     if (!userId) {
-      return new NextResponse("Unauthorized", { status: 401 });
+      return new NextResponse('Unauthorized', { status: 401 });
     }
 
     const { currentPassword, newPassword } = await request.json();
 
     if (!currentPassword || !newPassword) {
-      return new NextResponse("Missing required fields", { status: 400 });
+      return new NextResponse('Missing required fields', { status: 400 });
     }
 
     // Verify current password
@@ -22,7 +22,7 @@ export async function POST(request: Request) {
         password: currentPassword,
       });
     } catch (error) {
-      return new NextResponse("Current password is incorrect", { status: 400 });
+      return new NextResponse('Current password is incorrect', { status: 400 });
     }
 
     // Update password
@@ -31,9 +31,9 @@ export async function POST(request: Request) {
       newPassword: newPassword,
     });
 
-    return new NextResponse("Password updated successfully", { status: 200 });
+    return new NextResponse('Password updated successfully', { status: 200 });
   } catch (error) {
-    console.error("Error changing password:", error);
-    return new NextResponse("Internal Server Error", { status: 500 });
+    console.error('Error changing password:', error);
+    return new NextResponse('Internal Server Error', { status: 500 });
   }
-} 
+}

@@ -72,7 +72,7 @@ export function CreatePromptDialog({
             <Input
               id="name"
               value={name}
-              onChange={(e) => setName(e.target.value)}
+              onChange={e => setName(e.target.value)}
               placeholder="Enter prompt name"
               required
             />
@@ -82,7 +82,7 @@ export function CreatePromptDialog({
             <Textarea
               id="description"
               value={description}
-              onChange={(e) => setDescription(e.target.value)}
+              onChange={e => setDescription(e.target.value)}
               placeholder="Enter prompt description"
             />
           </div>
@@ -91,7 +91,7 @@ export function CreatePromptDialog({
             <Textarea
               id="content"
               value={content}
-              onChange={(e) => setContent(e.target.value)}
+              onChange={e => setContent(e.target.value)}
               placeholder="Enter prompt content"
               required
               className="min-h-[200px]"
@@ -102,7 +102,9 @@ export function CreatePromptDialog({
             <select
               id="type"
               value={promptType}
-              onChange={(e) => setPromptType(e.target.value as 'text' | 'image' | 'video' | 'music' | 'software')}
+              onChange={e =>
+                setPromptType(e.target.value as 'text' | 'image' | 'video' | 'music' | 'software')
+              }
               className="w-full rounded-md border border-input bg-background px-3 py-2"
             >
               <option value="text">Text</option>
@@ -113,11 +115,7 @@ export function CreatePromptDialog({
             </select>
           </div>
           <div className="flex items-center space-x-2">
-            <Switch
-              id="public"
-              checked={isPublic}
-              onCheckedChange={setIsPublic}
-            />
+            <Switch id="public" checked={isPublic} onCheckedChange={setIsPublic} />
             <Label htmlFor="public">Make Public</Label>
           </div>
           <div className="space-y-2">
@@ -125,9 +123,9 @@ export function CreatePromptDialog({
             <div className="flex space-x-2">
               <Input
                 value={newTag}
-                onChange={(e) => setNewTag(e.target.value)}
+                onChange={e => setNewTag(e.target.value)}
                 placeholder="Add a tag"
-                onKeyPress={(e) => {
+                onKeyPress={e => {
                   if (e.key === 'Enter') {
                     e.preventDefault();
                     addTag();
@@ -138,8 +136,8 @@ export function CreatePromptDialog({
                 Add
               </Button>
             </div>
-            <div className="flex flex-wrap gap-2 mt-2">
-              {tags.map((tag) => (
+            <div className="mt-2 flex flex-wrap gap-2">
+              {tags.map(tag => (
                 <Badge key={tag} variant="secondary">
                   {tag}
                   <button
@@ -163,4 +161,4 @@ export function CreatePromptDialog({
       </DialogContent>
     </Dialog>
   );
-} 
+}

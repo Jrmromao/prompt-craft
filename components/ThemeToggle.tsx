@@ -25,7 +25,7 @@ export function ThemeToggle() {
       variant="ghost"
       size="icon"
       onClick={toggleTheme}
-      className="h-9 w-9 rounded-full border border-gray-200 dark:border-gray-800 hover:bg-gray-100 dark:hover:bg-gray-800 focus-visible:ring-2 focus-visible:ring-primary transition-colors"
+      className="h-9 w-9 rounded-full border border-gray-200 transition-colors hover:bg-gray-100 focus-visible:ring-2 focus-visible:ring-primary dark:border-gray-800 dark:hover:bg-gray-800"
       aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
     >
       <span className="sr-only">{isDark ? 'Switch to light mode' : 'Switch to dark mode'}</span>
@@ -34,9 +34,9 @@ export function ThemeToggle() {
         aria-hidden={isDark}
       />
       <Moon
-        className={`h-5 w-5 text-gray-700 dark:text-gray-300 absolute transition-opacity duration-200 ${isDark ? 'opacity-100' : 'opacity-0'}`}
+        className={`absolute h-5 w-5 text-gray-700 transition-opacity duration-200 dark:text-gray-300 ${isDark ? 'opacity-100' : 'opacity-0'}`}
         aria-hidden={!isDark}
       />
     </Button>
   );
-} 
+}

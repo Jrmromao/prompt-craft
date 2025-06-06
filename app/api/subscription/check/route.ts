@@ -14,7 +14,10 @@ export async function GET() {
   try {
     const { userId } = await auth();
     if (!userId) {
-      return NextResponse.json({ canCreate: false, isLastFree: false, redirectTo: '/sign-in' }, { status: 401 });
+      return NextResponse.json(
+        { canCreate: false, isLastFree: false, redirectTo: '/sign-in' },
+        { status: 401 }
+      );
     }
 
     // Get user and their planType
@@ -23,7 +26,10 @@ export async function GET() {
       select: { id: true, planType: true },
     });
     if (!user) {
-      return NextResponse.json({ canCreate: false, isLastFree: false, redirectTo: '/sign-up' }, { status: 404 });
+      return NextResponse.json(
+        { canCreate: false, isLastFree: false, redirectTo: '/sign-up' },
+        { status: 404 }
+      );
     }
 
     const planType = user.planType || 'FREE';
@@ -45,6 +51,9 @@ export async function GET() {
     return NextResponse.json({ canCreate, isLastFree, redirectTo });
   } catch (error) {
     console.error('Error in /api/subscription/check:', error);
-    return NextResponse.json({ canCreate: false, isLastFree: false, redirectTo: '/pricing' }, { status: 500 });
+    return NextResponse.json(
+      { canCreate: false, isLastFree: false, redirectTo: '/pricing' },
+      { status: 500 }
+    );
   }
-} 
+}

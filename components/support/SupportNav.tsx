@@ -27,15 +27,13 @@ export function SupportNav() {
   return (
     <div className="flex items-center justify-between border-b pb-4">
       <nav className="flex items-center space-x-4">
-        {navItems.map((item) => (
+        {navItems.map(item => (
           <Link
             key={item.href}
             href={item.href}
             className={cn(
               'text-sm font-medium transition-colors hover:text-primary',
-              pathname === item.href
-                ? 'text-foreground'
-                : 'text-muted-foreground'
+              pathname === item.href ? 'text-foreground' : 'text-muted-foreground'
             )}
           >
             {item.name}
@@ -44,10 +42,10 @@ export function SupportNav() {
       </nav>
       <Link href="/support/new">
         <Button size="sm">
-          <Plus className="h-4 w-4 mr-2" />
+          <Plus className="mr-2 h-4 w-4" />
           New Ticket
         </Button>
       </Link>
     </div>
   );
-} 
+}

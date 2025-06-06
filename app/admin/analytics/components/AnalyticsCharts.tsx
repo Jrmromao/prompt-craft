@@ -1,4 +1,4 @@
-"use client";
+'use client';
 import {
   BarChart,
   Bar,
@@ -12,8 +12,8 @@ import {
   PieChart,
   Pie,
   Cell,
-} from "recharts";
-import { Card } from "@/components/ui/card";
+} from 'recharts';
+import { Card } from '@/components/ui/card';
 
 interface AnalyticsData {
   userGrowth: Array<{
@@ -30,14 +30,14 @@ interface AnalyticsData {
   }>;
 }
 
-const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"];
+const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
 
 export default function AnalyticsCharts({ analytics }: { analytics: AnalyticsData }) {
   return (
     <>
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <Card className="p-6">
-          <h3 className="text-sm font-medium text-gray-500 mb-4">User Growth</h3>
+          <h3 className="mb-4 text-sm font-medium text-gray-500">User Growth</h3>
           <div className="h-[300px]">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={analytics.userGrowth}>
@@ -45,19 +45,14 @@ export default function AnalyticsCharts({ analytics }: { analytics: AnalyticsDat
                 <XAxis dataKey="date" />
                 <YAxis />
                 <Tooltip />
-                <Line
-                  type="monotone"
-                  dataKey="users"
-                  stroke="#8884d8"
-                  strokeWidth={2}
-                />
+                <Line type="monotone" dataKey="users" stroke="#8884d8" strokeWidth={2} />
               </LineChart>
             </ResponsiveContainer>
           </div>
         </Card>
 
         <Card className="p-6">
-          <h3 className="text-sm font-medium text-gray-500 mb-4">Prompt Usage</h3>
+          <h3 className="mb-4 text-sm font-medium text-gray-500">Prompt Usage</h3>
           <div className="h-[300px]">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={analytics.promptUsage}>
@@ -72,8 +67,8 @@ export default function AnalyticsCharts({ analytics }: { analytics: AnalyticsDat
         </Card>
       </div>
 
-      <Card className="p-6 mt-6">
-        <h3 className="text-sm font-medium text-gray-500 mb-4">Plan Distribution</h3>
+      <Card className="mt-6 p-6">
+        <h3 className="mb-4 text-sm font-medium text-gray-500">Plan Distribution</h3>
         <div className="h-[300px]">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
@@ -85,15 +80,10 @@ export default function AnalyticsCharts({ analytics }: { analytics: AnalyticsDat
                 outerRadius={80}
                 fill="#8884d8"
                 dataKey="value"
-                label={({ name, percent }) =>
-                  `${name} ${(percent * 100).toFixed(0)}%`
-                }
+                label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
               >
                 {analytics.planDistribution.map((entry, index) => (
-                  <Cell
-                    key={`cell-${index}`}
-                    fill={COLORS[index % COLORS.length]}
-                  />
+                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                 ))}
               </Pie>
               <Tooltip />
@@ -103,4 +93,4 @@ export default function AnalyticsCharts({ analytics }: { analytics: AnalyticsDat
       </Card>
     </>
   );
-} 
+}

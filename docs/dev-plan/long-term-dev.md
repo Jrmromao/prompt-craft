@@ -18,7 +18,7 @@ Here’s a curated list of **long-term features** for PromptCraft to make it a s
 
 | Feature                              | Why It Matters                                                                       |
 | ------------------------------------ | ------------------------------------------------------------------------------------ |
-| 🎛️ **Multi-model support**          | Let users choose models (GPT-4, Claude, Gemini, etc).                                |
+| 🎛️ **Multi-model support**           | Let users choose models (GPT-4, Claude, Gemini, etc).                                |
 | 📐 **Fine-tuned Model Integrations** | Plug into user-uploaded fine-tuned models (e.g., via OpenAI finetunes or Replicate). |
 | 🧩 **Tool Use & Function Calling**   | Advanced users may want function-calling or RAG (retrieval) integrations.            |
 
@@ -51,7 +51,7 @@ Here’s a curated list of **long-term features** for PromptCraft to make it a s
 | Feature                              | Why It Matters                                    |
 | ------------------------------------ | ------------------------------------------------- |
 | ⚙️ **PromptCraft API**               | Let devs call prompt generation programmatically. |
-| 🧑‍💻 **SDK or CLI**                 | Ideal for power users and dev teams.              |
+| 🧑‍💻 **SDK or CLI**                    | Ideal for power users and dev teams.              |
 | 🔌 **Zapier / Make.com Integration** | Enables no-code automation.                       |
 
 ---
@@ -62,7 +62,7 @@ Here’s a curated list of **long-term features** for PromptCraft to make it a s
 | --------------------------------- | ----------------------------------------------------- |
 | 📊 **Prompt Performance Metrics** | Output quality ratings, click-through, user feedback. |
 | ⏱️ **Real-Time Usage Dashboard**  | Visualize usage per day/month.                        |
-| ⏳ **Prompt Latency Insights**     | Useful if supporting multiple models.                 |
+| ⏳ **Prompt Latency Insights**    | Useful if supporting multiple models.                 |
 
 ---
 
@@ -71,7 +71,7 @@ Here’s a curated list of **long-term features** for PromptCraft to make it a s
 | Feature                        | Why It Matters                                                      |
 | ------------------------------ | ------------------------------------------------------------------- |
 | 💾 **Export to JSON/Markdown** | Let users export prompt history for versioning.                     |
-| 🛠️ **Prompt Playground**      | Try prompts with live editing, token counts, etc.                   |
+| 🛠️ **Prompt Playground**       | Try prompts with live editing, token counts, etc.                   |
 | 🔒 **Private Prompt Mode**     | Hide prompt data from team/shared view (like GitHub private repos). |
 
 ---
@@ -81,7 +81,7 @@ Here’s a curated list of **long-term features** for PromptCraft to make it a s
 | Feature                             | Why It Matters                     |
 | ----------------------------------- | ---------------------------------- |
 | 🔐 **SSO / SCIM for Enterprise**    | Required by large orgs.            |
-| 🕵️ **Audit Logs**                  | Track user actions for compliance. |
+| 🕵️ **Audit Logs**                   | Track user actions for compliance. |
 | 📞 **Live Chat + Priority Support** | Increase conversion & retention.   |
 | 💼 **White-labeling**               | For resellers/enterprise branding. |
 

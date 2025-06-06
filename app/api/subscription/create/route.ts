@@ -22,10 +22,10 @@ export async function POST(req: Request) {
       include: {
         subscription: {
           include: {
-            plan: true
-          }
-        }
-      }
+            plan: true,
+          },
+        },
+      },
     });
 
     if (!user) {
@@ -34,7 +34,7 @@ export async function POST(req: Request) {
 
     // Get the plan from our database
     const planData = await prisma.plan.findFirst({
-      where: { name: plan }
+      where: { name: plan },
     });
 
     if (!planData) {
@@ -52,7 +52,7 @@ export async function POST(req: Request) {
         clerkId: user.clerkId,
       });
       customerId = customer.id;
-      
+
       // Update user with Stripe customer ID
       await prisma.user.update({
         where: { id: user.id },
@@ -81,4 +81,4 @@ export async function POST(req: Request) {
     }
     return new NextResponse('Internal Server Error', { status: 500 });
   }
-} 
+}

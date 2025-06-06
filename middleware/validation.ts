@@ -44,33 +44,39 @@ export function validationMiddleware(request: NextRequest) {
 
     // Sanitize the data
     const sanitizedBody = sanitizeData(body);
-    
+
     // Add sanitized data to request for downstream handlers
     request.headers.set('x-sanitized-body', JSON.stringify(sanitizedBody));
-    
+
     return null;
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return new NextResponse(JSON.stringify({
-        error: 'Validation Error',
-        details: error.errors,
-      }), {
+      return new NextResponse(
+        JSON.stringify({
+          error: 'Validation Error',
+          details: error.errors,
+        }),
+        {
+          status: 400,
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+    }
+
+    return new NextResponse(
+      JSON.stringify({
+        error: 'Invalid Request',
+        message: 'The request body is invalid',
+      }),
+      {
         status: 400,
         headers: {
           'Content-Type': 'application/json',
         },
-      });
-    }
-    
-    return new NextResponse(JSON.stringify({
-      error: 'Invalid Request',
-      message: 'The request body is invalid',
-    }), {
-      status: 400,
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
+      }
+    );
   }
 }
 
@@ -84,7 +90,7 @@ function sanitizeData(data: any): any {
   }
 
   const sanitized: Record<string, any> = {};
-  
+
   for (const [key, value] of Object.entries(data)) {
     // Remove any HTML tags
     if (typeof value === 'string') {
@@ -95,4 +101,4 @@ function sanitizeData(data: any): any {
   }
 
   return sanitized;
-} 
+}

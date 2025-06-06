@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
-import { Button } from "@/components/ui/button";
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
+import { Button } from '@/components/ui/button';
 import {
   Form,
   FormControl,
@@ -12,22 +12,22 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { toast } from "sonner";
+} from '@/components/ui/select';
+import { toast } from 'sonner';
 
 const formSchema = z.object({
-  subject: z.string().min(1, "Subject is required"),
-  category: z.string().min(1, "Category is required"),
-  message: z.string().min(10, "Message must be at least 10 characters"),
+  subject: z.string().min(1, 'Subject is required'),
+  category: z.string().min(1, 'Category is required'),
+  message: z.string().min(10, 'Message must be at least 10 characters'),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -38,9 +38,9 @@ export function SupportForm() {
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      subject: "",
-      category: "",
-      message: "",
+      subject: '',
+      category: '',
+      message: '',
     },
   });
 
@@ -49,10 +49,10 @@ export function SupportForm() {
       setIsSubmitting(true);
       // TODO: Implement API call to submit support ticket
       console.log(data);
-      toast.success("Support ticket submitted successfully");
+      toast.success('Support ticket submitted successfully');
       form.reset();
     } catch (error) {
-      toast.error("Failed to submit support ticket");
+      toast.error('Failed to submit support ticket');
       console.error(error);
     } finally {
       setIsSubmitting(false);
@@ -120,9 +120,9 @@ export function SupportForm() {
         />
 
         <Button type="submit" className="w-full" disabled={isSubmitting}>
-          {isSubmitting ? "Submitting..." : "Submit Support Ticket"}
+          {isSubmitting ? 'Submitting...' : 'Submit Support Ticket'}
         </Button>
       </form>
     </Form>
   );
-} 
+}

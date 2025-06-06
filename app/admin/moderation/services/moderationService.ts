@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+import { prisma } from '@/lib/prisma';
 
 export interface ReportedPrompt {
   id: string;
@@ -65,13 +65,13 @@ export async function getReportedContent() {
             },
           },
           orderBy: {
-            createdAt: "desc",
+            createdAt: 'desc',
           },
         },
       },
       orderBy: {
         reports: {
-          _count: "desc",
+          _count: 'desc',
         },
       },
     }),
@@ -98,20 +98,20 @@ export async function getReportedContent() {
             },
           },
           orderBy: {
-            createdAt: "desc",
+            createdAt: 'desc',
           },
         },
       },
       orderBy: {
         reports: {
-          _count: "desc",
+          _count: 'desc',
         },
       },
     }),
   ]);
 
   return {
-    reportedPrompts: reportedPrompts.map((prompt) => ({
+    reportedPrompts: reportedPrompts.map(prompt => ({
       id: prompt.id,
       name: prompt.name,
       author: {
@@ -120,7 +120,7 @@ export async function getReportedContent() {
       },
       reportCount: prompt.reports.length,
       lastReportedAt: prompt.reports[0]?.createdAt || new Date(),
-      reports: prompt.reports.map((report) => ({
+      reports: prompt.reports.map(report => ({
         id: report.id,
         reason: report.reason,
         createdAt: report.createdAt,
@@ -130,7 +130,7 @@ export async function getReportedContent() {
         },
       })),
     })),
-    reportedComments: reportedComments.map((comment) => ({
+    reportedComments: reportedComments.map(comment => ({
       id: comment.id,
       content: comment.content,
       author: {
@@ -139,7 +139,7 @@ export async function getReportedContent() {
       },
       reportCount: comment.reports.length,
       lastReportedAt: comment.reports[0]?.createdAt || new Date(),
-      reports: comment.reports.map((report) => ({
+      reports: comment.reports.map(report => ({
         id: report.id,
         reason: report.reason,
         createdAt: report.createdAt,
@@ -154,27 +154,27 @@ export async function getReportedContent() {
 
 export async function bulkModerateContent(
   contentIds: string[],
-  contentType: "prompt" | "comment",
-  action: "approve" | "reject" | "delete",
+  contentType: 'prompt' | 'comment',
+  action: 'approve' | 'reject' | 'delete',
   reason: string
 ) {
-  if (contentType === "prompt") {
-    if (action === "delete") {
+  if (contentType === 'prompt') {
+    if (action === 'delete') {
       await prisma.prompt.deleteMany({
         where: { id: { in: contentIds } },
       });
-    } else if (action === "reject") {
+    } else if (action === 'reject') {
       await prisma.prompt.updateMany({
         where: { id: { in: contentIds } },
         data: { isPublic: false },
       });
     }
   } else {
-    if (action === "delete") {
+    if (action === 'delete') {
       await prisma.comment.deleteMany({
         where: { id: { in: contentIds } },
       });
-    } else if (action === "reject") {
+    } else if (action === 'reject') {
       await prisma.comment.updateMany({
         where: { id: { in: contentIds } },
         data: { hidden: true },
@@ -184,12 +184,12 @@ export async function bulkModerateContent(
 
   // Create audit log entries for each item
   await Promise.all(
-    contentIds.map((contentId) =>
+    contentIds.map(contentId =>
       prisma.auditLog.create({
         data: {
           action: `BULK_MODERATE_${action.toUpperCase()}`,
           resource: contentType.toUpperCase(),
-          status: "SUCCESS",
+          status: 'SUCCESS',
           details: {
             reason,
             action,
@@ -205,21 +205,26 @@ export async function bulkModerateContent(
 export async function getModeratedWords() {
   const moderatedWords = await prisma.moderation.findMany({
     where: {
-      contentType: "word",
+      contentType: 'word',
     },
     orderBy: {
-      createdAt: "desc",
+      createdAt: 'desc',
     },
   });
 
   return moderatedWords;
 }
 
-export async function createModeratedWord(word: string, severity: string, category: string, status: string) {
+export async function createModeratedWord(
+  word: string,
+  severity: string,
+  category: string,
+  status: string
+) {
   const moderatedWord = await prisma.moderation.create({
     data: {
       contentId: word,
-      contentType: "word",
+      contentType: 'word',
       severity,
       category,
       status,
@@ -235,4 +240,4 @@ export async function removeModeratedWord(id: string) {
       id,
     },
   });
-} 
+}

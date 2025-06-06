@@ -6,10 +6,10 @@ development optimized for user experience and actionable insights.
 
 The user dashboard should:
 
-* Show current credits and usage
-* Show latest prompts
-* Show credit history
-* Encourage upgrade (if applicable)
+- Show current credits and usage
+- Show latest prompts
+- Show credit history
+- Encourage upgrade (if applicable)
 
 ---
 
@@ -17,10 +17,10 @@ The user dashboard should:
 
 ### 1. 🎯 **User Summary (Top Section)**
 
-* Credits available: `user.credits`
-* Current plan: `user.plan?.name ?? "Free"`
-* Next reset date: (calculated, e.g. 1st of next month)
-* Last prompt: `user.lastPromptAt`
+- Credits available: `user.credits`
+- Current plan: `user.plan?.name ?? "Free"`
+- Next reset date: (calculated, e.g. 1st of next month)
+- Last prompt: `user.lastPromptAt`
 
 **Bonus:** Add a "Use Prompt" CTA button here.
 
@@ -33,18 +33,18 @@ Query last N prompts:
 ```ts
 const prompts = await prisma.prompt.findMany({
   where: { userId: session.user.id },
-  orderBy: { createdAt: "desc" },
+  orderBy: { createdAt: 'desc' },
   take: 10,
 });
 ```
 
 **Columns:**
 
-* Input (truncated)
-* Model
-* Output (popover or modal)
-* Credits Used
-* Date
+- Input (truncated)
+- Model
+- Output (popover or modal)
+- Credits Used
+- Date
 
 Use `@tanstack/react-table` with pagination.
 
@@ -57,25 +57,25 @@ Query:
 ```ts
 const history = await prisma.creditHistory.findMany({
   where: { userId: session.user.id },
-  orderBy: { createdAt: "desc" },
+  orderBy: { createdAt: 'desc' },
   take: 20,
 });
 ```
 
 **Columns:**
 
-* Type (enum → label color-coded)
-* Amount (+green / –red)
-* Description (e.g., “Monthly renewal”)
-* Date
+- Type (enum → label color-coded)
+- Amount (+green / –red)
+- Description (e.g., “Monthly renewal”)
+- Date
 
 ---
 
 ### 4. 📈 **Usage Stats (Optional but Powerful)**
 
-* Bar chart of daily credits used (last 7 days)
-* Total prompts this month
-* Avg. cost per prompt
+- Bar chart of daily credits used (last 7 days)
+- Total prompts this month
+- Avg. cost per prompt
 
 Use [Recharts](https://recharts.org) or `@nivo/bar`.
 
@@ -83,8 +83,8 @@ Use [Recharts](https://recharts.org) or `@nivo/bar`.
 
 ### 5. 🚀 **Upgrade CTA (if on Free/low credits)**
 
-* Show plan comparison if `user.plan.name === 'Free' || user.credits < 10`
-* Button: **Upgrade Plan** → `/billing`
+- Show plan comparison if `user.plan.name === 'Free' || user.credits < 10`
+- Button: **Upgrade Plan** → `/billing`
 
 ---
 
@@ -119,8 +119,8 @@ Returns:
 
 ## 🎨 UI Tools
 
-* TailwindCSS for layout/styling
-* Lucide icons (credit card, bolt, book-open, etc.)
-* Skeleton loaders (loading state)
+- TailwindCSS for layout/styling
+- Lucide icons (credit card, bolt, book-open, etc.)
+- Skeleton loaders (loading state)
 
 ---

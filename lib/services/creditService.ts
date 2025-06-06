@@ -251,4 +251,4 @@ export class CreditService {
       periodEnd: user.subscription?.currentPeriodEnd || new Date(),
     };
   }
-} 
+}

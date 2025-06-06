@@ -1,9 +1,9 @@
-import { prisma } from "@/lib/prisma";
-import { AuditLogger } from "./audit-logger";
-import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
-import { createGzip } from "zlib";
-import { pipeline } from "stream/promises";
-import { Readable } from "stream";
+import { prisma } from '@/lib/prisma';
+import { AuditLogger } from './audit-logger';
+import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+import { createGzip } from 'zlib';
+import { pipeline } from 'stream/promises';
+import { Readable } from 'stream';
 
 export class BackupService {
   private static instance: BackupService;
@@ -37,7 +37,7 @@ export class BackupService {
       const compressedData = await this.compressData(data);
 
       // Generate backup filename with timestamp
-      const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
       const filename = `backup-${timestamp}.json.gz`;
 
       // Upload to S3
@@ -45,24 +45,24 @@ export class BackupService {
 
       // Log the backup
       await this.auditLogger.logSecurityEvent(
-        "SECURITY_EVENT",
-        "BACKUP",
+        'SECURITY_EVENT',
+        'BACKUP',
         {
           filename,
           timestamp,
           size: compressedData.length,
         },
-        "SUCCESS"
+        'SUCCESS'
       );
     } catch (error) {
-      console.error("Backup failed:", error);
+      console.error('Backup failed:', error);
       await this.auditLogger.logSecurityEvent(
-        "SECURITY_EVENT",
-        "BACKUP",
+        'SECURITY_EVENT',
+        'BACKUP',
         {
-          error: error instanceof Error ? error.message : "Unknown error",
+          error: error instanceof Error ? error.message : 'Unknown error',
         },
-        "FAILED"
+        'FAILED'
       );
       throw error;
     }
@@ -101,15 +101,11 @@ export class BackupService {
     const input = Readable.from(jsonString);
     const chunks: Buffer[] = [];
 
-    await pipeline(
-      input,
-      gzip,
-      async function* (source) {
-        for await (const chunk of source) {
-          chunks.push(chunk);
-        }
+    await pipeline(input, gzip, async function* (source) {
+      for await (const chunk of source) {
+        chunks.push(chunk);
       }
-    );
+    });
 
     return Buffer.concat(chunks);
   }
@@ -119,9 +115,9 @@ export class BackupService {
       Bucket: process.env.AWS_BACKUP_BUCKET!,
       Key: `backups/${filename}`,
       Body: data,
-      ContentType: "application/gzip",
+      ContentType: 'application/gzip',
     });
 
     await this.s3Client.send(command);
   }
-} 
+}

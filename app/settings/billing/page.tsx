@@ -3,7 +3,14 @@
 import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { useToast } from '@/components/ui/use-toast';
 import { Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
@@ -37,7 +44,7 @@ function BillingContent() {
 
   const handleSubscribe = async () => {
     if (!selectedPlan) return;
-    
+
     setIsLoading(true);
     try {
       const response = await fetch('/api/subscription/create', {
@@ -92,8 +99,8 @@ function BillingContent() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="max-w-3xl mx-auto">
-        <h1 className="text-3xl font-bold mb-8">Billing & Subscription</h1>
+      <div className="mx-auto max-w-3xl">
+        <h1 className="mb-8 text-3xl font-bold">Billing & Subscription</h1>
 
         {subscription ? (
           <Card>
@@ -108,9 +115,7 @@ function BillingContent() {
               <div className="space-y-4">
                 <div>
                   <p className="text-sm font-medium">Status</p>
-                  <p className="text-sm text-muted-foreground">
-                    {subscription.status}
-                  </p>
+                  <p className="text-sm text-muted-foreground">{subscription.status}</p>
                 </div>
                 <div>
                   <p className="text-sm font-medium">Next Billing Date</p>
@@ -121,8 +126,7 @@ function BillingContent() {
                 <div>
                   <p className="text-sm font-medium">Credits</p>
                   <p className="text-sm text-muted-foreground">
-                    {subscription.plan.credits} credits per{' '}
-                    {subscription.plan.period.toLowerCase()}
+                    {subscription.plan.credits} credits per {subscription.plan.period.toLowerCase()}
                   </p>
                 </div>
               </div>
@@ -160,11 +164,7 @@ function BillingContent() {
               </p>
             </CardContent>
             <CardFooter>
-              <Button
-                onClick={handleSubscribe}
-                disabled={isLoading}
-                className="w-full"
-              >
+              <Button onClick={handleSubscribe} disabled={isLoading} className="w-full">
                 {isLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -180,14 +180,10 @@ function BillingContent() {
           <Card>
             <CardHeader>
               <CardTitle>No Active Subscription</CardTitle>
-              <CardDescription>
-                You don't have an active subscription
-              </CardDescription>
+              <CardDescription>You don't have an active subscription</CardDescription>
             </CardHeader>
             <CardFooter>
-              <Button onClick={() => router.push('/pricing')}>
-                View Plans
-              </Button>
+              <Button onClick={() => router.push('/pricing')}>View Plans</Button>
             </CardFooter>
           </Card>
         )}
@@ -202,4 +198,4 @@ export default function BillingPage() {
       <BillingContent />
     </Suspense>
   );
-} 
+}

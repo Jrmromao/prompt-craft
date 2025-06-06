@@ -13,8 +13,8 @@ vi.mock('@/lib/services/stripe/webhookService', () => ({
           object: {
             subscription: 'sub_test',
             customer: 'cus_test',
-            metadata: { userId: 'user_test', planId: 'plan_test' }
-          }
+            metadata: { userId: 'user_test', planId: 'plan_test' },
+          },
         },
         created: Date.now(),
       })),
@@ -42,9 +42,9 @@ describe('Stripe Webhook API', () => {
           object: {
             subscription: 'sub_test',
             customer: 'cus_test',
-            metadata: { userId: 'user_test', planId: 'plan_test' }
-          }
-        }
+            metadata: { userId: 'user_test', planId: 'plan_test' },
+          },
+        },
       }),
     });
 
@@ -68,8 +68,8 @@ describe('Stripe Webhook API', () => {
           object: expect.objectContaining({
             subscription: 'sub_test',
             customer: 'cus_test',
-          })
-        })
+          }),
+        }),
       })
     );
   });
@@ -115,7 +115,7 @@ describe('Stripe Webhook API', () => {
       },
       body: JSON.stringify({
         type: 'checkout.session.completed',
-        data: { object: {} }
+        data: { object: {} },
       }),
     });
 
@@ -126,7 +126,7 @@ describe('Stripe Webhook API', () => {
   // Additional edge cases
   it('returns 405 for non-POST methods', async () => {
     const methods = ['GET', 'PUT', 'DELETE', 'PATCH'];
-    
+
     for (const method of methods) {
       const request = new Request('http://localhost:3000/api/webhooks/stripe', {
         method,
@@ -150,7 +150,7 @@ describe('Stripe Webhook API', () => {
         'content-type': 'application/json',
       },
       body: JSON.stringify({
-        data: { object: {} }
+        data: { object: {} },
       }),
     });
 
@@ -167,7 +167,7 @@ describe('Stripe Webhook API', () => {
       },
       body: JSON.stringify({
         type: 'checkout.session.completed',
-        data: null
+        data: null,
       }),
     });
 
@@ -191,7 +191,7 @@ describe('Stripe Webhook API', () => {
       },
       body: JSON.stringify({
         type: 'checkout.session.completed',
-        data: { object: {} }
+        data: { object: {} },
       }),
     });
 
@@ -201,19 +201,22 @@ describe('Stripe Webhook API', () => {
 
   it('handles concurrent webhook requests', async () => {
     const webhookService = WebhookService.getInstance();
-    const requests = Array(5).fill(null).map(() => 
-      new Request('http://localhost:3000/api/webhooks/stripe', {
-        method: 'POST',
-        headers: {
-          'stripe-signature': 'test',
-          'content-type': 'application/json',
-        },
-        body: JSON.stringify({
-          type: 'checkout.session.completed',
-          data: { object: {} }
-        }),
-      })
-    );
+    const requests = Array(5)
+      .fill(null)
+      .map(
+        () =>
+          new Request('http://localhost:3000/api/webhooks/stripe', {
+            method: 'POST',
+            headers: {
+              'stripe-signature': 'test',
+              'content-type': 'application/json',
+            },
+            body: JSON.stringify({
+              type: 'checkout.session.completed',
+              data: { object: {} },
+            }),
+          })
+      );
 
     const responses = await Promise.all(requests.map(req => POST(req)));
     responses.forEach(response => {
@@ -237,7 +240,7 @@ describe('Stripe Webhook API', () => {
       },
       body: JSON.stringify({
         type: 'checkout.session.completed',
-        data: { object: {} }
+        data: { object: {} },
       }),
     });
 
@@ -262,7 +265,7 @@ describe('Stripe Webhook API', () => {
       },
       body: JSON.stringify({
         type: 'checkout.session.completed',
-        data: { object: {} }
+        data: { object: {} },
       }),
     });
 
@@ -284,11 +287,11 @@ describe('Stripe Webhook API', () => {
       },
       body: JSON.stringify({
         type: 'checkout.session.completed',
-        data: { object: {} }
+        data: { object: {} },
       }),
     });
 
     const response = await POST(request);
     expect(response.status).toBe(500);
   });
-}); 
+});

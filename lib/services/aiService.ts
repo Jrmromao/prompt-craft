@@ -58,11 +58,13 @@ export class AIService {
 
   public async generateText(userId: string, options: GenerateOptions): Promise<string> {
     const model = options.model || 'deepseek';
-    
+
     // Validate model access
     const hasAccess = await this.validateModelAccess(userId, model);
     if (!hasAccess) {
-      throw new Error('You do not have access to this model. Please upgrade to Pro for advanced models.');
+      throw new Error(
+        'You do not have access to this model. Please upgrade to Pro for advanced models.'
+      );
     }
 
     // Generate text based on the model
@@ -84,7 +86,7 @@ export class AIService {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.DEEPSEEK_API_KEY}`,
+          Authorization: `Bearer ${this.DEEPSEEK_API_KEY}`,
         },
         body: JSON.stringify({
           model: 'deepseek-chat',
@@ -96,7 +98,9 @@ export class AIService {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(`Failed to generate text with Deepseek: ${errorData.error?.message || response.statusText}`);
+        throw new Error(
+          `Failed to generate text with Deepseek: ${errorData.error?.message || response.statusText}`
+        );
       }
 
       const data = await response.json();
@@ -118,7 +122,7 @@ export class AIService {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.OPENAI_API_KEY}`,
+          Authorization: `Bearer ${this.OPENAI_API_KEY}`,
         },
         body: JSON.stringify({
           model: 'gpt-4',
@@ -130,7 +134,9 @@ export class AIService {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(`Failed to generate text with GPT-4: ${errorData.error?.message || response.statusText}`);
+        throw new Error(
+          `Failed to generate text with GPT-4: ${errorData.error?.message || response.statusText}`
+        );
       }
 
       const data = await response.json();
@@ -165,7 +171,9 @@ export class AIService {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(`Failed to generate text with Claude: ${errorData.error?.message || response.statusText}`);
+        throw new Error(
+          `Failed to generate text with Claude: ${errorData.error?.message || response.statusText}`
+        );
       }
 
       const data = await response.json();
@@ -180,4 +188,4 @@ export class AIService {
       throw new Error(`Claude API error: ${error.message}`);
     }
   }
-} 
+}

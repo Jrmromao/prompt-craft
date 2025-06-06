@@ -14,9 +14,13 @@ export class CommunityService {
   }
 
   // Vote on a prompt
-  public async votePrompt(userId: string, promptId: string, value: 1 | -1): Promise<{ upvotes: number }> {
+  public async votePrompt(
+    userId: string,
+    promptId: string,
+    value: 1 | -1
+  ): Promise<{ upvotes: number }> {
     // Use a transaction to ensure atomicity
-    return prisma.$transaction(async (tx) => {
+    return prisma.$transaction(async tx => {
       // Check if user has already voted
       const existingVote = await tx.vote.findUnique({
         where: {
@@ -96,7 +100,11 @@ export class CommunityService {
   }
 
   // Add a comment to a prompt
-  public async addComment(userId: string, promptId: string, content: string): Promise<{
+  public async addComment(
+    userId: string,
+    promptId: string,
+    content: string
+  ): Promise<{
     id: string;
     content: string;
     createdAt: Date;
@@ -179,7 +187,7 @@ export class CommunityService {
     ]);
 
     return {
-      comments: comments.map((comment) => ({
+      comments: comments.map(comment => ({
         id: comment.id,
         content: comment.content,
         createdAt: comment.createdAt,
@@ -206,4 +214,4 @@ export class CommunityService {
 
     return vote?.value ?? null;
   }
-} 
+}

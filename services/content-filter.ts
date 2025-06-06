@@ -1,4 +1,4 @@
-import { AuditLogger } from "./audit-logger";
+import { AuditLogger } from './audit-logger';
 
 export interface ContentFilterResult {
   isAllowed: boolean;
@@ -19,22 +19,22 @@ export class ContentFilter {
   ];
 
   private readonly SENSITIVE_WORDS = new Set([
-    "password",
-    "secret",
-    "token",
-    "key",
-    "credential",
-    "api_key",
-    "private_key",
-    "ssh_key",
-    "access_token",
-    "refresh_token",
-    "jwt",
-    "bearer",
-    "oauth",
-    "auth",
-    "authentication",
-    "authorization",
+    'password',
+    'secret',
+    'token',
+    'key',
+    'credential',
+    'api_key',
+    'private_key',
+    'ssh_key',
+    'access_token',
+    'refresh_token',
+    'jwt',
+    'bearer',
+    'oauth',
+    'auth',
+    'authentication',
+    'authorization',
   ]);
 
   private constructor() {
@@ -57,11 +57,11 @@ export class ContentFilter {
       // Check for sensitive patterns
       for (const pattern of this.SENSITIVE_PATTERNS) {
         if (pattern.test(content)) {
-          const filteredContent = content.replace(pattern, "[REDACTED]");
-          await this.logFilteredContent(userId, context, "pattern", content, filteredContent);
+          const filteredContent = content.replace(pattern, '[REDACTED]');
+          await this.logFilteredContent(userId, context, 'pattern', content, filteredContent);
           return {
             isAllowed: false,
-            reason: "Content contains sensitive information",
+            reason: 'Content contains sensitive information',
             filteredContent,
           };
         }
@@ -69,30 +69,30 @@ export class ContentFilter {
 
       // Check for sensitive words
       const words = content.toLowerCase().split(/\s+/);
-      const sensitiveWordsFound = words.filter((word) => this.SENSITIVE_WORDS.has(word));
+      const sensitiveWordsFound = words.filter(word => this.SENSITIVE_WORDS.has(word));
 
       if (sensitiveWordsFound.length > 0) {
         const filteredContent = this.redactSensitiveWords(content, sensitiveWordsFound);
-        await this.logFilteredContent(userId, context, "words", content, filteredContent);
+        await this.logFilteredContent(userId, context, 'words', content, filteredContent);
         return {
           isAllowed: false,
-          reason: "Content contains sensitive words",
+          reason: 'Content contains sensitive words',
           filteredContent,
         };
       }
 
       return { isAllowed: true };
     } catch (error) {
-      console.error("Content filtering failed:", error);
+      console.error('Content filtering failed:', error);
       // In case of error, allow the content but log the error
       await this.auditLogger.logSecurityEvent(
-        "SECURITY_EVENT",
-        "CONTENT_FILTER",
+        'SECURITY_EVENT',
+        'CONTENT_FILTER',
         {
-          error: error instanceof Error ? error.message : "Unknown error",
-          content: content.substring(0, 100) + "...", // Log only first 100 chars
+          error: error instanceof Error ? error.message : 'Unknown error',
+          content: content.substring(0, 100) + '...', // Log only first 100 chars
         },
-        "ERROR"
+        'ERROR'
       );
       return { isAllowed: true };
     }
@@ -101,8 +101,8 @@ export class ContentFilter {
   private redactSensitiveWords(content: string, sensitiveWords: string[]): string {
     let filteredContent = content;
     for (const word of sensitiveWords) {
-      const regex = new RegExp(`\\b${word}\\b`, "gi");
-      filteredContent = filteredContent.replace(regex, "[REDACTED]");
+      const regex = new RegExp(`\\b${word}\\b`, 'gi');
+      filteredContent = filteredContent.replace(regex, '[REDACTED]');
     }
     return filteredContent;
   }
@@ -115,16 +115,16 @@ export class ContentFilter {
     filteredContent: string
   ): Promise<void> {
     await this.auditLogger.logSecurityEvent(
-      "SECURITY_EVENT",
-      "CONTENT_FILTER",
+      'SECURITY_EVENT',
+      'CONTENT_FILTER',
       {
         userId,
         context,
         type,
-        originalContent: originalContent.substring(0, 100) + "...", // Log only first 100 chars
-        filteredContent: filteredContent.substring(0, 100) + "...", // Log only first 100 chars
+        originalContent: originalContent.substring(0, 100) + '...', // Log only first 100 chars
+        filteredContent: filteredContent.substring(0, 100) + '...', // Log only first 100 chars
       },
-      "FILTERED"
+      'FILTERED'
     );
   }
-} 
+}

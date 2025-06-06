@@ -9,8 +9,7 @@ const voteSchema = z.object({
 });
 
 // @ts-ignore
-export async function POST( request: NextRequest,{ params }
-) {
+export async function POST(request: NextRequest, { params }) {
   try {
     const { userId: clerkUserId } = await auth();
     if (!clerkUserId) {
@@ -20,7 +19,7 @@ export async function POST( request: NextRequest,{ params }
     // Get the database user ID from the Clerk user ID
     const user = await prisma.user.findUnique({
       where: { clerkId: clerkUserId },
-      select: { id: true }
+      select: { id: true },
     });
 
     if (!user) {
@@ -40,10 +39,7 @@ export async function POST( request: NextRequest,{ params }
       return NextResponse.json({ error: 'Invalid request data' }, { status: 400 });
     }
     console.error('Error voting on prompt:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
 
@@ -57,7 +53,7 @@ export async function GET(request: NextRequest) {
     // Get the database user ID from the Clerk user ID
     const user = await prisma.user.findUnique({
       where: { clerkId: clerkUserId },
-      select: { id: true }
+      select: { id: true },
     });
 
     if (!user) {
@@ -75,9 +71,6 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ vote });
   } catch (error) {
     console.error('Error getting user vote:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
-} 
+}

@@ -1,6 +1,6 @@
-import { prisma } from "@/lib/prisma";
-import { AuditLogger } from "./audit-logger";
-import { Redis } from "@upstash/redis";
+import { prisma } from '@/lib/prisma';
+import { AuditLogger } from './audit-logger';
+import { Redis } from '@upstash/redis';
 
 export interface QuotaResult {
   isAllowed: boolean;
@@ -31,7 +31,7 @@ export class QuotaService {
 
   public async checkQuota(
     userId: string,
-    quotaType: "API_CALLS" | "PROMPT_GENERATIONS" | "STORAGE"
+    quotaType: 'API_CALLS' | 'PROMPT_GENERATIONS' | 'STORAGE'
   ): Promise<QuotaResult> {
     try {
       const user = await prisma.user.findUnique({
@@ -40,12 +40,12 @@ export class QuotaService {
       });
 
       if (!user) {
-        throw new Error("User not found");
+        throw new Error('User not found');
       }
 
       const limits = this.getQuotaLimits(user.planType, quotaType);
       const key = `quota:${userId}:${quotaType}`;
-      const currentUsage = await this.redis.get<number>(key) || 0;
+      const currentUsage = (await this.redis.get<number>(key)) || 0;
 
       const isAllowed = currentUsage < limits.limit;
       const remaining = Math.max(0, limits.limit - currentUsage);
@@ -53,8 +53,8 @@ export class QuotaService {
       // Log quota check
       await this.auditLogger.logUserAction(
         userId,
-        "DATA_ACCESS",
-        "QUOTA_CHECK",
+        'DATA_ACCESS',
+        'QUOTA_CHECK',
         {
           quotaType,
           currentUsage,
@@ -62,7 +62,7 @@ export class QuotaService {
           remaining,
           isAllowed,
         },
-        isAllowed ? "SUCCESS" : "QUOTA_EXCEEDED"
+        isAllowed ? 'SUCCESS' : 'QUOTA_EXCEEDED'
       );
 
       return {
@@ -72,17 +72,17 @@ export class QuotaService {
         resetAt: limits.resetAt,
       };
     } catch (error) {
-      console.error("Quota check failed:", error);
+      console.error('Quota check failed:', error);
       // In case of error, allow the action but log the error
       await this.auditLogger.logSecurityEvent(
-        "SECURITY_EVENT",
-        "QUOTA_CHECK",
+        'SECURITY_EVENT',
+        'QUOTA_CHECK',
         {
           userId,
           quotaType,
-          error: error instanceof Error ? error.message : "Unknown error",
+          error: error instanceof Error ? error.message : 'Unknown error',
         },
-        "ERROR"
+        'ERROR'
       );
       return { isAllowed: true, remaining: 0, limit: 0 };
     }
@@ -90,7 +90,7 @@ export class QuotaService {
 
   public async incrementUsage(
     userId: string,
-    quotaType: "API_CALLS" | "PROMPT_GENERATIONS" | "STORAGE",
+    quotaType: 'API_CALLS' | 'PROMPT_GENERATIONS' | 'STORAGE',
     amount: number = 1
   ): Promise<void> {
     const key = `quota:${userId}:${quotaType}`;
@@ -104,8 +104,8 @@ export class QuotaService {
   }
 
   private getQuotaLimits(
-    planType: "FREE" | "LITE" | "PRO",
-    quotaType: "API_CALLS" | "PROMPT_GENERATIONS" | "STORAGE"
+    planType: 'FREE' | 'LITE' | 'PRO',
+    quotaType: 'API_CALLS' | 'PROMPT_GENERATIONS' | 'STORAGE'
   ): { limit: number; resetAt: Date } {
     const now = new Date();
     const tomorrow = new Date(now);
@@ -135,4 +135,4 @@ export class QuotaService {
       resetAt: tomorrow,
     };
   }
-} 
+}

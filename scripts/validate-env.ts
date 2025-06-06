@@ -7,4 +7,4 @@ try {
 } catch (error) {
   console.error('❌ Environment variables validation failed:', error);
   process.exit(1);
-} 
+}

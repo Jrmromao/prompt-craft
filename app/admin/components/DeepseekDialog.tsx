@@ -1,7 +1,7 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BarChart2, TrendingUp, Clock, DollarSign } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { BarChart2, TrendingUp, Clock, DollarSign } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 
 interface DeepseekDialogProps {
   open: boolean;
@@ -27,17 +27,17 @@ export function DeepseekDialog({ open, onOpenChange, costs }: DeepseekDialogProp
       <DialogContent className="max-w-4xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <BarChart2 className="w-5 h-5" />
+            <BarChart2 className="h-5 w-5" />
             DeepSeek API Usage Details
           </DialogTitle>
         </DialogHeader>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
           {/* Cost Overview */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-sm font-medium flex items-center gap-2">
-                <DollarSign className="w-4 h-4" />
+              <CardTitle className="flex items-center gap-2 text-sm font-medium">
+                <DollarSign className="h-4 w-4" />
                 Cost Overview
               </CardTitle>
             </CardHeader>
@@ -63,8 +63,8 @@ export function DeepseekDialog({ open, onOpenChange, costs }: DeepseekDialogProp
           {/* Performance Metrics */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-sm font-medium flex items-center gap-2">
-                <TrendingUp className="w-4 h-4" />
+              <CardTitle className="flex items-center gap-2 text-sm font-medium">
+                <TrendingUp className="h-4 w-4" />
                 Performance Metrics
               </CardTitle>
             </CardHeader>
@@ -90,19 +90,23 @@ export function DeepseekDialog({ open, onOpenChange, costs }: DeepseekDialogProp
           {/* Monthly Trend */}
           <Card className="md:col-span-2">
             <CardHeader>
-              <CardTitle className="text-sm font-medium flex items-center gap-2">
-                <Clock className="w-4 h-4" />
+              <CardTitle className="flex items-center gap-2 text-sm font-medium">
+                <Clock className="h-4 w-4" />
                 Monthly Trend
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
                   {costs.monthlyTrend.map((trend, index) => (
-                    <div key={index} className="p-4 bg-gray-50 rounded-lg">
-                      <p className="text-sm text-gray-500">{new Date(trend.date).toLocaleDateString()}</p>
+                    <div key={index} className="rounded-lg bg-gray-50 p-4">
+                      <p className="text-sm text-gray-500">
+                        {new Date(trend.date).toLocaleDateString()}
+                      </p>
                       <p className="text-lg font-semibold">${trend.cost.toFixed(2)}</p>
-                      <p className="text-sm text-gray-500">{trend.requests.toLocaleString()} requests</p>
+                      <p className="text-sm text-gray-500">
+                        {trend.requests.toLocaleString()} requests
+                      </p>
                     </div>
                   ))}
                 </div>
@@ -113,4 +117,4 @@ export function DeepseekDialog({ open, onOpenChange, costs }: DeepseekDialogProp
       </DialogContent>
     </Dialog>
   );
-} 
+}

@@ -51,4 +51,4 @@ export async function DELETE(req: Request) {
     const message = err instanceof Error ? err.message : 'Unknown error';
     return NextResponse.json({ error: message }, { status: 403 });
   }
-} 
+}

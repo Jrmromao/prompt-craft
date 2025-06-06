@@ -62,23 +62,15 @@ export function ProfileForm({ user }: ProfileFormProps) {
             <Input
               id="name"
               value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              onChange={e => setFormData({ ...formData, name: e.target.value })}
               disabled={isLoading}
             />
           </div>
 
           <div>
             <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              type="email"
-              value={formData.email}
-              disabled
-              className="bg-muted"
-            />
-            <p className="text-sm text-muted-foreground mt-1">
-              Email cannot be changed
-            </p>
+            <Input id="email" type="email" value={formData.email} disabled className="bg-muted" />
+            <p className="mt-1 text-sm text-muted-foreground">Email cannot be changed</p>
           </div>
 
           <div>
@@ -102,4 +94,4 @@ export function ProfileForm({ user }: ProfileFormProps) {
       </div>
     </form>
   );
-} 
+}

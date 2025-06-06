@@ -38,4 +38,4 @@ export async function PATCH(req: Request) {
     }
     return new NextResponse('Internal error', { status: 500 });
   }
-} 
+}
