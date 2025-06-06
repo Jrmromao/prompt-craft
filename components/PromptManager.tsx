@@ -13,7 +13,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { X } from 'lucide-react';
-import { CreatePromptDialog } from '@/components/prompts/CreatePromptDialog';
+import { CreatePromptDialog } from './prompts/CreatePromptDialog';
 import { useToast } from '@/components/ui/use-toast';
 
 interface Prompt {

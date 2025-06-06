@@ -11,7 +11,6 @@ import {
   Settings,
   LogOut,
   Sparkles,
-  ShieldUser,
   Pencil,
   Circle,
   Lock,
@@ -69,7 +68,7 @@ const accountOptions = [
   { label: 'Usage', icon: BarChart2, href: 'usage' },
   { label: 'Billing', icon: BillingIcon, href: 'billing' },
   { label: 'Settings', icon: Settings, href: 'settings' },
-  { label: 'Security', icon: ShieldUser, href: 'security' },
+  { label: 'Security', icon: User, href: 'security' },
 ];
 const workspaceOptions = [{ label: 'My Prompts', icon: FileText, href: 'prompts' }];
 

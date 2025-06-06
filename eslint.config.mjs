@@ -4,7 +4,7 @@ import tseslint from 'typescript-eslint';
 export default [
   // TypeScript config (recommended, includes plugin and parser)
   ...tseslint.configs.recommended,
-  {
+  { 
     files: ['**/*.{ts,tsx}'],
     rules: {
       '@typescript-eslint/no-explicit-any': 'off',

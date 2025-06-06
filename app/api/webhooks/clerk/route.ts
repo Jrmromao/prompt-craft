@@ -311,12 +311,3 @@ async function processWebhook(req: Request): Promise<NextResponse> {
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }
-
-// Export config for API size limits
-export const config = {
-  api: {
-    bodyParser: {
-      sizeLimit: '1mb',
-    },
-  },
-};

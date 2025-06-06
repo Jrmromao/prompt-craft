@@ -32,7 +32,7 @@ export function UsersTable({ initialUsers }: UsersTableProps) {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    const params = new URLSearchParams(searchParams);
+    const params = new URLSearchParams(searchParams.toString());
     if (searchQuery) {
       params.set('search', searchQuery);
     } else {

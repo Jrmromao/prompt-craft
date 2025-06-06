@@ -2,7 +2,6 @@
   "name": "PromptCraft",
   "version": "0.1.0",
   "private": true,
-  "type": "module",
   "scripts": {
     "test": "jest",
     "test:watch": "jest --watch",
@@ -151,6 +150,7 @@
     "ts-jest": "^29.3.2",
     "ts-node": "^10.9.2",
     "typescript": "^5",
-    "typescript-eslint": "^8.33.1"
+    "typescript-eslint": "^8.33.1",
+    "vitest": "^3.2.2"
   }
 }
