@@ -6,6 +6,10 @@ import { prisma } from '@/lib/prisma';
 import S3Service from '@/services/S3Service';
 import { EmailService } from '@/lib/services/emailService';
 
+// Prevent static generation of this route
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 // Constants for security configurations
 const MAX_PAYLOAD_SIZE = 1048576; // 1MB in bytes
 const MAX_EXECUTION_TIME = 30000; // 30 seconds in milliseconds

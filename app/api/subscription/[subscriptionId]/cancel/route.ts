@@ -3,6 +3,10 @@ import { auth, currentUser } from '@clerk/nextjs/server';
 import { prisma } from '@/lib/prisma';
 import Stripe from 'stripe';
 
+// Prevent static generation of this route
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2025-02-24.acacia',
 });

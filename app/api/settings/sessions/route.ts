@@ -1,6 +1,10 @@
 import { NextResponse } from 'next/server';
 import { auth, clerkClient } from '@clerk/nextjs/server';
 
+// Prevent static generation of this route
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export async function GET() {
   const { userId } = await auth();
   if (!userId) {

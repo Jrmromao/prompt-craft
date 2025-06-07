@@ -1,5 +1,9 @@
 import { NextResponse } from 'next/server';
 
+// Prevent static generation of this route
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 // Try to import Clerk, but allow fallback if not available
 let auth: any = null;
 let clerkClient: any = null;

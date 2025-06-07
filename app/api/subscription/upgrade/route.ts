@@ -3,6 +3,10 @@ import { auth } from '@clerk/nextjs/server';
 import { SubscriptionService } from '@/lib/services/subscriptionService';
 import { PlanType, Period } from '@/utils/constants';
 
+// Prevent static generation of this route
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export async function POST(req: Request) {
   try {
     const { userId } = await auth();

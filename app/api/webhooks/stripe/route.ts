@@ -4,6 +4,10 @@ import { WebhookService } from '@/lib/services/stripe/webhookService';
 import { stripeSecurityMiddleware } from '@/lib/services/stripe/middleware/securityMiddleware';
 import { SecurityService } from '@/lib/services/security/securityService';
 
+// Prevent static generation of this route
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
 
 export async function POST(req: Request) {
