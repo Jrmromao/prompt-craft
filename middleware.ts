@@ -107,27 +107,45 @@ export default clerkMiddleware(async (auth, req: NextRequest) => {
       return NextResponse.redirect(signInUrl);
     }
 
+    // Add user ID to headers for downstream middleware
+    response.headers.set('x-user-id', userId);
+
     // Apply rate limiting to API routes
     if (RATE_LIMITED_ROUTES.some(route => req.nextUrl.pathname.match(new RegExp(`^${route}$`)))) {
-      const rateLimitResponse = await withErrorHandling(rateLimitMiddleware)(req);
-      if (rateLimitResponse) {
-        return rateLimitResponse;
+      try {
+        const rateLimitResponse = await withErrorHandling(rateLimitMiddleware)(req);
+        if (rateLimitResponse) {
+          return rateLimitResponse;
+        }
+      } catch (error) {
+        console.error('Rate limiting error:', error);
+        // Continue execution even if rate limiting fails
       }
     }
 
     // Apply input validation to API routes
     if (VALIDATED_ROUTES.some(route => req.nextUrl.pathname.match(new RegExp(`^${route}$`)))) {
-      const validationResponse = validationMiddleware(req);
-      if (validationResponse) {
-        return validationResponse;
+      try {
+        const validationResponse = validationMiddleware(req);
+        if (validationResponse) {
+          return validationResponse;
+        }
+      } catch (error) {
+        console.error('Validation error:', error);
+        // Continue execution even if validation fails
       }
     }
 
     // Apply quota enforcement for API routes
     if (req.nextUrl.pathname.startsWith('/api/')) {
-      const quotaResponse = await withErrorHandling(quotaMiddleware)(req);
-      if (quotaResponse) {
-        return quotaResponse;
+      try {
+        const quotaResponse = await withErrorHandling(quotaMiddleware)(req);
+        if (quotaResponse) {
+          return quotaResponse;
+        }
+      } catch (error) {
+        console.error('Quota middleware error:', error);
+        // Continue execution even if quota check fails
       }
     }
 
@@ -151,7 +169,12 @@ export default clerkMiddleware(async (auth, req: NextRequest) => {
 
     return response;
   } catch (error) {
-    console.error('Middleware error:', error);
+    console.error('Middleware error:', {
+      error,
+      path: req.nextUrl.pathname,
+      method: req.method,
+      headers: Object.fromEntries(req.headers.entries()),
+    });
     // Return a basic response in case of errors
     return NextResponse.next();
   }
