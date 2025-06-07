@@ -1,127 +1,79 @@
-import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
-import { headers } from 'next/headers';
-import { dynamicRouteConfig, withDynamicRoute } from '@/lib/utils/dynamicRoute';
+import { NextRequest, NextResponse } from 'next/server';
+import { auth } from '@clerk/nextjs/server';
+import { AnalyticsService } from '@/lib/services/analyticsService';
+import { rateLimit } from '@/lib/utils/rateLimit';
+import { securityHeaders, cacheConfig } from '@/app/api/config';
 
 // Export dynamic configuration
-export const { dynamic, revalidate, runtime } = dynamicRouteConfig;
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
 
-// Define the main handler
-async function analyticsHandler() {
-  const [totalUsers, totalPrompts, totalUsage, dashboardOverview, recentLogs] = await Promise.all([
-    prisma.user.count(),
-    prisma.prompt.count(),
-    prisma.promptUsage.count(),
-    getDashboardOverview(),
-    prisma.auditLog.findMany({
-      take: 10,
-      orderBy: { timestamp: 'desc' },
-      include: {
-        user: {
-          select: {
-            name: true,
-            email: true,
-          },
-        },
-      },
-    }),
-  ]);
+// Rate limiting configuration
+const limiter = rateLimit({
+  interval: 60 * 1000, // 1 minute
+  uniqueTokenPerInterval: 500
+});
 
-  return NextResponse.json({
-    totalUsers,
-    totalPrompts,
-    totalUsage,
-    dashboardOverview,
-    recentLogs,
-  });
+// Define the handler
+async function analyticsHandler(request: NextRequest) {
+  try {
+    const { userId } = await auth();
+    if (!userId) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401, headers: securityHeaders }
+      );
+    }
+
+    // Rate limiting per user
+    try {
+      await limiter.check(30, userId); // 30 requests per minute per user
+    } catch {
+      return NextResponse.json(
+        { error: 'Rate limit exceeded' },
+        { status: 429, headers: securityHeaders }
+      );
+    }
+
+    // Get query parameters
+    const { searchParams } = new URL(request.url);
+    const period = searchParams.get('period') || '7d';
+    const type = searchParams.get('type') || 'all';
+
+    const analyticsService = AnalyticsService.getInstance();
+    const result = await analyticsService.getAnalytics({
+      period,
+      type,
+      userId
+    });
+
+    // Create response with security headers
+    const response = NextResponse.json(result);
+    
+    // Add security headers
+    Object.entries(securityHeaders).forEach(([key, value]) => {
+      response.headers.set(key, value);
+    });
+
+    // Add cache headers
+    response.headers.set('Cache-Control', `public, s-maxage=${cacheConfig.durations.short}, stale-while-revalidate=${cacheConfig.durations.short * 2}`);
+    response.headers.set('Cache-Tag', cacheConfig.tags.analytics);
+
+    return response;
+  } catch (error) {
+    console.error('Error fetching analytics:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { 
+        status: 500,
+        headers: {
+          'Content-Type': 'application/json',
+          ...securityHeaders
+        }
+      }
+    );
+  }
 }
 
-// Define fallback data
-const fallbackData = {
-  totalUsers: 0,
-  totalPrompts: 0,
-  totalUsage: 0,
-  dashboardOverview: {
-    totalPromptViews: 0,
-    totalPromptCopies: 0,
-    mostPopularPrompt: null,
-    mostActiveUser: null,
-    recentActivity: { usages: [] },
-  },
-  recentLogs: [],
-};
-
-// Export the wrapped handler
-export const GET = withDynamicRoute(analyticsHandler, fallbackData);
-
-async function getDashboardOverview() {
-  const thirtyDaysAgo = new Date();
-  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-
-  const [totalPromptViews, totalPromptCopies, mostPopularPrompt, mostActiveUser, recentActivity] =
-    await Promise.all([
-      prisma.promptUsage.count({
-        where: {
-          createdAt: {
-            gte: thirtyDaysAgo,
-          },
-        },
-      }),
-      prisma.promptCopy.count({
-        where: {
-          createdAt: {
-            gte: thirtyDaysAgo,
-          },
-        },
-      }),
-      prisma.prompt.findFirst({
-        orderBy: {
-          usages: {
-            _count: 'desc',
-          },
-        },
-        include: {
-          user: {
-            select: {
-              name: true,
-            },
-          },
-        },
-      }),
-      prisma.user.findFirst({
-        orderBy: {
-          promptUsages: {
-            _count: 'desc',
-          },
-        },
-      }),
-      prisma.promptUsage.findMany({
-        take: 10,
-        orderBy: {
-          createdAt: 'desc',
-        },
-        include: {
-          user: {
-            select: {
-              name: true,
-            },
-          },
-          prompt: {
-            select: {
-              name: true,
-            },
-          },
-        },
-      }),
-    ]);
-
-  return {
-    totalPromptViews,
-    totalPromptCopies,
-    mostPopularPrompt,
-    mostActiveUser,
-    recentActivity: {
-      usages: recentActivity,
-    },
-  };
-}
+// Export the handler
+export const GET = analyticsHandler;

@@ -1,6 +1,3 @@
-'use client';
-
-import { Suspense, useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import {
   Users,
@@ -18,7 +15,7 @@ import {
   Zap,
   Cpu,
 } from 'lucide-react';
-import { AnalyticsService } from '@/lib/services/analyticsService';
+import { AnalyticsService, AllAnalytics } from '@/lib/services/analyticsService';
 import { AuditService } from '@/lib/services/auditService';
 import { AuditLogs } from './components/AuditLogs';
 import { Badge } from '@/components/ui/badge';
@@ -27,6 +24,7 @@ import { motion } from 'framer-motion';
 import { DraggableQuickActions } from './components/DraggableQuickActions';
 import { ApiUsageDialog } from './components/ApiUsageDialog';
 import { DeepseekDialog } from './components/DeepseekDialog';
+import { auth } from '@clerk/nextjs/server';
 
 interface Stats {
   totalUsers: number;
@@ -147,37 +145,31 @@ function RecentActivitySkeleton() {
   );
 }
 
-export default function AdminDashboard() {
-  const [isApiUsageDialogOpen, setIsApiUsageDialogOpen] = useState(false);
-  const [isDeepseekDialogOpen, setIsDeepseekDialogOpen] = useState(false);
-  const [analytics, setAnalytics] = useState({
-    totalUsers: 0,
-    activeUsers: 0,
-    totalUsage: 0,
-    usageChange: 0,
-  });
-
-  const [stats, setStats] = useState<Stats | null>(null);
+export default async function AdminDashboard() {
+  // Fetch analytics data on the server
+  const { userId } = await auth();
+  if (!userId) throw new Error('Unauthorized');
   const analyticsService = AnalyticsService.getInstance();
-
-  useEffect(() => {
-    const fetchAnalytics = async () => {
-      try {
-        const data = await analyticsService.getAnalytics();
-        setAnalytics({
-          totalUsers: data.totalUsers,
-          activeUsers: data.dashboardOverview.totalPromptViews,
-          totalUsage: data.totalUsage,
-          usageChange: 12, // This should be calculated based on historical data
-        });
-        setStats(data);
-      } catch (error) {
-        console.error('Error fetching analytics:', error);
-      }
-    };
-
-    fetchAnalytics();
-  }, []);
+  const data = (await analyticsService.getAnalytics({
+    period: '7d',
+    type: 'all',
+    userId,
+  })) as AllAnalytics;
+  // Convert createdAt fields to string for Stats type
+  const stats: Stats = {
+    ...data,
+    recentLogs: [],
+    dashboardOverview: {
+      ...data.dashboardOverview,
+      recentActivity: {
+        ...data.dashboardOverview.recentActivity,
+        usages: data.dashboardOverview.recentActivity.usages.map(u => ({
+          ...u,
+          createdAt: u.createdAt instanceof Date ? u.createdAt.toISOString() : u.createdAt,
+        })),
+      },
+    },
+  };
 
   const cards = [
     {
@@ -291,7 +283,7 @@ export default function AdminDashboard() {
       title: 'API Usage',
       description: 'View API usage statistics and costs',
       icon: <BarChart2 className="h-6 w-6" />,
-      onClick: () => setIsApiUsageDialogOpen(true),
+      onClick: () => {},
     },
     {
       title: 'User Management',
@@ -320,57 +312,6 @@ export default function AdminDashboard() {
     lastChecked: new Date().toLocaleString(),
   };
 
-  // Add DeepSeek cost tracking
-  const [deepseekCosts, setDeepseekCosts] = useState<any>(null);
-  const [isLoadingCosts, setIsLoadingCosts] = useState(true);
-
-  useEffect(() => {
-    const fetchDeepseekCosts = async () => {
-      try {
-        const response = await fetch('/api/admin/deepseek-costs');
-        if (!response.ok) throw new Error('Failed to fetch costs');
-        const data = await response.json();
-        setDeepseekCosts(data);
-      } catch (error) {
-        console.error('Error fetching DeepSeek costs:', error);
-      } finally {
-        setIsLoadingCosts(false);
-      }
-    };
-
-    fetchDeepseekCosts();
-  }, []);
-
-  // Update the AI API Cost badge with real data
-  const aiCostAction = quickActions.find(action => action.title === 'API Usage');
-  if (aiCostAction && deepseekCosts) {
-    console.log(`Current Month: $${deepseekCosts.totalCost.toFixed(2)}`);
-  }
-
-  // Add DeepSeek cost card to the stats overview
-  const deepseekCostCard = {
-    title: 'DeepSeek API Cost',
-    value: deepseekCosts ? deepseekCosts.totalCost : 0,
-    icon: BarChart2,
-    description: "Current month's API usage cost",
-    trend: deepseekCosts
-      ? {
-          value: `${deepseekCosts.cacheHitRate.toFixed(1)}%`,
-          direction: 'up',
-          period: 'cache hit rate',
-        }
-      : {
-          value: '0%',
-          direction: 'up',
-          period: 'cache hit rate',
-        },
-    color: 'bg-indigo-500',
-    status: 'healthy',
-  };
-
-  // Add the cost card to the cards array
-  cards.push(deepseekCostCard);
-
   return (
     <div className="space-y-8">
       {/* Header Section */}
@@ -395,11 +336,6 @@ export default function AdminDashboard() {
           <Card
             key={card.title}
             className="group transform cursor-pointer p-6 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:shadow-lg"
-            onClick={() => {
-              if (card.title === 'DeepSeek API Cost') {
-                setIsDeepseekDialogOpen(true);
-              }
-            }}
           >
             <div className="flex items-center justify-between">
               <div>
@@ -448,92 +384,88 @@ export default function AdminDashboard() {
       {/* System Status and Recent Activity */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         {/* System Status */}
-        <Suspense fallback={<SystemStatusSkeleton />}>
+        <Card className="p-6 transition-all duration-300 hover:shadow-lg">
+          <h3 className="mb-4 text-sm font-medium text-gray-500">System Status</h3>
+          <div className="space-y-4">
+            {Object.entries(systemStatus).map(
+              ([key, value]) =>
+                key !== 'lastChecked' && (
+                  <div key={key} className="group flex items-center justify-between">
+                    <span className="text-sm text-gray-600 transition-colors duration-200 group-hover:text-gray-900">
+                      {key.charAt(0).toUpperCase() + key.slice(1)}
+                    </span>
+                    <Badge
+                      variant="outline"
+                      className="border-green-200 bg-green-50 text-green-700 transition-colors duration-200 group-hover:bg-green-100"
+                    >
+                      {value}
+                    </Badge>
+                  </div>
+                )
+            )}
+            <div className="border-t pt-4">
+              <div className="flex items-center text-xs text-gray-500">
+                <Clock className="mr-1 h-4 w-4" />
+                Last checked: {systemStatus.lastChecked}
+              </div>
+            </div>
+          </div>
+        </Card>
+
+        {/* Recent Activity */}
+        <Card className="lg:col-span-2">
           <Card className="p-6 transition-all duration-300 hover:shadow-lg">
-            <h3 className="mb-4 text-sm font-medium text-gray-500">System Status</h3>
-            <div className="space-y-4">
-              {Object.entries(systemStatus).map(
-                ([key, value]) =>
-                  key !== 'lastChecked' && (
-                    <div key={key} className="group flex items-center justify-between">
-                      <span className="text-sm text-gray-600 transition-colors duration-200 group-hover:text-gray-900">
-                        {key.charAt(0).toUpperCase() + key.slice(1)}
-                      </span>
-                      <Badge
-                        variant="outline"
-                        className="border-green-200 bg-green-50 text-green-700 transition-colors duration-200 group-hover:bg-green-100"
-                      >
-                        {value}
-                      </Badge>
+            <h3 className="mb-4 text-sm font-medium text-gray-500">Recent Activity</h3>
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+              <div>
+                <h4 className="mb-2 text-xs font-medium text-gray-500">Recent User Signups</h4>
+                <div className="space-y-2">
+                  {stats?.dashboardOverview.recentActivity.usages.slice(0, 5).map(usage => (
+                    <div
+                      key={usage.id}
+                      className="group flex items-center space-x-3 rounded-lg p-2 transition-all duration-200 hover:bg-gray-50"
+                    >
+                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 transition-colors duration-200 group-hover:bg-gray-200">
+                        <Users className="h-4 w-4 text-gray-500 transition-colors duration-200 group-hover:text-gray-700" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-900 transition-colors duration-200 group-hover:text-gray-700">
+                          {usage.user?.name || 'Unknown User'}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          {new Date(usage.createdAt).toLocaleString()}
+                        </p>
+                      </div>
                     </div>
-                  )
-              )}
-              <div className="border-t pt-4">
-                <div className="flex items-center text-xs text-gray-500">
-                  <Clock className="mr-1 h-4 w-4" />
-                  Last checked: {systemStatus.lastChecked}
+                  ))}
+                </div>
+              </div>
+              <div>
+                <h4 className="mb-2 text-xs font-medium text-gray-500">Recent Prompt Usage</h4>
+                <div className="space-y-2">
+                  {stats?.dashboardOverview.recentActivity.usages.slice(0, 5).map(usage => (
+                    <div
+                      key={usage.id}
+                      className="group flex items-center space-x-3 rounded-lg p-2 transition-all duration-200 hover:bg-gray-50"
+                    >
+                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 transition-colors duration-200 group-hover:bg-gray-200">
+                        <MessageSquare className="h-4 w-4 text-gray-500 transition-colors duration-200 group-hover:text-gray-700" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-900 transition-colors duration-200 group-hover:text-gray-700">
+                          {usage.prompt?.name || 'Unknown Prompt'}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          {new Date(usage.createdAt).toLocaleString()}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
           </Card>
-        </Suspense>
-
-        {/* Recent Activity */}
-        <Suspense fallback={<RecentActivitySkeleton />}>
-          <div className="lg:col-span-2">
-            <Card className="p-6 transition-all duration-300 hover:shadow-lg">
-              <h3 className="mb-4 text-sm font-medium text-gray-500">Recent Activity</h3>
-              <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                <div>
-                  <h4 className="mb-2 text-xs font-medium text-gray-500">Recent User Signups</h4>
-                  <div className="space-y-2">
-                    {stats?.dashboardOverview.recentActivity.usages.slice(0, 5).map(usage => (
-                      <div
-                        key={usage.id}
-                        className="group flex items-center space-x-3 rounded-lg p-2 transition-all duration-200 hover:bg-gray-50"
-                      >
-                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 transition-colors duration-200 group-hover:bg-gray-200">
-                          <Users className="h-4 w-4 text-gray-500 transition-colors duration-200 group-hover:text-gray-700" />
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium text-gray-900 transition-colors duration-200 group-hover:text-gray-700">
-                            {usage.user?.name || 'Unknown User'}
-                          </p>
-                          <p className="text-xs text-gray-500">
-                            {new Date(usage.createdAt).toLocaleString()}
-                          </p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                <div>
-                  <h4 className="mb-2 text-xs font-medium text-gray-500">Recent Prompt Usage</h4>
-                  <div className="space-y-2">
-                    {stats?.dashboardOverview.recentActivity.usages.slice(0, 5).map(usage => (
-                      <div
-                        key={usage.id}
-                        className="group flex items-center space-x-3 rounded-lg p-2 transition-all duration-200 hover:bg-gray-50"
-                      >
-                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 transition-colors duration-200 group-hover:bg-gray-200">
-                          <MessageSquare className="h-4 w-4 text-gray-500 transition-colors duration-200 group-hover:text-gray-700" />
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium text-gray-900 transition-colors duration-200 group-hover:text-gray-700">
-                            {usage.prompt?.name || 'Unknown Prompt'}
-                          </p>
-                          <p className="text-xs text-gray-500">
-                            {new Date(usage.createdAt).toLocaleString()}
-                          </p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </Card>
-          </div>
-        </Suspense>
+        </Card>
       </div>
 
       {/* Audit Logs */}
@@ -545,37 +477,25 @@ export default function AdminDashboard() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <Suspense fallback={<CardSkeleton />}>
-            {stats?.recentLogs && (
-              <div className="space-y-4">
-                {stats.recentLogs.map(log => (
-                  <Card key={log.id} className="p-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-medium">{log.user.name || log.user.email}</p>
-                        <p className="text-xs text-gray-500">{log.action}</p>
-                      </div>
-                      <p className="text-xs text-gray-500">
-                        {new Date(log.createdAt).toLocaleString()}
-                      </p>
+          {stats?.recentLogs && (
+            <div className="space-y-4">
+              {stats.recentLogs.map(log => (
+                <Card key={log.id} className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium">{log.user.name || log.user.email}</p>
+                      <p className="text-xs text-gray-500">{log.action}</p>
                     </div>
-                  </Card>
-                ))}
-              </div>
-            )}
-          </Suspense>
+                    <p className="text-xs text-gray-500">
+                      {new Date(log.createdAt).toLocaleString()}
+                    </p>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
-
-      {/* API Usage Dialog */}
-      <ApiUsageDialog open={isApiUsageDialogOpen} onOpenChange={setIsApiUsageDialogOpen} />
-
-      {/* DeepSeek Dialog */}
-      <DeepseekDialog
-        open={isDeepseekDialogOpen}
-        onOpenChange={setIsDeepseekDialogOpen}
-        costs={deepseekCosts}
-      />
     </div>
   );
 }

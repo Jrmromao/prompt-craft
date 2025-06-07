@@ -2,6 +2,10 @@ import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { prisma } from '@/lib/prisma';
 
+// Configure route as dynamic
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
 // ⚠️ DEVELOPMENT ONLY: This endpoint should be removed before going to production
 // This is a temporary solution for development and testing purposes only
 export async function POST(req: Request) {

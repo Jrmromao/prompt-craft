@@ -1,16 +1,24 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { AnalyticsService } from '@/lib/services/analyticsService';
+import { AnalyticsService, AllAnalytics } from '@/lib/services/analyticsService';
 import AnalyticsCharts from './components/AnalyticsCharts';
 import { Badge } from '@/components/ui/badge';
 import { Users, FileText, Activity, TrendingUp, BarChart2, Clock, Star, Copy } from 'lucide-react';
+import { auth } from '@clerk/nextjs/server';
 
 // Mark this page as dynamic
 export const dynamic = 'force-dynamic';
 
 async function getAnalytics() {
   try {
+    const { userId } = await auth();
+    if (!userId) throw new Error('Unauthorized');
+
     const analyticsService = AnalyticsService.getInstance();
-    const data = await analyticsService.getAnalytics();
+    const data = await analyticsService.getAnalytics({
+      period: '7d', // or another period if you want
+      type: 'all',  // or 'users', 'prompts', 'usage'
+      userId,
+    }) as AllAnalytics;
 
     // Calculate growth rate
     const growthRate =

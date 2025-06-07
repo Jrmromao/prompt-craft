@@ -5,7 +5,8 @@ import { z } from 'zod';
 import { dynamicRouteConfig, withDynamicRoute } from '@/lib/utils/dynamicRoute';
 
 // Export dynamic configuration
-export const { dynamic, revalidate, runtime } = dynamicRouteConfig;
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
 
 const ticketSchema = z.object({
   title: z.string().min(1, 'Title is required'),

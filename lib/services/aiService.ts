@@ -9,6 +9,15 @@ interface GenerateOptions {
   model?: AIModel;
   maxTokens?: number;
   temperature?: number;
+  userId?: string;
+}
+
+interface RunPromptOptions {
+  promptId: string;
+  input: string;
+  model?: AIModel;
+  temperature?: number;
+  userId?: string;
 }
 
 export class AIService {
@@ -18,9 +27,9 @@ export class AIService {
   private readonly ANTHROPIC_API_KEY: string;
 
   private constructor() {
-    this.DEEPSEEK_API_KEY = process.env.DEEPSEEK_API_KEY!;
-    this.OPENAI_API_KEY = process.env.OPENAI_API_KEY!;
-    this.ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY!;
+    this.DEEPSEEK_API_KEY = process.env.DEEPSEEK_API_KEY || '';
+    this.OPENAI_API_KEY = process.env.OPENAI_API_KEY || '';
+    this.ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY || '';
   }
 
   public static getInstance(): AIService {
@@ -47,24 +56,33 @@ export class AIService {
   }
 
   private async validateModelAccess(userId: string, model: AIModel): Promise<boolean> {
-    const planType = await this.getUserPlanType(userId);
-    // Free and Lite users can only use deepseek
-    if (planType === PlanType.FREE || planType === PlanType.LITE) {
-      return model === 'deepseek';
-    }
-    // Pro users can use all models
-    return planType === PlanType.PRO;
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { planType: true },
+    });
+
+    if (!user) return false;
+
+    const modelAccess: Record<PlanType, AIModel[]> = {
+      [PlanType.FREE]: ['deepseek'],
+      [PlanType.LITE]: ['deepseek', 'gpt4'],
+      [PlanType.PRO]: ['deepseek', 'gpt4', 'claude'],
+    };
+
+    return modelAccess[user.planType as PlanType].includes(model);
   }
 
-  public async generateText(userId: string, options: GenerateOptions): Promise<string> {
+  public async generateText(options: GenerateOptions): Promise<string> {
     const model = options.model || 'deepseek';
 
-    // Validate model access
-    const hasAccess = await this.validateModelAccess(userId, model);
-    if (!hasAccess) {
-      throw new Error(
-        'You do not have access to this model. Please upgrade to Pro for advanced models.'
-      );
+    // Validate model access if userId is provided
+    if (options.userId) {
+      const hasAccess = await this.validateModelAccess(options.userId, model);
+      if (!hasAccess) {
+        throw new Error(
+          'You do not have access to this model. Please upgrade to Pro for advanced models.'
+        );
+      }
     }
 
     // Generate text based on the model
@@ -78,6 +96,31 @@ export class AIService {
       default:
         throw new Error('Invalid model specified');
     }
+  }
+
+  public async runPrompt(options: RunPromptOptions): Promise<{ text: string }> {
+    // Get the prompt from the database
+    const prompt = await prisma.prompt.findUnique({
+      where: { id: options.promptId },
+      select: { content: true, userId: true },
+    });
+
+    if (!prompt) {
+      throw new Error('Prompt not found');
+    }
+
+    // Combine the prompt template with the user input
+    const fullPrompt = prompt.content.replace('{input}', options.input);
+
+    // Generate the response
+    const text = await this.generateText({
+      prompt: fullPrompt,
+      model: options.model,
+      temperature: options.temperature,
+      userId: options.userId,
+    });
+
+    return { text };
   }
 
   private async generateWithDeepseek(options: GenerateOptions): Promise<string> {

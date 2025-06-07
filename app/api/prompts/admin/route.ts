@@ -4,7 +4,8 @@ import { requireAdmin } from '@/lib/auth';
 import { dynamicRouteConfig, withDynamicRoute } from '@/lib/utils/dynamicRoute';
 
 // Export dynamic configuration
-export const { dynamic, revalidate, runtime } = dynamicRouteConfig;
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
 
 // GET: List pending prompts
 export async function GET() {

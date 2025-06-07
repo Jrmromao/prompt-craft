@@ -1,10 +1,11 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { BillingService } from '@/lib/services/billingService';
-import { dynamic, runtime, securityHeaders } from '@/app/api/config';
+import { securityHeaders } from '@/app/api/config';
 
-// Configure the route as dynamic
-export { dynamic, runtime };
+// Export dynamic configuration
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
 
 // Define the portal handler
 async function portalHandler(request: Request) {

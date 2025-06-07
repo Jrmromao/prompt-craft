@@ -1,10 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@clerk/nextjs/server';
+// import { dynamic, runtime, securityHeaders, cacheConfig } from '@/app/api/config';
+import { securityHeaders, cacheConfig } from '@/app/api/config';
 import { PromptService } from '@/lib/services/promptService';
-import { dynamic, runtime, securityHeaders, cacheConfig } from '@/app/api/config';
+import { auth } from '@clerk/nextjs/server';
+import { rateLimit } from '@/lib/utils/rateLimit';
 
-// Configure the route as dynamic
-export { dynamic, runtime };
+// Export dynamic configuration
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
 
 // Cache control headers
 const getCacheControl = (duration: number) => {

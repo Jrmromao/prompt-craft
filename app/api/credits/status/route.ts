@@ -3,6 +3,10 @@ import { auth } from '@clerk/nextjs/server';
 import { CreditService } from '@/lib/services/creditService';
 import { SubscriptionService } from '@/lib/services/subscriptionService';
 
+// Configure route as dynamic
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
 export async function GET() {
   try {
     const { userId } = await auth();

@@ -99,7 +99,8 @@ import { NextResponse } from 'next/server';
 import { dynamicRouteConfig, withDynamicRoute } from '@/lib/utils/dynamicRoute';
 
 // Export dynamic configuration
-export const { dynamic, revalidate, runtime } = dynamicRouteConfig;
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
 
 // Define the main handler
 async function createUserHandler(req: Request) {

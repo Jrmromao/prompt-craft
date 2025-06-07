@@ -1,94 +1,86 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
-import { sendPromptToLLM } from '@/services/aiService';
-import { prisma } from '@/lib/prisma';
-import { PlanType } from '@prisma/client';
-import { PromptPayload } from '@/types/ai';
-import { dynamicRouteConfig, withDynamicRoute } from '@/lib/utils/dynamicRoute';
+import { AIService } from '@/lib/services/aiService';
+import { rateLimit } from '@/lib/utils/rateLimit';
+import { securityHeaders, cacheConfig } from '@/app/api/config';
 
 // Export dynamic configuration
-export const { dynamic, revalidate, runtime } = dynamicRouteConfig;
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
 
-// Define the main handler
-async function runHandler(req: Request) {
+// Rate limiting configuration
+const limiter = rateLimit({
+  interval: 60 * 1000, // 1 minute
+  uniqueTokenPerInterval: 500
+});
+
+// Define the handler
+async function runHandler(request: NextRequest) {
   try {
-    const { userId: clerkId } = await auth();
-    if (!clerkId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const { userId } = await auth();
+    if (!userId) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401, headers: securityHeaders }
+      );
     }
 
-    const { prompt } = await req.json();
-    if (!prompt) {
-      return NextResponse.json({ error: 'Prompt is required' }, { status: 400 });
+    // Rate limiting per user
+    try {
+      await limiter.check(10, userId); // 10 requests per minute per user
+    } catch {
+      return NextResponse.json(
+        { error: 'Rate limit exceeded' },
+        { status: 429, headers: securityHeaders }
+      );
     }
 
-    // Get user's plan type
-    const user = await prisma.user.findUnique({
-      where: { clerkId },
-      select: { id: true, planType: true },
+    const body = await request.json();
+    const { promptId, input, model, temperature } = body;
+
+    if (!promptId || !input) {
+      return NextResponse.json(
+        { error: 'Prompt ID and input are required' },
+        { status: 400, headers: securityHeaders }
+      );
+    }
+
+    const aiService = AIService.getInstance();
+    const result = await aiService.runPrompt({
+      promptId,
+      input,
+      model: model || 'gpt-4',
+      temperature: temperature || 0.7,
+      userId
     });
 
-    if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
-    }
-
-    // Get user's playground runs this month
-    const startOfMonth = new Date();
-    startOfMonth.setDate(1);
-    startOfMonth.setHours(0, 0, 0, 0);
-
-    const runsThisMonth = await prisma.playgroundRun.count({
-      where: {
-        userId: user.id,
-        createdAt: {
-          gte: startOfMonth,
-        },
-      },
+    // Create response with security headers
+    const response = NextResponse.json(result);
+    
+    // Add security headers
+    Object.entries(securityHeaders).forEach(([key, value]) => {
+      response.headers.set(key, value);
     });
 
-    // Check if user has exceeded their limit
-    const TIER_LIMITS: Record<PlanType, number | null> = {
-      FREE: 20,
-      LITE: 300,
-      PRO: null, // unlimited
-    };
+    // Add cache headers for similar inputs
+    response.headers.set('Cache-Control', 'private, no-cache, no-store, must-revalidate');
+    response.headers.set('Vary', 'Authorization, X-Requested-With');
 
-    const limit = TIER_LIMITS[user.planType];
-    if (limit !== null && runsThisMonth >= limit) {
-      return NextResponse.json({ error: 'Playground run limit exceeded' }, { status: 429 });
-    }
-
-    // Run the prompt
-    const payload: PromptPayload = {
-      content: prompt,
-      promptType: 'text',
-    };
-
-    const result = await sendPromptToLLM(payload);
-
-    // Record the run
-    await prisma.playgroundRun.create({
-      data: {
-        userId: user.id,
-        input: prompt,
-        output: result.text,
-      },
-    });
-
-    return NextResponse.json(result);
+    return response;
   } catch (error) {
     console.error('Error running prompt:', error);
     return NextResponse.json(
-      { error: 'Failed to run prompt' },
-      { status: 500 }
+      { error: 'Internal server error' },
+      { 
+        status: 500,
+        headers: {
+          'Content-Type': 'application/json',
+          ...securityHeaders
+        }
+      }
     );
   }
 }
 
-// Define fallback data
-const fallbackData = {
-  error: 'This endpoint is only available at runtime',
-};
-
-// Export the wrapped handler
-export const POST = withDynamicRoute(runHandler, fallbackData);
+// Export the handler
+export const POST = runHandler;

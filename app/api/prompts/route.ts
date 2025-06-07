@@ -84,9 +84,7 @@ export async function POST(req: Request) {
 
     // Always call the LLM API first
     const aiService = AIService.getInstance();
-    const llmResult = await aiService.generateText(user.id, {
-      prompt: content,
-    });
+    const llmResult = await aiService.generateText({ userId: user.id, prompt: content });
 
     let savedPrompt = null;
     if (userRole === Role.ADMIN || userPlanType === PlanType.PRO) {
