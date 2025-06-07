@@ -20,6 +20,7 @@ import Script from 'next/script';
 import { useTheme } from 'next-themes';
 import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
+import { ComingSoonDialog } from '@/components/ComingSoonDialog';
 
 // SEO metadata
 const metadata = {
@@ -716,9 +717,7 @@ const PromptCraftLandingClient = () => {
                   Join thousands of creators who are already generating better prompts with
                   PromptCraft
                 </p>
-                <GradientButton className="px-12 py-4 text-lg">
-                  Start Your Free Trial <ChevronRight className="ml-2 h-5 w-5" />
-                </GradientButton>
+                <ComingSoonDialog />
               </div>
             </div>
           </section>

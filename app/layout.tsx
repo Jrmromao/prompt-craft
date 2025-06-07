@@ -6,6 +6,7 @@ import { Footer } from '@/app/components/Footer';
 import Providers from '@/components/Providers';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import { TooltipProvider } from '@/components/ui/tooltip';
+import { Toaster } from 'sonner';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -29,6 +30,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </Providers>
           </ThemeProvider>
         </TooltipProvider>
+        <Toaster />
       </body>
     </html>
   );

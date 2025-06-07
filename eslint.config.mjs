@@ -1,12 +1,27 @@
 import globals from 'globals';
-import tseslint from 'typescript-eslint';
+import * as tseslint from '@typescript-eslint/eslint-plugin';
+import tsParser from '@typescript-eslint/parser';
 
 export default [
-  // TypeScript config (recommended, includes plugin and parser)
-  ...tseslint.configs.recommended,
-  { 
+  // TypeScript config
+  {
     files: ['**/*.{ts,tsx}'],
+    languageOptions: {
+      parser: tsParser,
+      parserOptions: {
+        ecmaVersion: 'latest',
+        sourceType: 'module',
+      },
+      globals: {
+        ...globals.browser,
+        ...globals.node,
+      },
+    },
+    plugins: {
+      '@typescript-eslint': tseslint,
+    },
     rules: {
+      ...tseslint.configs.recommended.rules,
       '@typescript-eslint/no-explicit-any': 'off',
       '@typescript-eslint/no-unsafe-function-type': 'off',
       '@typescript-eslint/no-empty-object-type': 'off',

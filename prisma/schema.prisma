@@ -461,6 +461,17 @@ model Moderation {
   updatedAt    DateTime @updatedAt
 }
 
+model EmailSignup {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  status    EmailSignupStatus @default(PENDING)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([email])
+  @@index([status])
+}
+
 enum Role {
   USER
   ADMIN
@@ -521,4 +532,10 @@ enum UserStatus {
   ACTIVE
   SUSPENDED
   BANNED
+}
+
+enum EmailSignupStatus {
+  PENDING
+  CONFIRMED
+  UNSUBSCRIBED
 }
