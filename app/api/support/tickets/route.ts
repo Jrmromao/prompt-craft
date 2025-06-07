@@ -15,11 +15,7 @@ const ticketSchema = z.object({
 });
 
 // Define the main handler
-async function ticketsHandler(request?: Request) {
-  if (!request) {
-    return NextResponse.json({ error: 'Request is required' }, { status: 400 });
-  }
-
+async function ticketsHandler(request: Request) {
   const { userId } = await auth();
   if (!userId) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -40,18 +36,8 @@ async function ticketsHandler(request?: Request) {
   return NextResponse.json(tickets);
 }
 
-// Define fallback data
-const fallbackData = {
-  tickets: [],
-  total: 0,
-  page: 1,
-  limit: 10,
-};
-
-// Export the wrapped handler
-export const GET = withDynamicRoute(ticketsHandler, fallbackData);
-
-export async function POST(request: Request) {
+// Define the POST handler
+async function createTicketHandler(request: Request) {
   try {
     const { userId } = await auth();
     if (!userId) {
@@ -73,3 +59,12 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
+
+// Define fallback data
+const fallbackData = {
+  error: 'This endpoint is only available at runtime',
+};
+
+// Export the wrapped handlers
+export const GET = withDynamicRoute(ticketsHandler, fallbackData);
+export const POST = withDynamicRoute(createTicketHandler, fallbackData);

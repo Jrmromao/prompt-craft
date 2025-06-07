@@ -3,8 +3,13 @@ import {
   createModeratedWord,
   removeModeratedWord,
 } from '@/app/admin/moderation/services/moderationService';
+import { dynamicRouteConfig, withDynamicRoute } from '@/lib/utils/dynamicRoute';
 
-export async function POST(req: NextRequest) {
+// Export dynamic configuration
+export const { dynamic, revalidate, runtime } = dynamicRouteConfig;
+
+// Define the main handler
+async function moderatedWordsHandler(req: NextRequest) {
   try {
     const { word, severity, category, status } = await req.json();
     if (!word || !severity || !category || !status) {
@@ -16,6 +21,14 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Failed to add word' }, { status: 500 });
   }
 }
+
+// Define fallback data
+const fallbackData = {
+  error: 'This endpoint is only available at runtime',
+};
+
+// Export the wrapped handler
+export const POST = withDynamicRoute(moderatedWordsHandler, fallbackData);
 
 export async function DELETE(req: NextRequest) {
   try {

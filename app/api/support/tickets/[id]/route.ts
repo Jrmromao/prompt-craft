@@ -8,13 +8,18 @@ import { dynamicRouteConfig, withDynamicRoute } from '@/lib/utils/dynamicRoute';
 export const { dynamic, revalidate, runtime } = dynamicRouteConfig;
 
 const replySchema = z.object({
-  content: z.string().min(1, 'Reply content is required'),
-  isInternal: z.boolean().optional(),
+  content: z.string().min(1, 'Message content is required'),
 });
 
 // Define the main handler
-async function ticketDetailHandler(request: Request, context?: { params?: Record<string, string> }) {
-  const ticketId = context?.params?.id || '';
+async function ticketDetailHandler(
+  request: Request,
+  context?: { params?: Record<string, string> }
+) {
+  const ticketId = context?.params?.id;
+  if (!ticketId) {
+    return NextResponse.json({ error: 'Ticket ID is required' }, { status: 400 });
+  }
 
   const { userId } = await auth();
   if (!userId) {
@@ -31,28 +36,17 @@ async function ticketDetailHandler(request: Request, context?: { params?: Record
   return NextResponse.json(ticket);
 }
 
-// Define fallback data
-const fallbackData = {
-  id: '',
-  title: '',
-  description: '',
-  status: 'OPEN',
-  category: 'GENERAL_INQUIRY',
-  priority: 'MEDIUM',
-  createdAt: new Date().toISOString(),
-  updatedAt: new Date().toISOString(),
-  replies: [],
-};
-
-// Export the wrapped handler
-export const GET = withDynamicRoute(ticketDetailHandler, fallbackData);
-
-export async function POST(
+// Define the POST handler
+async function addReplyHandler(
   request: Request,
-  // @ts-ignore
-  { params }
+  context?: { params?: Record<string, string> }
 ) {
   try {
+    const ticketId = context?.params?.id;
+    if (!ticketId) {
+      return NextResponse.json({ error: 'Ticket ID is required' }, { status: 400 });
+    }
+
     const { userId } = await auth();
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -62,7 +56,7 @@ export async function POST(
     const validatedData = replySchema.parse(body);
 
     const supportService = SupportService.getInstance();
-    const message = await supportService.addMessage(params.id, userId, validatedData.content);
+    const message = await supportService.addMessage(ticketId, userId, validatedData.content);
 
     return NextResponse.json(message);
   } catch (error) {
@@ -73,6 +67,15 @@ export async function POST(
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
+
+// Define fallback data
+const fallbackData = {
+  error: 'This endpoint is only available at runtime',
+};
+
+// Export the wrapped handlers
+export const GET = withDynamicRoute(ticketDetailHandler, fallbackData);
+export const POST = withDynamicRoute(addReplyHandler, fallbackData);
 
 export async function PATCH(
   request: Request,

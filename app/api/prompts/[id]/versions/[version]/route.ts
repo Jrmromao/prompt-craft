@@ -1,41 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { VersionControlService } from '@/lib/services/versionControlService';
+import { dynamicRouteConfig, withDynamicRoute } from '@/lib/utils/dynamicRoute';
 
-export async function GET(
+// Export dynamic configuration
+export const { dynamic, revalidate, runtime } = dynamicRouteConfig;
+
+// Define the main handler
+async function versionHandler(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string; version: string }> }
+  context: { params: Record<string, string> }
 ) {
-  const { id, version } = await params;
-  try {
-    const { userId } = await auth();
-    if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    if (!version) {
-      return NextResponse.json({ error: 'Version parameter is required' }, { status: 400 });
-    }
-
-    const versionControlService = VersionControlService.getInstance();
-    const versionData = await versionControlService.getVersion(version);
-
-    if (!versionData) {
-      return NextResponse.json({ error: 'Version not found' }, { status: 404 });
-    }
-
-    return NextResponse.json(versionData);
-  } catch (error) {
-    console.error('Error getting version:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
-  }
-}
-
-export async function POST(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string; version: string }> }
-) {
-  const { id, version } = await params;
+  const { id, version } = context.params;
   try {
     const { userId } = await auth();
     if (!userId) {
@@ -61,3 +37,11 @@ export async function POST(
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
+
+// Define fallback data
+const fallbackData = {
+  error: 'This endpoint is only available at runtime',
+};
+
+// Export the wrapped handler
+export const POST = withDynamicRoute(versionHandler, fallbackData);

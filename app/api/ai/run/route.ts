@@ -4,8 +4,13 @@ import { sendPromptToLLM } from '@/services/aiService';
 import { prisma } from '@/lib/prisma';
 import { PlanType } from '@prisma/client';
 import { PromptPayload } from '@/types/ai';
+import { dynamicRouteConfig, withDynamicRoute } from '@/lib/utils/dynamicRoute';
 
-export async function POST(req: Request) {
+// Export dynamic configuration
+export const { dynamic, revalidate, runtime } = dynamicRouteConfig;
+
+// Define the main handler
+async function runHandler(req: Request) {
   try {
     const { userId: clerkId } = await auth();
     if (!clerkId) {
@@ -58,43 +63,32 @@ export async function POST(req: Request) {
       content: prompt,
       promptType: 'text',
     };
-    try {
-      const result = await sendPromptToLLM(payload);
 
-      // Record the playground run
-      await prisma.playgroundRun.create({
-        data: {
-          userId: user.id,
-          input: prompt,
-          output: result || null,
-        },
-      });
+    const result = await sendPromptToLLM(payload);
 
-      return NextResponse.json({ result });
-    } catch (error: any) {
-      console.error('Error running prompt:', error);
+    // Record the run
+    await prisma.playgroundRun.create({
+      data: {
+        userId: user.id,
+        input: prompt,
+        output: result.text,
+      },
+    });
 
-      // Handle specific errors
-      if (error.message?.includes('Insufficient credits')) {
-        return NextResponse.json(
-          { error: 'Insufficient credits. Please purchase more credits to continue.' },
-          { status: 402 }
-        );
-      }
-      if (error.message?.includes('upgrade')) {
-        return NextResponse.json(
-          { error: 'This feature requires a Pro subscription. Please upgrade to continue.' },
-          { status: 403 }
-        );
-      }
-
-      return NextResponse.json(
-        { error: error.message || 'Internal server error' },
-        { status: 500 }
-      );
-    }
-  } catch (error: any) {
-    console.error('Error in /api/ai/run:', error);
-    return NextResponse.json({ error: error.message || 'Internal server error' }, { status: 500 });
+    return NextResponse.json(result);
+  } catch (error) {
+    console.error('Error running prompt:', error);
+    return NextResponse.json(
+      { error: 'Failed to run prompt' },
+      { status: 500 }
+    );
   }
 }
+
+// Define fallback data
+const fallbackData = {
+  error: 'This endpoint is only available at runtime',
+};
+
+// Export the wrapped handler
+export const POST = withDynamicRoute(runHandler, fallbackData);

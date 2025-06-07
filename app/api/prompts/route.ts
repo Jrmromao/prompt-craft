@@ -69,14 +69,14 @@ export async function POST(req: Request) {
     // 1. Get user and role
     const { userId } = await auth();
     if (!userId) {
-      return new NextResponse('Unauthorized', { status: 401 });
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     const user = await prisma.user.findUnique({
       where: { clerkId: userId },
       select: { id: true, role: true, planType: true },
     });
     if (!user) {
-      return new NextResponse('User not found', { status: 404 });
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
     const userRole = user.role as Role;
@@ -115,11 +115,11 @@ export async function POST(req: Request) {
       llmResult,
       savedPrompt,
     });
-  } catch (err) {
-    if (err instanceof Error && err.message.includes('prompt limit')) {
-      return NextResponse.json({ error: err.message }, { status: 403 });
-    }
-    console.error('Error saving prompt:', err);
-    return NextResponse.json({ error: 'Failed to save prompt' }, { status: 500 });
+  } catch (error) {
+    console.error('Error creating prompt:', error);
+    return NextResponse.json(
+      { error: 'Failed to create prompt' },
+      { status: 500 }
+    );
   }
 }

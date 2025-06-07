@@ -1,16 +1,10 @@
 import { NextResponse } from 'next/server';
-import { auth } from '@clerk/nextjs/server';
 import { PromptService } from '@/lib/services/promptService';
+import { requireAdmin } from '@/lib/auth';
+import { dynamicRouteConfig, withDynamicRoute } from '@/lib/utils/dynamicRoute';
 
-// Pseudo admin check (replace with real check in production)
-async function requireAdmin() {
-  const { userId } = await auth();
-  // TODO: Replace with real admin check
-  if (!userId /* || !isAdmin(userId) */) {
-    throw new Error('Unauthorized');
-  }
-  return userId;
-}
+// Export dynamic configuration
+export const { dynamic, revalidate, runtime } = dynamicRouteConfig;
 
 // GET: List pending prompts
 export async function GET() {
@@ -25,8 +19,8 @@ export async function GET() {
   }
 }
 
-// POST: Approve a prompt (expects { promptId })
-export async function POST(req: Request) {
+// Define the main handler
+async function promptsAdminHandler(req: Request) {
   try {
     await requireAdmin();
     const { promptId } = await req.json();
@@ -38,6 +32,14 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: message }, { status: 403 });
   }
 }
+
+// Define fallback data
+const fallbackData = {
+  error: 'This endpoint is only available at runtime',
+};
+
+// Export the wrapped handler
+export const POST = withDynamicRoute(promptsAdminHandler, fallbackData);
 
 // DELETE: Reject a prompt (expects { promptId })
 export async function DELETE(req: Request) {

@@ -96,8 +96,13 @@
 
 // app/api/create-users/route.ts
 import { NextResponse } from 'next/server';
+import { dynamicRouteConfig, withDynamicRoute } from '@/lib/utils/dynamicRoute';
 
-export async function POST(req: Request) {
+// Export dynamic configuration
+export const { dynamic, revalidate, runtime } = dynamicRouteConfig;
+
+// Define the main handler
+async function createUserHandler(req: Request) {
   try {
     console.log('Starting user creation with minimal fields');
 
@@ -131,35 +136,18 @@ export async function POST(req: Request) {
           email: 'ecokeepr@gmail.com',
           primary: true,
           verification: {
-            strategy: 'admin_verification', // This tells Clerk you're verifying this email as an admin
-            status: 'verified', // Pre-verify the email
+            strategy: 'admin_verification',
+            status: 'verified',
           },
         },
       ],
-
       username: 'testuser',
       password: 'SecureP@ssword2023!',
       first_name: 'John',
       last_name: 'Doe',
       skip_password_checks: true,
-      skip_password_requirement: false, // This user needs a password
+      skip_password_requirement: false,
     });
-
-    // Create the Clerk payload based on version 6.5.0 expected format
-    // const payload = JSON.stringify({
-    //     username: user   Data.username,
-    //     email_addresses: [
-    //         {
-    //             email: userData.email,
-    //             primary: true,
-    //             verified: true
-    //         }
-    //     ],
-    //     password: userData.password,
-    //     first_name: userData.firstName,
-    //     last_name: userData.lastName,
-    //     skip_password_checks: true
-    // });
 
     console.log('Making Clerk API request with payload structure:');
     console.log(payload);
@@ -232,3 +220,11 @@ export async function POST(req: Request) {
     );
   }
 }
+
+// Define fallback data
+const fallbackData = {
+  error: 'This endpoint is only available at runtime',
+};
+
+// Export the wrapped handler
+export const POST = withDynamicRoute(createUserHandler, fallbackData);

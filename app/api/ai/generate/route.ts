@@ -3,111 +3,61 @@ import { auth } from '@clerk/nextjs/server';
 import { prisma } from '@/lib/prisma';
 import { AIService } from '@/lib/services/aiService';
 import { CreditService } from '@/lib/services/creditService';
+import { dynamicRouteConfig, withDynamicRoute } from '@/lib/utils/dynamicRoute';
 
-export async function POST(req: Request) {
+// Export dynamic configuration
+export const { dynamic, revalidate, runtime } = dynamicRouteConfig;
+
+// Define the main handler
+async function generateHandler(request: Request) {
+  const { userId } = await auth();
+  if (!userId) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
   try {
-    const { userId } = await auth();
-    if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const body = await request.json();
+    const { prompt, model, temperature, maxTokens } = body;
 
-    const body = await req.json();
-    const { prompt, model = 'deepseek', maxTokens = 1000, temperature = 0.7 } = body;
-
+    // Validate required fields
     if (!prompt) {
       return NextResponse.json({ error: 'Prompt is required' }, { status: 400 });
     }
 
-    // Get user from database
-    const user = await prisma.user.findUnique({
-      where: { clerkId: userId },
-    });
-
-    if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
-    }
-
-    // Check credit balance
-    const requiredCredits = Math.ceil(maxTokens / 100); // 1 credit = 100 tokens
-    const creditCheck = await CreditService.getInstance().checkCreditBalance(
-      user.id,
-      requiredCredits
-    );
-
-    if (!creditCheck.hasEnoughCredits) {
-      return NextResponse.json(
-        {
-          error: 'Insufficient credits',
-          currentCredits: creditCheck.currentCredits,
-          requiredCredits: creditCheck.requiredCredits,
-          missingCredits: creditCheck.missingCredits,
-        },
-        { status: 402 }
-      );
-    }
-
-    // Generate text using AI service
-    const aiService = AIService.getInstance();
-    const generatedText = await aiService.generateText(user.id, {
-      prompt,
-      model,
-      maxTokens,
-      temperature,
-    });
-
-    // Deduct credits
-    await prisma.user.update({
-      where: { id: user.id },
-      data: {
-        credits: {
-          decrement: requiredCredits,
-        },
+    // Call AI service
+    const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${process.env.DEEPSEEK_API_KEY}`,
       },
+      body: JSON.stringify({
+        model: model || 'deepseek-chat',
+        messages: [{ role: 'user', content: prompt }],
+        temperature: temperature || 0.7,
+        max_tokens: maxTokens || 1000,
+      }),
     });
 
-    // Record the generation
-    await prisma.promptGeneration.create({
-      data: {
-        userId: user.id,
-        promptType: model,
-        input: prompt,
-        output: generatedText,
-        creditsUsed: requiredCredits,
-      },
-    });
-
-    return NextResponse.json({ text: generatedText });
-  } catch (error: any) {
-    console.error('Error generating text:', error);
-
-    // Handle specific errors
-    if (error.message?.includes('access to this model')) {
-      return NextResponse.json(
-        {
-          error: error.message,
-          upgradeRequired: true,
-        },
-        { status: 403 }
-      );
+    if (!response.ok) {
+      throw new Error(`AI service error: ${response.statusText}`);
     }
 
-    // Handle AI service errors
-    if (error.message?.includes('Failed to generate text')) {
-      return NextResponse.json(
-        {
-          error: error.message,
-        },
-        { status: 500 }
-      );
-    }
-
-    // Handle any other errors
+    const data = await response.json();
+    return NextResponse.json(data);
+  } catch (error) {
+    console.error('Error generating AI response:', error);
     return NextResponse.json(
-      {
-        error: 'An unexpected error occurred',
-        details: error.message,
-      },
+      { error: 'Failed to generate response' },
       { status: 500 }
     );
   }
 }
+
+// Define fallback data
+const fallbackData = {
+  error: 'This endpoint is only available at runtime',
+};
+
+// Export the wrapped handler
+export const POST = withDynamicRoute(generateHandler, fallbackData);
