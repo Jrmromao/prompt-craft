@@ -25,7 +25,7 @@ async function voteHandler(request: Request, context?: { params?: Record<string,
     }
 
     const promptService = PromptService.getInstance();
-    const result = await promptService.upvotePrompt(promptId);
+    const result = await promptService.upvotePrompt(promptId, userId, vote);
     return NextResponse.json(result);
   } catch (error) {
     console.error('Error voting on prompt:', error);

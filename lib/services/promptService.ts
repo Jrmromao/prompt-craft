@@ -278,7 +278,7 @@ export class PromptService {
   /**
    * Upvote a prompt
    */
-  async upvotePrompt(promptId: string) {
+  async upvotePrompt(promptId: string, userId: string, vote: string) {
     const prompt = await prisma.prompt.findUnique({ where: { id: promptId } });
     if (!prompt) throw new Error('Prompt not found');
 
