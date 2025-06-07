@@ -1,15 +1,20 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
-import { getUsageStatsByClerkId } from '@/app/services/profileService';
+import { UsageService } from '@/lib/services/usageService';
 
 export async function GET() {
-  const { userId } = await auth();
-  if (!userId) {
-    return new NextResponse('Unauthorized', { status: 401 });
+  try {
+    const { userId } = await auth();
+    if (!userId) {
+      return new NextResponse('Unauthorized', { status: 401 });
+    }
+
+    const usageService = UsageService.getInstance();
+    const usage = await usageService.getUserUsage(userId);
+
+    return NextResponse.json(usage);
+  } catch (error) {
+    console.error('Error fetching user usage:', error);
+    return NextResponse.json({ error: 'Failed to fetch user usage' }, { status: 500 });
   }
-  const stats = await getUsageStatsByClerkId(userId);
-  if (!stats) {
-    return new NextResponse('Not found', { status: 404 });
-  }
-  return NextResponse.json(stats);
 }
