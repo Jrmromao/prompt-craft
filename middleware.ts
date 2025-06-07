@@ -72,11 +72,62 @@ export default clerkMiddleware(async (auth, req: NextRequest) => {
 
     // Add security headers
     const response = NextResponse.next();
+    
+    // Basic security headers
     response.headers.set('X-Content-Type-Options', 'nosniff');
-    response.headers.set('X-Frame-Options', 'DENY');
+    response.headers.set('X-Frame-Options', 'SAMEORIGIN');
     response.headers.set('X-XSS-Protection', '1; mode=block');
     response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
-    response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+    
+    // Content Security Policy
+    response.headers.set(
+      'Content-Security-Policy',
+      [
+        "default-src 'self'",
+        "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com",
+        "style-src 'self' 'unsafe-inline'",
+        "img-src 'self' data: https: blob:",
+        "font-src 'self'",
+        "object-src 'none'",
+        "base-uri 'self'",
+        "form-action 'self'",
+        "frame-ancestors 'self'",
+        "block-all-mixed-content",
+        "upgrade-insecure-requests"
+      ].join('; ')
+    );
+    
+    // Permissions Policy
+    response.headers.set(
+      'Permissions-Policy',
+      [
+        'accelerometer=()',
+        'camera=()',
+        'geolocation=()',
+        'gyroscope=()',
+        'magnetometer=()',
+        'microphone=()',
+        'payment=()',
+        'usb=()',
+        'interest-cohort=()'
+      ].join(', ')
+    );
+    
+    // CORS headers
+    const allowedOrigins = [
+      'https://www.prompthive.co',
+      'https://prompthive.co',
+      'https://prompt-craft-git-main-joao-romaos-projects.vercel.app'
+    ];
+    
+    const origin = req.headers.get('origin');
+    if (origin && allowedOrigins.includes(origin)) {
+      response.headers.set('Access-Control-Allow-Origin', origin);
+      response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+      response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+      response.headers.set('Access-Control-Allow-Credentials', 'true');
+      response.headers.set('Access-Control-Max-Age', '86400'); // 24 hours
+    }
 
     // Apply IP blocking
     const ipBlockResponse = await withErrorHandling(ipBlockMiddleware)(req);
