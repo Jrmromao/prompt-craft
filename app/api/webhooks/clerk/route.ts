@@ -4,6 +4,7 @@ import { WebhookEvent, clerkClient } from '@clerk/nextjs/server';
 import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import S3Service from '@/services/S3Service';
+import { EmailService } from '@/lib/services/emailService';
 
 // Constants for security configurations
 const MAX_PAYLOAD_SIZE = 1048576; // 1MB in bytes
@@ -231,6 +232,34 @@ async function processWebhook(req: Request): Promise<NextResponse> {
             if (!success) {
               return NextResponse.json({ error: 'User creation failed' }, { status: 500 });
             }
+
+            // Add security alert email if user has security alerts enabled
+            const user = await prisma.user.findUnique({
+              where: { clerkId: user_id },
+              select: {
+                email: true,
+                name: true,
+                emailPreferences: true,
+              },
+            });
+
+            if (user) {
+              const emailPreferences = typeof user.emailPreferences === 'string'
+                ? JSON.parse(user.emailPreferences)
+                : user.emailPreferences;
+
+              if (emailPreferences?.securityAlerts) {
+                const emailService = EmailService.getInstance();
+                await emailService.sendSecurityAlert(
+                  user.email,
+                  user.name || 'there',
+                  'Unknown Location', // You can enhance this with actual location detection
+                  'Unknown Device'    // You can enhance this with actual device detection
+                );
+              }
+            }
+
+            return NextResponse.json({ success: true });
           } catch (error) {
             console.error('Error in social login user creation');
             return NextResponse.json({ error: 'Authentication processing error' }, { status: 500 });
@@ -253,8 +282,27 @@ async function processWebhook(req: Request): Promise<NextResponse> {
           return NextResponse.json({ error: 'Invalid user data' }, { status: 400 });
         }
 
-        await createOrUpdateUser(id, primaryEmail, first_name, last_name);
-        break;
+        try {
+          // Create user in database
+          await createOrUpdateUser(
+            id,
+            primaryEmail,
+            first_name,
+            last_name
+          );
+
+          // Send welcome email
+          const emailService = EmailService.getInstance();
+          await emailService.sendWelcomeEmail(
+            primaryEmail,
+            first_name || 'there'
+          );
+
+          return NextResponse.json({ success: true });
+        } catch (error) {
+          console.error('Error processing user creation:', error);
+          return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+        }
       }
 
       case 'user.updated': {
