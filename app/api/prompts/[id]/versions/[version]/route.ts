@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { VersionControlService } from '@/lib/services/versionControlService';
 import { dynamicRouteConfig, withDynamicRoute } from '@/lib/utils/dynamicRoute';
@@ -8,18 +8,18 @@ export const { dynamic, revalidate, runtime } = dynamicRouteConfig;
 
 // Define the main handler
 async function versionHandler(
-  request: NextRequest,
-  context: { params: Record<string, string> }
+  request: Request,
+  context?: { params?: Record<string, string> }
 ) {
-  const { id, version } = context.params;
+  const { id, version } = context?.params || {};
+  if (!version) {
+    return NextResponse.json({ error: 'Version parameter is required' }, { status: 400 });
+  }
+
   try {
     const { userId } = await auth();
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    if (!version) {
-      return NextResponse.json({ error: 'Version parameter is required' }, { status: 400 });
     }
 
     const { compareWith } = await request.json();

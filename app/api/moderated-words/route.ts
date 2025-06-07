@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import {
   createModeratedWord,
   removeModeratedWord,
@@ -9,7 +9,7 @@ import { dynamicRouteConfig, withDynamicRoute } from '@/lib/utils/dynamicRoute';
 export const { dynamic, revalidate, runtime } = dynamicRouteConfig;
 
 // Define the main handler
-async function moderatedWordsHandler(req: NextRequest) {
+async function moderatedWordsHandler(req: Request) {
   try {
     const { word, severity, category, status } = await req.json();
     if (!word || !severity || !category || !status) {
@@ -22,15 +22,8 @@ async function moderatedWordsHandler(req: NextRequest) {
   }
 }
 
-// Define fallback data
-const fallbackData = {
-  error: 'This endpoint is only available at runtime',
-};
-
-// Export the wrapped handler
-export const POST = withDynamicRoute(moderatedWordsHandler, fallbackData);
-
-export async function DELETE(req: NextRequest) {
+// Define the DELETE handler
+async function deleteWordHandler(req: Request) {
   try {
     const { id } = await req.json();
     if (!id) {
@@ -42,3 +35,12 @@ export async function DELETE(req: NextRequest) {
     return NextResponse.json({ error: 'Failed to remove word' }, { status: 500 });
   }
 }
+
+// Define fallback data
+const fallbackData = {
+  error: 'This endpoint is only available at runtime',
+};
+
+// Export the wrapped handlers
+export const POST = withDynamicRoute(moderatedWordsHandler, fallbackData);
+export const DELETE = withDynamicRoute(deleteWordHandler, fallbackData);
