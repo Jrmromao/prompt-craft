@@ -46,7 +46,7 @@ export function UserActions({ userId, currentRole, currentStatus, onEdit }: User
 
   const handleStatusChange = async (newStatus: UserStatus) => {
     try {
-      await updateUserStatus(userId, newStatus);
+      await updateUserStatus(userId, newStatus === 'ACTIVE');
       toast.success('User status updated successfully');
     } catch (error) {
       toast.error('Failed to update user status');

@@ -10,7 +10,7 @@ import { Users, UserPlus, UserCheck, UserX, Shield } from 'lucide-react';
  */
 // @ts-ignore
 export default async function UsersPage({ searchParams }) {
-  const users = await getUsers(searchParams?.search, searchParams?.role as any);
+  const users = await getUsers({ search: searchParams?.search, role: searchParams?.role });
 
   return (
     <div className="space-y-8">

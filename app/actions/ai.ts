@@ -14,52 +14,33 @@ interface ErrorWithResponse extends Error {
   };
 }
 
-export async function generateContent(payload: PromptPayload, model?: string) {
+export async function generateContent(payload: any, model?: string) {
+  const authData = await auth();
+  const { userId } = authData;
+  const { getToken } = authData;
+  const token = await getToken();
+  const headersList = headers();
+  const host = headersList.get('host');
+  const protocol = process.env.NODE_ENV === 'development' ? 'http' : 'https';
+  const baseUrl = `${protocol}://${host}`;
+
   try {
-    const { userId, getToken } = await auth();
-    if (!userId) {
-      throw new Error('Unauthorized');
-    }
-
-    const token = await getToken();
-    const headersList = await headers();
-    const host = headersList.get('host') || 'localhost:3000';
-    const protocol = process.env.NODE_ENV === 'development' ? 'http' : 'https';
-    const baseUrl = `${protocol}://${host}`;
-
-    const response = await fetch(`${baseUrl}/api/ai/generate`, {
+    const response = await fetch(`${baseUrl}/api/ai/run`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({ prompt: payload.content, model }),
-      cache: 'no-store',
+      body: JSON.stringify({ payload, model }),
     });
 
     if (!response.ok) {
-      const data = await response.json();
-      if (data.error === 'Insufficient credits') {
-        const error = new Error(
-          'Insufficient credits. Please purchase more credits to continue.'
-        ) as ErrorWithResponse;
-        error.response = {
-          data: {
-            currentCredits: data.currentCredits,
-            requiredCredits: data.requiredCredits,
-            missingCredits: data.missingCredits,
-          },
-        };
-        throw error;
-      }
-      if (data.upgradeRequired) {
-        throw new Error('This feature requires a Pro subscription. Please upgrade to continue.');
-      }
-      throw new Error(data.error || `HTTP error! status: ${response.status}`);
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to generate content');
     }
 
     const data = await response.json();
-    return data.text;
+    return data;
   } catch (error) {
     console.error('Error generating content:', error);
     throw error;

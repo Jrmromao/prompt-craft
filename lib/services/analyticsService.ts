@@ -1,5 +1,5 @@
 export class AnalyticsService {
-  private static instance: AnalyticsService;
+  private static instance: AnalyticsService | null = null;
 
   private constructor() {}
 
