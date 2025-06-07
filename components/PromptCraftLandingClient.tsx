@@ -764,9 +764,7 @@ const PromptCraftLandingClient = () => {
                   </a>
                 </nav>
               </div>
-              <div className="mt-8 border-t border-gray-200 pt-8 text-center text-gray-600 dark:border-gray-800 dark:text-gray-400">
-                <p>&copy; {new Date().getFullYear()} PromptCraft. All rights reserved.</p>
-              </div>
+            
             </div>
           </footer>
         </main>
