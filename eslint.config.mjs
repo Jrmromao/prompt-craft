@@ -1,7 +1,9 @@
 import globals from 'globals';
 import eslint from '@eslint/js';
 import tseslint from 'typescript-eslint';
-import tsParser from '@typescript-eslint/parser';
+import reactPlugin from 'eslint-plugin-react';
+import reactHooksPlugin from 'eslint-plugin-react-hooks';
+import jsxA11yPlugin from 'eslint-plugin-jsx-a11y';
 
 export default tseslint.config(
   eslint.configs.recommended,
@@ -9,10 +11,13 @@ export default tseslint.config(
   {
     files: ['**/*.{ts,tsx}'],
     languageOptions: {
-      parser: tsParser,
+      parser: tseslint.parser,
       parserOptions: {
         ecmaVersion: 'latest',
         sourceType: 'module',
+        ecmaFeatures: {
+          jsx: true
+        }
       },
       globals: {
         ...globals.browser,
@@ -20,7 +25,10 @@ export default tseslint.config(
       },
     },
     plugins: {
-      '@typescript-eslint': tseslint,
+      '@typescript-eslint': tseslint.plugin,
+      'react': reactPlugin,
+      'react-hooks': reactHooksPlugin,
+      'jsx-a11y': jsxA11yPlugin,
     },
     rules: {
       ...tseslint.configs.recommended.rules,
@@ -28,6 +36,8 @@ export default tseslint.config(
       '@typescript-eslint/no-unsafe-function-type': 'off',
       '@typescript-eslint/no-empty-object-type': 'off',
       '@typescript-eslint/no-unused-vars': 'warn',
+      'react/react-in-jsx-scope': 'off',
+      'react/prop-types': 'off',
     },
   },
   {
@@ -44,6 +54,8 @@ export default tseslint.config(
       'no-console': ['warn', { allow: ['warn', 'error'] }],
       'no-unused-vars': 'warn',
     },
+  },
+  {
     ignores: [
       'node_modules/**',
       '.next/**',
