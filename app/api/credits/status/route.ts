@@ -2,12 +2,10 @@ import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { CreditService } from '@/lib/services/creditService';
 import { SubscriptionService } from '@/lib/services/subscriptionService';
+import { dynamicRouteConfig, withDynamicRoute } from '@/lib/utils/dynamicRoute';
 
-// Configure route as dynamic and server-side only
-export const dynamic = 'force-dynamic';
-export const runtime = 'nodejs';
-export const fetchCache = 'force-no-store';
-export const revalidate = 0;
+// Export dynamic configuration
+export const { dynamic, revalidate, runtime } = dynamicRouteConfig;
 
 // Mark this as a server component
 export const preferredRegion = 'auto';

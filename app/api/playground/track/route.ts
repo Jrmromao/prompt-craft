@@ -1,6 +1,10 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { prisma } from '@/lib/prisma';
+import { dynamicRouteConfig, withDynamicRoute } from '@/lib/utils/dynamicRoute';
+
+// Export dynamic configuration
+export const { dynamic, revalidate, runtime } = dynamicRouteConfig;
 
 export async function POST(req: Request) {
   try {

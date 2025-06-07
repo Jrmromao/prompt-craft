@@ -36,11 +36,6 @@ async function deleteWordHandler(req: Request) {
   }
 }
 
-// Define fallback data
-const fallbackData = {
-  error: 'This endpoint is only available at runtime',
-};
-
-// Export the wrapped handlers
-export const POST = withDynamicRoute(moderatedWordsHandler, fallbackData);
-export const DELETE = withDynamicRoute(deleteWordHandler, fallbackData);
+// Export the handlers
+export const POST = moderatedWordsHandler;
+export const DELETE = deleteWordHandler;

@@ -3,6 +3,41 @@ import { auth } from '@clerk/nextjs/server';
 import { prisma } from '@/lib/prisma';
 import { userProfileSchema } from '@/lib/validations/user';
 import { z } from 'zod';
+import { dynamicRouteConfig, withDynamicRoute } from '@/lib/utils/dynamicRoute';
+
+// Export dynamic configuration
+export const { dynamic, revalidate, runtime } = dynamicRouteConfig;
+
+export async function GET() {
+  try {
+    const { userId } = await auth();
+    if (!userId) {
+      return new NextResponse('Unauthorized', { status: 401 });
+    }
+
+    const profile = await prisma.user.findUnique({
+      where: { clerkId: userId },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        imageUrl: true,
+        planType: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+
+    if (!profile) {
+      return NextResponse.json({ error: 'Profile not found' }, { status: 404 });
+    }
+
+    return NextResponse.json(profile);
+  } catch (error) {
+    console.error('Error fetching profile:', error);
+    return NextResponse.json({ error: 'Failed to fetch profile' }, { status: 500 });
+  }
+}
 
 export async function PATCH(req: Request) {
   try {

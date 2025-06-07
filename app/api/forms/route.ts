@@ -2,8 +2,17 @@ import { NextResponse } from 'next/server';
 import { dynamicRouteConfig, withDynamicRoute } from '@/lib/utils/dynamicRoute';
 
 // Export dynamic configuration
-export const dynamic = 'force-dynamic';
-export const runtime = 'nodejs';
+export const { dynamic, revalidate, runtime } = dynamicRouteConfig;
+
+export async function GET() {
+  try {
+    // Your form listing logic here
+    return NextResponse.json({ forms: [] });
+  } catch (error) {
+    console.error('Error fetching forms:', error);
+    return NextResponse.json({ error: 'Failed to fetch forms' }, { status: 500 });
+  }
+}
 
 // Define the main handler
 async function formsHandler(request: Request) {

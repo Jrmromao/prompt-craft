@@ -59,12 +59,12 @@ const fallbackData = {
 export const GET = withDynamicRoute(settingsHandler, fallbackData);
 
 export async function PATCH(req: Request) {
-  const { userId } = await auth();
-  if (!userId) {
-    return new NextResponse('Unauthorized', { status: 401 });
-  }
-
   try {
+    const { userId } = await auth();
+    if (!userId) {
+      return new NextResponse('Unauthorized', { status: 401 });
+    }
+
     const body = await req.json();
     const { type, data } = body;
 
@@ -79,13 +79,19 @@ export async function PATCH(req: Request) {
       case 'theme':
         result = await updateThemeSettings(userId, data);
         break;
+      case 'apiKey':
+        result = await generateApiKey(userId, data.name);
+        break;
+      case 'revokeApiKey':
+        result = await revokeApiKey(userId, data.key);
+        break;
       default:
-        return new NextResponse('Invalid settings type', { status: 400 });
+        return NextResponse.json({ error: 'Invalid settings type' }, { status: 400 });
     }
 
     return NextResponse.json(result);
   } catch (error) {
-    console.error('Settings update error:', error);
-    return new NextResponse('Internal error', { status: 500 });
+    console.error('Error updating user settings:', error);
+    return NextResponse.json({ error: 'Failed to update user settings' }, { status: 500 });
   }
 }

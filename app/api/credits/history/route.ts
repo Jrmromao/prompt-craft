@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { DashboardService } from '@/lib/services/dashboardService';
+import { dynamicRouteConfig, withDynamicRoute } from '@/lib/utils/dynamicRoute';
 
-export const dynamic = 'force-dynamic';
-export const runtime = 'nodejs';
+// Export dynamic configuration
+export const { dynamic, revalidate, runtime } = dynamicRouteConfig;
 
 export async function GET() {
   try {
@@ -11,8 +12,10 @@ export async function GET() {
     if (!userId) {
       return new NextResponse('Unauthorized', { status: 401 });
     }
+
     const dashboardService = DashboardService.getInstance();
     const history = await dashboardService.getCreditHistory(userId);
+
     return NextResponse.json(history);
   } catch (error) {
     console.error('Error fetching credit history:', error);
