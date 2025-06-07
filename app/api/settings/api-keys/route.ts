@@ -2,6 +2,10 @@ import { NextResponse } from 'next/server';
 import { auth, getAuth } from '@clerk/nextjs/server';
 import { z } from 'zod';
 import { generateApiKey, rotateApiKey, listApiKeys, deleteApiKey } from '@/utils/api-keys';
+import { dynamicRouteConfig, withDynamicRoute } from '@/lib/utils/dynamicRoute';
+
+// Export dynamic configuration
+export const { dynamic, revalidate, runtime } = dynamicRouteConfig;
 
 // Schema for creating a new API key
 const createApiKeySchema = z.object({
@@ -9,6 +13,29 @@ const createApiKeySchema = z.object({
   expiresIn: z.number().min(1).max(365).optional(), // Days until expiration
   scopes: z.array(z.string()).optional(),
 });
+
+// Define the main handler
+async function apiKeysHandler(req?: Request) {
+  if (!req) {
+    return NextResponse.json({ error: 'Request is required' }, { status: 400 });
+  }
+
+  const { userId } = await auth();
+  if (!userId) {
+    return new NextResponse('Unauthorized', { status: 401 });
+  }
+
+  const apiKeys = await listApiKeys(userId);
+  return NextResponse.json(apiKeys);
+}
+
+// Define fallback data
+const fallbackData = {
+  apiKeys: [],
+};
+
+// Export the wrapped handler
+export const GET = withDynamicRoute(apiKeysHandler, fallbackData);
 
 export async function POST(req: Request) {
   try {
@@ -47,21 +74,6 @@ export async function POST(req: Request) {
     }
 
     console.error('Error creating API key:', error);
-    return new NextResponse('Internal Server Error', { status: 500 });
-  }
-}
-
-export async function GET(req: Request) {
-  try {
-    const { userId } = await auth();
-    if (!userId) {
-      return new NextResponse('Unauthorized', { status: 401 });
-    }
-
-    const apiKeys = await listApiKeys(userId);
-    return NextResponse.json(apiKeys);
-  } catch (error) {
-    console.error('Error listing API keys:', error);
     return new NextResponse('Internal Server Error', { status: 500 });
   }
 }

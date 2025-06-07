@@ -1,67 +1,58 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { headers } from 'next/headers';
+import { dynamicRouteConfig, withDynamicRoute } from '@/lib/utils/dynamicRoute';
 
-// Force dynamic execution and disable static generation
-export const dynamic = 'force-dynamic';
-export const revalidate = 0;
+// Export dynamic configuration
+export const { dynamic, revalidate, runtime } = dynamicRouteConfig;
 
-// Add runtime configuration
-export const runtime = 'nodejs';
+// Define the main handler
+async function analyticsHandler() {
+  const [totalUsers, totalPrompts, totalUsage, dashboardOverview, recentLogs] = await Promise.all([
+    prisma.user.count(),
+    prisma.prompt.count(),
+    prisma.promptUsage.count(),
+    getDashboardOverview(),
+    prisma.auditLog.findMany({
+      take: 10,
+      orderBy: { timestamp: 'desc' },
+      include: {
+        user: {
+          select: {
+            name: true,
+            email: true,
+          },
+        },
+      },
+    }),
+  ]);
 
-export async function GET() {
-  // Check if we're in a build environment
-  if (process.env.NODE_ENV === 'production' && process.env.VERCEL_ENV === 'production') {
-    try {
-      const [totalUsers, totalPrompts, totalUsage, dashboardOverview, recentLogs] = await Promise.all(
-        [
-          prisma.user.count(),
-          prisma.prompt.count(),
-          prisma.promptUsage.count(),
-          getDashboardOverview(),
-          prisma.auditLog.findMany({
-            take: 10,
-            orderBy: { timestamp: 'desc' },
-            include: {
-              user: {
-                select: {
-                  name: true,
-                  email: true,
-                },
-              },
-            },
-          }),
-        ]
-      );
-
-      return NextResponse.json({
-        totalUsers,
-        totalPrompts,
-        totalUsage,
-        dashboardOverview,
-        recentLogs,
-      });
-    } catch (error) {
-      console.error('Error fetching analytics:', error);
-      return NextResponse.json({ error: 'Failed to fetch analytics' }, { status: 500 });
-    }
-  }
-
-  // Return empty data during build time
   return NextResponse.json({
-    totalUsers: 0,
-    totalPrompts: 0,
-    totalUsage: 0,
-    dashboardOverview: {
-      totalPromptViews: 0,
-      totalPromptCopies: 0,
-      mostPopularPrompt: null,
-      mostActiveUser: null,
-      recentActivity: { usages: [] },
-    },
-    recentLogs: [],
+    totalUsers,
+    totalPrompts,
+    totalUsage,
+    dashboardOverview,
+    recentLogs,
   });
 }
+
+// Define fallback data
+const fallbackData = {
+  totalUsers: 0,
+  totalPrompts: 0,
+  totalUsage: 0,
+  dashboardOverview: {
+    totalPromptViews: 0,
+    totalPromptCopies: 0,
+    mostPopularPrompt: null,
+    mostActiveUser: null,
+    recentActivity: { usages: [] },
+  },
+  recentLogs: [],
+};
+
+// Export the wrapped handler
+export const GET = withDynamicRoute(analyticsHandler, fallbackData);
 
 async function getDashboardOverview() {
   const thirtyDaysAgo = new Date();

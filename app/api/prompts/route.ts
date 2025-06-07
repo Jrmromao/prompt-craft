@@ -4,8 +4,13 @@ import { PromptService } from '@/lib/services/promptService';
 import { AIService } from '@/lib/services/aiService';
 import { prisma } from '@/lib/prisma';
 import { Role, PlanType } from '@/utils/constants';
+import { dynamicRouteConfig, withDynamicRoute } from '@/lib/utils/dynamicRoute';
 
-export async function GET(req: Request) {
+// Export dynamic configuration
+export const { dynamic, revalidate, runtime } = dynamicRouteConfig;
+
+// Define the main handler
+async function promptsHandler(req: Request) {
   const { searchParams } = new URL(req.url);
   const search = searchParams.get('search') || '';
   const featured = searchParams.get('featured') === 'true';
@@ -42,6 +47,14 @@ export async function GET(req: Request) {
 
   return NextResponse.json({ prompts });
 }
+
+// Define fallback data
+const fallbackData = {
+  prompts: [],
+};
+
+// Export the wrapped handler
+export const GET = withDynamicRoute(promptsHandler, fallbackData);
 
 export async function POST(req: Request) {
   try {
