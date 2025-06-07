@@ -1616,9 +1616,9 @@
   dependencies:
     "@clerk/types" "^4.60.0"
 
-"@clerk/nextjs@^6.20.2":
+"@clerk/nextjs@^6.21.0":
   version "6.21.0"
-  resolved "https://registry.npmjs.org/@clerk/nextjs/-/nextjs-6.21.0.tgz"
+  resolved "https://registry.yarnpkg.com/@clerk/nextjs/-/nextjs-6.21.0.tgz#452a7e99be0206bfcc97955fe460659c38b34b5d"
   integrity sha512-TlX0eVSoxdC4aor2ohlIgn2je4HGWz/tnXAIDhtl1COS7N6ZmaPhcwv9essg1wt7Esps18pKXS19vrgbipHP9g==
   dependencies:
     "@clerk/backend" "^2.0.0"

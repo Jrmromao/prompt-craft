@@ -1,4 +1,4 @@
-import { clerkMiddleware } from '@clerk/nextjs/server';
+import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { rateLimitMiddleware } from './middleware/rate-limit';
@@ -55,6 +55,13 @@ const withErrorHandling = (handler: (req: NextRequest) => Promise<NextResponse |
   };
 };
 
+// Create route matchers
+const isPublicRoute = createRouteMatcher(publicRoutes);
+const isAdminRoute = createRouteMatcher(adminRoutes);
+const isRateLimitedRoute = createRouteMatcher(RATE_LIMITED_ROUTES);
+const isValidatedRoute = createRouteMatcher(VALIDATED_ROUTES);
+const isApiKeyRoute = createRouteMatcher(API_KEY_ROUTES);
+
 export default clerkMiddleware(async (auth, req: NextRequest) => {
   try {
     // Add request ID tracking
@@ -86,12 +93,12 @@ export default clerkMiddleware(async (auth, req: NextRequest) => {
     }
 
     // Handle public routes
-    if (publicRoutes.some(route => req.nextUrl.pathname.match(new RegExp(`^${route}$`)))) {
+    if (isPublicRoute(req)) {
       return response;
     }
 
     // Handle API key routes
-    if (API_KEY_ROUTES.some(route => req.nextUrl.pathname.match(new RegExp(`^${route}$`)))) {
+    if (isApiKeyRoute(req)) {
       const apiKeyResponse = await withErrorHandling(apiKeyMiddleware)(req);
       if (apiKeyResponse) {
         return apiKeyResponse;
@@ -111,7 +118,7 @@ export default clerkMiddleware(async (auth, req: NextRequest) => {
     response.headers.set('x-user-id', userId);
 
     // Apply rate limiting to API routes
-    if (RATE_LIMITED_ROUTES.some(route => req.nextUrl.pathname.match(new RegExp(`^${route}$`)))) {
+    if (isRateLimitedRoute(req)) {
       try {
         const rateLimitResponse = await withErrorHandling(rateLimitMiddleware)(req);
         if (rateLimitResponse) {
@@ -124,7 +131,7 @@ export default clerkMiddleware(async (auth, req: NextRequest) => {
     }
 
     // Apply input validation to API routes
-    if (VALIDATED_ROUTES.some(route => req.nextUrl.pathname.match(new RegExp(`^${route}$`)))) {
+    if (isValidatedRoute(req)) {
       try {
         const validationResponse = validationMiddleware(req);
         if (validationResponse) {
@@ -150,7 +157,7 @@ export default clerkMiddleware(async (auth, req: NextRequest) => {
     }
 
     // Handle admin routes
-    if (adminRoutes.some(route => req.nextUrl.pathname.match(new RegExp(`^${route}$`)))) {
+    if (isAdminRoute(req)) {
       try {
         const user = await prisma.user.findUnique({
           where: { clerkId: userId },
