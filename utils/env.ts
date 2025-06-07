@@ -20,7 +20,6 @@ const envSchema = z.object({
   NEXT_PUBLIC_APP_URL: z.string().url(),
 
   // Optional variables
-  SENTRY_DSN: z.string().url().optional(),
   ANALYTICS_ID: z.string().optional(),
 });
 

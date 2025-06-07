@@ -2,7 +2,6 @@
 
 import React, { createContext, useContext, useEffect, Suspense } from 'react';
 import { CookiePreferences } from '../components/cookies/CookieManager';
-import * as Sentry from '@sentry/nextjs';
 import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import Script from 'next/script';
@@ -41,13 +40,6 @@ function AnalyticsContent({ children, preferences }: AnalyticsProviderProps) {
 
   useEffect(() => {
     if (preferences.analytics) {
-      // Initialize Sentry
-      Sentry.init({
-        dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
-        tracesSampleRate: 1.0,
-        environment: process.env.NODE_ENV,
-      });
-
       // Track page view in Google Analytics
       if (typeof window !== 'undefined' && window.gtag) {
         const url = pathname + searchParams.toString();
