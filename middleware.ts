@@ -1,243 +1,160 @@
-import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { rateLimitMiddleware } from './middleware/rate-limit';
-import { validationMiddleware } from './middleware/validation';
-import { apiKeyMiddleware } from './middleware/api-key';
-import { ipBlockMiddleware } from './middleware/ip-block';
-import { apiVersionMiddleware } from './middleware/api-version';
-import { requestIdMiddleware } from './middleware/request-id';
+import { auth } from '@clerk/nextjs/server';
 import { quotaMiddleware } from './middleware/quota';
 import { prisma } from '@/lib/prisma';
+import { RateLimiter } from '@/lib/rateLimiter';
+import { securityHeaders } from '@/app/api/config';
 
 // Define routes that don't require authentication
-const publicRoutes = [
+const PUBLIC_ROUTES = [
   '/',
-  '/sign-in(.*)',
-  '/sign-up(.*)',
-  '/legal/terms',
-  '/legal/privacy',
-  '/about',
-  '/careers',
-  '/blog',
-  '/contact',
-  '/api/webhook(.*)',
+  '/api/webhooks(.*)',
   '/api/health',
-  '/terms',
-  '/privacy',
-  '/pricing',
-  // "/onboarding(.*)",
-  // "/api/onboarding(.*)",
+  '/api/test',
+  '/api/forms(.*)',
+  '/api/email-signup',
+  '/api/upload(.*)',
+  '/api/ai/generate',
+  '/api/ai/run',
+  '/api/prompts(.*)',
+  '/api/comments(.*)',
+  '/api/billing(.*)',
+  '/api/subscription(.*)',
+  '/api/credits(.*)',
+  '/api/support(.*)',
+  '/api/user(.*)',
+  '/api/profile(.*)',
+  '/api/settings(.*)',
+  '/api/admin(.*)',
+  '/api/moderated-words(.*)',
+  '/api/create-users(.*)',
+  '/api/playground(.*)',
+  '/api/test(.*)',
 ];
-
-// Define routes that require admin access
-const adminRoutes: string[] = [];
-
-// Define routes that should be rate limited
-const RATE_LIMITED_ROUTES = ['/api/prompts(.*)', '/api/community(.*)', '/api/analytics(.*)'];
-
-// Define routes that require validation
-const VALIDATED_ROUTES = ['/api/prompts(.*)', '/api/community(.*)'];
 
 // Define routes that require API key authentication
 const API_KEY_ROUTES = ['/api/v1(.*)'];
 
-// Error handling wrapper
-const withErrorHandling = (handler: (req: NextRequest) => Promise<NextResponse | null>) => {
-  return async (req: NextRequest) => {
-    try {
-      return await handler(req);
-    } catch (error) {
-      console.error('Middleware error:', error);
-      // Return null to continue the request chain
-      return null;
-    }
-  };
-};
-
-// Create route matchers
-const isPublicRoute = createRouteMatcher(publicRoutes);
-const isAdminRoute = createRouteMatcher(adminRoutes);
-const isRateLimitedRoute = createRouteMatcher(RATE_LIMITED_ROUTES);
-const isValidatedRoute = createRouteMatcher(VALIDATED_ROUTES);
-const isApiKeyRoute = createRouteMatcher(API_KEY_ROUTES);
-
-export default clerkMiddleware(async (auth, req: NextRequest) => {
-  try {
-    // Add request ID tracking
-    const requestIdResponse = requestIdMiddleware(req);
-    if (requestIdResponse) {
-      return requestIdResponse;
-    }
-
-    // Add security headers
-    const response = NextResponse.next();
-    
-    // Basic security headers
-    response.headers.set('X-Content-Type-Options', 'nosniff');
-    response.headers.set('X-Frame-Options', 'SAMEORIGIN');
-    response.headers.set('X-XSS-Protection', '1; mode=block');
-    response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
-    
-    // Content Security Policy
-    response.headers.set(
-      'Content-Security-Policy',
-      [
-        "default-src 'self'",
-        "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com",
-        "style-src 'self' 'unsafe-inline'",
-        "img-src 'self' data: https: blob:",
-        "font-src 'self'",
-        "object-src 'none'",
-        "base-uri 'self'",
-        "form-action 'self'",
-        "frame-ancestors 'self'",
-        "block-all-mixed-content",
-        "upgrade-insecure-requests"
-      ].join('; ')
-    );
-    
-    // Permissions Policy
-    response.headers.set(
-      'Permissions-Policy',
-      [
-        'accelerometer=()',
-        'camera=()',
-        'geolocation=()',
-        'gyroscope=()',
-        'magnetometer=()',
-        'microphone=()',
-        'payment=()',
-        'usb=()',
-        'interest-cohort=()'
-      ].join(', ')
-    );
-    
-    // CORS headers
-    const allowedOrigins = [
-      'https://www.prompthive.co',
-      'https://prompthive.co',
-      'https://prompt-craft-git-main-joao-romaos-projects.vercel.app'
-    ];
-    
-    const origin = req.headers.get('origin');
-    if (origin && allowedOrigins.includes(origin)) {
-      response.headers.set('Access-Control-Allow-Origin', origin);
-      response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-      response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
-      response.headers.set('Access-Control-Allow-Credentials', 'true');
-      response.headers.set('Access-Control-Max-Age', '86400'); // 24 hours
-    }
-
-    // Apply IP blocking
-    const ipBlockResponse = await withErrorHandling(ipBlockMiddleware)(req);
-    if (ipBlockResponse) {
-      return ipBlockResponse;
-    }
-
-    // Apply API versioning for API routes
-    if (req.nextUrl.pathname.startsWith('/api/')) {
-      const versionResponse = apiVersionMiddleware(req);
-      if (versionResponse) {
-        return versionResponse;
-      }
-    }
-
-    // Handle public routes
-    if (isPublicRoute(req)) {
-      return response;
-    }
-
-    // Handle API key routes
-    if (isApiKeyRoute(req)) {
-      const apiKeyResponse = await withErrorHandling(apiKeyMiddleware)(req);
-      if (apiKeyResponse) {
-        return apiKeyResponse;
-      }
-      return response;
-    }
-
-    // Handle unauthenticated users
-    const { userId } = await auth();
-    if (!userId) {
-      const signInUrl = new URL('/sign-in', req.url);
-      signInUrl.searchParams.set('redirect_url', req.url);
-      return NextResponse.redirect(signInUrl);
-    }
-
-    // Add user ID to headers for downstream middleware
-    response.headers.set('x-user-id', userId);
-
-    // Apply rate limiting to API routes
-    if (isRateLimitedRoute(req)) {
-      try {
-        const rateLimitResponse = await withErrorHandling(rateLimitMiddleware)(req);
-        if (rateLimitResponse) {
-          return rateLimitResponse;
-        }
-      } catch (error) {
-        console.error('Rate limiting error:', error);
-        // Continue execution even if rate limiting fails
-      }
-    }
-
-    // Apply input validation to API routes
-    if (isValidatedRoute(req)) {
-      try {
-        const validationResponse = validationMiddleware(req);
-        if (validationResponse) {
-          return validationResponse;
-        }
-      } catch (error) {
-        console.error('Validation error:', error);
-        // Continue execution even if validation fails
-      }
-    }
-
-    // Apply quota enforcement for API routes
-    if (req.nextUrl.pathname.startsWith('/api/')) {
-      try {
-        const quotaResponse = await withErrorHandling(quotaMiddleware)(req);
-        if (quotaResponse) {
-          return quotaResponse;
-        }
-      } catch (error) {
-        console.error('Quota middleware error:', error);
-        // Continue execution even if quota check fails
-      }
-    }
-
-    // Handle admin routes
-    if (isAdminRoute(req)) {
-      try {
-        const user = await prisma.user.findUnique({
-          where: { clerkId: userId },
-          select: { role: true },
-        });
-
-        if (!user || user.role !== 'ADMIN') {
-          return new NextResponse('Unauthorized', { status: 403 });
-        }
-      } catch (error) {
-        console.error('Database error:', error);
-        // Fail open for database errors
-        return response;
-      }
-    }
-
-    return response;
-  } catch (error) {
-    console.error('Middleware error:', {
-      error,
-      path: req.nextUrl.pathname,
-      method: req.method,
-      headers: Object.fromEntries(req.headers.entries()),
-    });
-    // Return a basic response in case of errors
-    return NextResponse.next();
-  }
+// Rate limiter instance
+const rateLimiter = new RateLimiter({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limit each IP to 100 requests per windowMs
 });
 
+// Function to validate request origin
+function validateOrigin(request: NextRequest): boolean {
+  const origin = request.headers.get('origin');
+  const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || [];
+  
+  // Allow requests with no origin (like mobile apps or curl requests)
+  if (!origin) return true;
+  
+  return allowedOrigins.includes(origin);
+}
+
+// Error handling wrapper
+function withErrorHandling(handler: Function) {
+  return async (request: NextRequest, ...args: any[]) => {
+    try {
+      return await handler(request, ...args);
+    } catch (error) {
+      console.error('Middleware error:', error);
+      return new NextResponse(
+        JSON.stringify({ error: 'Internal server error' }),
+        { 
+          status: 500,
+          headers: {
+            'Content-Type': 'application/json',
+            ...securityHeaders
+          }
+        }
+      );
+    }
+  };
+}
+
+// Security middleware
+const securityMiddleware = withErrorHandling(async (request: NextRequest) => {
+  // Only apply to API routes
+  if (!request.nextUrl.pathname.startsWith('/api')) {
+    return NextResponse.next();
+  }
+
+  // Validate origin
+  if (!validateOrigin(request)) {
+    return new NextResponse(
+      JSON.stringify({ error: 'Invalid origin' }),
+      { 
+        status: 403,
+        headers: {
+          'Content-Type': 'application/json',
+          ...securityHeaders
+        }
+      }
+    );
+  }
+
+  // Check rate limit
+  const ip = request.headers.get('x-forwarded-for') || 'unknown';
+  const isRateLimited = await rateLimiter.check(ip);
+  
+  if (isRateLimited) {
+    return new NextResponse(
+      JSON.stringify({ error: 'Too many requests, please try again later' }),
+      { 
+        status: 429,
+        headers: {
+          'Content-Type': 'application/json',
+          ...securityHeaders
+        }
+      }
+    );
+  }
+
+  // Get the response
+  const response = NextResponse.next();
+
+  // Add security headers to all responses
+  Object.entries(securityHeaders).forEach(([key, value]) => {
+    response.headers.set(key, value);
+  });
+
+  return response;
+});
+
+// Export the middleware
+export async function middleware(request: NextRequest) {
+  // Apply security middleware
+  const securityResponse = await securityMiddleware(request);
+  if (securityResponse && securityResponse.status !== 200) {
+    return securityResponse;
+  }
+
+  // Check authentication for protected routes
+  const { userId } = await auth();
+  if (!userId && !PUBLIC_ROUTES.some(route => new RegExp(route).test(request.nextUrl.pathname))) {
+    return new NextResponse(
+      JSON.stringify({ error: 'Unauthorized' }),
+      { 
+        status: 401,
+        headers: {
+          'Content-Type': 'application/json',
+          ...securityHeaders
+        }
+      }
+    );
+  }
+
+  // Apply quota middleware for authenticated requests
+  if (userId) {
+    return await quotaMiddleware(request);
+  }
+
+  return NextResponse.next();
+}
+
+// Configure which routes to run middleware on
 export const config = {
   matcher: ['/((?!.+\\.[\\w]+$|_next).*)', '/', '/(api|trpc)(.*)'],
 };

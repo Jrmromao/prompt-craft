@@ -1,22 +1,38 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
-import { getProfileByClerkId } from '@/app/services/profileService';
-import { stripe } from '@/lib/stripe';
+import { BillingService } from '@/lib/services/billingService';
+import { dynamic, runtime, securityHeaders } from '@/app/api/config';
 
-export async function POST() {
-  const { userId } = await auth();
-  if (!userId) {
-    return new NextResponse('Unauthorized', { status: 401 });
+// Configure the route as dynamic
+export { dynamic, runtime };
+
+// Define the portal handler
+async function portalHandler(request: Request) {
+  try {
+    const { userId } = await auth();
+    if (!userId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const billingService = BillingService.getInstance();
+    const portalUrl = await billingService.getPortalUrl(userId);
+    
+    // Create response with security headers
+    const response = NextResponse.json({ url: portalUrl });
+    Object.entries(securityHeaders).forEach(([key, value]) => {
+      response.headers.set(key, value as string);
+    });
+    
+    return response;
+  } catch (error) {
+    console.error('Error creating billing portal:', error);
+    const response = NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    Object.entries(securityHeaders).forEach(([key, value]) => {
+      response.headers.set(key, value as string);
+    });
+    return response;
   }
-  const user = await getProfileByClerkId(userId);
-  if (!user || !user.stripeCustomerId) {
-    return new NextResponse('No Stripe customer', { status: 404 });
-  }
-
-  const portalSession = await stripe.billingPortal.sessions.create({
-    customer: user.stripeCustomerId,
-    return_url: process.env.NEXT_PUBLIC_APP_URL + '/profile?tab=billing',
-  });
-
-  return NextResponse.json({ url: portalSession.url });
 }
+
+// Export the handler
+export const GET = portalHandler;

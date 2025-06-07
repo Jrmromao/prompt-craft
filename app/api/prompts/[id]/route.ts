@@ -1,52 +1,65 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { PromptService } from '@/lib/services/promptService';
-import { dynamicRouteConfig, withDynamicRoute } from '@/lib/utils/dynamicRoute';
+import { dynamic, runtime, securityHeaders, cacheConfig } from '@/app/api/config';
 
-// Export dynamic configuration
-export const { dynamic, revalidate, runtime } = dynamicRouteConfig;
+// Configure the route as dynamic
+export { dynamic, runtime };
 
-// Define the main handler
-async function promptDetailHandler(request?: Request) {
-  if (!request) {
-    return NextResponse.json({ error: 'Request is required' }, { status: 400 });
-  }
-
-  const { userId } = await auth();
-  if (!userId) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
-  // Extract id from the URL
-  const url = new URL(request.url);
-  const id = url.pathname.split('/').pop();
-
-  const promptService = PromptService.getInstance();
-  const prompt = await promptService.getPrompt(id!);
-
-  if (!prompt) {
-    return NextResponse.json({ error: 'Prompt not found' }, { status: 404 });
-  }
-
-  return NextResponse.json(prompt);
-}
-
-// Define fallback data
-const fallbackData = {
-  id: '',
-  name: '',
-  content: '',
-  description: '',
-  isPublic: false,
-  createdAt: new Date().toISOString(),
-  updatedAt: new Date().toISOString(),
-  userId: '',
-  tags: [],
-  upvotes: 0,
-  copyCount: 0,
-  viewCount: 0,
-  usageCount: 0,
+// Cache control headers
+const getCacheControl = (duration: number) => {
+  return `public, s-maxage=${duration}, stale-while-revalidate=${duration * 2}`;
 };
 
-// Export the wrapped handler
-export const GET = withDynamicRoute(promptDetailHandler, fallbackData);
+// Define the handler
+async function promptHandler(request: NextRequest, { params }: { params: { id: string } }) {
+  try {
+    const { userId } = await auth();
+    if (!userId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const promptId = params.id;
+    if (!promptId) {
+      return NextResponse.json({ error: 'Prompt ID is required' }, { status: 400 });
+    }
+
+    const promptService = PromptService.getInstance();
+    const prompt = await promptService.getPrompt(promptId);
+
+    if (!prompt) {
+      return NextResponse.json({ error: 'Prompt not found' }, { status: 404 });
+    }
+
+    // Create response with security headers
+    const response = NextResponse.json(prompt);
+    
+    // Add security headers
+    Object.entries(securityHeaders).forEach(([key, value]) => {
+      response.headers.set(key, value);
+    });
+
+    // Add cache headers if the route is cacheable
+    if (cacheConfig.cacheableRoutes.includes('/api/prompts/[id]')) {
+      response.headers.set('Cache-Control', getCacheControl(cacheConfig.durations.medium));
+      response.headers.set('Cache-Tag', cacheConfig.tags.prompts);
+    }
+
+    return response;
+  } catch (error) {
+    console.error('Error fetching prompt:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { 
+        status: 500,
+        headers: {
+          'Content-Type': 'application/json',
+          ...securityHeaders
+        }
+      }
+    );
+  }
+}
+
+// Export the handler
+export const GET = promptHandler;
