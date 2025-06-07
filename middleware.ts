@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { auth } from '@clerk/nextjs/server';
+import { auth, clerkMiddleware } from '@clerk/nextjs/server';
 import { quotaMiddleware } from './middleware/quota';
 import { prisma } from '@/lib/prisma';
 import { RateLimiter } from '@/lib/rateLimiter';
@@ -124,35 +124,7 @@ const securityMiddleware = withErrorHandling(async (request: NextRequest) => {
 });
 
 // Export the middleware
-export async function middleware(request: NextRequest) {
-  // Apply security middleware
-  const securityResponse = await securityMiddleware(request);
-  if (securityResponse && securityResponse.status !== 200) {
-    return securityResponse;
-  }
-
-  // Check authentication for protected routes
-  const { userId } = await auth();
-  if (!userId && !PUBLIC_ROUTES.some(route => new RegExp(route).test(request.nextUrl.pathname))) {
-    return new NextResponse(
-      JSON.stringify({ error: 'Unauthorized' }),
-      { 
-        status: 401,
-        headers: {
-          'Content-Type': 'application/json',
-          ...securityHeaders
-        }
-      }
-    );
-  }
-
-  // Apply quota middleware for authenticated requests
-  if (userId) {
-    return await quotaMiddleware(request);
-  }
-
-  return NextResponse.next();
-}
+export default clerkMiddleware();
 
 // Configure which routes to run middleware on
 export const config = {
