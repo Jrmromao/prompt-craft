@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/prisma';
 import { Role, CreditType, Period, PlanType } from '@/utils/constants';
 import { addDays, addMonths, isAfter, isBefore } from 'date-fns';
+import { EmailService } from './emailService';
 
 interface CreditCheck {
   hasEnoughCredits: boolean;
@@ -78,6 +79,9 @@ export class CreditService {
       where: { id: userId },
       select: {
         role: true,
+        email: true,
+        name: true,
+        emailPreferences: true,
         subscription: {
           select: {
             currentPeriodEnd: true,
@@ -123,6 +127,21 @@ export class CreditService {
         description: `credit reset`,
       },
     });
+
+    // Send credit update email if user has product updates enabled
+    const emailPreferences = typeof user.emailPreferences === 'string'
+      ? JSON.parse(user.emailPreferences)
+      : user.emailPreferences;
+
+    if (emailPreferences?.productUpdates) {
+      const emailService = EmailService.getInstance();
+      await emailService.sendCreditUpdate(
+        user.email,
+        user.name || 'there',
+        newBalance,
+        'Weekly credit reset'
+      );
+    }
 
     return {
       newBalance,

@@ -3,6 +3,7 @@ import { Role } from '@/utils/constants';
 import { SubscriptionStatus, PlanType, Period, Subscription, Plan } from '@prisma/client';
 import { addDays, addMonths, isAfter } from 'date-fns';
 import { DatabaseService } from '@/lib/services/database/databaseService';
+import { EmailService } from './emailService';
 
 interface SubscriptionDetails {
   status: SubscriptionStatus;
@@ -175,7 +176,16 @@ export class SubscriptionService {
   public async processRenewal(userId: string): Promise<SubscriptionDetails> {
     const subscription = await prisma.subscription.findUnique({
       where: { userId },
-      include: { plan: true },
+      include: { 
+        plan: true,
+        user: {
+          select: {
+            email: true,
+            name: true,
+            emailPreferences: true,
+          },
+        },
+      },
     });
     if (!subscription) throw new Error('Subscription not found');
     const now = new Date();
@@ -190,10 +200,27 @@ export class SubscriptionService {
         subscription.plan.period === Period.WEEKLY ? addDays(now, 7) : addMonths(now, 1);
 
       // Update subscription
-      return this.updateSubscription(userId, {
+      const updatedSubscription = await this.updateSubscription(userId, {
         currentPeriodEnd: newPeriodEnd,
         status: SubscriptionStatus.ACTIVE,
       });
+
+      // Send renewal reminder email if user has product updates enabled
+      const emailPreferences = typeof subscription.user.emailPreferences === 'string'
+        ? JSON.parse(subscription.user.emailPreferences)
+        : subscription.user.emailPreferences;
+
+      if (emailPreferences?.productUpdates) {
+        const emailService = EmailService.getInstance();
+        await emailService.sendSubscriptionRenewalReminder(
+          subscription.user.email,
+          subscription.user.name || 'there',
+          subscription.plan.name,
+          newPeriodEnd.toLocaleDateString()
+        );
+      }
+
+      return updatedSubscription;
     }
 
     return {
