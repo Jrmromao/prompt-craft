@@ -21,7 +21,7 @@ export class SubscriptionService {
   private static instance: SubscriptionService;
   private databaseService: DatabaseService;
 
-  private constructor() {
+  public constructor() {
     this.databaseService = DatabaseService.getInstance();
   }
 

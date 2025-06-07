@@ -32,7 +32,7 @@ export class CreditService {
     [PlanType.PRO]: 1500,
   };
 
-  private constructor() {}
+  public constructor() {}
 
   public static getInstance(): CreditService {
     if (!CreditService.instance) {

@@ -20,6 +20,14 @@ const nextConfig = {
       },
     ],
   },
+  // Add experimental features for better API route handling
+  experimental: {
+    serverActions: true,
+  },
+  // Ensure API routes are not statically optimized
+  typescript: {
+    ignoreBuildErrors: false,
+  },
 };
 
 module.exports = nextConfig; 

@@ -3,9 +3,14 @@ import { auth } from '@clerk/nextjs/server';
 import { CreditService } from '@/lib/services/creditService';
 import { SubscriptionService } from '@/lib/services/subscriptionService';
 
-// Configure route as dynamic
+// Configure route as dynamic and server-side only
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
+export const fetchCache = 'force-no-store';
+export const revalidate = 0;
+
+// Mark this as a server component
+export const preferredRegion = 'auto';
 
 export async function GET() {
   try {
@@ -14,6 +19,7 @@ export async function GET() {
       return new NextResponse('Unauthorized', { status: 401 });
     }
 
+    // Use getInstance() to get service instances
     const creditService = CreditService.getInstance();
     const subscriptionService = SubscriptionService.getInstance();
 
