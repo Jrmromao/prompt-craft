@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { currentUser } from '@clerk/nextjs/server';
 import { prisma } from '@/lib/prisma';
 
-// Prevent static generation of this route
+// Mark route as dynamic
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 

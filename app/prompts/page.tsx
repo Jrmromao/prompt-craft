@@ -8,6 +8,9 @@ import { PlusCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 
+// Mark page as dynamic since it uses authentication and subscription data
+export const dynamic = 'force-dynamic';
+
 export default async function PromptsPage() {
   const auth = await validateAuthentication();
   if (!auth.success) {

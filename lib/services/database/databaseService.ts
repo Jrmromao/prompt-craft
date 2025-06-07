@@ -1,6 +1,7 @@
-import { PrismaClient, Prisma } from '@prisma/client';
+import { PrismaClient, Prisma, SubscriptionStatus } from '@prisma/client';
 import { Redis } from '@upstash/redis';
 import { prisma } from '@/lib/prisma';
+import { User, Plan, Subscription } from '@prisma/client';
 
 // Cache configuration
 const CACHE_TTL = {
@@ -34,7 +35,67 @@ export class DatabaseService {
     await this.redis.set(key, value, { ex: ttl });
   }
 
-  // Optimized query methods with caching
+  // User operations
+  public async getUserByClerkId(clerkId: string) {
+    return prisma.user.findUnique({
+      where: { clerkId },
+      include: {
+        subscription: {
+          include: {
+            plan: true,
+          },
+        },
+      },
+    });
+  }
+
+  public async updateUser(userId: string, data: Partial<User>) {
+    const jsonFields = ['emailPreferences', 'notificationSettings', 'themeSettings', 'securitySettings', 'languagePreferences'];
+    const processedData = Object.entries(data).reduce((acc, [key, value]) => {
+      if (jsonFields.includes(key) && value !== undefined) {
+        acc[key] = { set: value };
+      } else {
+        acc[key] = value;
+      }
+      return acc;
+    }, {} as any);
+
+    return prisma.user.update({
+      where: { id: userId },
+      data: processedData,
+    });
+  }
+
+  // Plan operations
+  public async getPlanByName(name: string) {
+    return prisma.plan.findFirst({
+      where: { name },
+    });
+  }
+
+  public async getPlanWithCache(planId: string) {
+    const cacheKey = `plan:${planId}`;
+
+    // Try to get from cache
+    const cached = await this.getCached(cacheKey);
+    if (cached) {
+      return cached;
+    }
+
+    // If not in cache, get from database
+    const plan = await prisma.plan.findUnique({
+      where: { id: planId },
+    });
+
+    // Cache the result
+    if (plan) {
+      await this.setCache(cacheKey, plan, CACHE_TTL.LONG);
+    }
+
+    return plan;
+  }
+
+  // Subscription operations
   public async getSubscriptionWithCache(userId: string) {
     const cacheKey = `subscription:${userId}`;
 
@@ -60,26 +121,35 @@ export class DatabaseService {
     return subscription;
   }
 
-  public async getPlanWithCache(planId: string) {
-    const cacheKey = `plan:${planId}`;
-
-    // Try to get from cache
-    const cached = await this.getCached(cacheKey);
-    if (cached) {
-      return cached;
-    }
-
-    // If not in cache, get from database
-    const plan = await prisma.plan.findUnique({
-      where: { id: planId },
+  public async createSubscription(data: {
+    user: { connect: { id: string } };
+    plan: { connect: { id: string } };
+    status: string;
+    currentPeriodStart: Date;
+    currentPeriodEnd: Date;
+    cancelAtPeriodEnd: boolean;
+    stripeCustomerId: string;
+    stripeSubscriptionId: string;
+  }) {
+    return prisma.subscription.create({
+      data: {
+        ...data,
+        status: data.status as SubscriptionStatus,
+      },
+      include: {
+        plan: true,
+      },
     });
+  }
 
-    // Cache the result
-    if (plan) {
-      await this.setCache(cacheKey, plan, CACHE_TTL.LONG);
-    }
-
-    return plan;
+  public async updateSubscription(userId: string, data: Partial<Subscription>) {
+    return prisma.subscription.update({
+      where: { userId },
+      data,
+      include: {
+        plan: true,
+      },
+    });
   }
 
   // Transaction methods
@@ -94,41 +164,6 @@ export class DatabaseService {
         console.error('Transaction failed:', error);
         throw error;
       }
-    });
-  }
-
-  // Optimized subscription update with transaction and cache invalidation
-  public async updateSubscription(subscriptionId: string, data: Prisma.SubscriptionUpdateInput) {
-    return await this.withTransaction(async tx => {
-      const subscription = await tx.subscription.update({
-        where: { id: subscriptionId },
-        data,
-        include: {
-          plan: true,
-        },
-      });
-
-      // Invalidate cache
-      await this.redis.del(`subscription:${subscription.userId}`);
-
-      return subscription;
-    });
-  }
-
-  // Optimized subscription creation with transaction
-  public async createSubscription(data: Prisma.SubscriptionCreateInput) {
-    return await this.withTransaction(async tx => {
-      const subscription = await tx.subscription.create({
-        data,
-        include: {
-          plan: true,
-        },
-      });
-
-      // Cache the new subscription
-      await this.setCache(`subscription:${subscription.userId}`, subscription, CACHE_TTL.MEDIUM);
-
-      return subscription;
     });
   }
 

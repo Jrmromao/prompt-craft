@@ -101,7 +101,11 @@ export async function updateEmailPreferences(clerkId: string, preferences: Email
 
   return prisma.user.update({
     where: { clerkId },
-    data: { emailPreferences: validatedData },
+    data: {
+      emailPreferences: {
+        set: validatedData
+      }
+    },
   });
 }
 
@@ -113,7 +117,11 @@ export async function updateNotificationSettings(clerkId: string, settings: Noti
 
   return prisma.user.update({
     where: { clerkId },
-    data: { notificationSettings: validatedData },
+    data: {
+      notificationSettings: {
+        set: validatedData
+      }
+    },
   });
 }
 
@@ -126,7 +134,11 @@ export async function updateThemeSettings(clerkId: string, settings: ThemeSettin
   // Update both database and localStorage
   const result = await prisma.user.update({
     where: { clerkId },
-    data: { themeSettings: validatedData },
+    data: {
+      themeSettings: {
+        set: validatedData
+      }
+    },
   });
 
   // If we're in a browser environment, update localStorage

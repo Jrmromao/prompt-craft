@@ -1,49 +1,57 @@
-import { NextResponse } from 'next/server';
+// Prevent static generation of this route
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
+import { NextRequest } from 'next/server';
+import { z } from 'zod';
+import { BaseApiHandler } from '@/lib/api/baseApiHandler';
 import { auth } from '@clerk/nextjs/server';
-import { prisma } from '@/lib/prisma';
+import { DatabaseService } from '@/lib/services/database/databaseService';
 import { StripeService } from '@/lib/services/stripe/stripeService';
 import { StripeCheckoutError } from '@/lib/services/stripe/errors';
 
-export async function POST(req: Request) {
-  try {
+// Input validation schema
+const createSubscriptionSchema = z.object({
+  plan: z.string().min(1, 'Plan is required'),
+});
+
+// Subscription handler
+class CreateSubscriptionHandler extends BaseApiHandler {
+  constructor() {
+    super({
+      requireAuth: true,
+      schema: createSubscriptionSchema,
+      methods: ['POST'],
+    });
+  }
+
+  protected async checkAuth(req: NextRequest): Promise<{ success: boolean; error?: string }> {
     const { userId } = await auth();
     if (!userId) {
-      return new NextResponse('Unauthorized', { status: 401 });
+      return { success: false, error: 'Unauthorized' };
     }
+    return { success: true };
+  }
 
+  protected async process(req: NextRequest): Promise<{ url: string }> {
+    const { userId } = await auth();
     const { plan } = await req.json();
-    if (!plan) {
-      return new NextResponse('Plan is required', { status: 400 });
-    }
 
-    // Get the user from our database
-    const user = await prisma.user.findUnique({
-      where: { clerkId: userId },
-      include: {
-        subscription: {
-          include: {
-            plan: true,
-          },
-        },
-      },
-    });
-
-    if (!user) {
-      return new NextResponse('User not found', { status: 404 });
-    }
-
-    // Get the plan from our database
-    const planData = await prisma.plan.findFirst({
-      where: { name: plan },
-    });
-
-    if (!planData) {
-      return new NextResponse('Plan not found', { status: 404 });
-    }
-
+    const databaseService = DatabaseService.getInstance();
     const stripeService = StripeService.getInstance();
 
-    // Create or get Stripe customer
+    // Get user and plan data
+    const user = await databaseService.getUserByClerkId(userId!);
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    const planData = await databaseService.getPlanByName(plan);
+    if (!planData) {
+      throw new Error('Plan not found');
+    }
+
+    // Handle Stripe customer
     let customerId = user.stripeCustomerId;
     if (!customerId) {
       const customer = await stripeService.createCustomer({
@@ -53,10 +61,8 @@ export async function POST(req: Request) {
       });
       customerId = customer.id;
 
-      // Update user with Stripe customer ID
-      await prisma.user.update({
-        where: { id: user.id },
-        data: { stripeCustomerId: customerId },
+      await databaseService.updateUser(user.id, {
+        stripeCustomerId: customerId,
       });
     }
 
@@ -73,12 +79,14 @@ export async function POST(req: Request) {
       throw new StripeCheckoutError('Failed to create checkout session');
     }
 
-    return NextResponse.json({ url: session.url });
-  } catch (error) {
-    console.error('Subscription creation error:', error);
-    if (error instanceof StripeCheckoutError) {
-      return new NextResponse(error.message, { status: 400 });
-    }
-    return new NextResponse('Internal Server Error', { status: 500 });
+    return { url: session.url };
   }
+}
+
+// Create handler instance
+const handler = new CreateSubscriptionHandler();
+
+// Export route handlers
+export async function POST(req: NextRequest) {
+  return handler.handle(req);
 }

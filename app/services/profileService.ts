@@ -1,5 +1,5 @@
 import { prisma } from '@/lib/prisma';
-import type { User } from '@prisma/client';
+import type { User, Prisma } from '@prisma/client';
 import { subDays, format } from 'date-fns';
 import { userUpdateSchema } from '@/lib/validations/user';
 
@@ -93,9 +93,14 @@ export async function updateProfile(clerkId: string, data: Partial<User>): Promi
   // Validate the update data
   const validatedData = userUpdateSchema.parse(data);
 
+  // Convert the data to Prisma's expected input type
+  const updateData: Prisma.UserUpdateInput = {
+    ...validatedData,
+  };
+
   return prisma.user.update({
     where: { clerkId },
-    data: validatedData,
+    data: updateData,
   });
 }
 

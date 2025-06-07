@@ -102,6 +102,11 @@ export const userUpdateSchema = z
     website: z.string().url().optional(),
     twitter: z.string().max(50).optional(),
     linkedin: z.string().url().optional(),
+    emailPreferences: z.object({
+      marketingEmails: z.boolean(),
+      productUpdates: z.boolean(),
+      securityAlerts: z.boolean(),
+    }).optional(),
   })
   .refine(
     data => {
