@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { DeepseekCostService } from '@/lib/services/deepseekCostService';
+import { prisma } from '@/lib/prisma';
 
 export async function GET() {
   try {
