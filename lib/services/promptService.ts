@@ -275,21 +275,18 @@ export class PromptService {
     }) as Promise<Prompt[]>;
   }
 
-  // Update upvotePrompt to auto-approve if upvotes exceed threshold
-  public async upvotePrompt(promptId: string): Promise<Prompt> {
-    const threshold = 100;
-    const prompt = await prisma.prompt.update({
+  /**
+   * Upvote a prompt
+   */
+  async upvotePrompt(promptId: string) {
+    const prompt = await prisma.prompt.findUnique({ where: { id: promptId } });
+    if (!prompt) throw new Error('Prompt not found');
+
+    const updatedPrompt = await prisma.prompt.update({
       where: { id: promptId },
       data: { upvotes: { increment: 1 } },
-      include: { tags: true },
     });
-    if (prompt.upvotes >= threshold) {
-      await prisma.prompt.update({
-        where: { id: promptId },
-        data: { isPublic: true },
-      });
-    }
-    return prompt as Prompt;
+    return updatedPrompt;
   }
 
   // Get top N public prompts for landing page/SEO
@@ -300,5 +297,26 @@ export class PromptService {
       include: { tags: true },
       take: limit,
     }) as Promise<Prompt[]>;
+  }
+
+  /**
+   * Duplicate a prompt for a user
+   */
+  async copyPrompt(promptId: string, userId: string) {
+    // Fetch the original prompt
+    const original = await prisma.prompt.findUnique({ where: { id: promptId } });
+    if (!original) throw new Error('Prompt not found');
+
+    // Create a copy for the user (adjust fields as needed)
+    const copy = await prisma.prompt.create({
+      data: {
+        userId,
+        content: original.content,
+        name: original.name,
+        slug: original.slug,
+        // Copy other fields as needed
+      },
+    });
+    return copy;
   }
 }

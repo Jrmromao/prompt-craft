@@ -1,76 +1,42 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
-import { CommunityService } from '@/lib/services/communityService';
-import { z } from 'zod';
-import { prisma } from '@/lib/prisma';
+import { PromptService } from '@/lib/services/promptService';
+import { dynamicRouteConfig, withDynamicRoute } from '@/lib/utils/dynamicRoute';
 
-const voteSchema = z.object({
-  value: z.union([z.literal(1), z.literal(-1)]),
-});
+// Export dynamic configuration
+export const { dynamic, revalidate, runtime } = dynamicRouteConfig;
 
-// @ts-ignore
-export async function POST(request: NextRequest, { params }) {
+// Define the vote handler
+async function voteHandler(request: Request, context?: { params?: Record<string, string> }) {
   try {
-    const { userId: clerkUserId } = await auth();
-    if (!clerkUserId) {
+    const { userId } = await auth();
+    if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Get the database user ID from the Clerk user ID
-    const user = await prisma.user.findUnique({
-      where: { clerkId: clerkUserId },
-      select: { id: true },
-    });
-
-    if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    const { vote } = await request.json();
+    if (!vote) {
+      return NextResponse.json({ error: 'Vote is required' }, { status: 400 });
     }
 
-    const body = await request.json();
-    const { value } = voteSchema.parse(body);
-    const { id } = params;
+    const promptId = context?.params?.id;
+    if (!promptId) {
+      return NextResponse.json({ error: 'Prompt ID is required' }, { status: 400 });
+    }
 
-    const communityService = CommunityService.getInstance();
-    const result = await communityService.votePrompt(user.id, id, value);
-
+    const promptService = PromptService.getInstance();
+    const result = await promptService.upvotePrompt(promptId);
     return NextResponse.json(result);
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: 'Invalid request data' }, { status: 400 });
-    }
     console.error('Error voting on prompt:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
 
-export async function GET(request: NextRequest) {
-  try {
-    const { userId: clerkUserId } = await auth();
-    if (!clerkUserId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+// Define fallback data
+const fallbackData = {
+  error: 'This endpoint is only available at runtime',
+};
 
-    // Get the database user ID from the Clerk user ID
-    const user = await prisma.user.findUnique({
-      where: { clerkId: clerkUserId },
-      select: { id: true },
-    });
-
-    if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
-    }
-
-    const id = request.nextUrl.searchParams.get('id');
-    if (!id) {
-      return NextResponse.json({ error: 'Prompt ID is required' }, { status: 400 });
-    }
-
-    const communityService = CommunityService.getInstance();
-    const vote = await communityService.getUserVote(user.id, id);
-
-    return NextResponse.json({ vote });
-  } catch (error) {
-    console.error('Error getting user vote:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
-  }
-}
+// Export the wrapped handler
+export const POST = withDynamicRoute(voteHandler, fallbackData);

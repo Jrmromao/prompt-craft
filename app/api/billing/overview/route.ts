@@ -1,37 +1,32 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
-import { getProfileByClerkId } from '@/app/services/profileService';
-import { stripe } from '@/lib/stripe';
+import { BillingService } from '@/lib/services/billingService';
+import { dynamicRouteConfig, withDynamicRoute } from '@/lib/utils/dynamicRoute';
 
-export async function GET() {
-  const { userId } = await auth();
-  if (!userId) {
-    return new NextResponse('Unauthorized', { status: 401 });
+// Export dynamic configuration
+export const { dynamic, revalidate, runtime } = dynamicRouteConfig;
+
+// Define the main handler
+async function billingOverviewHandler(request: Request) {
+  try {
+    const { userId } = await auth();
+    if (!userId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const billingService = BillingService.getInstance();
+    const overview = await billingService.getBillingOverview(userId);
+    return NextResponse.json(overview);
+  } catch (error) {
+    console.error('Error fetching billing overview:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
-  const user = await getProfileByClerkId(userId);
-  if (!user || !user.stripeCustomerId) {
-    return new NextResponse('No Stripe customer', { status: 404 });
-  }
-
-  // Fetch subscription
-  const subscriptions = await stripe.subscriptions.list({
-    customer: user.stripeCustomerId,
-    limit: 1,
-  });
-  const subscription = subscriptions.data[0] || null;
-
-  // Fetch invoices
-  const invoices = await stripe.invoices.list({ customer: user.stripeCustomerId, limit: 10 });
-
-  // Fetch payment methods
-  const paymentMethods = await stripe.paymentMethods.list({
-    customer: user.stripeCustomerId,
-    type: 'card',
-  });
-
-  return NextResponse.json({
-    subscription,
-    invoices: invoices.data,
-    paymentMethods: paymentMethods.data,
-  });
 }
+
+// Define fallback data
+const fallbackData = {
+  error: 'This endpoint is only available at runtime',
+};
+
+// Export the wrapped handler
+export const GET = withDynamicRoute(billingOverviewHandler, fallbackData);

@@ -1,27 +1,37 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
-import { AnalyticsTrackingService } from '@/lib/services/analyticsTrackingService';
+import { PromptService } from '@/lib/services/promptService';
+import { dynamicRouteConfig, withDynamicRoute } from '@/lib/utils/dynamicRoute';
 
-export async function POST(request: NextRequest, context: any) {
+// Export dynamic configuration
+export const { dynamic, revalidate, runtime } = dynamicRouteConfig;
+
+// Define the main handler
+async function copyHandler(request: Request, context?: { params?: Record<string, string> }) {
   try {
     const { userId } = await auth();
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const promptId = context.params.id;
-    const analyticsTrackingService = AnalyticsTrackingService.getInstance();
-    await analyticsTrackingService.trackPromptCopy(promptId, userId ?? undefined);
+    const id = context?.params?.id;
+    if (!id) {
+      return NextResponse.json({ error: 'Prompt ID is required' }, { status: 400 });
+    }
 
-    return NextResponse.json({ success: true });
+    const promptService = PromptService.getInstance();
+    const copiedPrompt = await promptService.copyPrompt(id, userId);
+    return NextResponse.json(copiedPrompt);
   } catch (error) {
-    console.error('Error tracking prompt copy:', error);
-    return NextResponse.json(
-      {
-        error: 'Internal server error',
-        details: error instanceof Error ? error.message : 'An unknown error occurred',
-      },
-      { status: 500 }
-    );
+    console.error('Error copying prompt:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
+
+// Define fallback data
+const fallbackData = {
+  error: 'This endpoint is only available at runtime',
+};
+
+// Export the wrapped handler
+export const POST = withDynamicRoute(copyHandler, fallbackData);
