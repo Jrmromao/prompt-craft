@@ -4,30 +4,39 @@ import { useState, useEffect } from 'react';
 import { AnalyticsProvider } from '@/lib/analytics';
 import CookieBanner from '@/components/cookies/CookieBanner';
 import { CookiePreferences } from '@/components/cookies/CookieManager';
-import { ClerkProvider } from '@clerk/nextjs';
+
+const defaultPreferences: CookiePreferences = {
+  necessary: true,
+  analytics: false,
+  functional: false,
+  marketing: false,
+  preferences: false,
+};
 
 export default function Providers({ children }: { children: React.ReactNode }) {
-  const [preferences, setPreferences] = useState<CookiePreferences>({
-    necessary: true,
-    analytics: false,
-    functional: false,
-    marketing: false,
-    preferences: false,
-  });
+  const [preferences, setPreferences] = useState<CookiePreferences>(defaultPreferences);
+  const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
-    const storedPreferences = localStorage.getItem('cookie-preferences');
-    if (storedPreferences) {
-      setPreferences(JSON.parse(storedPreferences));
+    setIsClient(true);
+    try {
+      const storedPreferences = localStorage.getItem('cookie-preferences');
+      if (storedPreferences) {
+        setPreferences(JSON.parse(storedPreferences));
+      }
+    } catch (error) {
+      console.error('Error loading cookie preferences:', error);
     }
   }, []);
 
+  if (!isClient) {
+    return <>{children}</>;
+  }
+
   return (
-    <ClerkProvider>
-      <AnalyticsProvider preferences={preferences}>
-        {children}
-        <CookieBanner onPreferencesChange={setPreferences} />
-      </AnalyticsProvider>
-    </ClerkProvider>
+    <AnalyticsProvider preferences={preferences}>
+      {children}
+      <CookieBanner onPreferencesChange={setPreferences} />
+    </AnalyticsProvider>
   );
 }

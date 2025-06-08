@@ -7,6 +7,8 @@ import Providers from '@/components/Providers';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { Toaster } from 'sonner';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { ClerkProvider } from '@clerk/nextjs';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -19,17 +21,21 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <body className={inter.className} suppressHydrationWarning>
-        <TooltipProvider>
-          <ThemeProvider>
+        <ErrorBoundary>
+          <ClerkProvider>
             <Providers>
-              <div className="flex min-h-screen flex-col">
-                {/* <NavBarWrapper /> */}
-                <main className="flex-grow">{children}</main>
-                <Footer />
-              </div>
+              <ThemeProvider>
+                <TooltipProvider>
+                  <div className="flex min-h-screen flex-col">
+                    {/* <NavBarWrapper /> */}
+                    <main className="flex-grow">{children}</main>
+                    <Footer />
+                  </div>
+                </TooltipProvider>
+              </ThemeProvider>
             </Providers>
-          </ThemeProvider>
-        </TooltipProvider>
+          </ClerkProvider>
+        </ErrorBoundary>
         <Toaster />
       </body>
     </html>
