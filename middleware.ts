@@ -96,6 +96,14 @@ async function securityMiddleware(request: NextRequest) {
   return response;
 }
 
+// Configure which routes to run middleware on
+export const config = {
+  matcher: [
+    // Match all paths except static files and public assets
+    '/((?!_next/static|_next/image|favicon.ico|public/|.*\\.(?:jpg|jpeg|gif|png|svg|ico|webp|js|css|woff|woff2|ttf|eot)$).*)',
+  ],
+};
+
 // Create the middleware chain
 export default clerkMiddleware(async (auth, req) => {
   // Handle CORS for API routes
@@ -118,22 +126,24 @@ export default clerkMiddleware(async (auth, req) => {
     return response;
   }
 
-  // Skip middleware for auth routes
+  // Skip middleware for public routes
   if (isPublicRoute(req)) {
     return NextResponse.next();
   }
 
-  // Run security middleware first
-  const securityResponse = await securityMiddleware(req);
-  if (securityResponse.status !== 200) {
-    return securityResponse;
-  }
+  // Run security middleware for API routes
+  if (isApiRoute(req)) {
+    const securityResponse = await securityMiddleware(req);
+    if (securityResponse.status !== 200) {
+      return securityResponse;
+    }
 
-  // Check if route requires API key
-  if (requiresApiKey(req)) {
-    const apiKeyResponse = await apiKeyMiddleware(req);
-    if (apiKeyResponse.status !== 200) {
-      return apiKeyResponse;
+    // Check if route requires API key
+    if (requiresApiKey(req)) {
+      const apiKeyResponse = await apiKeyMiddleware(req);
+      if (apiKeyResponse.status !== 200) {
+        return apiKeyResponse;
+      }
     }
   }
 
@@ -142,17 +152,3 @@ export default clerkMiddleware(async (auth, req) => {
 
   return NextResponse.next();
 });
-
-// Configure which routes to run middleware on
-export const config = {
-  matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - public folder
-     */
-    '/((?!_next/static|_next/image|favicon.ico|public/).*)',
-  ],
-};
