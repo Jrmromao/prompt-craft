@@ -32,6 +32,22 @@ const PUBLIC_ROUTES = [
   '/api/create-users(.*)',
   '/api/playground(.*)',
   '/api/test(.*)',
+  '/about',
+  '/privacy',
+  '/terms',
+  '/contact',
+  '/faq',
+  '/pricing',
+  '/blog',
+  '/careers',
+  '/team',
+  '/legal',
+  '/legal/privacy',
+  '/legal/terms',
+  '/legal/cookie-policy',
+  '/legal/refund-policy',
+  '/legal/dmca-policy',
+  '/legal/copyright-policy',
 ];
 
 // Define routes that require API key authentication
