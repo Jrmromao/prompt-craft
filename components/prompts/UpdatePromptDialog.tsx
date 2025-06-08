@@ -180,6 +180,13 @@ export function UpdatePromptDialog({
     setIsLoading(true);
 
     try {
+
+      console.log('content', content);
+      console.log('description', description);
+      console.log('type', type);
+      console.log('tags', selectedTags);
+      console.log('metadata', metadata);
+
       const response = await fetch(`/api/prompts/${promptId}/versions`, {
         method: 'POST',
         headers: {
@@ -191,6 +198,7 @@ export function UpdatePromptDialog({
           type,
           tags: selectedTags,
           metadata,
+          commitMessage: 'Update prompt content and metadata',
         }),
       });
 

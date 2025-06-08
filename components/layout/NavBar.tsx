@@ -54,22 +54,22 @@ export function NavBar({ user }: { user?: NavBarUser }) {
                   <Link
                     href="/prompts/my-prompts"
                     className={cn(
-                      'flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-accent',
+                      'flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-all hover:scale-105',
                       isActive('/prompts/my-prompts')
-                        ? 'bg-accent text-accent-foreground'
-                        : 'text-muted-foreground'
+                        ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-md'
+                        : 'text-muted-foreground hover:bg-purple-100/40 dark:hover:bg-purple-500/10'
                     )}
                   >
                     <BookOpen className="h-4 w-4" />
                     My Prompts
                   </Link>
                   <Link
-                    href="/prompts/community"
+                    href="/community-prompts"
                     className={cn(
-                      'flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-accent',
-                      isActive('/prompts/community')
-                        ? 'bg-accent text-accent-foreground'
-                        : 'text-muted-foreground'
+                      'flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-all hover:scale-105',
+                      isActive('/community-prompts')
+                        ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-md'
+                        : 'text-muted-foreground hover:bg-purple-100/40 dark:hover:bg-purple-500/10'
                     )}
                   >
                     <Users className="h-4 w-4" />

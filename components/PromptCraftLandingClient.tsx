@@ -491,7 +491,7 @@ const PromptCraftLandingClient = () => {
                 <div className="grid gap-x-10 gap-y-8 md:grid-cols-3">
                   {featuredPrompts.map(prompt => (
                     <FloatingCard key={prompt.id}>
-                      <div className="group relative rounded-2xl border-2 border-gray-200 bg-white p-6 shadow-lg transition-all duration-300 focus-within:ring-2 focus-within:ring-purple-500 hover:-translate-y-2 hover:shadow-xl dark:border-gray-800 dark:bg-gray-900">
+                      <div className="group relative rounded-2xl border-2 border-gray-200 bg-white p-6 pt-10 shadow-lg transition-all duration-300 focus-within:ring-2 focus-within:ring-purple-500 hover:-translate-y-2 hover:shadow-xl dark:border-gray-800 dark:bg-gray-900">
                         <div className="absolute -top-4 left-4 flex items-center gap-2">
                           <Badge className="rounded-full border border-white bg-gradient-to-r from-purple-700 to-pink-600 px-3 py-1 font-semibold text-white shadow dark:border-gray-900">
                             Featured

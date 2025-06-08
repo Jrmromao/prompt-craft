@@ -1,8 +1,9 @@
 import { prisma } from '@/lib/prisma';
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import { Metadata } from 'next';
 import { Suspense } from 'react';
 import { PromptContent } from '@/components/PromptContent';
+import { currentUser } from '@clerk/nextjs/server';
 
 // Mark page as dynamic since it uses headers() through AnalyticsTrackingService
 export const dynamic = 'force-dynamic';
@@ -107,9 +108,16 @@ export default async function PromptDetailPage({ params }: PageProps) {
   const prompt = await getPrompt(resolvedParams.slug);
   if (!prompt) return notFound();
 
+  const clerkUser = await currentUser();
+  const user = clerkUser ? {
+    name: clerkUser.fullName || '',
+    email: clerkUser.primaryEmailAddress?.emailAddress || '',
+    imageUrl: clerkUser.imageUrl
+  } : undefined;
+
   return (
     <Suspense fallback={<LoadingSkeleton />}>
-      <PromptContent prompt={prompt} />
+      <PromptContent prompt={prompt} user={user} />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(getPromptJsonLd(prompt)) }}

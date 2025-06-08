@@ -41,6 +41,7 @@ export default function Playground({
   const [isOverLimit, setIsOverLimit] = useState(false);
   const [copied, setCopied] = useState(false);
   const [activeTab, setActiveTab] = useState('prompt');
+  const [isPaidUser, setIsPaidUser] = useState(false);
 
   useEffect(() => {
     async function fetchUsage() {
@@ -49,6 +50,8 @@ export default function Playground({
         if (!res.ok) throw new Error('Failed to fetch usage');
         const data = await res.json();
         setUsage(data);
+        // Check if user is on a paid plan
+        setIsPaidUser(data.planType !== 'FREE');
         // Check if user has exceeded their limit
         const TIER_LIMITS: Record<string, number | null> = {
           FREE: 20,
@@ -65,6 +68,10 @@ export default function Playground({
   }, []);
 
   async function runPrompt() {
+    if (!isPaidUser) {
+      setShowUpgrade(true);
+      return;
+    }
     if (isOverLimit) {
       setShowUpgrade(true);
       return;
@@ -96,7 +103,12 @@ export default function Playground({
       const res = await fetch('/api/ai/run', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt, promptId }),
+        body: JSON.stringify({ 
+          promptId: promptId,
+          input: prompt,
+          model: 'deepseek',
+          temperature: 0.7
+        }),
       });
 
       const data = await res.json();
@@ -166,108 +178,138 @@ export default function Playground({
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="prompt" className="flex items-center gap-2">
-              <Play className="h-4 w-4" />
-              Prompt
-            </TabsTrigger>
-            <TabsTrigger value="output" className="flex items-center gap-2" disabled={!output}>
-              <History className="h-4 w-4" />
-              Output
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="prompt" className="mt-4">
-            <div className="space-y-4">
-              <div className="relative">
-                <Textarea
-                  value={prompt}
-                  onChange={e => setPrompt(e.target.value)}
-                  placeholder="Type your prompt here..."
-                  disabled={disabled || loading || isOverLimit}
-                  className="min-h-[200px] font-mono text-sm"
-                />
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="absolute right-2 top-2"
-                  onClick={() => handleCopy(prompt)}
-                >
-                  {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                </Button>
-              </div>
-
-              <Button
-                className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700"
-                onClick={runPrompt}
-                disabled={loading || !prompt.trim() || disabled || isOverLimit}
-              >
-                {loading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Running...
-                  </>
-                ) : isOverLimit ? (
-                  'Upgrade for more runs'
-                ) : (
-                  <>
-                    <Play className="mr-2 h-4 w-4" />
-                    Run Prompt
-                  </>
-                )}
-              </Button>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="output" className="mt-4">
-            <ScrollArea className="h-[300px] rounded-md border p-4">
-              {output ? (
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-sm font-medium">AI Output</h3>
-                    <Button variant="ghost" size="icon" onClick={() => handleCopy(output)}>
-                      {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                    </Button>
-                  </div>
-                  <pre className="whitespace-pre-wrap text-sm">{output}</pre>
-                </div>
-              ) : (
-                <div className="flex h-full items-center justify-center text-gray-500">
-                  No output yet. Run a prompt to see results.
-                </div>
-              )}
-            </ScrollArea>
-          </TabsContent>
-        </Tabs>
-
-        {showUpgrade && (
+        {!isPaidUser ? (
           <div className="rounded-md border border-yellow-300 bg-yellow-100 p-4 dark:border-yellow-800 dark:bg-yellow-900/20">
             <div className="flex items-start gap-2">
               <AlertCircle className="mt-0.5 h-5 w-5 text-yellow-600 dark:text-yellow-400" />
               <div>
                 <h4 className="font-medium text-yellow-800 dark:text-yellow-200">
-                  You've run out of credits!
+                  Upgrade Required
                 </h4>
                 <p className="mt-1 text-sm text-yellow-700 dark:text-yellow-300">
-                  {error?.includes('Insufficient credits')
-                    ? 'You need more credits to continue using the Playground. Please purchase more credits to continue.'
-                    : error?.includes('upgrade')
-                      ? 'This feature requires a Pro subscription. Please upgrade your plan to continue.'
-                      : "You've reached your Playground run limit for this month. Upgrade your plan for more runs!"}
+                  The Playground is available exclusively for paid members. Upgrade your plan to access this feature.
                 </p>
+                <Button
+                  className="mt-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700"
+                  onClick={() => window.location.href = '/pricing'}
+                >
+                  View Pricing Plans
+                </Button>
               </div>
             </div>
           </div>
-        )}
+        ) : (
+          <>
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="prompt" className="flex items-center gap-2">
+                  <Play className="h-4 w-4" />
+                  Prompt
+                </TabsTrigger>
+                <TabsTrigger value="output" className="flex items-center gap-2" disabled={!output}>
+                  <History className="h-4 w-4" />
+                  Output
+                </TabsTrigger>
+              </TabsList>
 
-        {error && !showUpgrade && (
-          <div className="rounded-md border border-red-300 bg-red-100 p-4 dark:border-red-800 dark:bg-red-900/20">
-            <div className="flex items-start gap-2">
-              <AlertCircle className="mt-0.5 h-5 w-5 text-red-600 dark:text-red-400" />
-              <p className="text-sm text-red-700 dark:text-red-300">{error}</p>
-            </div>
-          </div>
+              <TabsContent value="prompt" className="mt-4">
+                <div className="space-y-4">
+                  <div className="relative">
+                    <Textarea
+                      value={prompt}
+                      onChange={e => setPrompt(e.target.value)}
+                      placeholder="Type your prompt here..."
+                      disabled={disabled || loading || isOverLimit}
+                      className="min-h-[200px] font-mono text-sm"
+                    />
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="absolute right-2 top-2"
+                      onClick={() => handleCopy(prompt)}
+                    >
+                      {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                    </Button>
+                  </div>
+
+                  <Button
+                    className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700"
+                    onClick={runPrompt}
+                    disabled={loading || !prompt.trim() || disabled || isOverLimit}
+                  >
+                    {loading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Running...
+                      </>
+                    ) : isOverLimit ? (
+                      'Upgrade for more runs'
+                    ) : (
+                      <>
+                        <Play className="mr-2 h-4 w-4" />
+                        Run Prompt
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="output" className="mt-4">
+                <ScrollArea className="h-[300px] rounded-md border p-4">
+                  {output ? (
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-sm font-medium">AI Output</h3>
+                        <Button variant="ghost" size="icon" onClick={() => handleCopy(output)}>
+                          {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                        </Button>
+                      </div>
+                      <pre className="whitespace-pre-wrap text-sm">{output}</pre>
+                    </div>
+                  ) : (
+                    <div className="flex h-full items-center justify-center text-gray-500">
+                      No output yet. Run a prompt to see results.
+                    </div>
+                  )}
+                </ScrollArea>
+              </TabsContent>
+            </Tabs>
+
+            {showUpgrade && (
+              <div className="rounded-md border border-yellow-300 bg-yellow-100 p-4 dark:border-yellow-800 dark:bg-yellow-900/20">
+                <div className="flex items-start gap-2">
+                  <AlertCircle className="mt-0.5 h-5 w-5 text-yellow-600 dark:text-yellow-400" />
+                  <div>
+                    <h4 className="font-medium text-yellow-800 dark:text-yellow-200">
+                      You've run out of credits!
+                    </h4>
+                    <p className="mt-1 text-sm text-yellow-700 dark:text-yellow-300">
+                      {error?.includes('Insufficient credits')
+                        ? 'You need more credits to continue using the Playground. Please purchase more credits to continue.'
+                        : error?.includes('upgrade')
+                          ? 'This feature requires a Pro subscription. Please upgrade your plan to continue.'
+                          : "You've reached your Playground run limit for this month. Upgrade your plan for more runs!"}
+                    </p>
+                    <Button
+                      className="mt-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700"
+                      onClick={() => window.location.href = '/pricing'}
+                    >
+                      View Pricing Plans
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {error && !showUpgrade && (
+              <div className="rounded-md border border-red-300 bg-red-100 p-4 dark:border-red-800 dark:bg-red-900/20">
+                <div className="flex items-start gap-2">
+                  <AlertCircle className="mt-0.5 h-5 w-5 text-red-600 dark:text-red-400" />
+                  <p className="text-sm text-red-700 dark:text-red-300">{error}</p>
+                </div>
+              </div>
+            )}
+          </>
         )}
       </CardContent>
     </Card>

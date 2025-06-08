@@ -124,11 +124,6 @@ export function withDynamicRoute(handler: RouteHandler, fallbackData: unknown): 
         );
       }
 
-      // Validate origin
-      if (!validateOrigin(request)) {
-        return addSecurityHeaders(NextResponse.json({ error: 'Invalid origin' }, { status: 403 }));
-      }
-
       // Check rate limit
       const rateLimitResponse = await handleRateLimit(request);
       if (rateLimitResponse) {

@@ -17,11 +17,6 @@ export const { dynamic, revalidate, runtime } = dynamicRouteConfig;
 // Define the main handler
 async function commentsHandler(request: Request, context?: { params?: Record<string, string> }) {
   try {
-    const { userId } = await auth();
-    if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
     const promptId = context?.params?.id;
     if (!promptId) {
       return NextResponse.json({ error: 'Prompt ID is required' }, { status: 400 });
@@ -32,6 +27,9 @@ async function commentsHandler(request: Request, context?: { params?: Record<str
     return NextResponse.json(comments);
   } catch (error) {
     console.error('Error fetching comments:', error);
+    if (error instanceof Error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -52,16 +50,25 @@ async function createCommentHandler(
       return NextResponse.json({ error: 'Prompt ID is required' }, { status: 400 });
     }
 
-    const { content } = await request.json();
-    if (!content) {
-      return NextResponse.json({ error: 'Content is required' }, { status: 400 });
+    const body = await request.json();
+    const validationResult = commentSchema.safeParse(body);
+    
+    if (!validationResult.success) {
+      return NextResponse.json(
+        { error: 'Invalid request body', details: validationResult.error.format() },
+        { status: 400 }
+      );
     }
 
+    const { content, parentId } = validationResult.data;
     const commentService = CommentService.getInstance();
-    const comment = await commentService.createComment(promptId, userId, content);
+    const comment = await commentService.createComment(promptId, userId, content, parentId);
     return NextResponse.json(comment);
   } catch (error) {
     console.error('Error creating comment:', error);
+    if (error instanceof Error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

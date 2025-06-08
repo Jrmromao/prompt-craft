@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/prisma';
 import { Prisma } from '@prisma/client';
+import { CommentService } from './commentService';
 
 export class CommunityService {
   private static instance: CommunityService;
@@ -22,12 +23,10 @@ export class CommunityService {
     // Use a transaction to ensure atomicity
     return prisma.$transaction(async tx => {
       // Check if user has already voted
-      const existingVote = await tx.vote.findUnique({
+      const existingVote = await tx.vote.findFirst({
         where: {
-          userId_promptId: {
-            userId,
-            promptId,
-          },
+          userId,
+          promptId,
         },
       });
 
@@ -36,10 +35,7 @@ export class CommunityService {
         if (existingVote.value === value) {
           await tx.vote.delete({
             where: {
-              userId_promptId: {
-                userId,
-                promptId,
-              },
+              id: existingVote.id,
             },
           });
           // Update prompt upvotes
@@ -56,10 +52,7 @@ export class CommunityService {
           // If changing vote, update it
           await tx.vote.update({
             where: {
-              userId_promptId: {
-                userId,
-                promptId,
-              },
+              id: existingVote.id,
             },
             data: { value },
           });
@@ -114,23 +107,8 @@ export class CommunityService {
       imageUrl: string | null;
     };
   }> {
-    const comment = await prisma.comment.create({
-      data: {
-        userId,
-        promptId,
-        content,
-      },
-      include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            imageUrl: true,
-          },
-        },
-      },
-    });
-
+    const commentService = CommentService.getInstance();
+    const comment = await commentService.createComment(promptId, userId, content);
     return {
       id: comment.id,
       content: comment.content,
@@ -165,29 +143,11 @@ export class CommunityService {
     total: number;
   }> {
     const { page = 1, limit = 10, orderBy = 'desc' } = options;
-    const skip = (page - 1) * limit;
-
-    const [comments, total] = await Promise.all([
-      prisma.comment.findMany({
-        where: { promptId },
-        orderBy: { createdAt: orderBy },
-        skip,
-        take: limit,
-        include: {
-          user: {
-            select: {
-              id: true,
-              name: true,
-              imageUrl: true,
-            },
-          },
-        },
-      }),
-      prisma.comment.count({ where: { promptId } }),
-    ]);
-
+    const commentService = CommentService.getInstance();
+    const result = await commentService.getComments(promptId, page, limit, 'createdAt', orderBy);
+    
     return {
-      comments: comments.map(comment => ({
+      comments: result.comments.map(comment => ({
         id: comment.id,
         content: comment.content,
         createdAt: comment.createdAt,
@@ -197,7 +157,7 @@ export class CommunityService {
           imageUrl: comment.user.imageUrl,
         },
       })),
-      total,
+      total: result.total,
     };
   }
 

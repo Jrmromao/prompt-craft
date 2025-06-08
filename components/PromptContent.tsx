@@ -24,12 +24,12 @@ import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle } from 
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 import { VoteButton } from '@/components/VoteButton';
-import { CommentLite } from '@/components/CommentLite';
 import { Analytics } from '@/components/Analytics';
 import { VersionHistory } from '@/components/VersionHistory';
 import { NavBarWrapper } from '@/components/layout/NavBarWrapper';
 import Playground from '@/components/Playground';
 import { PromptAnalyticsProvider, usePromptAnalytics } from '@/components/PromptAnalyticsContext';
+import { BasicComments } from '@/components/BasicComments';
 
 interface Tag {
   id: string;
@@ -230,7 +230,7 @@ export function PromptContent({ user, prompt }: PromptContentProps) {
                   </TabsContent>
 
                   <TabsContent value="comments" className="mt-0">
-                    <CommentLite id={prompt.id} onCountChange={setCommentCount} />
+                    <BasicComments promptId={prompt.id} />
                   </TabsContent>
 
                   <TabsContent value="analytics" className="mt-0">

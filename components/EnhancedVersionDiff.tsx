@@ -72,7 +72,7 @@ export function EnhancedVersionDiff({
     let lineNumber = 1;
     return diffArr.map(part => {
       const lines = part.value.split('\n');
-      return lines.map(line => {
+      return lines.map((line: string) => {
         const diffLine: DiffLine = {
           type: part.added ? 'added' : part.removed ? 'removed' : 'unchanged',
           content: line,

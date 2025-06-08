@@ -16,6 +16,7 @@ interface AnalyticsData {
   usageCount: number;
   upvotes: number;
   copyCount: number;
+  commentsCount: number;
   _count: {
     comments: number;
     votes: number;
@@ -126,7 +127,7 @@ export function Analytics({ promptId, upvotes }: AnalyticsProps) {
             <MessageSquare className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{commentCount}</div>
+            <div className="text-2xl font-bold">{analytics.commentsCount || commentCount}</div>
           </CardContent>
         </Card>
         <Card>

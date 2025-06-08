@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { ThumbsUp, ThumbsDown } from 'lucide-react';
-import { useUser } from '@clerk/nextjs';
+import { useUser, useAuth } from '@clerk/nextjs';
 import { toast } from 'sonner';
 
 interface VoteButtonProps {
@@ -12,34 +12,50 @@ interface VoteButtonProps {
 }
 
 export function VoteButton({ id, initialUpvotes, onVoteChange }: VoteButtonProps) {
-  const { user } = useUser();
+  const { user, isLoaded } = useUser();
+  const { getToken } = useAuth();
   const [upvotes, setUpvotes] = useState(initialUpvotes);
   const [userVote, setUserVote] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    if (user) {
+    if (isLoaded && user) {
       fetchUserVote();
+      const interval = setInterval(fetchUserVote, 10000); // every 10 seconds
+      return () => clearInterval(interval);
     }
-  }, [user, id]);
-
-  useEffect(() => {
-    fetchUserVote();
-    const interval = setInterval(() => {
-      fetchUserVote();
-    }, 10000); // every 10 seconds
-    return () => clearInterval(interval);
-  }, [id]);
+  }, [isLoaded, user, id]);
 
   const fetchUserVote = async () => {
+    if (!user) return;
+    
     try {
-      const response = await fetch(`/api/prompts/${id}/vote`);
+      const token = await getToken();
+      const response = await fetch(`/api/prompts/${id}/vote`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        credentials: 'include',
+        mode: 'cors',
+      });
+
       if (response.ok) {
         const data = await response.json();
         setUserVote(data.vote);
+      } else {
+        const error = await response.json();
+        console.error('Error fetching user vote:', error);
+        if (!error.error?.includes('Invalid origin')) {
+          toast.error('Failed to fetch vote status');
+        }
       }
     } catch (error) {
       console.error('Error fetching user vote:', error);
+      if (!(error instanceof Error && error.message.includes('Failed to fetch'))) {
+        toast.error('Failed to fetch vote status');
+      }
     }
   };
 
@@ -76,16 +92,21 @@ export function VoteButton({ id, initialUpvotes, onVoteChange }: VoteButtonProps
 
     setIsLoading(true);
     try {
+      const token = await getToken();
       const response = await fetch(`/api/prompts/${id}/vote`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
         },
+        credentials: 'include',
+        mode: 'cors',
         body: JSON.stringify({ value }),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to vote');
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to vote');
       }
 
       const data = await response.json();
@@ -98,7 +119,7 @@ export function VoteButton({ id, initialUpvotes, onVoteChange }: VoteButtonProps
       setUpvotes(previousUpvotes);
       setUserVote(previousVote);
       onVoteChange?.(previousUpvotes);
-      toast.error('Failed to vote. Please try again.');
+      toast.error(error instanceof Error ? error.message : 'Failed to vote. Please try again.');
     } finally {
       setIsLoading(false);
     }

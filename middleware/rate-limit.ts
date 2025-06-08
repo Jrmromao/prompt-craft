@@ -20,10 +20,15 @@ try {
 
 // Rate limit configuration
 const RATE_LIMIT_WINDOW = 60 * 1000; // 1 minute in milliseconds
-const MAX_REQUESTS = 100; // Maximum requests per window
+const MAX_REQUESTS = 300; // Maximum requests per window
 const MAX_REQUEST_SIZE = 1024 * 1024; // 1MB in bytes
 
 export async function rateLimitMiddleware(request: NextRequest) {
+  // Skip rate limiting for vote routes
+  if (request.nextUrl.pathname.includes('/vote')) {
+    return null;
+  }
+
   // Check request size
   const contentLength = parseInt(request.headers.get('content-length') || '0');
   if (contentLength > MAX_REQUEST_SIZE) {

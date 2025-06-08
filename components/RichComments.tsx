@@ -7,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { formatDistanceToNow } from 'date-fns';
 import { Loader2, MessageCircle, Heart, Share2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useUser, useAuth } from '@clerk/nextjs';
 
 const COMMENTS_PER_PAGE = 10;
 const MAX_CHARACTERS = 280;
@@ -21,11 +22,11 @@ interface Comment {
   };
 }
 
-interface CommentsProps {
+interface RichCommentsProps {
   id: string;
 }
 
-export function Comments({ id }: CommentsProps) {
+export function RichComments({ id }: RichCommentsProps) {
   const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState('');
   const [isLoading, setIsLoading] = useState(true);
@@ -33,11 +34,16 @@ export function Comments({ id }: CommentsProps) {
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [totalComments, setTotalComments] = useState(0);
+  const { user, isLoaded } = useUser();
+  const { getToken } = useAuth();
 
   const fetchComments = async (pageNum: number = 1) => {
     try {
       const response = await fetch(
-        `/api/prompts/${id}/comments?page=${pageNum}&limit=${COMMENTS_PER_PAGE}`
+        `/api/prompts/${id}/comments?page=${pageNum}&limit=${COMMENTS_PER_PAGE}`,
+        {
+          credentials: 'include',
+        }
       );
       if (response.ok) {
         const data = await response.json();
@@ -62,6 +68,14 @@ export function Comments({ id }: CommentsProps) {
     fetchComments();
   }, [id]);
 
+  useEffect(() => {
+    const pollInterval = setInterval(() => {
+      fetchComments();
+    }, 30000);
+
+    return () => clearInterval(pollInterval);
+  }, [id]);
+
   const loadMore = async () => {
     if (isLoadingMore || !hasMore) return;
     setIsLoadingMore(true);
@@ -72,7 +86,21 @@ export function Comments({ id }: CommentsProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newComment.trim()) return;
+    
+    if (!isLoaded) {
+      toast.error('Please wait while we load your account information');
+      return;
+    }
+
+    if (!user) {
+      toast.error('You must be logged in to comment');
+      return;
+    }
+
+    if (!newComment.trim()) {
+      toast.error('Comment cannot be empty');
+      return;
+    }
 
     const tempId = `temp-${Date.now()}`;
     const tempComment: Comment = {
@@ -80,8 +108,8 @@ export function Comments({ id }: CommentsProps) {
       content: newComment,
       createdAt: new Date().toISOString(),
       user: {
-        name: 'You',
-        imageUrl: null,
+        name: user.fullName || 'You',
+        imageUrl: user.imageUrl,
       },
     };
 
@@ -90,9 +118,14 @@ export function Comments({ id }: CommentsProps) {
     setTotalComments(prev => prev + 1);
 
     try {
+      const token = await getToken();
       const response = await fetch(`/api/prompts/${id}/comments`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        credentials: 'include',
         body: JSON.stringify({ content: newComment }),
       });
 
@@ -140,16 +173,17 @@ export function Comments({ id }: CommentsProps) {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="flex gap-4">
             <Avatar className="h-10 w-10">
-              <AvatarImage src={undefined} />
-              <AvatarFallback>Y</AvatarFallback>
+              <AvatarImage src={user?.imageUrl} />
+              <AvatarFallback>{user?.fullName?.[0]?.toUpperCase() || 'Y'}</AvatarFallback>
             </Avatar>
             <div className="flex-1 space-y-4">
               <Textarea
-                placeholder="What's happening?"
+                placeholder={user ? "What's happening?" : "Please sign in to comment"}
                 value={newComment}
                 onChange={e => setNewComment(e.target.value)}
                 className="min-h-[100px] resize-none border-0 p-0 text-lg focus-visible:ring-0 focus-visible:ring-offset-0"
                 maxLength={MAX_CHARACTERS}
+                disabled={!user}
               />
               <div className="flex items-center justify-between border-t border-gray-200 pt-4 dark:border-gray-700">
                 <div className="flex items-center gap-4 text-gray-500 dark:text-gray-400">
@@ -171,7 +205,7 @@ export function Comments({ id }: CommentsProps) {
                   </span>
                   <Button
                     type="submit"
-                    disabled={!newComment.trim() || newComment.length > MAX_CHARACTERS}
+                    disabled={!newComment.trim() || newComment.length > MAX_CHARACTERS || !user}
                     className="rounded-full px-4"
                   >
                     Comment

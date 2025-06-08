@@ -1,7 +1,7 @@
 'use client';
 import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
-import { Star, Copy, ExternalLink } from 'lucide-react';
+import { Star, Copy, ExternalLink, MessageSquare } from 'lucide-react';
 import * as React from 'react';
 
 export default function PromptCard({ prompt, isFeatured }: { prompt: any; isFeatured: boolean }) {
@@ -31,12 +31,17 @@ export default function PromptCard({ prompt, isFeatured }: { prompt: any; isFeat
           </Badge>
         ))}
       </div>
-      <div className="mb-4 mt-2 flex items-center gap-2">
-        <span className="inline-flex items-center gap-1 text-base font-bold text-purple-800 dark:text-purple-200">
-          <Star className="h-4 w-4 fill-current text-yellow-400" />
-          {prompt.upvotes}
-        </span>
-        <span className="ml-2 text-xs text-gray-500 dark:text-gray-400">upvotes</span>
+      <div className="mt-4 flex items-center justify-between">
+        <div className="flex items-center gap-4 text-sm text-muted-foreground">
+          <div className="flex items-center gap-1">
+            <Star className="h-4 w-4 fill-current text-yellow-400" />
+            {prompt.upvotes}
+          </div>
+          <div className="flex items-center gap-1">
+            <MessageSquare className="h-4 w-4 text-purple-400" />
+            {prompt._count?.comments || 0}
+          </div>
+        </div>
       </div>
       <div className="mt-auto flex gap-2">
         <button
