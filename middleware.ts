@@ -9,8 +9,8 @@ import { securityHeaders } from '@/app/api/config';
 // Define routes that don't require authentication
 const PUBLIC_ROUTES = [
   '/',
-  '/sign-in*',
-  '/sign-up*',
+  '/sign-in(.*)',
+  '/sign-up(.*)',
   '/api/webhooks(.*)',
   '/api/health',
   '/api/test',
@@ -38,6 +38,10 @@ const PUBLIC_ROUTES = [
 // Define routes that require API key authentication
 const API_KEY_ROUTES = ['/api/v1(.*)'];
 
+// Create route matchers
+const isPublicRoute = createRouteMatcher(PUBLIC_ROUTES);
+const requiresApiKey = createRouteMatcher(API_KEY_ROUTES);
+
 // Function to validate request origin
 function validateOrigin(request: NextRequest): boolean {
   const origin = request.headers.get('origin');
@@ -47,25 +51,6 @@ function validateOrigin(request: NextRequest): boolean {
   if (!origin) return true;
   
   return allowedOrigins.includes(origin);
-}
-
-// Function to check if a route is public
-function isPublicRoute(pathname: string): boolean {
-  return PUBLIC_ROUTES.some(route => {
-    // Convert route pattern to regex
-    const pattern = route.replace(/\*/g, '.*');
-    const regex = new RegExp(`^${pattern}$`);
-    return regex.test(pathname);
-  });
-}
-
-// Function to check if a route requires API key
-function requiresApiKey(pathname: string): boolean {
-  return API_KEY_ROUTES.some(route => {
-    const pattern = route.replace(/\*/g, '.*');
-    const regex = new RegExp(`^${pattern}$`);
-    return regex.test(pathname);
-  });
 }
 
 // Security middleware
@@ -113,35 +98,44 @@ async function securityMiddleware(request: NextRequest) {
 }
 
 // Create the middleware chain
-const middleware = clerkMiddleware(async (auth, req) => {
+export default clerkMiddleware(async (auth, request) => {
+  // Skip middleware for auth routes
+  if (isPublicRoute(request)) {
+    return NextResponse.next();
+  }
+
   // Run security middleware first
-  const securityResponse = await securityMiddleware(req);
+  const securityResponse = await securityMiddleware(request);
   if (securityResponse.status !== 200) {
     return securityResponse;
   }
 
   // Check if route requires API key
-  if (requiresApiKey(req.nextUrl.pathname)) {
-    const apiKeyResponse = await apiKeyMiddleware(req);
+  if (requiresApiKey(request)) {
+    const apiKeyResponse = await apiKeyMiddleware(request);
     if (apiKeyResponse.status !== 200) {
       return apiKeyResponse;
     }
   }
 
-  return NextResponse.next();
-});
+  // Protect the route if it's not public
+  await auth.protect();
 
-// Export the middleware
-export default middleware;
+  return NextResponse.next();
+}, {
+  debug: process.env.NODE_ENV === 'development'
+});
 
 // Configure which routes to run middleware on
 export const config = {
   matcher: [
-    // Match all paths except static files and images
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
-    // Match all API routes
-    '/api/:path*',
-    // Match all app routes except auth routes
-    '/((?!api|_next/static|_next/image|favicon.ico|sign-in|sign-up).*)',
+    /*
+     * Match all request paths except for the ones starting with:
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     * - public folder
+     */
+    '/((?!_next/static|_next/image|favicon.ico|public/).*)',
   ],
 };

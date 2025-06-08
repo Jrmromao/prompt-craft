@@ -28,8 +28,8 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: false,
   },
-  // Configure build output
-  output: 'standalone',
+  // Configure build output - only use standalone in production
+  output: process.env.NODE_ENV === 'production' ? 'standalone' : undefined,
   // Configure ESLint
   eslint: {
     ignoreDuringBuilds: false,
@@ -47,6 +47,16 @@ const nextConfig = {
         ],
       },
     ];
+  },
+  // Fix for crypto module in standalone mode
+  webpack: (config, { isServer }) => {
+    if (isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        crypto: require.resolve('crypto-browserify'),
+      };
+    }
+    return config;
   },
 };
 
