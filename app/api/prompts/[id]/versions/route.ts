@@ -7,7 +7,10 @@ import { dynamicRouteConfig, withDynamicRoute } from '@/lib/utils/dynamicRoute';
 export const { dynamic, revalidate, runtime } = dynamicRouteConfig;
 
 // Define the create version handler
-async function createVersionHandler(request: Request, context?: { params?: Record<string, string> }) {
+async function createVersionHandler(
+  request: Request,
+  context?: { params?: Record<string, string> }
+) {
   try {
     const { userId } = await auth();
     if (!userId) {

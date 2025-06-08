@@ -1,18 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { AIService } from '@/lib/services/aiService';
-import { rateLimit } from '@/lib/utils/rateLimit';
-import { securityHeaders, cacheConfig } from '@/app/api/config';
+import { rateLimiter } from '@/lib/utils/rateLimit';
+import { securityHeaders } from '@/app/api/config';
 
 // Export dynamic configuration
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
-
-// Rate limiting configuration
-const limiter = rateLimit({
-  interval: 60 * 1000, // 1 minute
-  uniqueTokenPerInterval: 500
-});
 
 // Define the handler
 async function generateHandler(request: NextRequest) {
@@ -26,12 +20,19 @@ async function generateHandler(request: NextRequest) {
     }
 
     // Rate limiting per user
-    try {
-      await limiter.check(5, userId); // 5 requests per minute per user
-    } catch {
+    const { success, limit, reset, remaining } = await rateLimiter.limit(userId);
+    if (!success) {
       return NextResponse.json(
         { error: 'Rate limit exceeded' },
-        { status: 429, headers: securityHeaders }
+        {
+          status: 429,
+          headers: {
+            ...securityHeaders,
+            'X-RateLimit-Limit': limit.toString(),
+            'X-RateLimit-Remaining': remaining.toString(),
+            'X-RateLimit-Reset': reset.toString(),
+          },
+        }
       );
     }
 
@@ -50,12 +51,12 @@ async function generateHandler(request: NextRequest) {
       prompt,
       model: model || 'gpt-4',
       temperature: temperature || 0.7,
-      maxTokens: maxTokens || 1000
+      maxTokens: maxTokens || 1000,
     });
 
     // Create response with security headers
     const response = NextResponse.json(result);
-    
+
     // Add security headers
     Object.entries(securityHeaders).forEach(([key, value]) => {
       response.headers.set(key, value);
@@ -70,12 +71,12 @@ async function generateHandler(request: NextRequest) {
     console.error('Error generating text:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
-      { 
+      {
         status: 500,
         headers: {
           'Content-Type': 'application/json',
-          ...securityHeaders
-        }
+          ...securityHeaders,
+        },
       }
     );
   }

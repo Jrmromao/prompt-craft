@@ -17,4 +17,4 @@ export async function requireAdmin() {
   }
 
   return userId;
-} 
+}

@@ -1,5 +1,5 @@
-import { Prisma } from '@prisma/client';
-import { prisma } from '@/app/db';
+import { prisma } from '@/lib/prisma';
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 
 // Helper function to validate user ID format
 export function isValidUserId(userId: string): boolean {
@@ -15,10 +15,12 @@ export function isValidEmail(email: string): boolean {
 // Helper function to sanitize string inputs
 export function sanitizeString(input: string | null | undefined): string {
   if (!input) return '';
-  return input
-    .replace(/[\u0000-\u001F\u007F-\u009F]/g, '')
-    .trim()
-    .substring(0, 255);
+  const CONTROL_CHARS = Array.from({ length: 32 }, (_, i) => String.fromCharCode(i))
+    .concat(Array.from({ length: 33 }, (_, i) => String.fromCharCode(i + 127)))
+    .join('');
+  const CONTROL_CHARS_REGEX = new RegExp(`[${CONTROL_CHARS}]`, 'g');
+
+  return input.replace(CONTROL_CHARS_REGEX, '').trim().substring(0, 255);
 }
 
 // Helper function to create or update a user
@@ -42,7 +44,6 @@ export async function createOrUpdateUser(
   const sanitizedLastName = sanitizeString(lastName);
 
   const fullName = `${sanitizedFirstName} ${sanitizedLastName}`.trim() || 'User';
-
   try {
     await prisma.user.create({
       data: {
@@ -54,13 +55,13 @@ export async function createOrUpdateUser(
 
     console.log(`User operation successful for clerk ID: ${clerkUserId.substring(0, 8)}...`);
     return true;
-  } catch (error) {
-    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+  } catch (error: unknown) {
+    if (error instanceof PrismaClientKnownRequestError) {
       console.error(`Database error processing user: ${error.code}`);
     } else {
       console.error(
         'Error in user operation:',
-        typeof error === 'object' ? (error as Error).message : 'Unknown error'
+        error instanceof Error ? error.message : 'Unknown error'
       );
     }
     return false;

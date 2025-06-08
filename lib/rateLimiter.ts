@@ -42,4 +42,4 @@ export class RateLimiter {
     const windowKey = `ratelimit:${key}:${Math.floor(now / this.windowMs)}`;
     await this.redis.del(windowKey);
   }
-} 
+}

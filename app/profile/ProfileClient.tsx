@@ -941,12 +941,12 @@ function ProfileContent({ user, currentPath }: ProfileClientProps) {
         {/* Mobile/Tablet Sidebar Drawer */}
         <Sheet open={sidebarOpen} onOpenChange={closeSidebar}>
           <SheetContent side="left" className="w-64 p-0">
-            <ErrorBoundary>{SidebarContent}</ErrorBoundary>
+            <ErrorBoundary fallback={<div>Error</div>}>{SidebarContent}</ErrorBoundary>
           </SheetContent>
         </Sheet>
         <div className="mx-auto flex w-full max-w-7xl gap-8 px-4 pt-8">
           {/* Desktop Sidebar */}
-          <ErrorBoundary>
+          <ErrorBoundary fallback={<div>Error</div>}>
             <aside className="mt-4 hidden h-fit w-72 shrink-0 flex-col rounded-2xl border border-border bg-card px-6 py-8 md:flex">
               {SidebarContent}
             </aside>
@@ -954,7 +954,7 @@ function ProfileContent({ user, currentPath }: ProfileClientProps) {
           {/* Main Content */}
           <main className="mx-auto flex w-full max-w-[1180px] flex-1 flex-col gap-8">
             {/* Profile Header Card */}
-            <ErrorBoundary>
+            <ErrorBoundary fallback={<div>Error</div>}>
               <ProfileHeader
                 user={user}
                 status={status}
@@ -967,7 +967,7 @@ function ProfileContent({ user, currentPath }: ProfileClientProps) {
               />
             </ErrorBoundary>
             {/* Tabs for profile sections */}
-            <ErrorBoundary>
+            <ErrorBoundary fallback={<div>Error</div>}>
               <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
                 <TabsContent value="overview">
                   <Card className="rounded-2xl border border-border bg-card p-8 shadow-lg">

@@ -32,10 +32,7 @@ export async function POST(req: Request) {
         });
         return NextResponse.json({ message: 'Welcome back! You have been re-subscribed.' });
       }
-      return NextResponse.json(
-        { message: 'You are already on our waitlist!' },
-        { status: 200 }
-      );
+      return NextResponse.json({ message: 'You are already on our waitlist!' }, { status: 200 });
     }
 
     // Create new email signup
@@ -51,16 +48,10 @@ export async function POST(req: Request) {
     });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { error: 'Invalid email address' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Invalid email address' }, { status: 400 });
     }
 
     console.error('Error in email signup:', error);
-    return NextResponse.json(
-      { error: 'Something went wrong. Please try again.' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Something went wrong. Please try again.' }, { status: 500 });
   }
-} 
+}

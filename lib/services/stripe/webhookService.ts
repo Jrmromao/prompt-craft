@@ -1,6 +1,5 @@
 import { stripe } from '@/lib/stripe';
-import { prisma } from '@/lib/prisma';
-import { StripeWebhookError, handleStripeError } from './errors';
+import { StripeWebhookError } from './errors';
 import { SubscriptionStatus } from '@prisma/client';
 import { DatabaseService } from '@/lib/services/database/databaseService';
 

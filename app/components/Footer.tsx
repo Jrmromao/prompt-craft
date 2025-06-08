@@ -1,5 +1,6 @@
 import Link from 'next/link';
 // import Image from "next/image"; // Uncomment if you have a logo
+import { Sparkles } from 'lucide-react';
 import { FaTwitter, FaLinkedin, FaGithub } from 'react-icons/fa';
 
 export function Footer() {
@@ -8,9 +9,15 @@ export function Footer() {
       <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-8 md:flex-row md:items-start">
         {/* Left: Logo & Brand */}
         <div className="flex flex-col items-center gap-2 md:items-start">
-          {/* Uncomment and add your logo if available */}
-          {/* <Image src="/logo.svg" alt="PromptCraft Logo" width={36} height={36} className="mb-1" /> */}
-          <span className="text-lg font-bold tracking-tight text-foreground">PromptCraft</span>
+          <div
+            className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-r from-purple-500 to-pink-500"
+            aria-label="PromptCraft Logo"
+          >
+            <Sparkles className="h-5 w-5 text-white" aria-hidden="true" />
+          </div>
+          <span className="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-xl font-bold text-transparent">
+            PromptHive
+          </span>
           <span className="text-xs text-muted-foreground">Create & share AI prompts</span>
         </div>
         {/* Center: Business & Legal Links */}

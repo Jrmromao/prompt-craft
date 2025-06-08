@@ -38,12 +38,14 @@ async function usersHandler(request?: Request) {
 
   const where: Prisma.UserWhereInput = {
     AND: [
-      search ? {
-        OR: [
-          { name: { contains: search, mode: Prisma.QueryMode.insensitive } },
-          { email: { contains: search, mode: Prisma.QueryMode.insensitive } },
-        ],
-      } : {},
+      search
+        ? {
+            OR: [
+              { name: { contains: search, mode: Prisma.QueryMode.insensitive } },
+              { email: { contains: search, mode: Prisma.QueryMode.insensitive } },
+            ],
+          }
+        : {},
       role ? { role } : {},
     ],
   };
@@ -91,4 +93,4 @@ const fallbackData = {
 };
 
 // Export the wrapped handler
-export const GET = withDynamicRoute(usersHandler, fallbackData); 
+export const GET = withDynamicRoute(usersHandler, fallbackData);

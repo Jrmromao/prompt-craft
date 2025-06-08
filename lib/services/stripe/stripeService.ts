@@ -158,12 +158,7 @@ export class StripeService {
   private handleError(error: any): void {
     if (error instanceof Error) {
       const stripeError = error as StripeError;
-      console.error('Stripe Error:', {
-        type: stripeError.type,
-        code: stripeError.code,
-        message: stripeError.message,
-        decline_code: stripeError.decline_code,
-      });
+      console.error('Stripe Error:', stripeError.message);
     } else {
       console.error('Unknown Error:', error);
     }

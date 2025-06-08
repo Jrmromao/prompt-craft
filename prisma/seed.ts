@@ -1,5 +1,5 @@
-// @ts-nocheck
-const { PrismaClient, Period } = require('@prisma/client');
+import { Period, PrismaClient } from '@prisma/client';
+import { hash } from 'bcryptjs';
 
 const db = new PrismaClient();
 

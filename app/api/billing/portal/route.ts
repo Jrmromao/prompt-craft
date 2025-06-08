@@ -17,13 +17,13 @@ async function portalHandler(request: Request) {
 
     const billingService = BillingService.getInstance();
     const portalUrl = await billingService.getPortalUrl(userId);
-    
+
     // Create response with security headers
     const response = NextResponse.json({ url: portalUrl });
     Object.entries(securityHeaders).forEach(([key, value]) => {
       response.headers.set(key, value as string);
     });
-    
+
     return response;
   } catch (error) {
     console.error('Error creating billing portal:', error);

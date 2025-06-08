@@ -1,6 +1,6 @@
+import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
 import { quotaMiddleware } from './middleware/quota';
 import { rateLimitMiddleware } from './middleware/rate-limit';
 import { apiKeyMiddleware } from './middleware/api-key';
@@ -24,7 +24,6 @@ const PUBLIC_ROUTES = [
   '/api/billing(.*)',
   '/api/subscription(.*)',
   '/api/credits(.*)',
-  '/api/support(.*)',
   '/api/user(.*)',
   '/api/profile(.*)',
   '/api/settings(.*)',
@@ -42,14 +41,17 @@ const API_KEY_ROUTES = ['/api/v1(.*)'];
 const isPublicRoute = createRouteMatcher(PUBLIC_ROUTES);
 const requiresApiKey = createRouteMatcher(API_KEY_ROUTES);
 
+// Create a matcher for API routes
+const isApiRoute = createRouteMatcher('/api/:path*');
+
 // Function to validate request origin
 function validateOrigin(request: NextRequest): boolean {
   const origin = request.headers.get('origin');
   const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || [];
-  
+
   // Allow requests with no origin (like mobile apps or curl requests)
   if (!origin) return true;
-  
+
   return allowedOrigins.includes(origin);
 }
 
@@ -62,16 +64,13 @@ async function securityMiddleware(request: NextRequest) {
 
   // Validate origin
   if (!validateOrigin(request)) {
-    return new NextResponse(
-      JSON.stringify({ error: 'Invalid origin' }),
-      { 
-        status: 403,
-        headers: {
-          'Content-Type': 'application/json',
-          ...securityHeaders
-        }
-      }
-    );
+    return new NextResponse(JSON.stringify({ error: 'Invalid origin' }), {
+      status: 403,
+      headers: {
+        'Content-Type': 'application/json',
+        ...securityHeaders,
+      },
+    });
   }
 
   // Check rate limit
@@ -98,21 +97,41 @@ async function securityMiddleware(request: NextRequest) {
 }
 
 // Create the middleware chain
-export default clerkMiddleware(async (auth, request) => {
+export default clerkMiddleware(async (auth, req) => {
+  // Handle CORS for API routes
+  if (isApiRoute(req)) {
+    const response = NextResponse.next();
+
+    // Add CORS headers
+    response.headers.set('Access-Control-Allow-Origin', '*');
+    response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
+    // Handle preflight requests
+    if (req.method === 'OPTIONS') {
+      return new NextResponse(null, {
+        status: 204,
+        headers: response.headers,
+      });
+    }
+
+    return response;
+  }
+
   // Skip middleware for auth routes
-  if (isPublicRoute(request)) {
+  if (isPublicRoute(req)) {
     return NextResponse.next();
   }
 
   // Run security middleware first
-  const securityResponse = await securityMiddleware(request);
+  const securityResponse = await securityMiddleware(req);
   if (securityResponse.status !== 200) {
     return securityResponse;
   }
 
   // Check if route requires API key
-  if (requiresApiKey(request)) {
-    const apiKeyResponse = await apiKeyMiddleware(request);
+  if (requiresApiKey(req)) {
+    const apiKeyResponse = await apiKeyMiddleware(req);
     if (apiKeyResponse.status !== 200) {
       return apiKeyResponse;
     }
@@ -122,8 +141,6 @@ export default clerkMiddleware(async (auth, request) => {
   await auth.protect();
 
   return NextResponse.next();
-}, {
-  debug: process.env.NODE_ENV === 'development'
 });
 
 // Configure which routes to run middleware on

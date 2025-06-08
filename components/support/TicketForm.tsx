@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useAuth } from '@clerk/nextjs';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import {
   Form,
@@ -37,7 +38,16 @@ type TicketFormValues = z.infer<typeof ticketSchema>;
 
 export function TicketForm() {
   const router = useRouter();
+  const { userId, isLoaded, isSignedIn } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
+
+  // Redirect if not authenticated
+  if (isLoaded && !isSignedIn) {
+    router.push('/sign-in?redirect_url=/support/new');
+    return null;
+  }
 
   const form = useForm<TicketFormValues>({
     resolver: zodResolver(ticketSchema),
@@ -50,24 +60,44 @@ export function TicketForm() {
   });
 
   const onSubmit = async (data: TicketFormValues) => {
+    if (!userId) {
+      console.log('Form submission blocked: No user ID');
+      toast.error('You must be signed in to create a support ticket');
+      router.push('/sign-in?redirect_url=/support/new');
+      return;
+    }
+
     try {
       setIsSubmitting(true);
+      console.log('Form submission started with data:', { ...data, userId });
+
       const response = await fetch('/api/support/tickets', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify(data),
       });
 
-      if (response.ok) {
-        toast.success('Ticket created successfully');
-        router.push('/support/tickets');
-      } else {
-        const error = await response.json();
-        toast.error(error.message || 'Failed to create ticket');
+      console.log('API response received:', response.status);
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        console.error('API error response:', errorData);
+        throw new Error(errorData.error || 'Failed to create ticket');
       }
+
+      const responseData = await response.json();
+      console.log('Ticket created successfully:', responseData);
+
+      toast.success('Ticket created successfully');
+      router.push('/support/tickets');
     } catch (error) {
-      console.error('Error creating ticket:', error);
-      toast.error('Failed to create ticket');
+      console.error(
+        'Form submission error:',
+        error instanceof Error ? error.message : 'Unknown error'
+      );
+      toast.error(error instanceof Error ? error.message : 'Failed to create ticket');
     } finally {
       setIsSubmitting(false);
     }
@@ -77,6 +107,7 @@ export function TicketForm() {
     <Card className="mx-auto max-w-2xl rounded-xl border border-gray-200 shadow-lg">
       <CardHeader className="pb-2">
         <CardTitle className="text-xl font-semibold">Create Support Ticket</CardTitle>
+        <CardDescription>Fill out the form below to create a new support ticket.</CardDescription>
       </CardHeader>
       <CardContent className="pt-0">
         <Form {...form}>

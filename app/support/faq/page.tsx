@@ -125,9 +125,6 @@ export default function FAQPage() {
                 <Link href="/support/new">
                   <Button>Create Support Ticket</Button>
                 </Link>
-                <Link href="/support/chat">
-                  <Button variant="outline">Start Live Chat</Button>
-                </Link>
               </div>
             </div>
           </CardContent>

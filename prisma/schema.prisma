@@ -8,52 +8,52 @@ datasource db {
 }
 
 model User {
-  id            String    @id @default(cuid())
-  clerkId       String    @unique
-  email         String    @unique
-  name          String?
-  role          Role      @default(USER)
-  planType      PlanType  @default(FREE)
-  status        UserStatus @default(ACTIVE)
-  credits       Int       @default(0)
-  creditCap     Int       @default(100)
-  lastCreditReset DateTime?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  stripeCustomerId String?
-  imageUrl      String?
-  bio           String?
-  jobTitle      String?
-  location      String?
-  company       String?
-  website       String?
-  twitter       String?
-  linkedin      String?
-  emailPreferences Json?  @default("{\"marketingEmails\":true,\"productUpdates\":true,\"securityAlerts\":true}")
-  notificationSettings Json? @default("{\"emailNotifications\":true,\"pushNotifications\":true,\"browserNotifications\":true}")
-  languagePreferences Json? @default("{\"language\":\"en\",\"dateFormat\":\"MM/DD/YYYY\",\"timeFormat\":\"12h\"}")
-  themeSettings Json? @default("{\"theme\":\"system\",\"accentColor\":\"purple\"}")
-  securitySettings Json? @default("{\"twoFactorEnabled\":false,\"sessionTimeout\":30}")
-
-  // Relations
-  prompts       Prompt[]
-  comments      Comment[]
-  votes         Vote[]
-  commentLikes  CommentLike[]
-  promptUsages  PromptUsage[]
-  apiKeys       ApiKey[]
-  creditHistory CreditHistory[]
-  subscription  Subscription?
-  promptTemplates PromptTemplate[]
-  promptGenerations PromptGeneration[]
-  supportTickets SupportTicket[]
-  assignedTickets SupportTicket[] @relation("AssignedTickets")
-  messages      Message[]
-  playgroundRuns PlaygroundRun[]
-  promptCopies  PromptCopy[]
-  reports       Report[]
-  auditLogs     AuditLog[]
-  apiUsage      ApiUsage[]
+  id                   String             @id @default(cuid())
+  email                String             @unique
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+  clerkId              String             @unique
+  credits              Int                @default(0)
+  name                 String?
+  role                 Role               @default(USER)
+  creditCap            Int                @default(100)
+  lastCreditReset      DateTime?
+  stripeCustomerId     String?
+  planType             PlanType           @default(FREE)
+  imageUrl             String?
+  bio                  String?
+  company              String?
+  jobTitle             String?
+  linkedin             String?
+  location             String?
+  twitter              String?
+  website              String?
+  emailPreferences     Json?              @default("{\"productUpdates\": true, \"securityAlerts\": true, \"marketingEmails\": true}")
+  languagePreferences  Json?              @default("{\"language\": \"en\", \"dateFormat\": \"MM/DD/YYYY\", \"timeFormat\": \"12h\"}")
+  notificationSettings Json?              @default("{\"pushNotifications\": true, \"emailNotifications\": true, \"browserNotifications\": true}")
+  securitySettings     Json?              @default("{\"sessionTimeout\": 30, \"twoFactorEnabled\": false}")
+  themeSettings        Json?              @default("{\"theme\": \"system\", \"accentColor\": \"purple\"}")
+  status               UserStatus         @default(ACTIVE)
+  apiKeys              ApiKey[]
+  apiUsage             ApiUsage[]
+  auditLogs            AuditLog[]
+  comments             Comment[]
+  commentLikes         CommentLike[]
+  creditHistory        CreditHistory[]
+  messages             Message[]
+  playgroundRuns       PlaygroundRun[]
+  prompts              Prompt[]
+  promptCopies         PromptCopy[]
+  promptGenerations    PromptGeneration[]
+  promptTemplates      PromptTemplate[]
+  promptUsages         PromptUsage[]
+  reports              Report[]
+  subscription         Subscription?
+  assignedTickets      SupportTicket[]    @relation("AssignedTickets")
+  supportTickets       SupportTicket[]
+  votes                Vote[]
+  createdTemplates     EmailTemplate[]    @relation("CreatedTemplates")
+  updatedTemplates     EmailTemplate[]    @relation("UpdatedTemplates")
 
   @@index([clerkId])
   @@index([email])
@@ -101,35 +101,35 @@ model Subscription {
 }
 
 model Prompt {
-  id          String   @id @default(cuid())
-  name        String
-  slug        String   @unique
-  description String?
-  content     String
-  isPublic    Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  userId      String
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  tags        Tag[]    @relation("PromptToTag")
-  upvotes     Int      @default(0)
-  copyCount   Int      @default(0)
-  viewCount   Int      @default(0)
-  usageCount  Int      @default(0)
-  versions    PromptVersion[]
-  comments    Comment[]
+  id             String           @id @default(cuid())
+  userId         String
+  createdAt      DateTime         @default(now())
+  content        String
+  description    String?
+  isPublic       Boolean          @default(false)
+  name           String
+  updatedAt      DateTime         @updatedAt
+  upvotes        Int              @default(0)
+  slug           String           @unique
+  lastUsedAt     DateTime?
+  lastViewedAt   DateTime?
+  usageCount     Int              @default(0)
+  viewCount      Int              @default(0)
+  copyCount      Int              @default(0)
+  apiUsage       ApiUsage[]
+  comments       Comment[]
+  likes          CommentLike[]
   playgroundRuns PlaygroundRun[]
-  likes       CommentLike[]
-  votes       Vote[]
-  analytics   PromptAnalytics?
-  views       PromptView[]
-  usages      PromptUsage[]
-  branches    PromptBranch[]
-  copies      PromptCopy[]
-  lastViewedAt DateTime?
-  lastUsedAt  DateTime?
-  reports     Report[]
-  apiUsage    ApiUsage[]
+  user           User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  analytics      PromptAnalytics?
+  branches       PromptBranch[]
+  copies         PromptCopy[]
+  usages         PromptUsage[]
+  versions       PromptVersion[]
+  views          PromptView[]
+  reports        Report[]
+  votes          Vote[]
+  tags           Tag[]            @relation("PromptToTag")
 
   @@index([userId])
   @@index([slug])
@@ -138,9 +138,9 @@ model Prompt {
 model Tag {
   id        String   @id @default(cuid())
   name      String   @unique
-  slug      String   @unique
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  slug      String   @unique
   prompts   Prompt[] @relation("PromptToTag")
 
   @@index([slug])
@@ -191,16 +191,16 @@ model PromptGeneration {
 }
 
 model ApiKey {
-  id          String    @id @default(cuid())
-  userId      String
-  name        String
-  hashedKey   String    @unique
-  scopes      String[]
-  expiresAt   DateTime?
+  id            String    @id @default(cuid())
+  userId        String
+  name          String
+  createdAt     DateTime  @default(now())
+  expiresAt     DateTime?
+  hashedKey     String    @unique
   lastRotatedAt DateTime
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  scopes        String[]
+  updatedAt     DateTime  @updatedAt
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([hashedKey])
@@ -213,8 +213,8 @@ model Vote {
   value     Int
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   prompt    Prompt   @relation(fields: [promptId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, promptId])
   @@index([userId])
@@ -222,18 +222,18 @@ model Vote {
 }
 
 model Comment {
-  id        String   @id @default(cuid())
+  id        String        @id @default(cuid())
   userId    String
   promptId  String
   content   String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  parentId  String?  // Optional field for nested comments
-  hidden    Boolean  @default(false)
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  prompt    Prompt   @relation(fields: [promptId], references: [id], onDelete: Cascade)
-  parent    Comment? @relation("CommentToComment", fields: [parentId], references: [id], onDelete: SetNull)
-  replies   Comment[] @relation("CommentToComment")
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  parentId  String?
+  hidden    Boolean       @default(false)
+  parent    Comment?      @relation("CommentToComment", fields: [parentId], references: [id])
+  replies   Comment[]     @relation("CommentToComment")
+  prompt    Prompt        @relation(fields: [promptId], references: [id], onDelete: Cascade)
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   likes     CommentLike[]
   reports   Report[]
 
@@ -248,10 +248,10 @@ model CommentLike {
   userId    String
   commentId String
   createdAt DateTime @default(now())
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  promptId  String
   comment   Comment  @relation(fields: [commentId], references: [id], onDelete: Cascade)
   prompt    Prompt   @relation(fields: [promptId], references: [id], onDelete: Cascade)
-  promptId  String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, commentId])
   @@index([userId])
@@ -262,9 +262,9 @@ model CommentLike {
 model PromptAnalytics {
   id        String   @id @default(cuid())
   promptId  String   @unique
-  prompt    Prompt   @relation(fields: [promptId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  prompt    Prompt   @relation(fields: [promptId], references: [id], onDelete: Cascade)
 }
 
 model PromptView {
@@ -284,8 +284,8 @@ model PromptUsage {
   id        String   @id @default(cuid())
   promptId  String
   userId    String
-  result    Json?
   createdAt DateTime @default(now())
+  result    Json?
   prompt    Prompt   @relation(fields: [promptId], references: [id], onDelete: Cascade)
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -297,10 +297,10 @@ model PromptVersion {
   id          String   @id @default(cuid())
   promptId    String
   content     String
+  createdAt   DateTime @default(now())
   description String?
   metadata    Json?
   tags        String[]
-  createdAt   DateTime @default(now())
   prompt      Prompt   @relation(fields: [promptId], references: [id], onDelete: Cascade)
 
   @@index([promptId])
@@ -310,9 +310,9 @@ model PromptBranch {
   id        String   @id @default(cuid())
   promptId  String
   name      String
-  content   String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  content   String
   prompt    Prompt   @relation(fields: [promptId], references: [id], onDelete: Cascade)
 
   @@unique([promptId, name])
@@ -327,7 +327,7 @@ model PromptCopy {
   userAgent String?
   createdAt DateTime @default(now())
   prompt    Prompt   @relation(fields: [promptId], references: [id], onDelete: Cascade)
-  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  user      User?    @relation(fields: [userId], references: [id])
 
   @@index([promptId])
   @@index([userId])
@@ -344,10 +344,10 @@ model SupportTicket {
   updatedAt   DateTime     @updatedAt
   userId      String
   assigneeId  String?
-  user        User         @relation(fields: [userId], references: [id])
-  assignee    User?        @relation("AssignedTickets", fields: [assigneeId], references: [id])
-  messages    Message[]
   attachments Attachment[]
+  messages    Message[]
+  assignee    User?        @relation("AssignedTickets", fields: [assigneeId], references: [id])
+  user        User         @relation(fields: [userId], references: [id])
 
   @@index([userId])
   @@index([assigneeId])
@@ -360,22 +360,24 @@ model Message {
   id        String   @id @default(cuid())
   content   String
   createdAt DateTime @default(now())
-  ticketId  String
-  userId    String
+  updatedAt DateTime @updatedAt
   ticket    SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
-  user      User         @relation(fields: [userId], references: [id])
+  ticketId  String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  isSystemMessage Boolean @default(false)
 
   @@index([ticketId])
   @@index([userId])
 }
 
 model Attachment {
-  id        String   @id @default(cuid())
+  id        String        @id @default(cuid())
   filename  String
   url       String
   type      String
   size      Int
-  createdAt DateTime @default(now())
+  createdAt DateTime      @default(now())
   ticketId  String
   ticket    SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
 
@@ -385,13 +387,13 @@ model Attachment {
 model PlaygroundRun {
   id        String   @id @default(cuid())
   userId    String
-  promptId  String?
+  createdAt DateTime @default(now())
+  error     String?
   input     String
   output    String?
-  error     String?
-  createdAt DateTime @default(now())
+  promptId  String?
+  prompt    Prompt?  @relation(fields: [promptId], references: [id])
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  prompt    Prompt?  @relation(fields: [promptId], references: [id], onDelete: SetNull)
 
   @@index([userId])
   @@index([promptId])
@@ -400,14 +402,14 @@ model PlaygroundRun {
 
 model AuditLog {
   id        String   @id @default(cuid())
+  userId    String?
   action    String
   resource  String
-  userId    String?
-  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
-  ipAddress String?
-  details   Json
   status    String   @default("success")
+  details   Json
+  ipAddress String?
   timestamp DateTime @default(now())
+  user      User?    @relation(fields: [userId], references: [id])
 
   @@index([userId])
   @@index([action])
@@ -423,9 +425,9 @@ model Report {
   userId    String
   promptId  String?
   commentId String?
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  prompt    Prompt?  @relation(fields: [promptId], references: [id], onDelete: Cascade)
   comment   Comment? @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  prompt    Prompt?  @relation(fields: [promptId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([promptId])
@@ -440,9 +442,9 @@ model ApiUsage {
   outputTokens Int
   isCacheHit   Boolean  @default(false)
   userId       String
-  user         User     @relation(fields: [userId], references: [id])
   promptId     String?
   prompt       Prompt?  @relation(fields: [promptId], references: [id])
+  user         User     @relation(fields: [userId], references: [id])
 
   @@index([createdAt])
   @@index([userId])
@@ -450,26 +452,47 @@ model ApiUsage {
 }
 
 model Moderation {
-  id           String   @id @default(cuid())
-  contentId    String   // Reference to the content (e.g., prompt, post, etc.)
-  contentType  String   // e.g., "prompt", "post", "comment"
-  severity     String   // "low", "medium", "high", "none"
-  category     String   // e.g., "sexual", "attracting"
-  status       String   // "pending", "reviewed", "approved", "rejected"
-  reason       String?  // Optional: more details
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id          String   @id @default(cuid())
+  contentId   String
+  contentType String
+  severity    String
+  category    String
+  status      String
+  reason      String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 model EmailSignup {
-  id        String   @id @default(cuid())
-  email     String   @unique
+  id        String            @id @default(cuid())
+  email     String            @unique
   status    EmailSignupStatus @default(PENDING)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
 
   @@index([email])
   @@index([status])
+}
+
+model EmailTemplate {
+  id          String   @id @default(cuid())
+  name        String
+  subject     String
+  body        String
+  variables   String[]
+  type        String
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  createdById String
+  updatedById String
+  createdBy   User     @relation("CreatedTemplates", fields: [createdById], references: [id])
+  updatedBy   User     @relation("UpdatedTemplates", fields: [updatedById], references: [id])
+
+  @@index([createdById])
+  @@index([updatedById])
+  @@index([type])
+  @@index([isActive])
 }
 
 enum Role {

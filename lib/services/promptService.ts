@@ -292,20 +292,16 @@ export class PromptService {
   // Get top N public prompts for landing page/SEO
   public async getFeaturedPrompts(limit: number = 3): Promise<Prompt[]> {
     return prisma.prompt.findMany({
-      where: { 
+      where: {
         isPublic: true,
         // Ensure we have some minimum engagement
-        OR: [
-          { upvotes: { gt: 0 } },
-          { viewCount: { gt: 0 } },
-          { usageCount: { gt: 0 } }
-        ]
+        OR: [{ upvotes: { gt: 0 } }, { viewCount: { gt: 0 } }, { usageCount: { gt: 0 } }],
       },
       orderBy: [
         { upvotes: 'desc' },
         { viewCount: 'desc' },
         { usageCount: 'desc' },
-        { createdAt: 'desc' }
+        { createdAt: 'desc' },
       ],
       include: { tags: true },
       take: limit,

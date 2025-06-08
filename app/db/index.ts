@@ -1,19 +1,20 @@
 import { PrismaClient } from '@prisma/client';
 
-declare global {
-  var prismaClient: PrismaClient | undefined;
-}
-
 const prismaClientSingleton = () => {
-  return new PrismaClient({
-    log: [],
-  });
+  return new PrismaClient();
 };
 
-const prisma = global.prismaClient ?? prismaClientSingleton();
-
-if (process.env.NODE_ENV !== 'production') {
-  global.prismaClient = prisma;
+// Standard Next.js + Prisma pattern
+// eslint-disable-next-line no-var
+declare global {
+  // eslint-disable-next-line no-var
+  var prisma: undefined | ReturnType<typeof prismaClientSingleton>;
 }
 
-export { prisma };
+const prisma = global.prisma ?? prismaClientSingleton();
+
+if (process.env.NODE_ENV !== 'production') {
+  global.prisma = prisma;
+}
+
+export default prisma;

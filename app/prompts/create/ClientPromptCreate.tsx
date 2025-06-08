@@ -25,7 +25,7 @@ import {
   Stethoscope,
   X,
 } from 'lucide-react';
-import { sendPromptToLLM } from '@/services/aiService';
+import { AIService } from '@/lib/services/aiService';
 import type { PromptPayload, PromptType } from '@/types/ai';
 import { useToast } from '@/components/ui/use-toast';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -41,6 +41,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { useUser } from '@clerk/nextjs';
 
 const PROMPT_TYPES: {
   value: PromptType;
@@ -609,6 +610,7 @@ export default function ClientPromptCreate({ user }: { user: NavBarUser }) {
     missingCredits: number;
   }>({ currentCredits: 0, requiredCredits: 0, missingCredits: 0 });
   const [showMedicalWarning, setShowMedicalWarning] = useState(false);
+  const { user: clerkUser } = useUser();
 
   useEffect(() => {
     if (aiResponse && aiResponseRef.current) {
@@ -671,15 +673,14 @@ export default function ClientPromptCreate({ user }: { user: NavBarUser }) {
       ]
         .filter(Boolean)
         .join('\n\n');
-      const llmPayload: PromptPayload = {
-        ...formData,
-        tags: selectedTags,
-        promptType,
-        content: llmPrompt,
-      };
+      const aiService = AIService.getInstance();
       let llmResponse;
       try {
-        llmResponse = await sendPromptToLLM(llmPayload);
+        llmResponse = await aiService.generateText({
+          prompt: llmPrompt,
+          model: 'deepseek',
+          userId: clerkUser?.id,
+        });
         setAiResponse(llmResponse);
         setEditableAiResponse(llmResponse);
         toast({ title: 'Success', description: 'Prompt template generated successfully' });

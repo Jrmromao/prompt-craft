@@ -16,8 +16,8 @@ export class UsageService {
       userId,
       usage: {
         totalRequests: 0,
-        lastUpdated: new Date().toISOString()
-      }
+        lastUpdated: new Date().toISOString(),
+      },
     };
   }
-} 
+}

@@ -50,7 +50,13 @@ export class DatabaseService {
   }
 
   public async updateUser(userId: string, data: Partial<User>) {
-    const jsonFields = ['emailPreferences', 'notificationSettings', 'themeSettings', 'securitySettings', 'languagePreferences'];
+    const jsonFields = [
+      'emailPreferences',
+      'notificationSettings',
+      'themeSettings',
+      'securitySettings',
+      'languagePreferences',
+    ];
     const processedData = Object.entries(data).reduce((acc, [key, value]) => {
       if (jsonFields.includes(key) && value !== undefined) {
         acc[key] = { set: value };

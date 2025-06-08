@@ -7,10 +7,7 @@ import { dynamicRouteConfig, withDynamicRoute } from '@/lib/utils/dynamicRoute';
 export const { dynamic, revalidate, runtime } = dynamicRouteConfig;
 
 // Define the main handler
-async function versionHandler(
-  request: Request,
-  context?: { params?: Record<string, string> }
-) {
+async function versionHandler(request: Request, context?: { params?: Record<string, string> }) {
   const { id, version } = context?.params || {};
   if (!version) {
     return NextResponse.json({ error: 'Version parameter is required' }, { status: 400 });

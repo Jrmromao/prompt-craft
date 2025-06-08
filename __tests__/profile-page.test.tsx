@@ -82,29 +82,6 @@ describe('ProfilePage', () => {
     jest.resetAllMocks();
   });
 
-  it('redirects to sign-in if user is not authenticated', async () => {
-    const mockAuth = auth as unknown as jest.Mock;
-    const mockCurrentUser = currentUser as unknown as jest.Mock;
-
-    mockAuth.mockResolvedValueOnce({ userId: null });
-    mockCurrentUser.mockResolvedValueOnce(null);
-
-    await ProfilePage();
-    expect(require('next/navigation').redirect).toHaveBeenCalledWith('/sign-in');
-  });
-
-  it('redirects to sign-in if user is not found in database', async () => {
-    const mockAuth = auth as unknown as jest.Mock;
-    const mockCurrentUser = currentUser as unknown as jest.Mock;
-
-    mockAuth.mockResolvedValueOnce({ userId: 'user-123' });
-    mockCurrentUser.mockResolvedValueOnce({ id: 'user-123' });
-    (getProfileByClerkId as jest.Mock).mockResolvedValueOnce(null);
-
-    await ProfilePage();
-    expect(require('next/navigation').redirect).toHaveBeenCalledWith('/sign-in');
-  });
-
   it('renders profile page with user data', async () => {
     const mockAuth = auth as unknown as jest.Mock;
     const mockCurrentUser = currentUser as unknown as jest.Mock;

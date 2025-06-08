@@ -74,3 +74,20 @@ export async function updateUserRole(userId: string, role: Role) {
     throw new Error('Failed to update user role');
   }
 }
+
+export async function updateUser(userId: string, data: { name: string; role: Role }) {
+  try {
+    const user = await prisma.user.update({
+      where: { id: userId },
+      data: {
+        name: data.name,
+        role: data.role,
+      },
+    });
+    revalidatePath('/admin/users');
+    return user;
+  } catch (error) {
+    console.error('Error updating user:', error);
+    throw new Error('Failed to update user');
+  }
+}

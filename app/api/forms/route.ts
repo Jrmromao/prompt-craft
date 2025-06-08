@@ -21,9 +21,9 @@ async function formsHandler(request: Request) {
     if (!request.body) {
       return NextResponse.json({ error: 'Request body is required' }, { status: 400 });
     }
-    
+
     // Add your form handling logic here
-    
+
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('[FORMS_POST]', error);

@@ -102,11 +102,13 @@ export const userUpdateSchema = z
     website: z.string().url().optional(),
     twitter: z.string().max(50).optional(),
     linkedin: z.string().url().optional(),
-    emailPreferences: z.object({
-      marketingEmails: z.boolean(),
-      productUpdates: z.boolean(),
-      securityAlerts: z.boolean(),
-    }).optional(),
+    emailPreferences: z
+      .object({
+        marketingEmails: z.boolean(),
+        productUpdates: z.boolean(),
+        securityAlerts: z.boolean(),
+      })
+      .optional(),
   })
   .refine(
     data => {
@@ -117,3 +119,37 @@ export const userUpdateSchema = z
       message: 'At least one field must be provided for update',
     }
   );
+
+export const userSchema = z.object({
+  name: z.string().min(2, 'Name must be at least 2 characters').max(100),
+  email: z.string().email('Invalid email address'),
+  role: z.enum(['USER', 'ADMIN', 'SUPER_ADMIN']).default('USER'),
+  preferences: z
+    .object({
+      theme: z.enum(['light', 'dark', 'system']).default('system'),
+      notifications: z.boolean().default(true),
+      language: z.string().default('en'),
+    })
+    .default({}),
+});
+
+export type UserInput = z.infer<typeof userSchema>;
+
+export const updateUserSchema = userSchema.partial();
+
+export type UpdateUserInput = z.infer<typeof updateUserSchema>;
+
+export const userPreferencesSchema = z.object({
+  theme: z.enum(['light', 'dark', 'system']).default('system'),
+  notifications: z.boolean().default(true),
+  language: z.string().default('en'),
+  emailNotifications: z.boolean().default(true),
+  pushNotifications: z.boolean().default(true),
+  marketingEmails: z.boolean().default(false),
+});
+
+export type UserPreferences = z.infer<typeof userPreferencesSchema>;
+
+export const updateUserPreferencesSchema = userPreferencesSchema.partial();
+
+export type UpdateUserPreferences = z.infer<typeof updateUserPreferencesSchema>;

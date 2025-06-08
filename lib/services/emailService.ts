@@ -1,4 +1,6 @@
 import { Resend } from 'resend';
+import { Category, Priority, TicketStatus } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 
 // Initialize Resend with API key
 const resend = new Resend(process.env.RESEND_API_KEY);
@@ -70,10 +72,25 @@ export class EmailService {
     return EmailService.instance;
   }
 
+  private async getTemplate(type: string) {
+    const template = await prisma.emailTemplate.findFirst({
+      where: {
+        type,
+        isActive: true,
+      },
+    });
+
+    if (!template) {
+      throw new Error(`No active template found for type: ${type}`);
+    }
+
+    return template;
+  }
+
   private async sendEmail(to: string, subject: string, html: string) {
     try {
       const { data, error } = await this.resend.emails.send({
-        from: 'PromptCraft <noreply@promptcraft.ai>',
+        from: 'PromptCraft <support@promptcraft.ai>',
         to,
         subject,
         html,
@@ -86,25 +103,132 @@ export class EmailService {
 
       return data;
     } catch (error) {
-      console.error('Failed to send email:', error);
+      console.error('Error in sendEmail:', error);
       throw error;
     }
   }
 
-  public async sendWelcomeEmail(email: string, name: string) {
-    return this.sendEmail(
-      email,
-      EMAIL_TEMPLATES.WELCOME.subject,
-      EMAIL_TEMPLATES.WELCOME.html(name)
-    );
+  public async sendTicketCreatedNotification(
+    to: string,
+    userName: string,
+    ticketId: string,
+    ticketTitle: string,
+    category: string,
+    priority: string,
+    description: string
+  ) {
+    const template = await this.getTemplate('TICKET_CREATED');
+    const html = template.body
+      .replace('{{userName}}', userName)
+      .replace('{{ticketId}}', ticketId)
+      .replace('{{ticketTitle}}', ticketTitle)
+      .replace('{{category}}', category)
+      .replace('{{priority}}', priority)
+      .replace('{{description}}', description);
+
+    return this.sendEmail(to, template.subject, html);
   }
 
-  public async sendSecurityAlert(email: string, name: string, location: string, device: string) {
-    return this.sendEmail(
-      email,
-      EMAIL_TEMPLATES.SECURITY_ALERT.subject,
-      EMAIL_TEMPLATES.SECURITY_ALERT.html(name, location, device)
-    );
+  public async sendTicketInProgressNotification(
+    to: string,
+    userName: string,
+    ticketId: string,
+    ticketTitle: string,
+    comment?: string
+  ) {
+    const template = await this.getTemplate('TICKET_IN_PROGRESS');
+    const html = template.body
+      .replace('{{userName}}', userName)
+      .replace('{{ticketId}}', ticketId)
+      .replace('{{ticketTitle}}', ticketTitle)
+      .replace('{{comment}}', comment || '');
+
+    return this.sendEmail(to, template.subject, html);
+  }
+
+  public async sendTicketResolvedNotification(
+    to: string,
+    userName: string,
+    ticketId: string,
+    ticketTitle: string,
+    resolution?: string
+  ) {
+    const template = await this.getTemplate('TICKET_RESOLVED');
+    const html = template.body
+      .replace('{{userName}}', userName)
+      .replace('{{ticketId}}', ticketId)
+      .replace('{{ticketTitle}}', ticketTitle)
+      .replace('{{resolution}}', resolution || '');
+
+    return this.sendEmail(to, template.subject, html);
+  }
+
+  public async sendTicketClosedNotification(
+    to: string,
+    userName: string,
+    ticketId: string,
+    ticketTitle: string,
+    closingNote?: string
+  ) {
+    const template = await this.getTemplate('TICKET_CLOSED');
+    const html = template.body
+      .replace('{{userName}}', userName)
+      .replace('{{ticketId}}', ticketId)
+      .replace('{{ticketTitle}}', ticketTitle)
+      .replace('{{closingNote}}', closingNote || '');
+
+    return this.sendEmail(to, template.subject, html);
+  }
+
+  public async sendTicketAssignedNotification(
+    to: string,
+    userName: string,
+    ticketId: string,
+    ticketTitle: string,
+    creatorName: string
+  ) {
+    const template = await this.getTemplate('TICKET_ASSIGNED');
+    const html = template.body
+      .replace('{{userName}}', userName)
+      .replace('{{ticketId}}', ticketId)
+      .replace('{{ticketTitle}}', ticketTitle)
+      .replace('{{creatorName}}', creatorName);
+
+    return this.sendEmail(to, template.subject, html);
+  }
+
+  public async sendTicketAssignedToCreatorNotification(
+    to: string,
+    userName: string,
+    ticketId: string,
+    ticketTitle: string,
+    assigneeName: string
+  ) {
+    const template = await this.getTemplate('TICKET_ASSIGNED');
+    const html = template.body
+      .replace('{{userName}}', userName)
+      .replace('{{ticketId}}', ticketId)
+      .replace('{{ticketTitle}}', ticketTitle)
+      .replace('{{assigneeName}}', assigneeName);
+
+    return this.sendEmail(to, template.subject, html);
+  }
+
+  public async sendWelcomeEmail(to: string, userName: string) {
+    const template = await this.getTemplate('WELCOME_EMAIL');
+    const html = template.body.replace('{{userName}}', userName);
+
+    return this.sendEmail(to, template.subject, html);
+  }
+
+  public async sendSecurityAlert(to: string, userName: string, location: string, device: string) {
+    const template = await this.getTemplate('SECURITY_ALERT');
+    const html = template.body
+      .replace('{{userName}}', userName)
+      .replace('{{location}}', location)
+      .replace('{{device}}', device);
+
+    return this.sendEmail(to, template.subject, html);
   }
 
   public async sendSubscriptionRenewalReminder(
@@ -127,4 +251,4 @@ export class EmailService {
       EMAIL_TEMPLATES.CREDIT_UPDATE.html(name, newBalance, reason)
     );
   }
-} 
+}

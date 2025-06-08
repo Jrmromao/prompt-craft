@@ -176,7 +176,7 @@ export class SubscriptionService {
   public async processRenewal(userId: string): Promise<SubscriptionDetails> {
     const subscription = await prisma.subscription.findUnique({
       where: { userId },
-      include: { 
+      include: {
         plan: true,
         user: {
           select: {
@@ -206,9 +206,10 @@ export class SubscriptionService {
       });
 
       // Send renewal reminder email if user has product updates enabled
-      const emailPreferences = typeof subscription.user.emailPreferences === 'string'
-        ? JSON.parse(subscription.user.emailPreferences)
-        : subscription.user.emailPreferences;
+      const emailPreferences =
+        typeof subscription.user.emailPreferences === 'string'
+          ? JSON.parse(subscription.user.emailPreferences)
+          : subscription.user.emailPreferences;
 
       if (emailPreferences?.productUpdates) {
         const emailService = EmailService.getInstance();

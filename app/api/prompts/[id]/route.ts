@@ -36,7 +36,7 @@ async function promptHandler(request: NextRequest, { params }: { params: { id: s
 
     // Create response with security headers
     const response = NextResponse.json(prompt);
-    
+
     // Add security headers
     Object.entries(securityHeaders).forEach(([key, value]) => {
       response.headers.set(key, value);
@@ -53,12 +53,12 @@ async function promptHandler(request: NextRequest, { params }: { params: { id: s
     console.error('Error fetching prompt:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
-      { 
+      {
         status: 500,
         headers: {
           'Content-Type': 'application/json',
-          ...securityHeaders
-        }
+          ...securityHeaders,
+        },
       }
     );
   }

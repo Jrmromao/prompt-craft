@@ -1,4 +1,4 @@
-import { AuditLogger } from './audit-logger';
+import { AuditService } from './auditService';
 
 export interface ContentFilterResult {
   isAllowed: boolean;
@@ -8,7 +8,7 @@ export interface ContentFilterResult {
 
 export class ContentFilter {
   private static instance: ContentFilter;
-  private auditLogger: AuditLogger;
+  private auditLogger: AuditService;
 
   // Define sensitive patterns and words
   private readonly SENSITIVE_PATTERNS = [
@@ -38,7 +38,7 @@ export class ContentFilter {
   ]);
 
   private constructor() {
-    this.auditLogger = AuditLogger.getInstance();
+    this.auditLogger = AuditService.getInstance();
   }
 
   public static getInstance(): ContentFilter {

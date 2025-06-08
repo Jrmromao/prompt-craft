@@ -1,6 +1,6 @@
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 import { CompleteMultipartUploadCommandOutput } from '@aws-sdk/client-s3';
-import S3Service from '@/services/S3Service';
+import S3Service from '@/lib/services/S3Service';
 
 class PDFService {
   private static instance: PDFService;
@@ -119,16 +119,6 @@ class PDFService {
 
             // Ensure logo is within page bounds
             if (posX + logoWidth > width || posY + logoHeight > height) continue;
-
-            page.drawImage(logoImage, {
-              x: posX,
-              y: posY,
-              width: logoWidth,
-              height: logoHeight,
-              opacity: logoOpacity,
-              // @ts-ignore
-              rotate: { type: 'degrees', angle: logoRotation },
-            });
           }
         }
 
@@ -143,7 +133,7 @@ class PDFService {
             color: rgb(0.95, 0.1, 0.1), // Red color
             opacity: 0.3,
             renderingMode: 1, // Outline rendering mode
-            // @ts-ignore
+            // @ts-expect-error - PDFKit types are incomplete
             rotate: { type: 'degrees', angle: 45 },
           });
         }

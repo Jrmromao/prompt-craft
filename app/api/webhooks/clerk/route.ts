@@ -3,7 +3,7 @@ import { Webhook } from 'svix';
 import { WebhookEvent, clerkClient } from '@clerk/nextjs/server';
 import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
-import S3Service from '@/services/S3Service';
+import S3Service from '@/lib/services/S3Service';
 import { EmailService } from '@/lib/services/emailService';
 
 // Prevent static generation of this route
@@ -38,7 +38,7 @@ function sanitizeString(input: string | null | undefined): string {
   if (!input) return '';
   // Basic sanitization - remove control characters and limit length
   return input
-    .replace(/[\u0000-\u001F\u007F-\u009F]/g, '')
+    .replace(/[^\x20-\x7E]/g, '') // Only allow printable ASCII characters
     .trim()
     .substring(0, 255);
 }
@@ -182,7 +182,6 @@ async function processWebhook(req: Request): Promise<NextResponse> {
 
     // Handle the webhook event
     const eventType = evt.type;
-    console.log(`Processing Clerk event: ${eventType}`);
 
     // Process based on event type
     switch (eventType) {
@@ -202,8 +201,6 @@ async function processWebhook(req: Request): Promise<NextResponse> {
 
         // If user doesn't exist, we need to create them (social login case)
         if (!existingUser) {
-          console.log(`User not found in database. Fetching from Clerk...`);
-
           try {
             if (!clerkClient) {
               throw new Error('Clerk client not initialized');
@@ -213,7 +210,7 @@ async function processWebhook(req: Request): Promise<NextResponse> {
             const clerkUser = await (clerkClient as any).users.getUser(user_id);
 
             if (!clerkUser) {
-              console.error(`Failed to fetch user data from Clerk`);
+              console.error('Failed to fetch user data from Clerk');
               return NextResponse.json({ error: 'Authentication service error' }, { status: 500 });
             }
 
@@ -223,8 +220,6 @@ async function processWebhook(req: Request): Promise<NextResponse> {
               console.error('Invalid or missing email address');
               return NextResponse.json({ error: 'Invalid user data' }, { status: 400 });
             }
-
-            console.log(`Creating user record from session event`);
 
             const success = await createOrUpdateUser(
               user_id,
@@ -248,24 +243,28 @@ async function processWebhook(req: Request): Promise<NextResponse> {
             });
 
             if (user) {
-              const emailPreferences = typeof user.emailPreferences === 'string'
-                ? JSON.parse(user.emailPreferences)
-                : user.emailPreferences;
+              const emailPreferences =
+                typeof user.emailPreferences === 'string'
+                  ? JSON.parse(user.emailPreferences)
+                  : user.emailPreferences;
 
               if (emailPreferences?.securityAlerts) {
                 const emailService = EmailService.getInstance();
                 await emailService.sendSecurityAlert(
                   user.email,
                   user.name || 'there',
-                  'Unknown Location', // You can enhance this with actual location detection
-                  'Unknown Device'    // You can enhance this with actual device detection
+                  'Unknown Location',
+                  'Unknown Device'
                 );
               }
             }
 
             return NextResponse.json({ success: true });
           } catch (error) {
-            console.error('Error in social login user creation');
+            console.error(
+              'User creation error:',
+              error instanceof Error ? error.message : 'Unknown error'
+            );
             return NextResponse.json({ error: 'Authentication processing error' }, { status: 500 });
           }
         }
@@ -288,23 +287,18 @@ async function processWebhook(req: Request): Promise<NextResponse> {
 
         try {
           // Create user in database
-          await createOrUpdateUser(
-            id,
-            primaryEmail,
-            first_name,
-            last_name
-          );
+          await createOrUpdateUser(id, primaryEmail, first_name, last_name);
 
           // Send welcome email
           const emailService = EmailService.getInstance();
-          await emailService.sendWelcomeEmail(
-            primaryEmail,
-            first_name || 'there'
-          );
+          await emailService.sendWelcomeEmail(primaryEmail, first_name || 'there');
 
           return NextResponse.json({ success: true });
         } catch (error) {
-          console.error('Error processing user creation:', error);
+          console.error(
+            'User creation error:',
+            error instanceof Error ? error.message : 'Unknown error'
+          );
           return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
         }
       }
@@ -343,10 +337,11 @@ async function processWebhook(req: Request): Promise<NextResponse> {
               where: { clerkId: id },
             });
           });
-
-          console.log(`User deletion processed`);
         } catch (error) {
-          console.error(`Error in user deletion operation`);
+          console.error(
+            'User deletion error:',
+            error instanceof Error ? error.message : 'Unknown error'
+          );
           return NextResponse.json({ error: 'User deletion failed' }, { status: 500 });
         }
 
@@ -354,12 +349,12 @@ async function processWebhook(req: Request): Promise<NextResponse> {
       }
 
       default:
-        console.log(`Unhandled webhook event type: ${eventType}`);
+        console.log(`Unhandled webhook event: ${eventType}`);
     }
 
     return NextResponse.json({ success: true }, { status: 200 });
   } catch (error) {
-    console.error('Webhook processing error');
+    console.error('Webhook error:', error instanceof Error ? error.message : 'Unknown error');
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }

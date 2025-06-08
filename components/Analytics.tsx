@@ -2,9 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { formatDistanceToNow } from 'date-fns';
 import { Eye, ThumbsUp, MessageSquare, Play, Copy } from 'lucide-react';
 import { toast } from 'sonner';
 import { usePromptAnalytics } from './PromptAnalyticsContext';

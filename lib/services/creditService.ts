@@ -129,9 +129,10 @@ export class CreditService {
     });
 
     // Send credit update email if user has product updates enabled
-    const emailPreferences = typeof user.emailPreferences === 'string'
-      ? JSON.parse(user.emailPreferences)
-      : user.emailPreferences;
+    const emailPreferences =
+      typeof user.emailPreferences === 'string'
+        ? JSON.parse(user.emailPreferences)
+        : user.emailPreferences;
 
     if (emailPreferences?.productUpdates) {
       const emailService = EmailService.getInstance();

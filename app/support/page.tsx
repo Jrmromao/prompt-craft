@@ -2,16 +2,18 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { MessageSquare, BookOpen, Headphones, Plus } from 'lucide-react';
+import { MessageSquare, BookOpen, Headphones, Plus, Sparkles } from 'lucide-react';
 
 export const metadata: Metadata = {
-  title: 'Support | PromptCraft',
-  description: 'Get help and support for your PromptCraft experience',
+  title: 'Support | PromptHive',
+  description: 'Get help and support for your PromptHive experience',
 };
 
 export default function SupportPage() {
   return (
     <div className="container max-w-4xl py-12">
+      {/* Logo Section */}
+
       <div className="space-y-12">
         {/* Header Section */}
         <div className="space-y-4 text-center">
@@ -22,8 +24,8 @@ export default function SupportPage() {
           </p>
         </div>
 
-        {/* Quick Actions */}
-        <div className="grid gap-6 md:grid-cols-3">
+        {/* Main Cards Section */}
+        <div className="mb-10 grid grid-cols-1 gap-6 md:grid-cols-2">
           {/* Support Tickets */}
           <Card className="flex h-full min-h-[320px] flex-col items-center p-6">
             <div className="flex w-full flex-1 flex-col items-center">
@@ -63,32 +65,13 @@ export default function SupportPage() {
               </Link>
             </div>
           </Card>
-
-          {/* Live Chat */}
-          <Card className="flex h-full min-h-[320px] flex-col items-center p-6">
-            <div className="flex w-full flex-1 flex-col items-center">
-              <div className="flex flex-col items-center">
-                <Headphones className="mb-2 h-8 w-8 text-primary" />
-                <h2 className="mb-2 text-center text-xl font-semibold">Live Chat</h2>
-                <p className="mb-4 text-center text-sm text-muted-foreground">
-                  Chat with our support team in real-time for immediate assistance.
-                </p>
-              </div>
-              <div className="flex-grow" />
-              <Link href="/support/chat" className="mt-4 w-full">
-                <Button variant="outline" className="w-full" size="lg">
-                  Start Chat
-                </Button>
-              </Link>
-            </div>
-          </Card>
         </div>
 
-        {/* Recent Support Tickets (Dummy Data) */}
-        <div className="space-y-6">
-          <h2 className="text-2xl font-semibold">Recent Support Tickets (Demo)</h2>
-          <div className="grid gap-4 md:grid-cols-2">
-            <Card>
+        {/* Recent Support Tickets Section */}
+        <div className="space-y-4">
+          <h2 className="mb-2 text-2xl font-semibold">Recent Support Tickets (Demo)</h2>
+          <div className="grid gap-6 md:grid-cols-2">
+            <Card className="h-full">
               <CardContent className="pt-6">
                 <div className="mb-2 flex items-center justify-between">
                   <span className="font-semibold">Cannot access premium features</span>
@@ -102,7 +85,7 @@ export default function SupportPage() {
                 </div>
               </CardContent>
             </Card>
-            <Card>
+            <Card className="h-full">
               <CardContent className="pt-6">
                 <div className="mb-2 flex items-center justify-between">
                   <span className="font-semibold">Prompt export not working</span>
@@ -116,7 +99,7 @@ export default function SupportPage() {
                 </div>
               </CardContent>
             </Card>
-            <Card>
+            <Card className="h-full">
               <CardContent className="pt-6">
                 <div className="mb-2 flex items-center justify-between">
                   <span className="font-semibold">How do I invite my team?</span>
@@ -130,7 +113,7 @@ export default function SupportPage() {
                 </div>
               </CardContent>
             </Card>
-            <Card>
+            <Card className="h-full">
               <CardContent className="pt-6">
                 <div className="mb-2 flex items-center justify-between">
                   <span className="font-semibold">Feature request: Prompt templates</span>

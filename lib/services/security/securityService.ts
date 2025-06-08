@@ -1,7 +1,10 @@
+import { createHash, timingSafeEqual } from 'crypto';
+
+import { NextRequest } from 'next/server';
+
 import { Redis } from '@upstash/redis';
 import { Ratelimit } from '@upstash/ratelimit';
-import { prisma } from '@/lib/prisma';
-import { NextRequest } from 'next/server';
+
 import { AuditService } from '@/lib/services/auditService';
 
 // Rate limit configurations
@@ -106,10 +109,12 @@ export class SecurityService {
   // Webhook signature verification
   public verifyWebhookSignature(payload: string, signature: string, secret: string): boolean {
     try {
-      const crypto = require('crypto');
-      const hmac = crypto.createHmac('sha256', secret);
-      const digest = hmac.update(payload).digest('hex');
-      return crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(digest));
+      const hmac = createHash('sha256');
+      hmac.update(payload);
+      hmac.update(secret);
+      const digest = hmac.digest('hex');
+
+      return timingSafeEqual(Buffer.from(signature), Buffer.from(digest));
     } catch (error) {
       console.error('Webhook signature verification failed:', error);
       return false;

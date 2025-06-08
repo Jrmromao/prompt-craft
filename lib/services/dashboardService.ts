@@ -134,7 +134,7 @@ export class DashboardService {
       this.userCache.set(clerkId, { user, timestamp: now });
       return user;
     } catch (error) {
-      console.error('Error fetching user:', error);
+      console.error('User fetch error:', error instanceof Error ? error.message : 'Unknown error');
       throw new Error('Failed to fetch or create user data');
     }
   }

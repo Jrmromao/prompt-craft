@@ -37,7 +37,10 @@ async function commentsHandler(request: Request, context?: { params?: Record<str
 }
 
 // Define the create handler
-async function createCommentHandler(request: Request, context?: { params?: Record<string, string> }) {
+async function createCommentHandler(
+  request: Request,
+  context?: { params?: Record<string, string> }
+) {
   try {
     const { userId } = await auth();
     if (!userId) {

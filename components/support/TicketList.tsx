@@ -8,6 +8,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { MessageSquare, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import Link from 'next/link';
+import { useAuth } from '@clerk/nextjs';
 
 interface Ticket {
   id: string;
@@ -46,9 +47,30 @@ const priorityColors = {
 export function TicketList() {
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const { userId } = useAuth();
+
+  useEffect(() => {
+    const checkAdminStatus = async () => {
+      try {
+        const response = await fetch('/api/auth/check-admin');
+        const data = await response.json();
+        setIsAdmin(data.isAdmin);
+      } catch (error) {
+        console.error('Error checking admin status:', error);
+        setIsAdmin(false);
+      }
+    };
+
+    if (userId) {
+      checkAdminStatus();
+    }
+  }, [userId]);
 
   useEffect(() => {
     const fetchTickets = async () => {
+      if (!isAdmin) return;
+
       try {
         const response = await fetch('/api/support/tickets');
         if (response.ok) {
@@ -64,7 +86,17 @@ export function TicketList() {
     };
 
     fetchTickets();
-  }, []);
+  }, [isAdmin]);
+
+  if (!isAdmin) {
+    return (
+      <Card>
+        <CardContent className="py-8 text-center text-muted-foreground">
+          You don't have permission to view support tickets.
+        </CardContent>
+      </Card>
+    );
+  }
 
   if (isLoading) {
     return (

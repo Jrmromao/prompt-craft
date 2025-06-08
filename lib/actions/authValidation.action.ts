@@ -43,7 +43,7 @@ export async function validateAuthentication(): Promise<AuthResult> {
       error: null,
     };
   } catch (error: any) {
-    console.error('Authentication validation error:', error);
+    console.error('Auth error:', error.message || 'Unknown error');
     return {
       success: false,
       error: `Authentication error: ${error.message || 'Unknown error'}`,

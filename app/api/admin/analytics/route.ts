@@ -1,18 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { AnalyticsService } from '@/lib/services/analyticsService';
-import { rateLimit } from '@/lib/utils/rateLimit';
+import { rateLimiter } from '@/lib/utils/rateLimit';
 import { securityHeaders, cacheConfig } from '@/app/api/config';
 
 // Export dynamic configuration
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
-// Rate limiting configuration
-const limiter = rateLimit({
-  interval: 60 * 1000, // 1 minute
-  uniqueTokenPerInterval: 500
-});
+// Define allowed periods and types
+const allowedPeriods = ['daily', 'weekly', 'monthly', 'yearly'] as const;
+const allowedTypes = ['all', 'users', 'prompts', 'usage'] as const;
+
+type Period = (typeof allowedPeriods)[number];
+type AnalyticsType = (typeof allowedTypes)[number];
 
 // Define the handler
 async function analyticsHandler(request: NextRequest) {
@@ -26,37 +27,52 @@ async function analyticsHandler(request: NextRequest) {
     }
 
     // Rate limiting per user
-    try {
-      await limiter.check(30, userId); // 30 requests per minute per user
-    } catch {
+    const { success, limit, reset, remaining } = await rateLimiter.limit(userId);
+    if (!success) {
       return NextResponse.json(
         { error: 'Rate limit exceeded' },
-        { status: 429, headers: securityHeaders }
+        {
+          status: 429,
+          headers: {
+            ...securityHeaders,
+            'X-RateLimit-Limit': limit.toString(),
+            'X-RateLimit-Remaining': remaining.toString(),
+            'X-RateLimit-Reset': reset.toString(),
+          },
+        }
       );
     }
 
     // Get query parameters
     const { searchParams } = new URL(request.url);
-    const period = searchParams.get('period') || '7d';
-    const type = searchParams.get('type') || 'all';
+    const rawPeriod = searchParams.get('period');
+    const rawType = searchParams.get('type');
+
+    const period = allowedPeriods.includes(rawPeriod as Period) ? (rawPeriod as Period) : 'daily';
+    const type = allowedTypes.includes(rawType as AnalyticsType)
+      ? (rawType as AnalyticsType)
+      : 'all';
 
     const analyticsService = AnalyticsService.getInstance();
     const result = await analyticsService.getAnalytics({
       period,
       type,
-      userId
+      userId,
     });
 
     // Create response with security headers
     const response = NextResponse.json(result);
-    
+
     // Add security headers
     Object.entries(securityHeaders).forEach(([key, value]) => {
       response.headers.set(key, value);
     });
 
     // Add cache headers
-    response.headers.set('Cache-Control', `public, s-maxage=${cacheConfig.durations.short}, stale-while-revalidate=${cacheConfig.durations.short * 2}`);
+    response.headers.set(
+      'Cache-Control',
+      `public, s-maxage=${cacheConfig.durations.short}, stale-while-revalidate=${cacheConfig.durations.short * 2}`
+    );
     response.headers.set('Cache-Tag', cacheConfig.tags.analytics);
 
     return response;
@@ -64,12 +80,12 @@ async function analyticsHandler(request: NextRequest) {
     console.error('Error fetching analytics:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
-      { 
+      {
         status: 500,
         headers: {
           'Content-Type': 'application/json',
-          ...securityHeaders
-        }
+          ...securityHeaders,
+        },
       }
     );
   }

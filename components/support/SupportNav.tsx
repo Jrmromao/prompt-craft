@@ -15,10 +15,6 @@ const navItems = [
     name: 'Knowledge Base',
     href: '/support/kb',
   },
-  {
-    name: 'Live Chat',
-    href: '/support/chat',
-  },
 ];
 
 export function SupportNav() {

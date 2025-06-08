@@ -102,4 +102,4 @@ export const GET = withDynamicRoute(userDetailHandler, fallbackData);
 // Keep the PATCH handler as is since it's already dynamic
 export async function PATCH(request: Request, context: { params: Record<string, string> }) {
   // ... existing PATCH handler code ...
-} 
+}

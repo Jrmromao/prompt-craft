@@ -1,4 +1,4 @@
-import { BackupService } from '../services/backup-service';
+import { BackupService } from '@/lib/services/backup-service';
 
 async function runBackup() {
   try {

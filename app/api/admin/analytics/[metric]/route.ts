@@ -78,10 +78,12 @@ async function getUsageMetrics(startDate: string | null, endDate: string | null,
 
   return {
     labels: usages.map(u => u.createdAt.toISOString()),
-    datasets: [{
-      label: 'Usage',
-      data: usages.map(u => u._count),
-    }],
+    datasets: [
+      {
+        label: 'Usage',
+        data: usages.map(u => u._count),
+      },
+    ],
     total: usages.reduce((acc, u) => acc + u._count, 0),
     change: calculateChange(usages),
   };
@@ -106,16 +108,22 @@ async function getUserMetrics(startDate: string | null, endDate: string | null, 
 
   return {
     labels: users.map(u => u.createdAt.toISOString()),
-    datasets: [{
-      label: 'New Users',
-      data: users.map(u => u._count),
-    }],
+    datasets: [
+      {
+        label: 'New Users',
+        data: users.map(u => u._count),
+      },
+    ],
     total: users.reduce((acc, u) => acc + u._count, 0),
     change: calculateChange(users),
   };
 }
 
-async function getPromptMetrics(startDate: string | null, endDate: string | null, interval: string) {
+async function getPromptMetrics(
+  startDate: string | null,
+  endDate: string | null,
+  interval: string
+) {
   const where = {
     createdAt: {
       gte: startDate ? new Date(startDate) : undefined,
@@ -134,10 +142,12 @@ async function getPromptMetrics(startDate: string | null, endDate: string | null
 
   return {
     labels: prompts.map(p => p.createdAt.toISOString()),
-    datasets: [{
-      label: 'New Prompts',
-      data: prompts.map(p => p._count),
-    }],
+    datasets: [
+      {
+        label: 'New Prompts',
+        data: prompts.map(p => p._count),
+      },
+    ],
     total: prompts.reduce((acc, p) => acc + p._count, 0),
     change: calculateChange(prompts),
   };
@@ -148,4 +158,4 @@ function calculateChange(data: { _count: number }[]) {
   const first = data[0]._count;
   const last = data[data.length - 1]._count;
   return first === 0 ? 100 : ((last - first) / first) * 100;
-} 
+}

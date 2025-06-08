@@ -1,24 +1,110 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { AnalyticsService, AllAnalytics } from '@/lib/services/analyticsService';
+import { AnalyticsService } from '@/lib/services/analyticsService';
 import AnalyticsCharts from './components/AnalyticsCharts';
 import { Badge } from '@/components/ui/badge';
 import { Users, FileText, Activity, TrendingUp, BarChart2, Clock, Star, Copy } from 'lucide-react';
 import { auth } from '@clerk/nextjs/server';
+import { Suspense } from 'react';
+import ErrorBoundary from '@/components/ErrorBoundary';
+import { Skeleton } from '@/components/ui/skeleton';
 
 // Mark this page as dynamic
 export const dynamic = 'force-dynamic';
 
-async function getAnalytics() {
+// Type definitions
+interface User {
+  name: string | null;
+}
+
+interface Prompt {
+  name: string;
+  user?: User;
+}
+
+interface RecentActivity {
+  id: string;
+  createdAt: string;
+  user?: User;
+  prompt?: Prompt;
+}
+
+interface DashboardOverview {
+  totalPromptViews: number;
+  totalPromptCopies: number;
+  mostPopularPrompt: {
+    user?: User;
+  } | null;
+  mostActiveUser: {
+    name: string | null;
+  } | null;
+  growthRate: string;
+  recentActivity: {
+    usages: RecentActivity[];
+    views: RecentActivity[];
+    copies: RecentActivity[];
+  };
+}
+
+interface AnalyticsData {
+  totalUsers: number;
+  totalPrompts: number;
+  totalGenerations: number;
+  userGrowth: any[]; // TODO: Define proper type
+  promptUsage: any[]; // TODO: Define proper type
+  planDistribution: any[]; // TODO: Define proper type
+  dashboardOverview: DashboardOverview;
+}
+
+// Loading component
+function AnalyticsSkeleton() {
+  return (
+    <div className="space-y-8">
+      <div className="flex items-center justify-between">
+        <div>
+          <Skeleton className="h-8 w-48" />
+          <Skeleton className="mt-1 h-4 w-64" />
+        </div>
+        <Skeleton className="h-8 w-32" />
+      </div>
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        {[...Array(4)].map((_, i) => (
+          <Card key={i}>
+            <CardHeader className="pb-2">
+              <Skeleton className="h-4 w-24" />
+            </CardHeader>
+            <CardContent>
+              <Skeleton className="h-8 w-16" />
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// Error component
+function AnalyticsError({ error }: { error: Error }) {
+  return (
+    <div className="rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-900 dark:bg-red-950">
+      <h2 className="text-lg font-semibold text-red-900 dark:text-red-100">
+        Error Loading Analytics
+      </h2>
+      <p className="mt-2 text-sm text-red-700 dark:text-red-300">{error.message}</p>
+    </div>
+  );
+}
+
+async function getAnalytics(): Promise<AnalyticsData> {
   try {
     const { userId } = await auth();
     if (!userId) throw new Error('Unauthorized');
 
     const analyticsService = AnalyticsService.getInstance();
     const data = await analyticsService.getAnalytics({
-      period: '7d', // or another period if you want
-      type: 'all',  // or 'users', 'prompts', 'usage'
+      period: 'daily',
+      type: 'all',
       userId,
-    }) as AllAnalytics;
+    });
 
     // Calculate growth rate
     const growthRate =
@@ -32,7 +118,7 @@ async function getAnalytics() {
     return {
       totalUsers: data.totalUsers,
       totalPrompts: data.totalPrompts,
-      totalUsage: data.totalUsage,
+      totalGenerations: data.totalGenerations,
       userGrowth: [], // This will be populated from a separate endpoint if needed
       promptUsage: [], // This will be populated from a separate endpoint if needed
       planDistribution: [], // This will be populated from a separate endpoint if needed
@@ -48,30 +134,85 @@ async function getAnalytics() {
     };
   } catch (error) {
     console.error('Error fetching analytics:', error);
-    return {
-      totalUsers: 0,
-      totalPrompts: 0,
-      totalUsage: 0,
-      userGrowth: [],
-      promptUsage: [],
-      planDistribution: [],
-      dashboardOverview: {
-        totalPromptViews: 0,
-        totalPromptCopies: 0,
-        mostPopularPrompt: null,
-        mostActiveUser: null,
-        growthRate: '0%',
-        recentActivity: {
-          usages: [],
-          views: [],
-          copies: [],
-        },
-      },
-    };
+    throw error; // Let the error boundary handle it
   }
 }
 
+// Metric Card Component
+function MetricCard({
+  title,
+  value,
+  icon: Icon,
+  color,
+}: {
+  title: string;
+  value: number | string;
+  icon: React.ElementType;
+  color: string;
+}) {
+  return (
+    <Card
+      className={`border-${color}-200 bg-${color}-50 dark:border-${color}-900 dark:bg-${color}-950`}
+    >
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardTitle
+          className={`flex items-center gap-2 text-sm font-medium text-${color}-700 dark:text-${color}-300`}
+        >
+          <Icon className="h-5 w-5" /> {title}
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className={`text-2xl font-bold text-${color}-900 dark:text-${color}-100`}>
+          {typeof value === 'number' ? value.toLocaleString() : value}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+// Recent Activity Component
+function RecentActivityCard({ activities }: { activities: RecentActivity[] }) {
+  return (
+    <Card className="border border-gray-200 dark:border-gray-800">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Clock className="h-5 w-5 text-gray-500" />
+          Recent Activity
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-4">
+          <div className="space-y-4">
+            <h3 className="font-semibold text-gray-900 dark:text-gray-100">Recent Prompt Usages</h3>
+            <ul className="space-y-2">
+              {activities.map(activity => (
+                <li key={activity.id} className="text-sm text-gray-600 dark:text-gray-300">
+                  <span className="font-medium">{activity.user?.name ?? 'Unknown'}</span> used{' '}
+                  <span className="font-medium">{activity.prompt?.name ?? 'Prompt'}</span>
+                  <div className="text-xs text-gray-500">
+                    {new Date(activity.createdAt).toLocaleString()}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
 export default async function AnalyticsPage() {
+  return (
+    <ErrorBoundary fallback={<AnalyticsError error={new Error('Failed to load analytics')} />}>
+      <Suspense fallback={<AnalyticsSkeleton />}>
+        <AnalyticsContent />
+      </Suspense>
+    </ErrorBoundary>
+  );
+}
+
+async function AnalyticsContent() {
   const analytics = await getAnalytics();
   const { dashboardOverview } = analytics;
 
@@ -95,57 +236,25 @@ export default async function AnalyticsPage() {
 
       {/* Key Metrics */}
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        <Card className="border-blue-200 bg-blue-50 dark:border-blue-900 dark:bg-blue-950">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="flex items-center gap-2 text-sm font-medium text-blue-700 dark:text-blue-300">
-              <Users className="h-5 w-5" /> Total Users
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-blue-900 dark:text-blue-100">
-              {analytics.totalUsers?.toLocaleString?.() ?? analytics.totalUsers}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-green-200 bg-green-50 dark:border-green-900 dark:bg-green-950">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="flex items-center gap-2 text-sm font-medium text-green-700 dark:text-green-300">
-              <FileText className="h-5 w-5" /> Total Prompts
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-900 dark:text-green-100">
-              {analytics.totalPrompts?.toLocaleString?.() ?? analytics.totalPrompts}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-purple-200 bg-purple-50 dark:border-purple-900 dark:bg-purple-950">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="flex items-center gap-2 text-sm font-medium text-purple-700 dark:text-purple-300">
-              <Activity className="h-5 w-5" /> Total Usage
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-purple-900 dark:text-purple-100">
-              {analytics.totalUsage?.toLocaleString?.() ?? analytics.totalUsage}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-yellow-200 bg-yellow-50 dark:border-yellow-900 dark:bg-yellow-950">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="flex items-center gap-2 text-sm font-medium text-yellow-700 dark:text-yellow-300">
-              <TrendingUp className="h-5 w-5" /> Growth Rate
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-yellow-900 dark:text-yellow-100">
-              {dashboardOverview.growthRate}
-            </div>
-          </CardContent>
-        </Card>
+        <MetricCard title="Total Users" value={analytics.totalUsers} icon={Users} color="blue" />
+        <MetricCard
+          title="Total Prompts"
+          value={analytics.totalPrompts}
+          icon={FileText}
+          color="green"
+        />
+        <MetricCard
+          title="Total Generations"
+          value={analytics.totalGenerations}
+          icon={Activity}
+          color="purple"
+        />
+        <MetricCard
+          title="Growth Rate"
+          value={dashboardOverview.growthRate}
+          icon={TrendingUp}
+          color="yellow"
+        />
       </div>
 
       {/* Popular Content */}
@@ -160,7 +269,7 @@ export default async function AnalyticsPage() {
             {dashboardOverview.mostPopularPrompt ? (
               <div className="space-y-2">
                 <div className="text-lg font-semibold text-indigo-900 dark:text-indigo-100">
-                  {dashboardOverview.mostPopularPrompt.name}
+                  {dashboardOverview.mostPopularPrompt.user?.name ?? 'Unknown'}
                 </div>
                 <div className="text-sm text-indigo-700 dark:text-indigo-300">
                   By: {dashboardOverview.mostPopularPrompt.user?.name ?? 'Unknown'}
@@ -185,7 +294,7 @@ export default async function AnalyticsPage() {
                   {dashboardOverview.mostActiveUser.name ?? 'Unknown'}
                 </div>
                 <div className="text-sm text-cyan-700 dark:text-cyan-300">
-                  {dashboardOverview.mostActiveUser.email}
+                  {dashboardOverview.mostActiveUser.name ?? 'Unknown'}
                 </div>
               </div>
             ) : (
@@ -196,34 +305,7 @@ export default async function AnalyticsPage() {
       </div>
 
       {/* Recent Activity */}
-      <Card className="border border-gray-200 dark:border-gray-800">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Clock className="h-5 w-5 text-gray-500" />
-            Recent Activity
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div className="space-y-4">
-              <h3 className="font-semibold text-gray-900 dark:text-gray-100">
-                Recent Prompt Usages
-              </h3>
-              <ul className="space-y-2">
-                {dashboardOverview.recentActivity.usages.map((u: any) => (
-                  <li key={u.id} className="text-sm text-gray-600 dark:text-gray-300">
-                    <span className="font-medium">{u.user?.name ?? 'Unknown'}</span> used{' '}
-                    <span className="font-medium">{u.prompt?.name ?? 'Prompt'}</span>
-                    <div className="text-xs text-gray-500">
-                      {new Date(u.createdAt).toLocaleString()}
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      <RecentActivityCard activities={dashboardOverview.recentActivity.usages} />
 
       {/* Analytics Charts */}
       <AnalyticsCharts analytics={analytics} />

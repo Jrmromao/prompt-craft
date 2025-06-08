@@ -189,7 +189,9 @@ export function PromptContent({ user, prompt }: PromptContentProps) {
                         try {
                           const { incrementCopyCount } = usePromptAnalytics();
                           incrementCopyCount();
-                        } catch {}
+                        } catch (error) {
+                          console.error('Error:', error);
+                        }
                       }}
                       disabled={copied}
                     >

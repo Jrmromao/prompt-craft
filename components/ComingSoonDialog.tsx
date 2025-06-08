@@ -42,7 +42,9 @@ export function ComingSoonDialog() {
       setEmail('');
       setOpen(false);
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Something went wrong. Please try again.');
+      toast.error(
+        error instanceof Error ? error.message : 'Something went wrong. Please try again.'
+      );
     } finally {
       setIsLoading(false);
     }
@@ -51,8 +53,8 @@ export function ComingSoonDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button 
-          className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white"
+        <Button
+          className="bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700"
           size="lg"
         >
           Join Waitlist
@@ -62,7 +64,8 @@ export function ComingSoonDialog() {
         <DialogHeader>
           <DialogTitle>Coming Soon!</DialogTitle>
           <DialogDescription>
-            We're working hard to bring you something amazing. Join our waitlist to be the first to know when we launch.
+            We're working hard to bring you something amazing. Join our waitlist to be the first to
+            know when we launch.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4 py-4">
@@ -72,13 +75,13 @@ export function ComingSoonDialog() {
               id="email"
               type="email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={e => setEmail(e.target.value)}
               placeholder="Enter your email"
               required
             />
           </div>
-          <Button 
-            type="submit" 
+          <Button
+            type="submit"
             className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
             disabled={isLoading}
           >
@@ -88,4 +91,4 @@ export function ComingSoonDialog() {
       </DialogContent>
     </Dialog>
   );
-} 
+}

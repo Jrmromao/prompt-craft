@@ -1,4 +1,4 @@
-import { BackupService } from '../services/backup-service';
+import { BackupService } from '@/lib/services/backup-service';
 import { scheduleJob } from 'node-schedule';
 
 // Schedule backup to run daily at 2 AM UTC

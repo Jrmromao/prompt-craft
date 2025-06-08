@@ -15,7 +15,7 @@ import {
   Zap,
   Cpu,
 } from 'lucide-react';
-import { AnalyticsService, AllAnalytics } from '@/lib/services/analyticsService';
+import { analyticsService } from '@/lib/services/analyticsService';
 import { AuditService } from '@/lib/services/auditService';
 import { AuditLogs } from './components/AuditLogs';
 import { Badge } from '@/components/ui/badge';
@@ -146,29 +146,21 @@ function RecentActivitySkeleton() {
 }
 
 export default async function AdminDashboard() {
-  // Fetch analytics data on the server
   const { userId } = await auth();
   if (!userId) throw new Error('Unauthorized');
-  const analyticsService = AnalyticsService.getInstance();
-  const data = (await analyticsService.getAnalytics({
-    period: '7d',
+
+  const data = await analyticsService.getAnalytics({
+    period: 'weekly',
     type: 'all',
-    userId,
-  })) as AllAnalytics;
+  });
+
   // Convert createdAt fields to string for Stats type
   const stats: Stats = {
-    ...data,
+    totalUsers: data.totalUsers,
+    totalPrompts: data.totalPrompts,
+    totalUsage: data.totalGenerations,
+    dashboardOverview: data.dashboardOverview,
     recentLogs: [],
-    dashboardOverview: {
-      ...data.dashboardOverview,
-      recentActivity: {
-        ...data.dashboardOverview.recentActivity,
-        usages: data.dashboardOverview.recentActivity.usages.map(u => ({
-          ...u,
-          createdAt: u.createdAt instanceof Date ? u.createdAt.toISOString() : u.createdAt,
-        })),
-      },
-    },
   };
 
   const cards = [

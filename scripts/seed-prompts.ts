@@ -1,7 +1,8 @@
-// @ts-nocheck
-const { PrismaClient } = require('@prisma/client');
+import { PrismaClient } from '@prisma/client';
+import { faker } from '@faker-js/faker';
+import { hash } from 'bcryptjs';
+import { randomUUID } from 'crypto';
 
-const { randomUUID } = require('crypto');
 const prisma = new PrismaClient();
 
 async function main() {
@@ -25,22 +26,22 @@ async function main() {
   // Create tags
   const tags = await prisma.tag.createMany({
     data: [
-      { name: 'productivity' },
-      { name: 'creative' },
-      { name: 'funny' },
-      { name: 'seo' },
-      { name: 'marketing' },
-      { name: 'business' },
-      { name: 'writing' },
-      { name: 'coding' },
-      { name: 'design' },
-      { name: 'education' },
-      { name: 'health' },
-      { name: 'finance' },
-      { name: 'ai' },
-      { name: 'social' },
-      { name: 'legal' },
-      { name: 'travel' },
+      { name: 'productivity', slug: 'productivity' },
+      { name: 'creative', slug: 'creative' },
+      { name: 'funny', slug: 'funny' },
+      { name: 'seo', slug: 'seo' },
+      { name: 'marketing', slug: 'marketing' },
+      { name: 'business', slug: 'business' },
+      { name: 'writing', slug: 'writing' },
+      { name: 'coding', slug: 'coding' },
+      { name: 'design', slug: 'design' },
+      { name: 'education', slug: 'education' },
+      { name: 'health', slug: 'health' },
+      { name: 'finance', slug: 'finance' },
+      { name: 'ai', slug: 'ai' },
+      { name: 'social', slug: 'social' },
+      { name: 'legal', slug: 'legal' },
+      { name: 'travel', slug: 'travel' },
     ],
     skipDuplicates: true,
   });
@@ -389,9 +390,7 @@ async function main() {
         description: prompt.description,
         content: prompt.content,
         isPublic: prompt.isPublic,
-        isApproved: prompt.isApproved,
         upvotes: prompt.upvotes,
-        promptType: prompt.promptType,
         userId: prompt.userId,
 
         tags: {

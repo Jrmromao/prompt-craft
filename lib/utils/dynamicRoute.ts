@@ -1,5 +1,5 @@
-import { NextResponse } from 'next/server';
 import { headers } from 'next/headers';
+import { NextRequest, NextResponse } from 'next/server';
 import { RateLimiter } from '@/lib/rateLimiter';
 
 // Configuration for dynamic routes
@@ -22,54 +22,95 @@ const securityHeaders = {
   'X-XSS-Protection': '1; mode=block',
   'Referrer-Policy': 'strict-origin-when-cross-origin',
   'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
-  'Content-Security-Policy': "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline';",
+  'Content-Security-Policy':
+    "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline';",
 };
 
-// Type for the route handler function
 export type RouteHandler = (
-  request: Request,
+  req: Request | NextRequest,
   context?: { params: Record<string, string> }
 ) => Promise<NextResponse>;
 
-// Function to validate request origin
-function validateOrigin(request: Request): boolean {
-  const origin = request.headers.get('origin');
+export interface DynamicRouteConfig {
+  handler: RouteHandler;
+  fallbackData: any;
+}
+
+export function createDynamicRoute(config: DynamicRouteConfig): RouteHandler {
+  return async (req: Request | NextRequest, context?: { params: Record<string, string> }) => {
+    try {
+      const nextReq = req instanceof NextRequest ? req : toNextRequest(req);
+      return await config.handler(nextReq, context);
+    } catch (error) {
+      console.error('Dynamic route error:', error);
+      return NextResponse.json(config.fallbackData, { status: 500 });
+    }
+  };
+}
+
+export function validateOrigin(req: Request | NextRequest): boolean {
+  const headersList = headers();
+  const origin = headersList.get('origin');
   const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || [];
-  
-  // Allow requests with no origin (like mobile apps or curl requests)
-  if (!origin) return true;
-  
+
+  if (!origin) return false;
   return allowedOrigins.includes(origin);
 }
 
+export function createProtectedRoute(handler: RouteHandler): RouteHandler {
+  return async (req: Request | NextRequest, context?: { params: Record<string, string> }) => {
+    const nextReq = req instanceof NextRequest ? req : toNextRequest(req);
+    if (!validateOrigin(nextReq)) {
+      return NextResponse.json({ error: 'Invalid origin' }, { status: 403 });
+    }
+
+    try {
+      return await handler(nextReq, context);
+    } catch (error) {
+      console.error('Protected route error:', error);
+      return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    }
+  };
+}
+
 // Function to add security headers to response
-function addSecurityHeaders(response: NextResponse): NextResponse {
-  Object.entries(securityHeaders).forEach(([key, value]) => {
-    response.headers.set(key, value);
-  });
+export function addSecurityHeaders(response: NextResponse): NextResponse {
+  response.headers.set('X-Frame-Options', 'DENY');
+  response.headers.set('X-Content-Type-Options', 'nosniff');
+  response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+  response.headers.set(
+    'Content-Security-Policy',
+    "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline';"
+  );
   return response;
+}
+
+// Helper function to convert Request to NextRequest
+export function toNextRequest(request: Request): NextRequest {
+  return new NextRequest(request.url, {
+    method: request.method,
+    headers: request.headers,
+    body: request.body,
+  });
 }
 
 // Function to handle rate limiting
 async function handleRateLimit(request: Request): Promise<NextResponse | null> {
   const ip = request.headers.get('x-forwarded-for') || 'unknown';
   const isRateLimited = await rateLimiter.check(ip);
-  
+
   if (isRateLimited) {
     return NextResponse.json(
       { error: 'Too many requests, please try again later' },
       { status: 429 }
     );
   }
-  
+
   return null;
 }
 
 // Main wrapper function for dynamic routes
-export function withDynamicRoute(
-  handler: RouteHandler,
-  fallbackData: any
-): RouteHandler {
+export function withDynamicRoute(handler: RouteHandler, fallbackData: any): RouteHandler {
   return async (request: Request, context?: { params: Record<string, string> }) => {
     try {
       // Check if we're in a build context
@@ -89,9 +130,7 @@ export function withDynamicRoute(
 
       // Validate origin
       if (!validateOrigin(request)) {
-        return addSecurityHeaders(
-          NextResponse.json({ error: 'Invalid origin' }, { status: 403 })
-        );
+        return addSecurityHeaders(NextResponse.json({ error: 'Invalid origin' }, { status: 403 }));
       }
 
       // Check rate limit
@@ -102,17 +141,14 @@ export function withDynamicRoute(
 
       // Execute the handler
       const response = await handler(request, context);
-      
+
       // Add security headers to the response
       return addSecurityHeaders(response);
     } catch (error) {
       console.error('Dynamic route error:', error);
       return addSecurityHeaders(
-        NextResponse.json(
-          { error: 'Internal server error' },
-          { status: 500 }
-        )
+        NextResponse.json({ error: 'Internal server error' }, { status: 500 })
       );
     }
   };
-} 
+}

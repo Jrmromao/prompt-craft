@@ -721,52 +721,6 @@ const PromptCraftLandingClient = () => {
               </div>
             </div>
           </section>
-
-          {/* Footer */}
-          <footer
-            className="border-t border-gray-200 px-4 py-12 dark:border-gray-800 sm:px-6 lg:px-8"
-            role="contentinfo"
-          >
-            <div className="mx-auto max-w-7xl">
-              <div className="flex flex-col items-center justify-between md:flex-row">
-                <div className="mb-4 flex items-center space-x-3 md:mb-0">
-                  <div
-                    className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-r from-purple-500 to-pink-500"
-                    aria-label="PromptCraft Logo"
-                  >
-                    <Sparkles className="h-5 w-5 text-white" aria-hidden="true" />
-                  </div>
-                  <span className="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-xl font-bold text-transparent">
-                    PromptCraft
-                  </span>
-                </div>
-                <nav
-                  className="flex items-center space-x-6 text-gray-600 dark:text-gray-400"
-                  aria-label="Footer navigation"
-                >
-                  <a
-                    href="/privacy"
-                    className="transition-colors hover:text-purple-500 dark:hover:text-purple-300"
-                  >
-                    Privacy
-                  </a>
-                  <a
-                    href="/terms"
-                    className="transition-colors hover:text-purple-500 dark:hover:text-purple-300"
-                  >
-                    Terms
-                  </a>
-                  <a
-                    href="/support"
-                    className="transition-colors hover:text-purple-500 dark:hover:text-purple-300"
-                  >
-                    Support
-                  </a>
-                </nav>
-              </div>
-            
-            </div>
-          </footer>
         </main>
       </div>
     </>

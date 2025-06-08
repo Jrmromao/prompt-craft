@@ -60,4 +60,10 @@ coverage/
 
 # Logs
 logs/
-*.log 
+*.log
+
+# Ignore everything
+*
+# But not these files...
+!.gitignore
+!.prettierignore 

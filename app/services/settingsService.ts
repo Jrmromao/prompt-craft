@@ -103,8 +103,8 @@ export async function updateEmailPreferences(clerkId: string, preferences: Email
     where: { clerkId },
     data: {
       emailPreferences: {
-        set: validatedData
-      }
+        set: validatedData,
+      },
     },
   });
 }
@@ -119,8 +119,8 @@ export async function updateNotificationSettings(clerkId: string, settings: Noti
     where: { clerkId },
     data: {
       notificationSettings: {
-        set: validatedData
-      }
+        set: validatedData,
+      },
     },
   });
 }
@@ -136,8 +136,8 @@ export async function updateThemeSettings(clerkId: string, settings: ThemeSettin
     where: { clerkId },
     data: {
       themeSettings: {
-        set: validatedData
-      }
+        set: validatedData,
+      },
     },
   });
 

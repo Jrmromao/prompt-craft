@@ -290,7 +290,7 @@ export function sanitizePrompt(prompt: string): string {
   sanitized = sanitized.replace(/<%.*?%>/g, '');
 
   // Remove any SQL injection attempts
-  sanitized = sanitized.replace(/[\'";]/g, '');
+  sanitized = sanitized.replace(/['";]/g, '');
 
   return sanitized;
 }

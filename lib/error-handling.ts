@@ -10,8 +10,10 @@ export interface ErrorDetails {
 }
 
 export const isConstructorError = (error: Error): boolean => {
-  return error.message.includes('Super constructor null') || 
-         error.message.includes('is not a constructor');
+  return (
+    error.message.includes('Super constructor null') ||
+    error.message.includes('is not a constructor')
+  );
 };
 
 export const handleConstructorError = (error: Error): void => {
@@ -32,11 +34,8 @@ export const handleConstructorError = (error: Error): void => {
 export const logError = (details: ErrorDetails): void => {
   // Log to console in development
   if (process.env.NODE_ENV === 'development') {
-    console.error('Error Details:', {
+    console.error('Error:', {
       message: details.error.message,
-      stack: details.error.stack,
-      componentStack: details.errorInfo?.componentStack,
-      timestamp: details.timestamp,
       url: details.url,
     });
   }
@@ -49,7 +48,7 @@ export const getErrorRecoveryAction = (error: Error): 'reload' | 'retry' | 'fall
   if (isConstructorError(error)) {
     return 'reload';
   }
-  
+
   // Add more specific error type checks here
   return 'retry';
-}; 
+};

@@ -1,5 +1,5 @@
 import { prisma } from '@/lib/prisma';
-import { AuditLogger } from './audit-logger';
+import { AuditService } from './auditService';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { createGzip } from 'zlib';
 import { pipeline } from 'stream/promises';
@@ -8,7 +8,7 @@ import { Readable } from 'stream';
 export class BackupService {
   private static instance: BackupService;
   private s3Client: S3Client;
-  private auditLogger: AuditLogger;
+  private auditLogger: AuditService;
 
   private constructor() {
     this.s3Client = new S3Client({
@@ -18,7 +18,7 @@ export class BackupService {
         secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
       },
     });
-    this.auditLogger = AuditLogger.getInstance();
+    this.auditLogger = AuditService.getInstance();
   }
 
   public static getInstance(): BackupService {
@@ -101,7 +101,7 @@ export class BackupService {
     const input = Readable.from(jsonString);
     const chunks: Buffer[] = [];
 
-    await pipeline(input, gzip, async function* (source) {
+    await pipeline(input, gzip, async source => {
       for await (const chunk of source) {
         chunks.push(chunk);
       }

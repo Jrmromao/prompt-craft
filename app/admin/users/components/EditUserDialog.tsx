@@ -17,7 +17,6 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Role } from '@prisma/client';
-import { toast } from 'sonner';
 
 interface EditUserDialogProps {
   user: {
@@ -40,10 +39,9 @@ export function EditUserDialog({ user, open, onOpenChange, onSave }: EditUserDia
     try {
       setIsLoading(true);
       await onSave({ name, role });
-      toast.success('User updated successfully');
       onOpenChange(false);
     } catch (error) {
-      toast.error('Failed to update user');
+      // Error is handled by parent component
     } finally {
       setIsLoading(false);
     }
