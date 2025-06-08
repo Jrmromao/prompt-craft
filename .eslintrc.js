@@ -14,17 +14,14 @@ module.exports = {
       version: 'detect',
     },
     'import/resolver': {
-      typescript: {
-        project: './tsconfig.json',
-      },
+      typescript: {},
     },
   },
   extends: [
     'next/core-web-vitals',
     'plugin:@typescript-eslint/recommended',
-    'plugin:react/recommended',
   ],
-  plugins: ['@typescript-eslint', 'react', 'import'],
+  plugins: ['@typescript-eslint', 'import'],
   rules: {
     'import/order': [
       'error',
@@ -43,17 +40,10 @@ module.exports = {
           order: 'asc',
           caseInsensitive: true,
         },
-        pathGroups: [
-          {
-            pattern: '@/**',
-            group: 'internal',
-            position: 'before',
-          },
-        ],
       },
     ],
-    '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
     '@typescript-eslint/no-explicit-any': 'warn',
+    '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
     '@typescript-eslint/no-duplicate-enum-values': 'off',
     '@typescript-eslint/no-non-null-assertion': 'warn',
     '@typescript-eslint/explicit-function-return-type': 'off',
@@ -63,6 +53,7 @@ module.exports = {
     'react-hooks/rules-of-hooks': 'error',
     'react-hooks/exhaustive-deps': 'warn',
     'no-console': ['warn', { allow: ['warn', 'error'] }],
+    'react/no-unescaped-entities': 'off',
   },
   ignorePatterns: [
     'node_modules/',

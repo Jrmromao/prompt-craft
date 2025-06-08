@@ -4,26 +4,17 @@ import {
   Activity,
   MessageSquare,
   BarChart2,
-  Shield,
-  CreditCard,
-  History,
-  Clock,
-  ArrowUpRight,
-  ArrowDownRight,
   Server,
   Database,
   Zap,
   Cpu,
+  Clock,
+  ArrowUpRight,
+  ArrowDownRight,
 } from 'lucide-react';
 import { analyticsService } from '@/lib/services/analyticsService';
-import { AuditService } from '@/lib/services/auditService';
-import { AuditLogs } from './components/AuditLogs';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { motion } from 'framer-motion';
-import { DraggableQuickActions } from './components/DraggableQuickActions';
-import { ApiUsageDialog } from './components/ApiUsageDialog';
-import { DeepseekDialog } from './components/DeepseekDialog';
 import { auth } from '@clerk/nextjs/server';
 
 interface Stats {

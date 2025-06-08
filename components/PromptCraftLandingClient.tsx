@@ -1,7 +1,10 @@
 'use client';
 import React, { useState, useEffect } from 'react';
+import Head from 'next/head';
+import Script from 'next/script';
+import Link from 'next/link';
+import { useTheme } from 'next-themes';
 import {
-  ChevronRight,
   Sparkles,
   Zap,
   Users,
@@ -15,10 +18,6 @@ import {
   Sun,
   Moon,
 } from 'lucide-react';
-import Head from 'next/head';
-import Script from 'next/script';
-import { useTheme } from 'next-themes';
-import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
 import { ComingSoonDialog } from '@/components/ComingSoonDialog';
 

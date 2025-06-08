@@ -91,7 +91,7 @@ describe('Profile Service', () => {
 
     it('validates update data', async () => {
       const invalidData = {
-        invalidField: 'value',
+        id: 'new-id',
       };
 
       await expect(updateProfile('user-123', invalidData)).rejects.toThrow();

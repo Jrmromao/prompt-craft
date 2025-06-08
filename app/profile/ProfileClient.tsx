@@ -11,7 +11,6 @@ import {
   Settings,
   LogOut,
   Sparkles,
-  Pencil,
   Circle,
   Lock,
 } from 'lucide-react';
@@ -436,21 +435,19 @@ function ProfileHeader({
 }
 
 function ProfileContent({ user, currentPath }: ProfileClientProps) {
+  const router = useRouter();
   const { isOpen: sidebarOpen, close: closeSidebar } = useSidebarStore();
   const { signOut } = useClerk();
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const creditPercentage = (user.credits / user.creditCap) * 100;
+  const [activeTab, setActiveTab] = useState(currentPath || 'overview');
 
-  // --- Tab State Management ---
-  const initialTab = searchParams.get('tab') || 'overview';
-  const [activeTab, setActiveTab] = useState(initialTab);
+  function handleSidebarClick(tabValue: string) {
+    setActiveTab(tabValue);
+    closeSidebar();
+  }
 
-  // Keep tab in sync with URL
-  useEffect(() => {
-    const urlTab = searchParams.get('tab') || 'overview';
-    setActiveTab(urlTab);
-  }, [searchParams]);
+  function handleTabChange(value: string) {
+    setActiveTab(value);
+  }
 
   // Simulate status (in real app, fetch from subscription)
   const status: 'active' | 'trial' | 'suspended' = 'active';
@@ -459,18 +456,7 @@ function ProfileContent({ user, currentPath }: ProfileClientProps) {
   const statusLabel = status.charAt(0).toUpperCase() + status.slice(1);
   const isPro = user.planType === 'PRO';
   const canUpgrade = !isPro;
-
-  // Sidebar click handler
-  function handleSidebarClick(tabValue: string) {
-    router.push(`/profile?tab=${tabValue}`, { scroll: false });
-    closeSidebar();
-    setActiveTab(tabValue);
-  }
-
-  // Tab change handler
-  function handleTabChange(value: string) {
-    router.push(`/profile?tab=${value}`, { scroll: false });
-  }
+  const creditPercentage = (user.credits / user.creditCap) * 100;
 
   const SidebarContent = (
     <div className="flex h-full flex-col">
@@ -935,98 +921,96 @@ function ProfileContent({ user, currentPath }: ProfileClientProps) {
     privatePromptLimit === Infinity ? 0 : (privatePromptCount / privatePromptLimit) * 100;
 
   return (
-    <>
+    <div className="min-h-screen bg-background">
       <NavBar user={user} />
-      <div className="min-h-screen bg-background">
-        {/* Mobile/Tablet Sidebar Drawer */}
-        <Sheet open={sidebarOpen} onOpenChange={closeSidebar}>
-          <SheetContent side="left" className="w-64 p-0">
-            <ErrorBoundary fallback={<div>Error</div>}>{SidebarContent}</ErrorBoundary>
-          </SheetContent>
-        </Sheet>
-        <div className="mx-auto flex w-full max-w-7xl gap-8 px-4 pt-8">
-          {/* Desktop Sidebar */}
+      {/* Mobile/Tablet Sidebar Drawer */}
+      <Sheet open={sidebarOpen} onOpenChange={closeSidebar}>
+        <SheetContent side="left" className="w-64 p-0">
+          <ErrorBoundary fallback={<div>Error</div>}>{SidebarContent}</ErrorBoundary>
+        </SheetContent>
+      </Sheet>
+      <div className="mx-auto flex w-full max-w-7xl gap-8 px-4 pt-8">
+        {/* Desktop Sidebar */}
+        <ErrorBoundary fallback={<div>Error</div>}>
+          <aside className="mt-4 hidden h-fit w-72 shrink-0 flex-col rounded-2xl border border-border bg-card px-6 py-8 md:flex">
+            {SidebarContent}
+          </aside>
+        </ErrorBoundary>
+        {/* Main Content */}
+        <main className="mx-auto flex w-full max-w-[1180px] flex-1 flex-col gap-8">
+          {/* Profile Header Card */}
           <ErrorBoundary fallback={<div>Error</div>}>
-            <aside className="mt-4 hidden h-fit w-72 shrink-0 flex-col rounded-2xl border border-border bg-card px-6 py-8 md:flex">
-              {SidebarContent}
-            </aside>
+            <ProfileHeader
+              user={user}
+              status={status}
+              statusColor={statusColor}
+              statusLabel={statusLabel}
+              isPro={isPro}
+              canUpgrade={canUpgrade}
+              creditPercentage={creditPercentage}
+              router={router}
+            />
           </ErrorBoundary>
-          {/* Main Content */}
-          <main className="mx-auto flex w-full max-w-[1180px] flex-1 flex-col gap-8">
-            {/* Profile Header Card */}
-            <ErrorBoundary fallback={<div>Error</div>}>
-              <ProfileHeader
-                user={user}
-                status={status}
-                statusColor={statusColor}
-                statusLabel={statusLabel}
-                isPro={isPro}
-                canUpgrade={canUpgrade}
-                creditPercentage={creditPercentage}
-                router={router}
-              />
-            </ErrorBoundary>
-            {/* Tabs for profile sections */}
-            <ErrorBoundary fallback={<div>Error</div>}>
-              <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-                <TabsContent value="overview">
-                  <Card className="rounded-2xl border border-border bg-card p-8 shadow-lg">
-                    <div className="space-y-8">
-                      <ProfileForm
-                        user={{
-                          ...user,
-                          role: user.role as Role,
-                          planType: user.planType as PlanType,
-                        }}
-                      />
-                    </div>
-                  </Card>
-                </TabsContent>
-                <TabsContent value="usage">
-                  <Card className="rounded-2xl border border-border bg-card p-8 shadow-lg">
-                    <UsageStatsSection />
-                  </Card>
-                </TabsContent>
-                <TabsContent value="billing">
-                  <Card className="rounded-2xl border border-border bg-card p-8 shadow-lg">
-                    <BillingSection />
-                  </Card>
-                </TabsContent>
-                <TabsContent value="prompts">
-                  <Card className="rounded-2xl border border-border bg-card p-8 shadow-lg">
-                    <PromptsSection />
-                  </Card>
-                </TabsContent>
-                <TabsContent value="settings">
-                  <Card className="rounded-2xl border border-border bg-card p-8 shadow-lg">
-                    <SettingsSection
-                      data={settingsData}
-                      error={settingsError}
-                      isLoading={settingsLoading}
-                      mutate={mutateSettings}
+          {/* Tabs for profile sections */}
+          <ErrorBoundary fallback={<div>Error</div>}>
+            <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
+              <TabsContent value="overview">
+                <Card className="rounded-2xl border border-border bg-card p-8 shadow-lg">
+                  <div className="space-y-8">
+                    <ProfileForm
+                      user={{
+                        ...user,
+                        role: user.role as Role,
+                        planType: user.planType as PlanType,
+                      }}
                     />
-                  </Card>
-                </TabsContent>
-                <TabsContent value="security">
-                  <Card className="rounded-2xl border border-border bg-card p-8 shadow-lg">
-                    <SecuritySection
-                      data={settingsData}
-                      error={settingsError}
-                      isLoading={settingsLoading}
-                      mutate={mutateSettings}
-                      loginHistory={loginHistory}
-                      loginHistoryError={loginHistoryError}
-                      loginHistoryLoading={loginHistoryLoading}
-                      mutateLoginHistory={mutateLoginHistory}
-                    />
-                  </Card>
-                </TabsContent>
-              </Tabs>
-            </ErrorBoundary>
-          </main>
-        </div>
+                  </div>
+                </Card>
+              </TabsContent>
+              <TabsContent value="usage">
+                <Card className="rounded-2xl border border-border bg-card p-8 shadow-lg">
+                  <UsageStatsSection />
+                </Card>
+              </TabsContent>
+              <TabsContent value="billing">
+                <Card className="rounded-2xl border border-border bg-card p-8 shadow-lg">
+                  <BillingSection />
+                </Card>
+              </TabsContent>
+              <TabsContent value="prompts">
+                <Card className="rounded-2xl border border-border bg-card p-8 shadow-lg">
+                  <PromptsSection />
+                </Card>
+              </TabsContent>
+              <TabsContent value="settings">
+                <Card className="rounded-2xl border border-border bg-card p-8 shadow-lg">
+                  <SettingsSection
+                    data={settingsData}
+                    error={settingsError}
+                    isLoading={settingsLoading}
+                    mutate={mutateSettings}
+                  />
+                </Card>
+              </TabsContent>
+              <TabsContent value="security">
+                <Card className="rounded-2xl border border-border bg-card p-8 shadow-lg">
+                  <SecuritySection
+                    data={settingsData}
+                    error={settingsError}
+                    isLoading={settingsLoading}
+                    mutate={mutateSettings}
+                    loginHistory={loginHistory}
+                    loginHistoryError={loginHistoryError}
+                    loginHistoryLoading={loginHistoryLoading}
+                    mutateLoginHistory={mutateLoginHistory}
+                  />
+                </Card>
+              </TabsContent>
+            </Tabs>
+          </ErrorBoundary>
+        </main>
       </div>
-    </>
+    </div>
   );
 }
 

@@ -1,39 +1,35 @@
 'use client';
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 import ReactMarkdown from 'react-markdown';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { VoteButton } from '@/components/VoteButton';
-// import { Comments } from '@/components/Comments';
-import { CommentLite } from '@/components/CommentLite';
-import { Analytics } from '@/components/Analytics';
-import { VersionHistory } from '@/components/VersionHistory';
-import { NavBarWrapper } from '@/components/layout/NavBarWrapper';
+import { toast } from 'sonner';
 import {
   ArrowLeft,
   Share2,
-  BookmarkPlus,
   Copy,
   Check,
-  Star,
   Eye,
   Clock,
   Tag,
   User,
-  MessageCircle,
   Play,
 } from 'lucide-react';
-import Link from 'next/link';
-import { toast } from 'sonner';
-import { Comments } from './Comments';
-import Playground from './Playground';
-import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
-import { Separator } from './ui/separator';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
-import { PromptAnalyticsProvider, usePromptAnalytics } from './PromptAnalyticsContext';
+
+import { Card, CardContent } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+
+import { VoteButton } from '@/components/VoteButton';
+import { CommentLite } from '@/components/CommentLite';
+import { Analytics } from '@/components/Analytics';
+import { VersionHistory } from '@/components/VersionHistory';
+import { NavBarWrapper } from '@/components/layout/NavBarWrapper';
+import Playground from '@/components/Playground';
+import { PromptAnalyticsProvider, usePromptAnalytics } from '@/components/PromptAnalyticsContext';
 
 interface Tag {
   id: string;

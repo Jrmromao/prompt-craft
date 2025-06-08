@@ -8,7 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Role, PlanType } from '@prisma/client';
 import { toast } from 'sonner';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
-import { Loader2, AlertTriangle } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { userProfileSchema } from '@/lib/validations/user';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
@@ -22,7 +22,6 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   Dialog,
   DialogContent,
@@ -60,7 +59,6 @@ export function ProfileForm({ user }: ProfileFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [avatarUrl, setAvatarUrl] = useState(user.imageUrl || '');
 
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(userProfileSchema),
@@ -101,8 +99,6 @@ export function ProfileForm({ user }: ProfileFormProps) {
       setIsLoading(false);
     }
   }
-
-  const creditPercentage = (user.credits / user.creditCap) * 100;
 
   const handleDeleteAccount = async () => {
     try {
@@ -281,77 +277,49 @@ export function ProfileForm({ user }: ProfileFormProps) {
           </CardContent>
         </Card>
 
-        <Card className="border-red-200 dark:border-red-900">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-red-600 dark:text-red-400">
-              <AlertTriangle className="h-5 w-5" />
-              Danger Zone
-            </CardTitle>
-            <CardDescription className="text-red-600/80 dark:text-red-400/80">
-              Irreversible and destructive actions.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between rounded-lg border border-red-200 bg-red-50/50 p-4 dark:border-red-900 dark:bg-red-950/50">
-                <div className="space-y-1">
-                  <h4 className="text-sm font-medium text-red-900 dark:text-red-100">
-                    Delete Account
-                  </h4>
-                  <p className="text-sm text-red-600/80 dark:text-red-400/80">
-                    Permanently delete your account and all associated data.
-                  </p>
-                </div>
-                <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-                  <DialogTrigger asChild>
-                    <Button variant="destructive">Delete Account</Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle className="flex items-center gap-2 text-red-600 dark:text-red-400">
-                        <AlertTriangle className="h-5 w-5" />
-                        Delete Account
-                      </DialogTitle>
-                      <DialogDescription className="text-red-600/80 dark:text-red-400/80">
-                        Are you absolutely sure? This action cannot be undone. This will permanently
-                        delete your account and remove all associated data from our servers.
-                      </DialogDescription>
-                    </DialogHeader>
-                    <DialogFooter>
-                      <Button
-                        variant="outline"
-                        onClick={() => setShowDeleteDialog(false)}
-                        disabled={isDeleting}
-                      >
-                        Cancel
-                      </Button>
-                      <Button
-                        variant="destructive"
-                        onClick={handleDeleteAccount}
-                        disabled={isDeleting}
-                      >
-                        {isDeleting ? (
-                          <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            Deleting...
-                          </>
-                        ) : (
-                          'Delete Account'
-                        )}
-                      </Button>
-                    </DialogFooter>
-                  </DialogContent>
-                </Dialog>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <div className="flex justify-end">
+        <div className="flex justify-end space-x-4">
+          <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+            <DialogTrigger asChild>
+              <Button variant="destructive" type="button">
+                Delete Account
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Delete Account</DialogTitle>
+                <DialogDescription>
+                  Are you sure you want to delete your account? This action cannot be undone.
+                </DialogDescription>
+              </DialogHeader>
+              <DialogFooter>
+                <Button
+                  variant="outline"
+                  onClick={() => setShowDeleteDialog(false)}
+                  disabled={isDeleting}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  variant="destructive"
+                  onClick={handleDeleteAccount}
+                  disabled={isDeleting}
+                >
+                  {isDeleting ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Deleting...
+                    </>
+                  ) : (
+                    'Delete Account'
+                  )}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
           <Button type="submit" disabled={isLoading}>
             {isLoading ? (
               <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" data-testid="loading-spinner" />
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Saving...
               </>
             ) : (

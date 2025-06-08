@@ -1,11 +1,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+
 import { AnalyticsProvider } from '@/lib/analytics';
+import { isConstructorError, logError } from '@/lib/error-handling';
 import CookieBanner from '@/components/cookies/CookieBanner';
 import { CookiePreferences } from '@/components/cookies/CookieManager';
 import ErrorBoundary from '@/components/ErrorBoundary';
-import { isConstructorError, logError } from '@/lib/error-handling';
 
 const defaultPreferences: CookiePreferences = {
   necessary: true,
