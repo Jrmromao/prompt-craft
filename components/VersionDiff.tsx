@@ -6,18 +6,6 @@ import { useState } from 'react';
 import { useToast } from '@/components/ui/use-toast';
 import { formatDistanceToNow } from 'date-fns';
 
-interface Version {
-  id: string;
-  content: string;
-  createdAt: Date;
-  prompt: {
-    user: {
-      name: string | null;
-      imageUrl: string | null;
-    } | null;
-  };
-}
-
 interface VersionDiffProps {
   version1: any;
   version2: any;

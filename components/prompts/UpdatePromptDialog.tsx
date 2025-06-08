@@ -1,6 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
@@ -9,9 +12,9 @@ import {
   DialogDescription,
   DialogFooter,
 } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { cn } from '@/lib/utils';
 import {
   Info,
   BookOpen,
@@ -20,9 +23,9 @@ import {
   Music,
   Code,
   Stethoscope,
+  Check,
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { cn } from '@/lib/utils';
 
 const COMMON_TAGS = [
   'creative',
@@ -49,6 +52,10 @@ const COMMON_TAGS = [
 
 type PromptType = 'text' | 'image' | 'video' | 'music' | 'software' | 'medical';
 
+interface PromptMetadata {
+  [key: string]: string | number | boolean | null;
+}
+
 interface UpdatePromptDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -64,7 +71,7 @@ interface UpdatePromptDialogProps {
     content: string;
     promptType: string;
     tags: { id: string; name: string }[];
-    metadata?: any;
+    metadata?: PromptMetadata;
   } | null;
   onSuccess?: () => void;
 }
@@ -149,8 +156,8 @@ export function UpdatePromptDialog({
 }: UpdatePromptDialogProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [type, setType] = useState<string>('text');
-  const [metadata, setMetadata] = useState<any>({});
+  const [type, setType] = useState<PromptType>('text');
+  const [metadata, setMetadata] = useState<PromptMetadata>({});
   const [showMedicalWarning, setShowMedicalWarning] = useState(false);
 
   // Initialize form with current prompt data
@@ -158,7 +165,7 @@ export function UpdatePromptDialog({
     if (currentPrompt) {
       setContent(currentPrompt.content);
       setDescription(currentPrompt.description || '');
-      setType(currentPrompt.promptType);
+      setType(currentPrompt.promptType as PromptType);
       setSelectedTags(currentPrompt.tags.map(tag => tag.name));
       setMetadata(currentPrompt.metadata || {});
     }
@@ -247,36 +254,27 @@ export function UpdatePromptDialog({
                   <div
                     key={option.value}
                     className={cn(
-                      'relative cursor-pointer rounded-lg border p-4 transition-all hover:border-primary',
-                      type === option.value && 'border-primary bg-primary/5'
+                      'flex cursor-pointer flex-col items-center rounded-lg border p-4 transition-colors hover:bg-gray-50 dark:hover:bg-gray-800',
+                      type === option.value && 'border-purple-500 bg-purple-50 dark:bg-purple-900/20'
                     )}
                     onClick={() => setType(option.value)}
                   >
-                    <div className="flex items-center gap-3">
-                      <div
-                        className={cn(
-                          'rounded-lg bg-gradient-to-br p-2 text-white',
-                          option.color
-                        )}
-                      >
-                        <option.icon className="h-5 w-5" />
-                      </div>
-                      <div>
-                        <h4 className="font-medium">{option.label}</h4>
-                        <p className="text-sm text-muted-foreground">{option.description}</p>
-                      </div>
+                    <div
+                      className={cn(
+                        'mb-2 rounded-full bg-gradient-to-r p-2 text-white',
+                        option.color
+                      )}
+                    >
+                      <option.icon className="h-5 w-5" />
                     </div>
-                    {type === option.value && (
-                      <div className="absolute right-2 top-2">
-                        <Check className="h-5 w-5 text-primary" />
-                      </div>
-                    )}
+                    <span className="font-medium">{option.label}</span>
+                    <span className="mt-1 text-center text-sm text-gray-500 dark:text-gray-400">
+                      {option.description}
+                    </span>
                   </div>
                 ))}
               </div>
             </div>
-
-            {showMedicalWarning && <MedicalDisclaimer />}
 
             <div>
               <Label>Tags</Label>
@@ -293,6 +291,8 @@ export function UpdatePromptDialog({
                 ))}
               </div>
             </div>
+
+            {showMedicalWarning && <MedicalDisclaimer />}
           </div>
 
           <DialogFooter>
@@ -300,7 +300,7 @@ export function UpdatePromptDialog({
               Cancel
             </Button>
             <Button type="submit" disabled={isLoading}>
-              {isLoading ? 'Saving...' : 'Save Changes'}
+              {isLoading ? 'Updating...' : 'Update Prompt'}
             </Button>
           </DialogFooter>
         </form>

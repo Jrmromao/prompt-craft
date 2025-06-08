@@ -24,7 +24,7 @@ const securityHeaders = {
   'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
   'Content-Security-Policy':
     "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline';",
-};
+} as const;
 
 export type RouteHandler = (
   req: Request | NextRequest,
@@ -33,13 +33,13 @@ export type RouteHandler = (
 
 export interface DynamicRouteConfig {
   handler: RouteHandler;
-  fallbackData: any;
+  fallbackData: unknown;
 }
 
 export function createDynamicRoute(config: DynamicRouteConfig): RouteHandler {
-  return async (req: Request | NextRequest, context?: { params: Record<string, string> }) => {
+  return async (_req: Request | NextRequest, context?: { params: Record<string, string> }) => {
     try {
-      const nextReq = req instanceof NextRequest ? req : toNextRequest(req);
+      const nextReq = _req instanceof NextRequest ? _req : toNextRequest(_req);
       return await config.handler(nextReq, context);
     } catch (error) {
       console.error('Dynamic route error:', error);
@@ -75,13 +75,9 @@ export function createProtectedRoute(handler: RouteHandler): RouteHandler {
 
 // Function to add security headers to response
 export function addSecurityHeaders(response: NextResponse): NextResponse {
-  response.headers.set('X-Frame-Options', 'DENY');
-  response.headers.set('X-Content-Type-Options', 'nosniff');
-  response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
-  response.headers.set(
-    'Content-Security-Policy',
-    "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline';"
-  );
+  Object.entries(securityHeaders).forEach(([key, value]) => {
+    response.headers.set(key, value);
+  });
   return response;
 }
 
@@ -110,7 +106,7 @@ async function handleRateLimit(request: Request): Promise<NextResponse | null> {
 }
 
 // Main wrapper function for dynamic routes
-export function withDynamicRoute(handler: RouteHandler, fallbackData: any): RouteHandler {
+export function withDynamicRoute(handler: RouteHandler, fallbackData: unknown): RouteHandler {
   return async (request: Request, context?: { params: Record<string, string> }) => {
     try {
       // Check if we're in a build context

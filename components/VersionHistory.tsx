@@ -5,18 +5,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { formatDistanceToNow } from 'date-fns';
-import { GitBranch, GitCommit, History, Plus, GitCompare } from 'lucide-react';
-import { toast } from 'sonner';
+import { History, Plus, GitCompare } from 'lucide-react';
 import { VersionComparisonDialog } from './VersionComparisonDialog';
 import { UpdatePromptDialog } from '@/components/prompts/UpdatePromptDialog';
 import { useToast } from '@/components/ui/use-toast';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from '@/components/ui/dialog';
 import {
   Select,
   SelectContent,
