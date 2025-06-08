@@ -1,14 +1,16 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { auth, clerkMiddleware } from '@clerk/nextjs/server';
+import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
 import { quotaMiddleware } from './middleware/quota';
-import { prisma } from '@/lib/prisma';
-import { RateLimiter } from '@/lib/rateLimiter';
+import { rateLimitMiddleware } from './middleware/rate-limit';
+import { apiKeyMiddleware } from './middleware/api-key';
 import { securityHeaders } from '@/app/api/config';
 
 // Define routes that don't require authentication
 const PUBLIC_ROUTES = [
   '/',
+  '/sign-in*',
+  '/sign-up*',
   '/api/webhooks(.*)',
   '/api/health',
   '/api/test',
@@ -36,12 +38,6 @@ const PUBLIC_ROUTES = [
 // Define routes that require API key authentication
 const API_KEY_ROUTES = ['/api/v1(.*)'];
 
-// Rate limiter instance
-const rateLimiter = new RateLimiter({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limit each IP to 100 requests per windowMs
-});
-
 // Function to validate request origin
 function validateOrigin(request: NextRequest): boolean {
   const origin = request.headers.get('origin');
@@ -53,29 +49,27 @@ function validateOrigin(request: NextRequest): boolean {
   return allowedOrigins.includes(origin);
 }
 
-// Error handling wrapper
-function withErrorHandling(handler: Function) {
-  return async (request: NextRequest, ...args: any[]) => {
-    try {
-      return await handler(request, ...args);
-    } catch (error) {
-      console.error('Middleware error:', error);
-      return new NextResponse(
-        JSON.stringify({ error: 'Internal server error' }),
-        { 
-          status: 500,
-          headers: {
-            'Content-Type': 'application/json',
-            ...securityHeaders
-          }
-        }
-      );
-    }
-  };
+// Function to check if a route is public
+function isPublicRoute(pathname: string): boolean {
+  return PUBLIC_ROUTES.some(route => {
+    // Convert route pattern to regex
+    const pattern = route.replace(/\*/g, '.*');
+    const regex = new RegExp(`^${pattern}$`);
+    return regex.test(pathname);
+  });
+}
+
+// Function to check if a route requires API key
+function requiresApiKey(pathname: string): boolean {
+  return API_KEY_ROUTES.some(route => {
+    const pattern = route.replace(/\*/g, '.*');
+    const regex = new RegExp(`^${pattern}$`);
+    return regex.test(pathname);
+  });
 }
 
 // Security middleware
-const securityMiddleware = withErrorHandling(async (request: NextRequest) => {
+async function securityMiddleware(request: NextRequest) {
   // Only apply to API routes
   if (!request.nextUrl.pathname.startsWith('/api')) {
     return NextResponse.next();
@@ -96,20 +90,15 @@ const securityMiddleware = withErrorHandling(async (request: NextRequest) => {
   }
 
   // Check rate limit
-  const ip = request.headers.get('x-forwarded-for') || 'unknown';
-  const isRateLimited = await rateLimiter.check(ip);
-  
-  if (isRateLimited) {
-    return new NextResponse(
-      JSON.stringify({ error: 'Too many requests, please try again later' }),
-      { 
-        status: 429,
-        headers: {
-          'Content-Type': 'application/json',
-          ...securityHeaders
-        }
-      }
-    );
+  const rateLimitResponse = await rateLimitMiddleware(request);
+  if (rateLimitResponse) {
+    return rateLimitResponse;
+  }
+
+  // Check quota
+  const quotaResponse = await quotaMiddleware(request);
+  if (quotaResponse) {
+    return quotaResponse;
   }
 
   // Get the response
@@ -121,12 +110,38 @@ const securityMiddleware = withErrorHandling(async (request: NextRequest) => {
   });
 
   return response;
+}
+
+// Create the middleware chain
+const middleware = clerkMiddleware(async (auth, req) => {
+  // Run security middleware first
+  const securityResponse = await securityMiddleware(req);
+  if (securityResponse.status !== 200) {
+    return securityResponse;
+  }
+
+  // Check if route requires API key
+  if (requiresApiKey(req.nextUrl.pathname)) {
+    const apiKeyResponse = await apiKeyMiddleware(req);
+    if (apiKeyResponse.status !== 200) {
+      return apiKeyResponse;
+    }
+  }
+
+  return NextResponse.next();
 });
 
 // Export the middleware
-export default clerkMiddleware();
+export default middleware;
 
 // Configure which routes to run middleware on
 export const config = {
-  matcher: ['/((?!.+\\.[\\w]+$|_next).*)', '/', '/(api|trpc)(.*)'],
+  matcher: [
+    // Match all paths except static files and images
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    // Match all API routes
+    '/api/:path*',
+    // Match all app routes
+    '/((?!api|_next/static|_next/image|favicon.ico).*)',
+  ],
 };
