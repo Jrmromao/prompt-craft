@@ -3,24 +3,70 @@ import { Role, PlanType } from '@/utils/constants';
 import { Prisma, Prompt as PrismaPrompt } from '@prisma/client';
 
 // Use Prisma's generated type instead of custom interface
-type Prompt = {
+type Prompt = Omit<PrismaPrompt, 'createdAt' | 'updatedAt' | 'lastUsedAt' | 'lastViewedAt'> & {
+  createdAt: string;
+  updatedAt: string;
+  lastUsedAt: string | null;
+  lastViewedAt: string | null;
+  tags: { id: string; name: string }[];
+  user: {
+    id: string;
+    name: string | null;
+    imageUrl: string | null;
+  };
+  upvotes: number;
+  _count: {
+    votes: number;
+  };
+};
+
+type PrismaPromptWithRelations = {
   id: string;
   name: string;
   content: string;
   description: string | null;
   isPublic: boolean;
-  createdAt: string;
-  updatedAt: string;
-  tags: { id: string; name: string }[];
+  upvotes: number;
+  slug: string;
+  lastUsedAt: Date | null;
+  lastViewedAt: Date | null;
+  usageCount: number;
+  viewCount: number;
+  copyCount: number;
+  createdAt: Date;
+  updatedAt: Date;
+  userId: string;
+  tags: {
+    id: string;
+    name: string;
+  }[];
   user: {
+    id: string;
     name: string | null;
     imageUrl: string | null;
   };
   _count: {
-    comments: number;
     votes: number;
   };
 };
+
+// Type guard to check if an object is a PrismaPromptWithRelations
+function isPrismaPromptWithRelations(obj: unknown): obj is PrismaPromptWithRelations {
+  return (
+    typeof obj === 'object' &&
+    obj !== null &&
+    'createdAt' in obj &&
+    'updatedAt' in obj &&
+    'tags' in obj
+  );
+}
+
+// Type guard to check if an array contains PrismaPromptWithRelations
+function isPrismaPromptWithRelationsArray(arr: unknown): arr is PrismaPromptWithRelations[] {
+  return Array.isArray(arr) && arr.every(isPrismaPromptWithRelations);
+}
+
+type PrismaPromptResponse = Prisma.Prisma__PromptClient<PrismaPromptWithRelations>;
 
 export class PromptService {
   private static instance: PromptService;
@@ -43,6 +89,64 @@ export class PromptService {
       PromptService.instance = new PromptService();
     }
     return PromptService.instance;
+  }
+
+  /**
+   * Safely converts a Prisma prompt to our custom Prompt type
+   * @throws Error if the conversion fails
+   */
+  private convertDatesToStrings(prompt: PrismaPromptWithRelations): Prompt {
+    try {
+      return {
+        ...prompt,
+        createdAt: prompt.createdAt.toISOString(),
+        updatedAt: prompt.updatedAt.toISOString(),
+        lastUsedAt: prompt.lastUsedAt?.toISOString() || null,
+        lastViewedAt: prompt.lastViewedAt?.toISOString() || null,
+        user: {
+          id: prompt.user.id,
+          name: prompt.user.name,
+          imageUrl: prompt.user.imageUrl,
+        },
+        upvotes: prompt._count.votes,
+        _count: {
+          votes: prompt._count.votes,
+        },
+      };
+    } catch (error) {
+      console.error('Error converting dates to strings:', error);
+      throw new Error('Failed to convert prompt dates to strings');
+    }
+  }
+
+  /**
+   * Safely converts an array of Prisma prompts to our custom Prompt type
+   * @throws Error if the conversion fails
+   */
+  private convertPromptsArray(prompts: PrismaPromptWithRelations[]): Prompt[] {
+    try {
+      return prompts.map(p => this.convertDatesToStrings(p));
+    } catch (error) {
+      throw new Error(`Failed to convert prompts array: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  /**
+   * Safely handles Prisma query results and converts them to our custom Prompt type
+   * @throws Error if the conversion fails
+   */
+  private async handlePrismaResult<T>(
+    promise: Promise<T>
+  ): Promise<T extends Array<infer U> ? Prompt[] : Prompt> {
+    try {
+      const result = await promise;
+      if (Array.isArray(result)) {
+        return result.map(item => this.convertDatesToStrings(item as PrismaPromptWithRelations)) as T extends Array<infer U> ? Prompt[] : Prompt;
+      }
+      return this.convertDatesToStrings(result as PrismaPromptWithRelations) as T extends Array<infer U> ? Prompt[] : Prompt;
+    } catch (error) {
+      throw new Error(`Database operation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   }
 
   public async savePrompt(
@@ -150,7 +254,7 @@ export class PromptService {
       },
     });
 
-    return prompt as Prompt;
+    return this.convertDatesToStrings(prompt as PrismaPromptWithRelations);
   }
 
   public async getPrompts(
@@ -200,6 +304,7 @@ export class PromptService {
           tags: true,
           user: {
             select: {
+              id: true,
               name: true,
               imageUrl: true,
             },
@@ -216,7 +321,7 @@ export class PromptService {
     ]);
 
     return {
-      prompts: prompts as Prompt[],
+      prompts: (prompts as PrismaPromptWithRelations[]).map(p => this.convertDatesToStrings(p)),
       total,
     };
   }
@@ -228,6 +333,7 @@ export class PromptService {
         tags: true,
         user: {
           select: {
+            id: true,
             name: true,
             imageUrl: true,
           },
@@ -241,7 +347,7 @@ export class PromptService {
       },
     });
 
-    return prompt as Prompt | null;
+    return prompt ? this.convertDatesToStrings(prompt as PrismaPromptWithRelations) : null;
   }
 
   public async updatePrompt(
@@ -307,7 +413,7 @@ export class PromptService {
       },
     });
 
-    return updatedPrompt as Prompt;
+    return this.convertDatesToStrings(updatedPrompt as PrismaPromptWithRelations);
   }
 
   public async deletePrompt(id: string, userId: string): Promise<void> {
@@ -330,25 +436,27 @@ export class PromptService {
 
   // Admin: Approve a prompt
   public async approvePrompt(promptId: string): Promise<Prompt> {
-    return prisma.prompt.update({
-      where: { id: promptId },
-      data: { isPublic: true },
-      include: {
-        tags: true,
-        user: {
-          select: {
-            name: true,
-            imageUrl: true,
+    return this.handlePrismaResult(
+      prisma.prompt.update({
+        where: { id: promptId },
+        data: { isPublic: true },
+        include: {
+          tags: true,
+          user: {
+            select: {
+              name: true,
+              imageUrl: true,
+            },
+          },
+          _count: {
+            select: {
+              comments: true,
+              votes: true,
+            },
           },
         },
-        _count: {
-          select: {
-            comments: true,
-            votes: true,
-          },
-        },
-      },
-    }) as Promise<Prompt>;
+      })
+    );
   }
 
   // Admin: Reject (delete) a prompt
@@ -358,25 +466,28 @@ export class PromptService {
 
   // Admin: Get prompts pending review (public but not approved)
   public async getPendingPrompts(): Promise<Prompt[]> {
-    return prisma.prompt.findMany({
-      where: { isPublic: true },
-      orderBy: { createdAt: 'desc' },
-      include: {
-        tags: true,
-        user: {
-          select: {
-            name: true,
-            imageUrl: true,
+    return this.handlePrismaResult(
+      prisma.prompt.findMany({
+        where: { isPublic: true },
+        orderBy: { createdAt: 'desc' },
+        include: {
+          tags: true,
+          user: {
+            select: {
+              id: true,
+              name: true,
+              imageUrl: true,
+            },
+          },
+          _count: {
+            select: {
+              comments: true,
+              votes: true,
+            },
           },
         },
-        _count: {
-          select: {
-            comments: true,
-            votes: true,
-          },
-        },
-      },
-    }) as Promise<Prompt[]>;
+      })
+    );
   }
 
   /**
@@ -406,40 +517,42 @@ export class PromptService {
       },
     });
 
-    return updatedPrompt as Prompt;
+    return this.convertDatesToStrings(updatedPrompt as PrismaPromptWithRelations);
   }
 
   // Get top N public prompts for landing page/SEO
   public async getFeaturedPrompts(limit: number = 3): Promise<Prompt[]> {
-    return prisma.prompt.findMany({
-      where: {
-        isPublic: true,
-        // Ensure we have some minimum engagement
-        OR: [{ upvotes: { gt: 0 } }, { viewCount: { gt: 0 } }, { usageCount: { gt: 0 } }],
-      },
-      orderBy: [
-        { upvotes: 'desc' },
-        { viewCount: 'desc' },
-        { usageCount: 'desc' },
-        { createdAt: 'desc' },
-      ],
-      include: {
-        tags: true,
-        user: {
-          select: {
-            name: true,
-            imageUrl: true,
+    return this.handlePrismaResult(
+      prisma.prompt.findMany({
+        where: {
+          isPublic: true,
+          OR: [{ upvotes: { gt: 0 } }, { viewCount: { gt: 0 } }, { usageCount: { gt: 0 } }],
+        },
+        orderBy: [
+          { upvotes: 'desc' },
+          { viewCount: 'desc' },
+          { usageCount: 'desc' },
+          { createdAt: 'desc' },
+        ],
+        include: {
+          tags: true,
+          user: {
+            select: {
+              id: true,
+              name: true,
+              imageUrl: true,
+            },
+          },
+          _count: {
+            select: {
+              comments: true,
+              votes: true,
+            },
           },
         },
-        _count: {
-          select: {
-            comments: true,
-            votes: true,
-          },
-        },
-      },
-      take: limit,
-    }) as Promise<Prompt[]>;
+        take: limit,
+      })
+    );
   }
 
   /**
@@ -494,73 +607,105 @@ export class PromptService {
       },
     });
 
-    return copy as Prompt;
+    return this.convertDatesToStrings(copy as PrismaPromptWithRelations);
   }
 
   public async getUserPrompts(userId: string): Promise<Prompt[]> {
-    return prisma.prompt.findMany({
-      where: {
-        userId,
-      },
-      include: {
-        tags: true,
-        user: {
-          select: {
-            name: true,
-            imageUrl: true,
+    return this.handlePrismaResult(
+      prisma.prompt.findMany({
+        where: {
+          userId,
+        },
+        include: {
+          tags: true,
+          user: {
+            select: {
+              name: true,
+              imageUrl: true,
+            },
+          },
+          _count: {
+            select: {
+              comments: true,
+              votes: true,
+            },
           },
         },
-        _count: {
-          select: {
-            comments: true,
-            votes: true,
-          },
+        orderBy: {
+          updatedAt: 'desc',
         },
-      },
-      orderBy: {
-        updatedAt: 'desc',
-      },
-    }) as Promise<Prompt[]>;
+      })
+    );
   }
 
-  public async getPublicPrompts(): Promise<Prompt[]> {
-    const prompts = await prisma.prompt.findMany({
-      where: { isPublic: true },
-      include: {
-        tags: true,
-        user: {
-          select: {
-            name: true,
-            imageUrl: true,
+  async getPublicPrompts(page: number = 1, limit: number = 10): Promise<{ prompts: Prompt[]; total: number }> {
+    const skip = (page - 1) * limit;
+    
+    const [prompts, total] = await Promise.all([
+      prisma.prompt.findMany({
+        where: {
+          isPublic: true,
+        },
+        include: {
+          user: {
+            select: {
+              id: true,
+              name: true,
+              imageUrl: true,
+            },
+          },
+          tags: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+          _count: {
+            select: {
+              votes: true,
+            },
           },
         },
-        _count: {
-          select: {
-            comments: true,
-            votes: true,
+        orderBy: [
+          {
+            votes: {
+              _count: 'desc',
+            },
           },
+          {
+            updatedAt: 'desc',
+          },
+        ],
+        skip,
+        take: limit,
+      }),
+      prisma.prompt.count({
+        where: {
+          isPublic: true,
         },
-      },
-      orderBy: { createdAt: 'desc' },
-    });
+      }),
+    ]);
 
-    return prompts.map(prompt => ({
-      id: prompt.id,
-      name: prompt.name,
-      content: prompt.content,
-      description: prompt.description,
-      isPublic: prompt.isPublic,
+    const formattedPrompts = prompts.map(prompt => ({
+      ...prompt,
       createdAt: prompt.createdAt.toISOString(),
       updatedAt: prompt.updatedAt.toISOString(),
-      tags: prompt.tags.map(tag => ({ id: tag.id, name: tag.name })),
+      lastUsedAt: prompt.lastUsedAt?.toISOString() || null,
+      lastViewedAt: prompt.lastViewedAt?.toISOString() || null,
       user: {
-        name: prompt.user?.name,
-        imageUrl: prompt.user?.imageUrl,
+        id: prompt.user.id,
+        name: prompt.user.name,
+        imageUrl: prompt.user.imageUrl,
       },
+      upvotes: prompt._count.votes,
       _count: {
-        comments: prompt._count.comments,
         votes: prompt._count.votes,
       },
     }));
+
+    return {
+      prompts: formattedPrompts,
+      total,
+    };
   }
 }
