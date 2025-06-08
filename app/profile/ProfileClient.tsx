@@ -98,11 +98,34 @@ export interface ProfileClientProps {
   currentPath: string;
 }
 
+interface EmailPreferences {
+  marketingEmails: boolean;
+  productUpdates: boolean;
+  securityAlerts: boolean;
+}
+
+interface NotificationSettings {
+  emailNotifications: boolean;
+  pushNotifications: boolean;
+  browserNotifications: boolean;
+}
+
+interface ThemeSettings {
+  theme: 'light' | 'dark' | 'system';
+  accentColor: string;
+}
+
+interface SettingsData {
+  emailPreferences: EmailPreferences;
+  notificationSettings: NotificationSettings;
+  themeSettings: ThemeSettings;
+}
+
 interface SettingsSectionProps {
-  data: any;
+  data: SettingsData;
   error: any;
   isLoading: boolean;
-  mutate: KeyedMutator<any>;
+  mutate: KeyedMutator<SettingsData>;
 }
 
 interface SecuritySectionProps {
@@ -137,6 +160,14 @@ function SettingsSection(props: SettingsSectionProps) {
   const { data, error, isLoading, mutate } = props;
   const [isSaving, setIsSaving] = useState(false);
   const { setTheme } = useTheme();
+
+  // Default values for settings
+  const defaultEmailPreferences: EmailPreferences = {
+    marketingEmails: true,
+    productUpdates: true,
+    securityAlerts: true,
+  };
+
   if (isLoading && !data) {
     return (
       <div className="p-8">
@@ -145,9 +176,14 @@ function SettingsSection(props: SettingsSectionProps) {
       </div>
     );
   }
+
   if (error) {
     return <div className="text-red-500">Failed to load settings.</div>;
   }
+
+  // Use default values if data is not available
+  const emailPreferences = data?.emailPreferences || defaultEmailPreferences;
+
   const handleSettingsUpdate = async (type: string, newData: any) => {
     setIsSaving(true);
     const previous = data;
@@ -168,12 +204,14 @@ function SettingsSection(props: SettingsSectionProps) {
       setIsSaving(false);
     }
   };
+
   const handleThemeChange = (value: string) => {
     if (value === 'light' || value === 'dark' || value === 'system') {
       setTheme(value);
-      handleSettingsUpdate('theme', { ...data.themeSettings, theme: value });
+      handleSettingsUpdate('theme', { ...data?.themeSettings, theme: value });
     }
   };
+
   return (
     <div className="flex flex-col gap-8">
       {/* Email Preferences */}
@@ -186,10 +224,10 @@ function SettingsSection(props: SettingsSectionProps) {
           <div className="flex items-center justify-between">
             <Label>Marketing Emails</Label>
             <Switch
-              checked={data.emailPreferences.marketingEmails}
+              checked={emailPreferences.marketingEmails}
               onCheckedChange={checked =>
                 handleSettingsUpdate('email', {
-                  ...data.emailPreferences,
+                  ...emailPreferences,
                   marketingEmails: checked,
                 })
               }
@@ -199,9 +237,12 @@ function SettingsSection(props: SettingsSectionProps) {
           <div className="flex items-center justify-between">
             <Label>Product Updates</Label>
             <Switch
-              checked={data.emailPreferences.productUpdates}
+              checked={emailPreferences.productUpdates}
               onCheckedChange={checked =>
-                handleSettingsUpdate('email', { ...data.emailPreferences, productUpdates: checked })
+                handleSettingsUpdate('email', {
+                  ...emailPreferences,
+                  productUpdates: checked,
+                })
               }
               disabled={isSaving}
             />
@@ -209,9 +250,12 @@ function SettingsSection(props: SettingsSectionProps) {
           <div className="flex items-center justify-between">
             <Label>Security Alerts</Label>
             <Switch
-              checked={data.emailPreferences.securityAlerts}
+              checked={emailPreferences.securityAlerts}
               onCheckedChange={checked =>
-                handleSettingsUpdate('email', { ...data.emailPreferences, securityAlerts: checked })
+                handleSettingsUpdate('email', {
+                  ...emailPreferences,
+                  securityAlerts: checked,
+                })
               }
               disabled={isSaving}
             />
