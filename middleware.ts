@@ -141,7 +141,7 @@ export const config = {
     '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
     // Match all API routes
     '/api/:path*',
-    // Match all app routes
-    '/((?!api|_next/static|_next/image|favicon.ico).*)',
+    // Match all app routes except auth routes
+    '/((?!api|_next/static|_next/image|favicon.ico|sign-in|sign-up).*)',
   ],
 };

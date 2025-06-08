@@ -38,7 +38,7 @@ import {
   CartesianGrid,
 } from 'recharts';
 import { toast } from 'sonner';
-import { ErrorBoundary } from '@/components/ErrorBoundary';
+import ErrorBoundary from '@/components/ErrorBoundary';
 import Link from 'next/link';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
