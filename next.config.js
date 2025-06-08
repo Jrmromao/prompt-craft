@@ -38,6 +38,18 @@ const nextConfig = {
   },
   // Configure API routes and security headers
   async headers() {
+    const cspHeader = `
+      default-src 'self';
+      script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.clerk.accounts.dev https://www.googletagmanager.com https://challenges.cloudflare.com;
+      connect-src 'self' https://*.clerk.accounts.dev;
+      img-src 'self' data: https: https://img.clerk.com;
+      worker-src 'self' blob:;
+      style-src 'self' 'unsafe-inline';
+      frame-src 'self' https://*.clerk.accounts.dev https://challenges.cloudflare.com;
+      form-action 'self';
+      frame-ancestors 'self';
+    `.replace(/\n/g, ' ').trim();
+
     return [
       {
         source: '/api/:path*',
@@ -57,7 +69,7 @@ const nextConfig = {
         headers: [
           {
             key: 'Content-Security-Policy',
-            value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://*.clerk.accounts.dev; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://*.clerk.accounts.dev; frame-src 'self' https://*.clerk.accounts.dev;"
+            value: cspHeader
           }
         ]
       }
