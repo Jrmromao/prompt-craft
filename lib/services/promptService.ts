@@ -3,8 +3,23 @@ import { Role, PlanType } from '@/utils/constants';
 import { Prisma, Prompt as PrismaPrompt } from '@prisma/client';
 
 // Use Prisma's generated type instead of custom interface
-type Prompt = PrismaPrompt & {
+type Prompt = {
+  id: string;
+  name: string;
+  content: string;
+  description: string | null;
+  isPublic: boolean;
+  createdAt: string;
+  updatedAt: string;
   tags: { id: string; name: string }[];
+  user: {
+    name: string | null;
+    imageUrl: string | null;
+  };
+  _count: {
+    comments: number;
+    votes: number;
+  };
 };
 
 export class PromptService {
@@ -120,6 +135,18 @@ export class PromptService {
       },
       include: {
         tags: true,
+        user: {
+          select: {
+            name: true,
+            imageUrl: true,
+          },
+        },
+        _count: {
+          select: {
+            comments: true,
+            votes: true,
+          },
+        },
       },
     });
 
@@ -171,6 +198,18 @@ export class PromptService {
         take: limit,
         include: {
           tags: true,
+          user: {
+            select: {
+              name: true,
+              imageUrl: true,
+            },
+          },
+          _count: {
+            select: {
+              comments: true,
+              votes: true,
+            },
+          },
         },
       }),
       prisma.prompt.count({ where }),
@@ -187,13 +226,35 @@ export class PromptService {
       where: { id },
       include: {
         tags: true,
+        user: {
+          select: {
+            name: true,
+            imageUrl: true,
+          },
+        },
+        _count: {
+          select: {
+            comments: true,
+            votes: true,
+          },
+        },
       },
     });
 
     return prompt as Prompt | null;
   }
 
-  public async updatePrompt(id: string, userId: string, updates: Partial<Prompt>): Promise<Prompt> {
+  public async updatePrompt(
+    id: string,
+    userId: string,
+    data: {
+      name?: string;
+      content?: string;
+      description?: string;
+      isPublic?: boolean;
+      tags?: string[];
+    }
+  ): Promise<Prompt> {
     const prompt = await prisma.prompt.findUnique({
       where: { id },
     });
@@ -207,14 +268,14 @@ export class PromptService {
     }
 
     // Handle tag updates if provided
-    const tagOperations = updates.tags
+    const tagOperations = data.tags
       ? {
           set: [], // Clear existing tags
-          connectOrCreate: updates.tags.map(tag => ({
-            where: { name: tag.name },
+          connectOrCreate: data.tags.map(tag => ({
+            where: { name: tag },
             create: {
-              name: tag.name,
-              slug: tag.name.toLowerCase().replace(/\s+/g, '-'),
+              name: tag,
+              slug: tag.toLowerCase().replace(/\s+/g, '-'),
             },
           })),
         }
@@ -223,11 +284,26 @@ export class PromptService {
     const updatedPrompt = await prisma.prompt.update({
       where: { id },
       data: {
-        ...updates,
+        name: data.name,
+        content: data.content,
+        description: data.description,
+        isPublic: data.isPublic,
         tags: tagOperations,
       },
       include: {
         tags: true,
+        user: {
+          select: {
+            name: true,
+            imageUrl: true,
+          },
+        },
+        _count: {
+          select: {
+            comments: true,
+            votes: true,
+          },
+        },
       },
     });
 
@@ -257,7 +333,21 @@ export class PromptService {
     return prisma.prompt.update({
       where: { id: promptId },
       data: { isPublic: true },
-      include: { tags: true },
+      include: {
+        tags: true,
+        user: {
+          select: {
+            name: true,
+            imageUrl: true,
+          },
+        },
+        _count: {
+          select: {
+            comments: true,
+            votes: true,
+          },
+        },
+      },
     }) as Promise<Prompt>;
   }
 
@@ -271,22 +361,52 @@ export class PromptService {
     return prisma.prompt.findMany({
       where: { isPublic: true },
       orderBy: { createdAt: 'desc' },
-      include: { tags: true },
+      include: {
+        tags: true,
+        user: {
+          select: {
+            name: true,
+            imageUrl: true,
+          },
+        },
+        _count: {
+          select: {
+            comments: true,
+            votes: true,
+          },
+        },
+      },
     }) as Promise<Prompt[]>;
   }
 
   /**
    * Upvote a prompt
    */
-  async upvotePrompt(promptId: string, userId: string, vote: string) {
+  async upvotePrompt(promptId: string, userId: string): Promise<Prompt> {
     const prompt = await prisma.prompt.findUnique({ where: { id: promptId } });
     if (!prompt) throw new Error('Prompt not found');
 
     const updatedPrompt = await prisma.prompt.update({
       where: { id: promptId },
       data: { upvotes: { increment: 1 } },
+      include: {
+        tags: true,
+        user: {
+          select: {
+            name: true,
+            imageUrl: true,
+          },
+        },
+        _count: {
+          select: {
+            comments: true,
+            votes: true,
+          },
+        },
+      },
     });
-    return updatedPrompt;
+
+    return updatedPrompt as Prompt;
   }
 
   // Get top N public prompts for landing page/SEO
@@ -303,7 +423,21 @@ export class PromptService {
         { usageCount: 'desc' },
         { createdAt: 'desc' },
       ],
-      include: { tags: true },
+      include: {
+        tags: true,
+        user: {
+          select: {
+            name: true,
+            imageUrl: true,
+          },
+        },
+        _count: {
+          select: {
+            comments: true,
+            votes: true,
+          },
+        },
+      },
       take: limit,
     }) as Promise<Prompt[]>;
   }
@@ -311,21 +445,122 @@ export class PromptService {
   /**
    * Duplicate a prompt for a user
    */
-  async copyPrompt(promptId: string, userId: string) {
+  async copyPrompt(promptId: string, userId: string): Promise<Prompt> {
     // Fetch the original prompt
-    const original = await prisma.prompt.findUnique({ where: { id: promptId } });
+    const original = await prisma.prompt.findUnique({ 
+      where: { id: promptId },
+      include: { tags: true }
+    });
+    
     if (!original) throw new Error('Prompt not found');
 
-    // Create a copy for the user (adjust fields as needed)
+    // Generate a unique slug for the copy
+    const { aiSlugify } = await import('./slugService');
+    const baseSlug = await aiSlugify(original.name, original.description || '');
+    let uniqueSlug = `${baseSlug}-copy`;
+    let i = 1;
+    while (await prisma.prompt.findFirst({ where: { slug: uniqueSlug } })) {
+      uniqueSlug = `${baseSlug}-copy-${i}`;
+      i++;
+    }
+
+    // Create a copy for the user
     const copy = await prisma.prompt.create({
       data: {
         userId,
         content: original.content,
-        name: original.name,
-        slug: original.slug,
-        // Copy other fields as needed
+        name: `${original.name} (Copy)`,
+        description: original.description,
+        isPublic: false, // Copies are private by default
+        slug: uniqueSlug,
+        tags: {
+          connect: original.tags.map(tag => ({ id: tag.id })),
+        },
+      },
+      include: {
+        tags: true,
+        user: {
+          select: {
+            name: true,
+            imageUrl: true,
+          },
+        },
+        _count: {
+          select: {
+            comments: true,
+            votes: true,
+          },
+        },
       },
     });
-    return copy;
+
+    return copy as Prompt;
+  }
+
+  public async getUserPrompts(userId: string): Promise<Prompt[]> {
+    return prisma.prompt.findMany({
+      where: {
+        userId,
+      },
+      include: {
+        tags: true,
+        user: {
+          select: {
+            name: true,
+            imageUrl: true,
+          },
+        },
+        _count: {
+          select: {
+            comments: true,
+            votes: true,
+          },
+        },
+      },
+      orderBy: {
+        updatedAt: 'desc',
+      },
+    }) as Promise<Prompt[]>;
+  }
+
+  public async getPublicPrompts(): Promise<Prompt[]> {
+    const prompts = await prisma.prompt.findMany({
+      where: { isPublic: true },
+      include: {
+        tags: true,
+        user: {
+          select: {
+            name: true,
+            imageUrl: true,
+          },
+        },
+        _count: {
+          select: {
+            comments: true,
+            votes: true,
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return prompts.map(prompt => ({
+      id: prompt.id,
+      name: prompt.name,
+      content: prompt.content,
+      description: prompt.description,
+      isPublic: prompt.isPublic,
+      createdAt: prompt.createdAt.toISOString(),
+      updatedAt: prompt.updatedAt.toISOString(),
+      tags: prompt.tags.map(tag => ({ id: tag.id, name: tag.name })),
+      user: {
+        name: prompt.user?.name,
+        imageUrl: prompt.user?.imageUrl,
+      },
+      _count: {
+        comments: prompt._count.comments,
+        votes: prompt._count.votes,
+      },
+    }));
   }
 }

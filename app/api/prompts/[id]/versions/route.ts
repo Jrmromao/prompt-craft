@@ -1,68 +1,63 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { VersionControlService } from '@/lib/services/versionControlService';
-import { dynamicRouteConfig, withDynamicRoute } from '@/lib/utils/dynamicRoute';
+import { z } from 'zod';
 
-// Export dynamic configuration
-export const { dynamic, revalidate, runtime } = dynamicRouteConfig;
+const createVersionSchema = z.object({
+  content: z.string().min(1),
+  description: z.string().optional(),
+  commitMessage: z.string().min(1),
+  tags: z.array(z.string()).optional(),
+});
 
-// Define the create version handler
-async function createVersionHandler(
+export async function GET(
   request: Request,
-  context?: { params?: Record<string, string> }
+  { params }: { params: { id: string } }
 ) {
   try {
     const { userId } = await auth();
     if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    const { content } = await request.json();
-    if (!content) {
-      return NextResponse.json({ error: 'Content is required' }, { status: 400 });
-    }
-
-    const promptId = context?.params?.id;
-    if (!promptId) {
-      return NextResponse.json({ error: 'Prompt ID is required' }, { status: 400 });
+      return new NextResponse('Unauthorized', { status: 401 });
     }
 
     const versionControlService = VersionControlService.getInstance();
-    const version = await versionControlService.createVersion(promptId, content, null, null, []);
-    return NextResponse.json(version);
+    const versions = await versionControlService.getVersion(params.id);
+
+    return NextResponse.json(versions);
   } catch (error) {
-    console.error('Error creating version:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    console.error('Error fetching versions:', error);
+    return new NextResponse('Internal Server Error', { status: 500 });
   }
 }
 
-// Define the get versions handler
-async function getVersionsHandler(request: Request, context?: { params?: Record<string, string> }) {
+export async function POST(
+  request: Request,
+  { params }: { params: { id: string } }
+) {
   try {
     const { userId } = await auth();
     if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return new NextResponse('Unauthorized', { status: 401 });
     }
 
-    const promptId = context?.params?.id;
-    if (!promptId) {
-      return NextResponse.json({ error: 'Prompt ID is required' }, { status: 400 });
-    }
+    const body = await request.json();
+    const validatedData = createVersionSchema.parse(body);
 
     const versionControlService = VersionControlService.getInstance();
-    const versions = await versionControlService.getVersion(promptId);
-    return NextResponse.json(versions);
+    const newVersion = await versionControlService.createVersion(
+      params.id,
+      validatedData.content,
+      validatedData.description || null,
+      validatedData.commitMessage,
+      validatedData.tags || []
+    );
+
+    return NextResponse.json(newVersion);
   } catch (error) {
-    console.error('Error getting versions:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    if (error instanceof z.ZodError) {
+      return new NextResponse(JSON.stringify(error.errors), { status: 400 });
+    }
+    console.error('Error creating version:', error);
+    return new NextResponse('Internal Server Error', { status: 500 });
   }
 }
-
-// Define fallback data
-const fallbackData = {
-  error: 'This endpoint is only available at runtime',
-};
-
-// Export the wrapped handlers
-export const POST = withDynamicRoute(createVersionHandler, fallbackData);
-export const GET = withDynamicRoute(getVersionsHandler, fallbackData);

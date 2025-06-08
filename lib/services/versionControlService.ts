@@ -5,10 +5,12 @@ interface Version {
   id: string;
   promptId: string;
   content: string;
-  description?: string | null;
-  metadata?: any;
-  tags?: string[];
+  description: string | null;
+  commitMessage: string | null;
+  version: string;
+  tags: string[];
   createdAt: Date;
+  updatedAt: Date;
   prompt: {
     user: {
       name: string | null;
@@ -34,12 +36,12 @@ export class VersionControlService {
     promptId: string,
     content: string,
     description: string | null,
-    metadata: any,
+    commitMessage: string,
     tags: string[]
   ) {
     const prompt = await prisma.prompt.findUnique({
       where: { id: promptId },
-      include: { tags: true },
+      include: { versions: true },
     });
 
     if (!prompt) {
@@ -52,8 +54,21 @@ export class VersionControlService {
         promptId,
         content,
         description,
-        metadata,
+        commitMessage,
         tags,
+        version: (prompt.versions.length + 1).toString(),
+      },
+      include: {
+        prompt: {
+          select: {
+            user: {
+              select: {
+                name: true,
+                imageUrl: true,
+              },
+            },
+          },
+        },
       },
     });
 
@@ -61,7 +76,7 @@ export class VersionControlService {
   }
 
   // Get version history for a prompt
-  public async getVersionHistory(promptId: string) {
+  public async getVersion(promptId: string) {
     return prisma.promptVersion.findMany({
       where: { promptId },
       orderBy: { createdAt: 'desc' },
@@ -81,7 +96,7 @@ export class VersionControlService {
   }
 
   // Get a specific version by ID
-  public async getVersion(versionId: string): Promise<Version | null> {
+  public async getVersionById(versionId: string): Promise<Version | null> {
     return prisma.promptVersion.findUnique({
       where: { id: versionId },
       include: {
@@ -101,8 +116,8 @@ export class VersionControlService {
 
   // Compare two versions
   public async compareVersions(version1: string, version2: string) {
-    const v1 = await this.getVersion(version1);
-    const v2 = await this.getVersion(version2);
+    const v1 = await this.getVersionById(version1);
+    const v2 = await this.getVersionById(version2);
 
     if (!v1 || !v2) {
       throw new Error('One or both versions not found');
@@ -113,20 +128,19 @@ export class VersionControlService {
     // Description diff
     const descriptionDiff = diffWords(v1.description || '', v2.description || '');
     // Tags diff
-    const oldTags = new Set(v1.tags || []);
-    const newTags = new Set(v2.tags || []);
+    const oldTags = new Set(v1.tags);
+    const newTags = new Set(v2.tags);
     const addedTags = [...newTags].filter(tag => !oldTags.has(tag));
     const removedTags = [...oldTags].filter(tag => !newTags.has(tag));
-    // Metadata diff
-    const metadataDiff = [];
-    const allKeys = new Set([...Object.keys(v1.metadata || {}), ...Object.keys(v2.metadata || {})]);
-    for (const key of allKeys) {
-      const oldVal = v1.metadata?.[key];
-      const newVal = v2.metadata?.[key];
-      if (JSON.stringify(oldVal) !== JSON.stringify(newVal)) {
-        metadataDiff.push({ key, oldVal, newVal });
-      }
-    }
+
+    // Metadata diff (commit message)
+    const metadataDiff = [
+      {
+        key: 'commitMessage',
+        oldVal: v1.commitMessage,
+        newVal: v2.commitMessage,
+      },
+    ].filter(diff => diff.oldVal !== diff.newVal);
 
     return {
       version1: v1,
@@ -138,47 +152,9 @@ export class VersionControlService {
     };
   }
 
-  // Compare metadata between versions
-  private compareMetadata(metadata1: any, metadata2: any) {
-    const changes: { field: string; oldValue: any; newValue: any }[] = [];
-
-    // Compare each metadata field
-    const allFields = new Set([...Object.keys(metadata1 || {}), ...Object.keys(metadata2 || {})]);
-
-    allFields.forEach(field => {
-      const oldValue = metadata1?.[field];
-      const newValue = metadata2?.[field];
-
-      if (JSON.stringify(oldValue) !== JSON.stringify(newValue)) {
-        changes.push({
-          field,
-          oldValue,
-          newValue,
-        });
-      }
-    });
-
-    return changes;
-  }
-
-  // Compare tags between versions
-  private compareTags(tags1: { name: string }[], tags2: { name: string }[]) {
-    const oldTags = new Set(tags1.map(t => t.name));
-    const newTags = new Set(tags2.map(t => t.name));
-
-    const added = [...newTags].filter(tag => !oldTags.has(tag));
-    const removed = [...oldTags].filter(tag => !newTags.has(tag));
-
-    return {
-      added,
-      removed,
-      unchanged: [...oldTags].filter(tag => newTags.has(tag)),
-    };
-  }
-
   // Rollback to a specific version
   public async rollbackToVersion(promptId: string, versionId: string) {
-    const targetVersion = await this.getVersion(versionId);
+    const targetVersion = await this.getVersionById(versionId);
     if (!targetVersion) {
       throw new Error('Version not found');
     }
@@ -187,9 +163,9 @@ export class VersionControlService {
     return this.createVersion(
       promptId,
       targetVersion.content,
-      typeof targetVersion.description === 'undefined' ? null : targetVersion.description,
-      targetVersion.metadata ?? null,
-      targetVersion.tags ?? []
+      targetVersion.description,
+      `Rollback to version ${targetVersion.version}`,
+      targetVersion.tags
     );
   }
 

@@ -294,14 +294,16 @@ model PromptUsage {
 }
 
 model PromptVersion {
-  id          String   @id @default(cuid())
-  promptId    String
-  content     String
-  createdAt   DateTime @default(now())
-  description String?
-  metadata    Json?
-  tags        String[]
-  prompt      Prompt   @relation(fields: [promptId], references: [id], onDelete: Cascade)
+  id            String   @id @default(cuid())
+  version       String
+  content       String   @db.Text
+  description   String?  @db.Text
+  commitMessage String?  @db.Text
+  tags          String[]
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  prompt        Prompt   @relation(fields: [promptId], references: [id], onDelete: Cascade)
+  promptId      String
 
   @@index([promptId])
 }
