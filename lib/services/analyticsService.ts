@@ -83,115 +83,7 @@ export class AnalyticsService {
     return AnalyticsService.instance;
   }
 
-  public async getAnalytics(options: AnalyticsOptions): Promise<AnalyticsData> {
-    // Allow access in development mode
-    if (process.env.NODE_ENV === 'development') {
-      // Return mock data for development
-      return {
-        totalUsers: 100,
-        activeUsers: 75,
-        totalPrompts: 500,
-        totalGenerations: 1000,
-        averageResponseTime: 2.5,
-        successRate: 0.95,
-        commentsCount: 75,
-        viewCount: 2500,
-        usageCount: 1000,
-        upvotes: 750,
-        copyCount: 1200,
-        recentViews: [
-          {
-            id: '1',
-            createdAt: new Date().toISOString(),
-            user: {
-              name: 'Alice Johnson',
-              imageUrl: null,
-            },
-          },
-          {
-            id: '2',
-            createdAt: new Date().toISOString(),
-            user: {
-              name: 'Bob Wilson',
-              imageUrl: null,
-            },
-          },
-        ],
-        recentUsages: [
-          {
-            id: '1',
-            createdAt: new Date().toISOString(),
-            user: {
-              name: 'Alice Johnson',
-              imageUrl: null,
-            },
-          },
-          {
-            id: '2',
-            createdAt: new Date().toISOString(),
-            user: {
-              name: 'Bob Wilson',
-              imageUrl: null,
-            },
-          },
-        ],
-        recentCopies: [
-          {
-            id: '1',
-            createdAt: new Date().toISOString(),
-            user: {
-              name: 'Alice Johnson',
-              imageUrl: null,
-            },
-          },
-          {
-            id: '2',
-            createdAt: new Date().toISOString(),
-            user: {
-              name: 'Bob Wilson',
-              imageUrl: null,
-            },
-          },
-        ],
-        dashboardOverview: {
-          totalPromptViews: 2500,
-          totalPromptCopies: 1200,
-          mostPopularPrompt: {
-            user: {
-              name: 'John Doe',
-            },
-          },
-          mostActiveUser: {
-            name: 'Jane Smith',
-          },
-          recentActivity: {
-            usages: [
-              {
-                id: '1',
-                createdAt: new Date().toISOString(),
-                user: {
-                  name: 'Alice Johnson',
-                },
-                prompt: {
-                  name: 'Creative Writing Assistant',
-                },
-              },
-              {
-                id: '2',
-                createdAt: new Date().toISOString(),
-                user: {
-                  name: 'Bob Wilson',
-                },
-                prompt: {
-                  name: 'Code Review Helper',
-                },
-              },
-            ],
-          },
-        },
-      };
-    }
-
+  private async validateAdminAccess(): Promise<void> {
     const { userId } = await auth();
     if (!userId) {
       throw new Error('Unauthorized');
@@ -205,46 +97,35 @@ export class AnalyticsService {
     if (!user || user.role !== 'ADMIN') {
       throw new Error('Unauthorized to access analytics');
     }
+  }
 
-    // Get the prompt ID from the options
-    const promptId = options.promptId;
-    if (!promptId) {
-      throw new Error('Prompt ID is required');
-    }
-
-    // Fetch actual data for the specific prompt
+  private async getPromptMetrics(promptId: string) {
     const [viewCount, usageCount, upvotes, copyCount, commentsCount] = await Promise.all([
-      prisma.promptView.count({
-        where: { promptId }
-      }),
-      prisma.promptUsage.count({
-        where: { promptId }
-      }),
-      prisma.vote.count({
-        where: { 
-          promptId,
-          value: 1 // 1 represents an upvote
-        }
-      }),
-      prisma.promptCopy.count({
-        where: { promptId }
-      }),
-      prisma.comment.count({
-        where: { promptId }
-      })
+      prisma.promptView.count({ where: { promptId } }),
+      prisma.promptUsage.count({ where: { promptId } }),
+      prisma.vote.count({ where: { promptId, value: 1 } }),
+      prisma.promptCopy.count({ where: { promptId } }),
+      prisma.comment.count({ where: { promptId } })
     ]);
 
-    // Fetch recent activity
+    return { viewCount, usageCount, upvotes, copyCount, commentsCount };
+  }
+
+  private async getRecentActivity(promptId: string) {
     const [recentViews, recentUsages, recentCopies] = await Promise.all([
       prisma.promptView.findMany({
         where: { promptId },
         orderBy: { createdAt: 'desc' },
         take: 5,
         include: {
-          user: {
+          prompt: {
             select: {
-              name: true,
-              imageUrl: true
+              user: {
+                select: {
+                  name: true,
+                  imageUrl: true
+                }
+              }
             }
           }
         }
@@ -277,6 +158,65 @@ export class AnalyticsService {
       })
     ]);
 
+    return { recentViews, recentUsages, recentCopies };
+  }
+
+  private async getDashboardOverview() {
+    const [totalPromptViews, totalPromptCopies, mostPopularPrompt, mostActiveUser] = await Promise.all([
+      prisma.promptView.count(),
+      prisma.promptCopy.count(),
+      prisma.prompt.findFirst({
+        orderBy: { viewCount: 'desc' },
+        select: {
+          user: {
+            select: {
+              name: true
+            }
+          }
+        }
+      }),
+      prisma.$queryRaw<{ name: string | null }[]>`
+        WITH user_view_counts AS (
+          SELECT "userId", COUNT(*) as view_count
+          FROM "PromptView"
+          WHERE "userId" IS NOT NULL
+          GROUP BY "userId"
+          ORDER BY view_count DESC
+          LIMIT 1
+        )
+        SELECT u.name
+        FROM "User" u
+        JOIN user_view_counts uvc ON u.id = uvc."userId"
+      `.then(results => results[0] || null)
+    ]);
+
+    return { totalPromptViews, totalPromptCopies, mostPopularPrompt, mostActiveUser };
+  }
+
+  public async getAnalytics(options: AnalyticsOptions): Promise<AnalyticsData> {
+    await this.validateAdminAccess();
+
+    const promptId = options.promptId;
+    const [metrics, activity, overview] = await Promise.all([
+      promptId ? this.getPromptMetrics(promptId) : {
+        viewCount: 0,
+        usageCount: 0,
+        upvotes: 0,
+        copyCount: 0,
+        commentsCount: 0
+      },
+      promptId ? this.getRecentActivity(promptId) : {
+        recentViews: [],
+        recentUsages: [],
+        recentCopies: []
+      },
+      this.getDashboardOverview()
+    ]);
+
+    const { viewCount, usageCount, upvotes, copyCount, commentsCount } = metrics;
+    const { recentViews, recentUsages, recentCopies } = activity;
+    const { totalPromptViews, totalPromptCopies, mostPopularPrompt, mostActiveUser } = overview;
+
     return {
       viewCount,
       usageCount,
@@ -286,9 +226,9 @@ export class AnalyticsService {
       recentViews: recentViews.map(view => ({
         id: view.id,
         createdAt: view.createdAt.toISOString(),
-        user: view.user ? {
-          name: view.user.name,
-          imageUrl: view.user.imageUrl
+        user: view.prompt.user ? {
+          name: view.prompt.user.name,
+          imageUrl: view.prompt.user.imageUrl
         } : undefined
       })),
       recentUsages: recentUsages.map(usage => ({
@@ -308,21 +248,34 @@ export class AnalyticsService {
           imageUrl: copy.user.imageUrl
         } : undefined
       })),
-      totalUsers: 0, // This would be calculated from actual data
-      activeUsers: 0, // This would be calculated from actual data
-      totalPrompts: 0, // This would be calculated from actual data
-      totalGenerations: 0, // This would be calculated from actual data
-      averageResponseTime: 0, // This would be calculated from actual data
-      successRate: 0, // This would be calculated from actual data
+      totalUsers: await prisma.user.count(),
+      activeUsers: await prisma.user.count({
+        where: {
+          status: 'ACTIVE'
+        }
+      }),
+      totalPrompts: await prisma.prompt.count(),
+      totalGenerations: await prisma.promptUsage.count(),
+      averageResponseTime: 0, // TODO: Implement response time calculation
+      successRate: 0, // TODO: Implement success rate calculation
       dashboardOverview: {
-        totalPromptViews: 0, // This would be calculated from actual data
-        totalPromptCopies: 0, // This would be calculated from actual data
-        mostPopularPrompt: null,
-        mostActiveUser: null,
+        totalPromptViews,
+        totalPromptCopies,
+        mostPopularPrompt,
+        mostActiveUser,
         recentActivity: {
-          usages: [],
-        },
-      },
+          usages: recentUsages.map(usage => ({
+            id: usage.id,
+            createdAt: usage.createdAt.toISOString(),
+            user: {
+              name: usage.user.name
+            },
+            prompt: {
+              name: 'Prompt' // TODO: Include prompt name in the query
+            }
+          }))
+        }
+      }
     };
   }
 }

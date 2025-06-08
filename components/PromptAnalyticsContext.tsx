@@ -1,18 +1,25 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useCallback, useEffect } from 'react';
+import { clientAnalyticsService } from '@/lib/services/clientAnalyticsService';
+import { useToast } from '@/components/ui/use-toast';
 
 interface PromptAnalyticsContextValue {
   copyCount: number;
   setCopyCount: (count: number) => void;
-  incrementCopyCount: () => void;
+  incrementCopyCount: () => Promise<void>;
   viewCount: number;
   setViewCount: (count: number) => void;
-  incrementViewCount: () => void;
+  incrementViewCount: () => Promise<void>;
   usageCount: number;
   setUsageCount: (count: number) => void;
-  incrementUsageCount: () => void;
+  incrementUsageCount: (result?: any) => Promise<void>;
   commentCount: number;
   setCommentCount: (count: number) => void;
   incrementCommentCount: () => void;
+  isLoading: {
+    view: boolean;
+    usage: boolean;
+    copy: boolean;
+  };
 }
 
 const PromptAnalyticsContext = createContext<PromptAnalyticsContextValue | undefined>(undefined);
@@ -26,6 +33,7 @@ export function usePromptAnalytics() {
 }
 
 interface PromptAnalyticsProviderProps {
+  promptId: string;
   initialCopyCount: number;
   initialViewCount: number;
   initialUsageCount: number;
@@ -34,6 +42,7 @@ interface PromptAnalyticsProviderProps {
 }
 
 export function PromptAnalyticsProvider({
+  promptId,
   initialCopyCount,
   initialViewCount,
   initialUsageCount,
@@ -44,11 +53,93 @@ export function PromptAnalyticsProvider({
   const [viewCount, setViewCount] = useState(initialViewCount);
   const [usageCount, setUsageCount] = useState(initialUsageCount);
   const [commentCount, setCommentCount] = useState(initialCommentCount);
+  const [isLoading, setIsLoading] = useState({
+    view: false,
+    usage: false,
+    copy: false,
+  });
+  const { toast } = useToast();
 
-  const incrementCopyCount = () => setCopyCount(c => c + 1);
-  const incrementViewCount = () => setViewCount(c => c + 1);
-  const incrementUsageCount = () => setUsageCount(c => c + 1);
-  const incrementCommentCount = () => setCommentCount(c => c + 1);
+  const incrementViewCount = useCallback(async () => {
+    try {
+      setIsLoading(prev => ({ ...prev, view: true }));
+      // Optimistic update
+      setViewCount(prev => prev + 1);
+      
+      await clientAnalyticsService.trackPromptView(promptId);
+    } catch (error) {
+      // Revert on error
+      setViewCount(prev => prev - 1);
+      toast({
+        title: 'Error',
+        description: 'Failed to track view',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsLoading(prev => ({ ...prev, view: false }));
+    }
+  }, [promptId, toast]);
+
+  const incrementUsageCount = useCallback(async (result?: any) => {
+    try {
+      setIsLoading(prev => ({ ...prev, usage: true }));
+      // Optimistic update
+      setUsageCount(prev => prev + 1);
+      
+      await clientAnalyticsService.trackPromptUsage(promptId, result);
+    } catch (error) {
+      // Revert on error
+      setUsageCount(prev => prev - 1);
+      toast({
+        title: 'Error',
+        description: 'Failed to track usage',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsLoading(prev => ({ ...prev, usage: false }));
+    }
+  }, [promptId, toast]);
+
+  const incrementCopyCount = useCallback(async () => {
+    try {
+      setIsLoading(prev => ({ ...prev, copy: true }));
+      // Optimistic update
+      setCopyCount(prev => prev + 1);
+      
+      await clientAnalyticsService.trackPromptCopy(promptId);
+    } catch (error) {
+      // Revert on error
+      setCopyCount(prev => prev - 1);
+      toast({
+        title: 'Error',
+        description: 'Failed to track copy',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsLoading(prev => ({ ...prev, copy: false }));
+    }
+  }, [promptId, toast]);
+
+  const incrementCommentCount = useCallback(() => {
+    setCommentCount(prev => prev + 1);
+  }, []);
+
+  // Update initial values when they change
+  useEffect(() => {
+    setCopyCount(initialCopyCount);
+  }, [initialCopyCount]);
+
+  useEffect(() => {
+    setViewCount(initialViewCount);
+  }, [initialViewCount]);
+
+  useEffect(() => {
+    setUsageCount(initialUsageCount);
+  }, [initialUsageCount]);
+
+  useEffect(() => {
+    setCommentCount(initialCommentCount);
+  }, [initialCommentCount]);
 
   return (
     <PromptAnalyticsContext.Provider
@@ -65,6 +156,7 @@ export function PromptAnalyticsProvider({
         commentCount,
         setCommentCount,
         incrementCommentCount,
+        isLoading,
       }}
     >
       {children}

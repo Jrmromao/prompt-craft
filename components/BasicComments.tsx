@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/components/ui/use-toast';
 import { useUser, useAuth } from '@clerk/nextjs';
+import { clientAnalyticsService } from '@/lib/services/clientAnalyticsService';
+import { usePromptAnalytics } from './PromptAnalyticsContext';
 
 interface Comment {
   id: string;
@@ -20,7 +22,7 @@ interface Comment {
   liked?: boolean;
 }
 
-const COMMENTS_PER_PAGE = 10;
+const COMMENTS_PER_PAGE = 25;
 const MAX_CHARACTERS = 1000;
 
 interface BasicCommentsProps {
@@ -41,6 +43,22 @@ export function BasicComments({ promptId, initialComments = [], onCommentCountCh
   const { user, isLoaded } = useUser();
   const { getToken } = useAuth();
   const { toast } = useToast();
+  const { incrementViewCount, isLoading: analyticsLoading } = usePromptAnalytics();
+
+  // Track view when component mounts
+  useEffect(() => {
+    const trackView = async () => {
+      try {
+        if (isLoaded && user) {
+          await incrementViewCount();
+        }
+      } catch (error) {
+        console.error('Error tracking view:', error);
+      }
+    };
+
+    trackView();
+  }, [promptId, isLoaded, user, incrementViewCount]);
 
   const fetchComments = async () => {
     try {
@@ -59,7 +77,7 @@ export function BasicComments({ promptId, initialComments = [], onCommentCountCh
       }
 
       const data = await response.json();
-      setComments(data.comments);
+      setComments(prev => page === 1 ? data.comments : [...prev, ...data.comments]);
       setTotalComments(data.totalComments || data.total || 0);
       setHasMore(data.hasMore);
     } catch (error) {
@@ -76,8 +94,16 @@ export function BasicComments({ promptId, initialComments = [], onCommentCountCh
 
   // Initial fetch
   useEffect(() => {
+    setPage(1); // Reset page when promptId changes
     fetchComments();
-  }, [promptId, page]);
+  }, [promptId]);
+
+  // Fetch when page changes
+  useEffect(() => {
+    if (page > 1) { // Only fetch if not the first page
+      fetchComments();
+    }
+  }, [page]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -183,8 +209,11 @@ export function BasicComments({ promptId, initialComments = [], onCommentCountCh
         </div>
       </form>
 
-      {/* Comments list */}
+      {/* Comments count and list */}
       <div className="space-y-4">
+        <div className="text-sm text-muted-foreground">
+          {totalComments} {totalComments === 1 ? 'comment' : 'comments'}
+        </div>
         {isLoading ? (
           <div className="space-y-4">
             {[...Array(3)].map((_, i) => (
@@ -207,28 +236,41 @@ export function BasicComments({ promptId, initialComments = [], onCommentCountCh
             No comments yet. Be the first to comment!
           </div>
         ) : (
-          comments.map((comment) => (
-            <div key={comment.id} className="p-4 bg-background rounded-lg border">
-              <div className="flex items-start justify-between">
-                <div className="flex items-center space-x-2">
-                  {comment.user.imageUrl && (
-                    <img
-                      src={comment.user.imageUrl}
-                      alt={comment.user.name || 'User'}
-                      className="w-8 h-8 rounded-full"
-                    />
-                  )}
-                  <div>
-                    <p className="font-medium">{comment.user.name || 'Anonymous'}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {new Date(comment.createdAt).toLocaleDateString()}
-                    </p>
+          <>
+            {comments.map((comment) => (
+              <div key={comment.id} className="p-4 bg-background rounded-lg border">
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center space-x-2">
+                    {comment.user.imageUrl && (
+                      <img
+                        src={comment.user.imageUrl}
+                        alt={comment.user.name || 'User'}
+                        className="w-8 h-8 rounded-full"
+                      />
+                    )}
+                    <div>
+                      <p className="font-medium">{comment.user.name || 'Anonymous'}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {new Date(comment.createdAt).toLocaleDateString()}
+                      </p>
+                    </div>
                   </div>
                 </div>
+                <p className="mt-2">{comment.content}</p>
               </div>
-              <p className="mt-2">{comment.content}</p>
-            </div>
-          ))
+            ))}
+            {hasMore && (
+              <div className="flex justify-center mt-4">
+                <Button
+                  variant="outline"
+                  onClick={() => setPage(prev => prev + 1)}
+                  disabled={isLoading}
+                >
+                  {isLoading ? 'Loading...' : 'Load More Comments'}
+                </Button>
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>
