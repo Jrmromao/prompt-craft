@@ -3,7 +3,9 @@ import { notFound } from 'next/navigation';
 import { Metadata } from 'next';
 import { Suspense } from 'react';
 import { PromptContent } from '@/components/PromptContent';
-import { Skeleton } from '@/components/ui/skeleton';
+
+// Mark page as dynamic since it uses headers() through AnalyticsTrackingService
+export const dynamic = 'force-dynamic';
 
 interface PageProps {
   params: Promise<{ slug: string }>;
