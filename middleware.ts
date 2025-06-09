@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { quotaMiddleware } from './middleware/quota';
 import { rateLimitMiddleware } from './middleware/rate-limit';
-import { auth, getAuth } from '@clerk/nextjs/server';
+import { auth } from '@clerk/nextjs/server';
 
 // Define routes that don't require authentication
 const PUBLIC_ROUTES = [
@@ -69,14 +69,6 @@ function validateOrigin(request: NextRequest): boolean {
   const origin = request.headers.get('origin');
   const referer = request.headers.get('referer');
   
-  console.log('Request details:', {
-    path: request.nextUrl.pathname,
-    method: request.method,
-    origin,
-    referer,
-    headers: Object.fromEntries(request.headers.entries())
-  });
-  
   // Allow requests with no origin (like mobile apps or curl requests)
   if (!origin) return true;
   
@@ -90,11 +82,10 @@ function validateOrigin(request: NextRequest): boolean {
   // In production, allow requests from your domain and Clerk domains
   if (process.env.NODE_ENV === 'production') {
     const allowedDomains = [
-      'https://www.prompthive.co',
-      'https://prompthive.co',
+      process.env.NEXT_PUBLIC_APP_URL || '',
       'https://*.clerk.accounts.dev',
       'https://*.clerk.com'
-    ];
+    ].filter(Boolean);
     
     return allowedDomains.some(domain => 
       origin === domain || 
@@ -115,7 +106,6 @@ async function securityMiddleware(request: NextRequest) {
   // Handle preflight requests
   if (request.method === 'OPTIONS') {
     const origin = request.headers.get('origin');
-    console.log('Handling OPTIONS request for origin:', origin);
     
     return new NextResponse(null, {
       status: 204,
@@ -133,11 +123,6 @@ async function securityMiddleware(request: NextRequest) {
   // Validate origin
   if (!validateOrigin(request)) {
     const origin = request.headers.get('origin');
-    console.log('Origin validation failed for:', {
-      path: request.nextUrl.pathname,
-      origin,
-      method: request.method
-    });
     
     return new NextResponse(JSON.stringify({ error: 'Invalid origin' }), {
       status: 403,
@@ -179,9 +164,17 @@ async function securityMiddleware(request: NextRequest) {
 
 // Configure which routes to run middleware on
 export const config = {
-  matcher: ['/((?!.+\\.[\\w]+$|_next).*)', '/', '/(api|trpc)(.*)'],
+  matcher: [
+    /*
+     * Match all request paths except for the ones starting with:
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     * - public folder
+     */
+    '/((?!_next/static|_next/image|favicon.ico|public/).*)',
+  ],
 };
-
 // Create the middleware chain
 export default clerkMiddleware(async (auth, req) => {
   // Handle CORS for API routes
@@ -251,29 +244,24 @@ export default clerkMiddleware(async (auth, req) => {
         headers: response.headers,
       });
     }
+
+    return response;
   }
 
-  const { pathname } = req.nextUrl;
+  // For non-API routes, check if it's a public route
+  if (isPublicRoute(req)) {
+    return NextResponse.next();
+  }
 
-  // Check if the path should be handled dynamically
-  const isDynamicPath = dynamicPaths.some(path => pathname.startsWith(path));
-
-  if (isDynamicPath) {
-    // Add security headers for dynamic routes
-    const response = NextResponse.next();
-    
-    // Add security headers
-    response.headers.set('X-Content-Type-Options', 'nosniff');
-    response.headers.set('X-Frame-Options', 'DENY');
-    response.headers.set('X-XSS-Protection', '1; mode=block');
-    response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
-    
-    // Add rate limiting headers
-    response.headers.set('X-RateLimit-Limit', '100');
-    response.headers.set('X-RateLimit-Remaining', '99');
-    
-    return response;
+  // For all other routes, require authentication
+  const { userId } = await auth();
+  if (!userId) {
+    // Redirect to sign-in page if not authenticated
+    const signInUrl = new URL('/sign-in', req.url);
+    signInUrl.searchParams.set('redirect_url', req.url);
+    return NextResponse.redirect(signInUrl);
   }
 
   return NextResponse.next();
 });
+
