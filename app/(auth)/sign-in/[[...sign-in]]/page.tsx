@@ -2,6 +2,7 @@
 import { SignIn } from '@clerk/nextjs';
 import { Sparkles, Sun, Moon } from 'lucide-react';
 import { useTheme } from 'next-themes';
+import { dark} from '@clerk/themes';
 
 export default function SignInPage() {
   const { theme, setTheme } = useTheme();
@@ -55,40 +56,19 @@ export default function SignInPage() {
 
         {/* Glassmorphism Card - now handled by Clerk's card style */}
         <SignIn
+          key={theme}
           appearance={{
+            baseTheme: theme === 'dark' ? dark : undefined,
             elements: {
-              card: 'w-full bg-gray-100/80 dark:bg-[#18122B]/80 border border-purple-200 dark:border-[#2A1A4D] rounded-2xl shadow-xl backdrop-blur-md p-6 mb-6',
-              formButtonPrimary:
-                'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold py-3 px-8 rounded-full transition-all duration-300 transform hover:scale-105 hover:shadow-lg hover:shadow-purple-500/20',
-              headerTitle: 'hidden',
-              headerSubtitle: 'hidden',
+              headerTitle: 'text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 font-semibold',
+              headerSubtitle: 'text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 font-semibold',
               header: 'hidden',
-              formFieldLabel: 'text-gray-700 dark:text-gray-300',
-              formFieldInput:
-                'border-gray-300 dark:border-gray-700 bg-white dark:bg-[#18122B] text-gray-900 dark:text-white focus:border-purple-500 focus:ring-purple-500/20',
-              footerActionLink:
-                'text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 font-semibold',
-              identityPreview:
-                'bg-gray-100 dark:bg-gray-800/50 border-gray-300 dark:border-gray-700',
-              identityPreviewText: 'text-gray-700 dark:text-gray-300',
-              identityPreviewEditButton:
-                'text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300',
-              formFieldAction:
-                'text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300',
-              formFieldErrorText: 'text-red-500 dark:text-red-400',
-              formFieldSuccessText: 'text-green-500 dark:text-green-400',
+               formButtonPrimary:
+                'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold py-3 px-8 rounded-full transition-all duration-300 transform hover:scale-105 hover:shadow-lg hover:shadow-purple-500/20',
               footer: 'hidden',
-              alertText: 'text-gray-700/80 dark:text-gray-300/80',
-              socialButtonsBlockButton:
-                'border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800/50',
-              socialButtonsBlockButtonText: 'text-gray-700 dark:text-gray-300',
-              otpCodeFieldInput:
-                'border-gray-300 dark:border-gray-700 bg-white dark:bg-[#18122B] text-gray-900 dark:text-white',
+    
             },
-            variables: {
-              borderRadius: '16px',
-              fontFamily: 'inherit',
-            },
+         
           }}
           routing="path"
           path="/sign-in"
