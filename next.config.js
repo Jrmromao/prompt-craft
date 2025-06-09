@@ -18,6 +18,10 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'placehold.co',
       },
+      {
+        protocol: 'https',
+        hostname: 'www.gravatar.com',
+      },
     ],
   },
   experimental: {
@@ -65,7 +69,7 @@ const nextConfig = {
           },
           {
             key: 'Content-Security-Policy',
-            value: "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline' https://clerk.promptcraft.ai https://*.clerk.accounts.dev https://*.clerk.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://*.clerk.accounts.dev https://*.clerk.promptcraft.ai https://api.promptcraft.ai; frame-src 'self' https://clerk.promptcraft.ai https://*.clerk.accounts.dev https://*.clerk.com;",
+            value: "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline' https://clerk.promptcraft.ai https://*.clerk.accounts.dev https://*.clerk.com https://clerk.prompthive.co https://www.googletagmanager.com https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://*.clerk.accounts.dev https://*.clerk.promptcraft.ai https://api.promptcraft.ai; frame-src 'self' https://clerk.promptcraft.ai https://*.clerk.accounts.dev https://*.clerk.com https://clerk.prompthive.co;",
           },
         ],
       },
