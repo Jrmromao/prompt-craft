@@ -31,7 +31,12 @@
         {
           "key": "Content-Security-Policy",
           "value": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.clerk.accounts.dev https://www.googletagmanager.com https://challenges.cloudflare.com; connect-src 'self' https://*.clerk.accounts.dev; img-src 'self' data: https: https://img.clerk.com; worker-src 'self' blob:; style-src 'self' 'unsafe-inline'; frame-src 'self' https://*.clerk.accounts.dev https://challenges.cloudflare.com; form-action 'self'; frame-ancestors 'self'"
-        },
+        }
+      ]
+    },
+    {
+      "source": "/api/(.*)",
+      "headers": [
         {
           "key": "Access-Control-Allow-Origin",
           "value": "https://www.prompthive.co"
@@ -42,7 +47,7 @@
         },
         {
           "key": "Access-Control-Allow-Headers",
-          "value": "Content-Type, Authorization, X-Requested-With"
+          "value": "Content-Type, Authorization, X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Date, X-Api-Version, X-Clerk-Token"
         },
         {
           "key": "Access-Control-Allow-Credentials",

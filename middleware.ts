@@ -80,9 +80,19 @@ function validateOrigin(request: NextRequest): boolean {
     }
   }
 
-  // For now, allow all origins in development
-  if (process.env.NODE_ENV === 'development') {
-    return true;
+  // In production, allow requests from your domain and Clerk domains
+  if (process.env.NODE_ENV === 'production') {
+    const allowedDomains = [
+      'https://www.prompthive.co',
+      'https://prompthive.co',
+      'https://*.clerk.accounts.dev',
+      'https://*.clerk.com'
+    ];
+    
+    return allowedDomains.some(domain => 
+      origin === domain || 
+      (domain.includes('*') && origin.match(new RegExp(domain.replace('*', '.*'))))
+    );
   }
 
   return false;
