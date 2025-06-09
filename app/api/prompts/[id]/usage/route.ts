@@ -3,9 +3,13 @@ import { prisma } from '@/lib/prisma';
 import { NextResponse } from 'next/server';
 import { NextRequest } from 'next/server';
 
+// Add required exports for Next.js 15.3.3
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: any
 ) {
   try {
     const { userId } = getAuth(request);
@@ -20,7 +24,7 @@ export async function POST(
       // Create usage record
       await tx.promptUsage.create({
         data: {
-          promptId: params.id,
+          promptId: context.params.id,
           userId,
           result,
         },
@@ -28,7 +32,7 @@ export async function POST(
 
       // Update prompt usage count
       await tx.prompt.update({
-        where: { id: params.id },
+        where: { id: context.params.id },
         data: {
           usageCount: {
             increment: 1,

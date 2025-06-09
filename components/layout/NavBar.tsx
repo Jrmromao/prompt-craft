@@ -24,7 +24,7 @@ export interface NavBarUser {
   imageUrl?: string;
 }
 
-export function NavBar({ user }: { user?: NavBarUser }) {
+export function NavBar({ user, onMenuClick }: { user?: NavBarUser; onMenuClick?: () => void }) {
   const { signOut } = useClerk();
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -122,7 +122,7 @@ export function NavBar({ user }: { user?: NavBarUser }) {
                 <button
                   className="rounded-lg p-2 hover:bg-muted focus:outline-none focus:ring-2 focus:ring-purple-500 md:hidden"
                   aria-label="Open menu"
-                  onClick={() => setIsMobileMenuOpen(true)}
+                  onClick={onMenuClick}
                 >
                   <Menu className="h-6 w-6 text-purple-500" />
                 </button>

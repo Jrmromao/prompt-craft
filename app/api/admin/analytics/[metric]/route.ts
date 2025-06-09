@@ -1,21 +1,22 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { prisma } from '@/lib/prisma';
-import { dynamicRouteConfig, withDynamicRoute } from '@/lib/utils/dynamicRoute';
+import { z } from 'zod';
 
-// Export dynamic configuration
-export const { dynamic, revalidate, runtime } = dynamicRouteConfig;
+const dateRangeSchema = z.object({
+  startDate: z.string().optional(),
+  endDate: z.string().optional(),
+});
 
-// Define the main handler
-async function metricHandler(
-  request: Request,
-  context?: { params: Record<string, string> }
-) {
-  if (!context?.params?.metric) {
-    return NextResponse.json({ error: 'Metric parameter is required' }, { status: 400 });
-  }
+// Configure route
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
-  const metric = context.params.metric;
+export async function GET(request: Request, context: any) {
+  const { metric } = context.params;
+  const { searchParams } = new URL(request.url);
+  const startDate = searchParams.get('startDate');
+  const endDate = searchParams.get('endDate');
 
   const { userId } = await auth();
   if (!userId) {
@@ -23,146 +24,73 @@ async function metricHandler(
   }
 
   // Check if user is admin
-  const user = await prisma.user.findUnique({
+  const adminUser = await prisma.user.findUnique({
     where: { id: userId },
     select: { role: true },
   });
 
-  if (!user || user.role !== 'ADMIN') {
+  if (!adminUser || adminUser.role !== 'ADMIN') {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 
-  const { searchParams } = new URL(request.url);
-  const startDate = searchParams.get('startDate');
-  const endDate = searchParams.get('endDate');
-  const interval = searchParams.get('interval') || 'day';
+  try {
+    // Validate date range if provided
+    if (startDate || endDate) {
+      dateRangeSchema.parse({ startDate, endDate });
+    }
 
-  let data;
-  switch (metric) {
-    case 'usage':
-      data = await getUsageMetrics(startDate, endDate, interval);
-      break;
-    case 'users':
-      data = await getUserMetrics(startDate, endDate, interval);
-      break;
-    case 'prompts':
-      data = await getPromptMetrics(startDate, endDate, interval);
-      break;
-    default:
-      return NextResponse.json({ error: 'Invalid metric' }, { status: 400 });
+    let data;
+    switch (metric) {
+      case 'total-users':
+        data = await prisma.user.count();
+        break;
+      case 'total-prompts':
+        data = await prisma.prompt.count();
+        break;
+      case 'total-usage':
+        data = await prisma.promptUsage.count();
+        break;
+      case 'usage-by-date':
+        data = await prisma.promptUsage.groupBy({
+          by: ['createdAt'],
+          _count: true,
+          where: {
+            createdAt: {
+              gte: startDate ? new Date(startDate) : undefined,
+              lte: endDate ? new Date(endDate) : undefined,
+            },
+          },
+          orderBy: {
+            createdAt: 'asc',
+          },
+        });
+        break;
+      case 'usage-by-prompt':
+        data = await prisma.promptUsage.groupBy({
+          by: ['promptId'],
+          _count: true,
+          where: {
+            createdAt: {
+              gte: startDate ? new Date(startDate) : undefined,
+              lte: endDate ? new Date(endDate) : undefined,
+            },
+          },
+          orderBy: {
+            _count: {
+              promptId: 'desc',
+            },
+          },
+        });
+        break;
+      default:
+        return NextResponse.json({ error: 'Invalid metric' }, { status: 400 });
+    }
+
+    return NextResponse.json(data);
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json({ error: error.errors }, { status: 400 });
+    }
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
-
-  return NextResponse.json(data);
-}
-
-// Define fallback data
-const fallbackData = {
-  labels: [],
-  datasets: [],
-  total: 0,
-  change: 0,
-};
-
-// Export the wrapped handler
-export const GET = withDynamicRoute(metricHandler, fallbackData);
-
-async function getUsageMetrics(startDate: string | null, endDate: string | null, interval: string) {
-  const where = {
-    createdAt: {
-      gte: startDate ? new Date(startDate) : undefined,
-      lte: endDate ? new Date(endDate) : undefined,
-    },
-  };
-
-  const usages = await prisma.promptUsage.groupBy({
-    by: ['createdAt'],
-    where,
-    _count: true,
-    orderBy: {
-      createdAt: 'asc',
-    },
-  });
-
-  return {
-    labels: usages.map(u => u.createdAt.toISOString()),
-    datasets: [
-      {
-        label: 'Usage',
-        data: usages.map(u => u._count),
-      },
-    ],
-    total: usages.reduce((acc, u) => acc + u._count, 0),
-    change: calculateChange(usages),
-  };
-}
-
-async function getUserMetrics(startDate: string | null, endDate: string | null, interval: string) {
-  const where = {
-    createdAt: {
-      gte: startDate ? new Date(startDate) : undefined,
-      lte: endDate ? new Date(endDate) : undefined,
-    },
-  };
-
-  const users = await prisma.user.groupBy({
-    by: ['createdAt'],
-    where,
-    _count: true,
-    orderBy: {
-      createdAt: 'asc',
-    },
-  });
-
-  return {
-    labels: users.map(u => u.createdAt.toISOString()),
-    datasets: [
-      {
-        label: 'New Users',
-        data: users.map(u => u._count),
-      },
-    ],
-    total: users.reduce((acc, u) => acc + u._count, 0),
-    change: calculateChange(users),
-  };
-}
-
-async function getPromptMetrics(
-  startDate: string | null,
-  endDate: string | null,
-  interval: string
-) {
-  const where = {
-    createdAt: {
-      gte: startDate ? new Date(startDate) : undefined,
-      lte: endDate ? new Date(endDate) : undefined,
-    },
-  };
-
-  const prompts = await prisma.prompt.groupBy({
-    by: ['createdAt'],
-    where,
-    _count: true,
-    orderBy: {
-      createdAt: 'asc',
-    },
-  });
-
-  return {
-    labels: prompts.map(p => p.createdAt.toISOString()),
-    datasets: [
-      {
-        label: 'New Prompts',
-        data: prompts.map(p => p._count),
-      },
-    ],
-    total: prompts.reduce((acc, p) => acc + p._count, 0),
-    change: calculateChange(prompts),
-  };
-}
-
-function calculateChange(data: { _count: number }[]) {
-  if (data.length < 2) return 0;
-  const first = data[0]._count;
-  const last = data[data.length - 1]._count;
-  return first === 0 ? 100 : ((last - first) / first) * 100;
 }

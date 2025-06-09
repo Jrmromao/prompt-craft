@@ -20,10 +20,6 @@ const nextConfig = {
       },
     ],
   },
-  // Add experimental features for better API route handling
-  experimental: {
-    serverExternalPackages: ['@prisma/client', 'stripe'],
-  },
   // Ensure API routes are not statically optimized
   typescript: {
     ignoreBuildErrors: false,

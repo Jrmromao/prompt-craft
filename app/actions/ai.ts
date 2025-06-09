@@ -19,7 +19,7 @@ export async function generateContent(payload: any, model?: string) {
   const { userId } = authData;
   const { getToken } = authData;
   const token = await getToken();
-  const headersList = headers();
+  const headersList = await headers();
   const host = headersList.get('host');
   const protocol = process.env.NODE_ENV === 'development' ? 'http' : 'https';
   const baseUrl = `${protocol}://${host}`;

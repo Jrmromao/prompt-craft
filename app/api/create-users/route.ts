@@ -96,14 +96,12 @@
 
 // app/api/create-users/route.ts
 import { NextResponse } from 'next/server';
-import { dynamicRouteConfig, withDynamicRoute } from '@/lib/utils/dynamicRoute';
 
-// Export dynamic configuration
+// Configure route
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
-// Define the main handler
-async function createUserHandler(req: Request) {
+export async function POST(request: Request) {
   try {
     console.log('Starting user creation with minimal fields');
 
@@ -115,7 +113,7 @@ async function createUserHandler(req: Request) {
     // Try to get data from request body first
     let userData;
     try {
-      userData = await req.json();
+      userData = await request.json();
       console.log('Received user data from request:', JSON.stringify(userData, null, 2));
     } catch (e) {
       console.log('No valid JSON in request body, using default test data');
@@ -200,32 +198,17 @@ async function createUserHandler(req: Request) {
     return NextResponse.json({
       success: true,
       message: 'User created successfully',
-      user: {
-        id: result.id,
-        email: userData.email,
-        firstName: result.first_name,
-        lastName: result.last_name,
-        createdAt: result.created_at,
-      },
+      user: result,
     });
   } catch (error: any) {
-    console.error('Error creating user:', error);
-
+    console.error('General error:', error);
     return NextResponse.json(
       {
         success: false,
         error: error.message || 'An unexpected error occurred',
-        stackTrace: error.stack,
+        stack: error.stack,
       },
       { status: 500 }
     );
   }
 }
-
-// Define fallback data
-const fallbackData = {
-  error: 'This endpoint is only available at runtime',
-};
-
-// Export the wrapped handler
-export const POST = withDynamicRoute(createUserHandler, fallbackData);

@@ -2,9 +2,13 @@ import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { VersionControlService } from '@/lib/services/versionControlService';
 
+// Add required exports for Next.js 15.3.3
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export async function POST(
   request: Request,
-  { params }: { params: { id: string; version: string } }
+  context: any
 ) {
   try {
     const { userId } = await auth();
@@ -20,7 +24,7 @@ export async function POST(
     }
 
     const versionControlService = VersionControlService.getInstance();
-    const result = await versionControlService.compareVersions(params.version, compareWith);
+    const result = await versionControlService.compareVersions(context.params.version, compareWith);
 
     return NextResponse.json(result);
   } catch (error) {

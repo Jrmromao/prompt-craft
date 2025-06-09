@@ -11,9 +11,13 @@ const createVersionSchema = z.object({
   baseVersionId: z.string().optional(),
 });
 
+// Add required exports for Next.js 15.3.3
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  context: any
 ) {
   try {
     const { userId } = await auth();
@@ -22,7 +26,7 @@ export async function GET(
     }
 
     const versionControlService = VersionControlService.getInstance();
-    const versions = await versionControlService.getVersion(params.id);
+    const versions = await versionControlService.getVersion(context.params.id);
 
     return NextResponse.json(versions);
   } catch (error) {
@@ -36,11 +40,11 @@ export async function GET(
 
 export async function POST(
   request: Request,
-  { params }: { params: { id: string } }
+  context: any
 ) {
   try {
     console.log('Received POST request for versions');
-    console.log('Params:', params);
+    console.log('Params:', context.params);
     
     const { userId } = await auth();
     if (!userId) {
@@ -48,7 +52,7 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const promptId = params.id;
+    const promptId = context.params.id;
     if (!promptId) {
       console.log('Bad request: No promptId');
       return NextResponse.json({ error: 'Prompt ID is required' }, { status: 400 });

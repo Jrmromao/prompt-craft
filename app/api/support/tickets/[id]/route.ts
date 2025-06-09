@@ -2,21 +2,18 @@ import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { SupportService } from '@/lib/services/supportService';
 import { z } from 'zod';
-import { dynamicRouteConfig, withDynamicRoute } from '@/lib/utils/dynamicRoute';
 import { TicketStatus } from '@prisma/client';
 
 // Export dynamic configuration
-export const { dynamic, revalidate, runtime } = dynamicRouteConfig;
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 const replySchema = z.object({
   content: z.string().min(1, 'Message content is required'),
 });
 
-// Define the main handler
-async function ticketDetailHandler(
-  request: Request,
-  context?: { params?: Record<string, string> }
-) {
+// GET: Get ticket details
+export async function GET(request: Request, context: any) {
   const ticketId = context?.params?.id;
   if (!ticketId) {
     return NextResponse.json({ error: 'Ticket ID is required' }, { status: 400 });
@@ -37,8 +34,8 @@ async function ticketDetailHandler(
   return NextResponse.json(ticket);
 }
 
-// Define the POST handler
-async function addReplyHandler(request: Request, context?: { params?: Record<string, string> }) {
+// POST: Add reply to ticket
+export async function POST(request: Request, context: any) {
   try {
     const ticketId = context?.params?.id;
     if (!ticketId) {
@@ -66,20 +63,8 @@ async function addReplyHandler(request: Request, context?: { params?: Record<str
   }
 }
 
-// Define fallback data
-const fallbackData = {
-  error: 'This endpoint is only available at runtime',
-};
-
-// Export the wrapped handlers
-export const GET = withDynamicRoute(ticketDetailHandler, fallbackData);
-export const POST = withDynamicRoute(addReplyHandler, fallbackData);
-
-export async function PATCH(
-  request: Request,
-  // @ts-expect-error params is typed as any
-  { params }
-) {
+// PATCH: Update ticket status
+export async function PATCH(request: Request, context: any) {
   try {
     const { userId } = await auth();
     if (!userId) {
@@ -98,8 +83,12 @@ export async function PATCH(
       return NextResponse.json({ error: 'Invalid status' }, { status: 400 });
     }
     const ticketStatus = status as TicketStatus;
+    const ticketId = context?.params?.id;
+    if (!ticketId) {
+      return NextResponse.json({ error: 'Ticket ID is required' }, { status: 400 });
+    }
     const supportService = SupportService.getInstance();
-    const ticket = await supportService.updateTicketStatus(params.id, ticketStatus, userId);
+    const ticket = await supportService.updateTicketStatus(ticketId, ticketStatus, userId);
 
     return NextResponse.json(ticket);
   } catch (error) {

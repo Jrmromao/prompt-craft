@@ -2,10 +2,6 @@ import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
-import { dynamicRouteConfig, withDynamicRoute } from '@/lib/utils/dynamicRoute';
-
-// Export dynamic configuration
-export const { dynamic, revalidate, runtime } = dynamicRouteConfig;
 
 const updateUserSchema = z.object({
   name: z.string().min(2).max(50).optional(),
@@ -13,9 +9,15 @@ const updateUserSchema = z.object({
   isActive: z.boolean().optional(),
 });
 
-// Define the main handler
-async function userDetailHandler(request: Request, context?: { params?: Record<string, string> }) {
-  const targetUserId = context?.params?.id || '';
+// Configure route
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
+export async function GET(
+  request: Request,
+  context: any
+) {
+  const { id } = context.params;
 
   const { userId } = await auth();
   if (!userId) {
@@ -33,7 +35,7 @@ async function userDetailHandler(request: Request, context?: { params?: Record<s
   }
 
   const user = await prisma.user.findUnique({
-    where: { id: targetUserId },
+    where: { id },
     include: {
       _count: {
         select: {
@@ -78,28 +80,41 @@ async function userDetailHandler(request: Request, context?: { params?: Record<s
   return NextResponse.json(user);
 }
 
-// Define fallback data
-const fallbackData = {
-  id: '',
-  name: '',
-  email: '',
-  role: 'USER',
-  isActive: true,
-  createdAt: new Date().toISOString(),
-  updatedAt: new Date().toISOString(),
-  _count: {
-    prompts: 0,
-    promptUsages: 0,
-    apiKeys: 0,
-  },
-  prompts: [],
-  promptUsages: [],
-};
+export async function PATCH(
+  request: Request,
+  context: any
+) {
+  const { id } = context.params;
 
-// Export the wrapped handler
-export const GET = withDynamicRoute(userDetailHandler, fallbackData);
+  const { userId } = await auth();
+  if (!userId) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
 
-// Keep the PATCH handler as is since it's already dynamic
-export async function PATCH(request: Request, context: { params: Record<string, string> }) {
-  // ... existing PATCH handler code ...
+  // Check if user is admin
+  const adminUser = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { role: true },
+  });
+
+  if (!adminUser || adminUser.role !== 'ADMIN') {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+  }
+
+  try {
+    const body = await request.json();
+    const validatedData = updateUserSchema.parse(body);
+
+    const updatedUser = await prisma.user.update({
+      where: { id },
+      data: validatedData,
+    });
+
+    return NextResponse.json(updatedUser);
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json({ error: error.errors }, { status: 400 });
+    }
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+  }
 }

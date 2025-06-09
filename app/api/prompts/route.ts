@@ -4,14 +4,13 @@ import { PromptService } from '@/lib/services/promptService';
 import { AIService } from '@/lib/services/aiService';
 import { prisma } from '@/lib/prisma';
 import { Role, PlanType } from '@/utils/constants';
-import { dynamicRouteConfig, withDynamicRoute } from '@/lib/utils/dynamicRoute';
 
 // Export dynamic configuration
-export const { dynamic, revalidate, runtime } = dynamicRouteConfig;
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
-// Define the main handler
-async function promptsHandler(req: Request) {
-  const { searchParams } = new URL(req.url);
+export async function GET(request: Request, context: any) {
+  const { searchParams } = new URL(request.url);
   const search = searchParams.get('search') || '';
   const featured = searchParams.get('featured') === 'true';
 
@@ -47,14 +46,6 @@ async function promptsHandler(req: Request) {
 
   return NextResponse.json({ prompts });
 }
-
-// Define fallback data
-const fallbackData = {
-  prompts: [],
-};
-
-// Export the wrapped handler
-export const GET = withDynamicRoute(promptsHandler, fallbackData);
 
 export async function POST(req: Request) {
   try {

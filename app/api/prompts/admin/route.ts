@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import { PromptService } from '@/lib/services/promptService';
 import { requireAdmin } from '@/lib/auth';
-import { dynamicRouteConfig, withDynamicRoute } from '@/lib/utils/dynamicRoute';
 
 // Export dynamic configuration
 export const dynamic = 'force-dynamic';
@@ -20,8 +19,8 @@ export async function GET() {
   }
 }
 
-// Define the main handler
-async function promptsAdminHandler(req: Request) {
+// POST: Approve a prompt (expects { promptId })
+export async function POST(req: Request, context: any) {
   try {
     await requireAdmin();
     const { promptId } = await req.json();
@@ -33,14 +32,6 @@ async function promptsAdminHandler(req: Request) {
     return NextResponse.json({ error: message }, { status: 403 });
   }
 }
-
-// Define fallback data
-const fallbackData = {
-  error: 'This endpoint is only available at runtime',
-};
-
-// Export the wrapped handler
-export const POST = withDynamicRoute(promptsAdminHandler, fallbackData);
 
 // DELETE: Reject a prompt (expects { promptId })
 export async function DELETE(req: Request) {

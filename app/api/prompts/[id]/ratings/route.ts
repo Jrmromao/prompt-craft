@@ -1,28 +1,32 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { prisma } from '@/lib/prisma';
 
+// Route configuration
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export async function POST(
-  req: Request,
-  { params }: { params: { id: string } }
+  request: NextRequest,
+  context: any
 ) {
   try {
     const session = await auth();
     if (!session.userId) {
-      return new NextResponse('Unauthorized', { status: 401 });
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { clarity, specificity, context, overall, feedback } = await req.json();
+    const { clarity, specificity, context: contextScore, overall, feedback } = await request.json();
 
     // Validate required fields
-    if (!clarity || !specificity || !context || !overall || !feedback) {
-      return new NextResponse('Missing required fields', { status: 400 });
+    if (!clarity || !specificity || !contextScore || !overall || !feedback) {
+      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
     // Validate score ranges
-    const scores = [clarity, specificity, context, overall];
+    const scores = [clarity, specificity, contextScore, overall];
     if (scores.some(score => score < 1 || score > 10)) {
-      return new NextResponse('Scores must be between 1 and 10', { status: 400 });
+      return NextResponse.json({ error: 'Scores must be between 1 and 10' }, { status: 400 });
     }
 
     // Upsert the rating (create or update)
@@ -30,23 +34,23 @@ export async function POST(
       where: {
         userId_promptId: {
           userId: session.userId,
-          promptId: params.id,
+          promptId: context.params.id,
         },
       },
       update: {
         clarity,
         specificity,
-        context,
+        context: contextScore,
         overall,
         feedback,
         updatedAt: new Date(),
       },
       create: {
         userId: session.userId,
-        promptId: params.id,
+        promptId: context.params.id,
         clarity,
         specificity,
-        context,
+        context: contextScore,
         overall,
         feedback,
       },
@@ -55,25 +59,28 @@ export async function POST(
     return NextResponse.json(rating);
   } catch (error) {
     console.error('Error saving prompt rating:', error);
-    return new NextResponse('Internal Server Error', { status: 500 });
+    if (error instanceof Error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
 
 export async function GET(
-  req: Request,
-  { params }: { params: { id: string } }
+  request: NextRequest,
+  context: any
 ) {
   try {
     const session = await auth();
     if (!session.userId) {
-      return new NextResponse('Unauthorized', { status: 401 });
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const rating = await prisma.promptRating.findUnique({
       where: {
         userId_promptId: {
           userId: session.userId,
-          promptId: params.id,
+          promptId: context.params.id,
         },
       },
     });
@@ -81,6 +88,9 @@ export async function GET(
     return NextResponse.json(rating);
   } catch (error) {
     console.error('Error fetching prompt rating:', error);
-    return new NextResponse('Internal Server Error', { status: 500 });
+    if (error instanceof Error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 } 

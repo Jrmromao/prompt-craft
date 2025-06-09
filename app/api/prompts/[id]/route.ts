@@ -14,15 +14,17 @@ const getCacheControl = (duration: number) => {
   return `public, s-maxage=${duration}, stale-while-revalidate=${duration * 2}`;
 };
 
-// Define the handler
-async function promptHandler(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(
+  request: NextRequest,
+  context: any
+) {
   try {
     const { userId } = await auth();
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const promptId = params.id;
+    const promptId = context.params.id;
     if (!promptId) {
       return NextResponse.json({ error: 'Prompt ID is required' }, { status: 400 });
     }
@@ -63,6 +65,3 @@ async function promptHandler(request: NextRequest, { params }: { params: { id: s
     );
   }
 }
-
-// Export the handler
-export const GET = promptHandler;

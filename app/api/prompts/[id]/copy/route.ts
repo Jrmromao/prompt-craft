@@ -1,26 +1,27 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
-import { PromptService } from '@/lib/services/promptService';
 import { prisma } from '@/lib/prisma';
-import { dynamicRouteConfig, withDynamicRoute } from '@/lib/utils/dynamicRoute';
 
-// Export dynamic configuration
-export const { dynamic, revalidate, runtime } = dynamicRouteConfig;
+// Route configuration
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
-// Define the main handler
-async function copyHandler(request: Request, context?: { params?: Record<string, string> }) {
+export async function POST(
+  request: NextRequest,
+  context: any
+) {
   try {
     const { userId } = await auth();
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const id = context?.params?.id;
-    if (!id) {
+    const promptId = context.params.id;
+    if (!promptId) {
       return NextResponse.json({ error: 'Prompt ID is required' }, { status: 400 });
     }
 
-    // Get user's database ID
+    // Get the database user ID from the Clerk ID
     const user = await prisma.user.findUnique({
       where: { clerkId: userId },
       select: { id: true },
@@ -30,39 +31,48 @@ async function copyHandler(request: Request, context?: { params?: Record<string,
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    await prisma.$transaction(async (tx) => {
-      // Create copy record
-      await tx.promptCopy.create({
-        data: {
-          promptId: id,
-          userId: user.id,
-        },
-      });
-
-      // Update prompt copy count
-      await tx.prompt.update({
-        where: { id },
-        data: {
-          copyCount: {
-            increment: 1,
-          },
-        },
-      });
+    // Get the original prompt
+    const originalPrompt = await prisma.prompt.findUnique({
+      where: { id: promptId },
+      include: {
+        tags: true,
+      },
     });
 
-    const promptService = PromptService.getInstance();
-    const copiedPrompt = await promptService.copyPrompt(id, user.id);
+    if (!originalPrompt) {
+      return NextResponse.json({ error: 'Prompt not found' }, { status: 404 });
+    }
+
+    // Create a copy of the prompt
+    const copiedPrompt = await prisma.prompt.create({
+      data: {
+        name: `${originalPrompt.name} (Copy)`,
+        slug: `${originalPrompt.slug}-copy`,
+        content: originalPrompt.content,
+        description: originalPrompt.description,
+        userId: user.id,
+        tags: {
+          connect: originalPrompt.tags.map(tag => ({ id: tag.id })),
+        },
+      },
+      include: {
+        tags: true,
+        user: {
+          select: {
+            id: true,
+            name: true,
+            imageUrl: true,
+          },
+        },
+      },
+    });
+
     return NextResponse.json(copiedPrompt);
   } catch (error) {
     console.error('Error copying prompt:', error);
+    if (error instanceof Error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
-
-// Define fallback data
-const fallbackData = {
-  error: 'This endpoint is only available at runtime',
-};
-
-// Export the wrapped handler
-export const POST = withDynamicRoute(copyHandler, fallbackData);

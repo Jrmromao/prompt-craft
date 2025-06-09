@@ -7,9 +7,13 @@ import { NextRequest } from 'next/server';
 const VIEW_TRACKING_WINDOW_DAYS = 7;
 const MILLISECONDS_PER_DAY = 24 * 60 * 60 * 1000;
 
+// Add required exports for Next.js 15.3.3
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: any
 ) {
   try {
     const { userId } = getAuth(request);
@@ -19,7 +23,7 @@ export async function POST(
     // Check if this is a unique view
     const existingView = await prisma.promptView.findFirst({
       where: {
-        promptId: params.id,
+        promptId: context.params.id,
         OR: [
           { userId: userId || undefined },
           { ipAddress: ipAddress || undefined }
@@ -39,7 +43,7 @@ export async function POST(
       // Create view record
       await tx.promptView.create({
         data: {
-          promptId: params.id,
+          promptId: context.params.id,
           userId: userId || null,
           ipAddress: ipAddress || null,
           userAgent: userAgent || null,
@@ -48,7 +52,7 @@ export async function POST(
 
       // Update prompt view count
       await tx.prompt.update({
-        where: { id: params.id },
+        where: { id: context.params.id },
         data: {
           viewCount: {
             increment: 1,

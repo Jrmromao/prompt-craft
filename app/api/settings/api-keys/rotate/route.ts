@@ -1,13 +1,13 @@
 import { auth } from '@clerk/nextjs/server';
 import { NextResponse } from 'next/server';
 import { rotateApiKey } from '@/utils/api-keys';
-import { dynamicRouteConfig, withDynamicRoute } from '@/lib/utils/dynamicRoute';
 
 // Export dynamic configuration
-export const { dynamic, revalidate, runtime } = dynamicRouteConfig;
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
-// Define the main handler
-async function rotateKeyHandler(request: Request) {
+// POST: Rotate API key
+export async function POST(request: Request, context: any) {
   try {
     const { userId } = await auth();
     if (!userId) {
@@ -28,11 +28,3 @@ async function rotateKeyHandler(request: Request) {
     return new NextResponse('Internal Server Error', { status: 500 });
   }
 }
-
-// Define fallback data
-const fallbackData = {
-  error: 'This endpoint is only available at runtime',
-};
-
-// Export the wrapped handler
-export const POST = withDynamicRoute(rotateKeyHandler, fallbackData);

@@ -2,12 +2,12 @@ import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { SupportService } from '@/lib/services/supportService';
 import { z } from 'zod';
-import { dynamicRouteConfig, withDynamicRoute } from '@/lib/utils/dynamicRoute';
 import { Category, Priority, TicketStatus } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 
 // Export dynamic configuration
-export const { dynamic, revalidate, runtime } = dynamicRouteConfig;
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 const ticketSchema = z.object({
   title: z.string().min(1, 'Title is required'),
@@ -30,8 +30,8 @@ export async function OPTIONS() {
   return NextResponse.json({}, { headers: corsHeaders() });
 }
 
-// Define the main handler
-async function ticketsHandler(request: Request) {
+// GET: List support tickets
+export async function GET(request: Request, context: any) {
   try {
     const { userId: clerkId } = await auth();
     if (!clerkId) {
@@ -76,7 +76,6 @@ async function ticketsHandler(request: Request) {
   }
 }
 
-// Define the POST handler
 export async function POST(req: Request) {
   console.log('API: Support ticket creation request received');
 
@@ -147,11 +146,3 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Failed to create ticket' }, { status: 500 });
   }
 }
-
-// Define fallback data
-const fallbackData = {
-  error: 'This endpoint is only available at runtime',
-};
-
-// Export the wrapped handlers
-export const GET = withDynamicRoute(ticketsHandler, fallbackData);

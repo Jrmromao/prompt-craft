@@ -8,9 +8,13 @@ const compareSchema = z.object({
   version2: z.string().min(1),
 });
 
+// Add required exports for Next.js 15.3.3
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export async function POST(
   request: Request,
-  { params }: { params: { id: string } }
+  context: any
 ) {
   try {
     const { userId } = await auth();

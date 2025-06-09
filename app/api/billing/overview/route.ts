@@ -1,33 +1,55 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
-import { BillingService } from '@/lib/services/billingService';
-import { dynamicRouteConfig, withDynamicRoute } from '@/lib/utils/dynamicRoute';
+import { prisma } from '@/lib/prisma';
 
-// Export dynamic configuration
+// Configure route
 export const dynamic = 'force-dynamic';
-export const runtime = 'nodejs';
+export const revalidate = 0;
 
-// Define the main handler
-async function billingOverviewHandler(request: Request) {
+export async function GET(request: Request, context: any) {
+  const { userId } = await auth();
+  if (!userId) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
   try {
-    const { userId } = await auth();
-    if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const [subscription, usage] = await Promise.all([
+      prisma.subscription.findUnique({
+        where: { userId },
+        include: {
+          plan: true,
+        },
+      }),
+      prisma.promptUsage.findMany({
+        where: { userId },
+        select: {
+          createdAt: true,
+          result: true,
+        },
+        orderBy: {
+          createdAt: 'desc',
+        },
+        take: 30, // Last 30 days
+      }),
+    ]);
 
-    const billingService = BillingService.getInstance();
-    const overview = await billingService.getBillingOverview(userId);
-    return NextResponse.json(overview);
+    // Calculate credits used from the result field
+    const totalCreditsUsed = usage.reduce((sum, u) => {
+      const result = u.result as { creditsUsed?: number } | null;
+      return sum + (result?.creditsUsed || 0);
+    }, 0);
+    
+    const averageDailyUsage = totalCreditsUsed / (usage.length || 1);
+
+    return NextResponse.json({
+      subscription,
+      usage: {
+        total: totalCreditsUsed,
+        average: averageDailyUsage,
+        history: usage,
+      },
+    });
   } catch (error) {
-    console.error('Error fetching billing overview:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }
-
-// Define fallback data
-const fallbackData = {
-  error: 'This endpoint is only available at runtime',
-};
-
-// Export the wrapped handler
-export const GET = withDynamicRoute(billingOverviewHandler, fallbackData);

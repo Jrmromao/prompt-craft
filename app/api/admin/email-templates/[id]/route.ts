@@ -20,7 +20,11 @@ const templateSchema = z.object({
   variables: z.array(z.string()),
 });
 
-export async function GET(req: Request, { params }: { params: { id: string } }) {
+// Configure route
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
+export async function GET(request: Request, context: any) {
   try {
     const { userId } = await auth();
     if (!userId) {
@@ -37,7 +41,7 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
     }
 
     const template = await prisma.emailTemplate.findUnique({
-      where: { id: params.id },
+      where: { id: context.params.id },
       include: {
         createdBy: {
           select: { name: true },
@@ -59,7 +63,7 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
   }
 }
 
-export async function PUT(req: Request, { params }: { params: { id: string } }) {
+export async function PUT(request: Request, context: any) {
   try {
     const { userId } = await auth();
     if (!userId) {
@@ -75,11 +79,11 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    const body = await req.json();
+    const body = await request.json();
     const validatedData = templateSchema.parse(body);
 
     const template = await prisma.emailTemplate.update({
-      where: { id: params.id },
+      where: { id: context.params.id },
       data: {
         ...validatedData,
         updatedById: user.id,
@@ -100,7 +104,7 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
   }
 }
 
-export async function DELETE(req: Request, { params }: { params: { id: string } }) {
+export async function DELETE(request: Request, context: any) {
   try {
     const { userId } = await auth();
     if (!userId) {
@@ -117,7 +121,7 @@ export async function DELETE(req: Request, { params }: { params: { id: string } 
     }
 
     await prisma.emailTemplate.delete({
-      where: { id: params.id },
+      where: { id: context.params.id },
     });
 
     return NextResponse.json({ success: true });

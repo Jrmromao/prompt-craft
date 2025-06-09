@@ -11,7 +11,11 @@ const templateSchema = z.object({
   variables: z.array(z.string()),
 });
 
-export async function PATCH(req: Request, { params }: { params: { id: string } }) {
+// Configure route
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
+export async function PATCH(request: Request, context: any) {
   try {
     const session = await auth();
 
@@ -29,13 +33,13 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
       return new NextResponse('User not found', { status: 404 });
     }
 
-    const body = await req.json();
+    const body = await request.json();
     const validatedData = templateSchema.parse(body);
 
     // Check if template exists and belongs to user
     const existingTemplate = await prisma.emailTemplate.findFirst({
       where: {
-        id: params.id,
+        id: context.params.id,
         createdById: user.id,
       },
     });
@@ -46,7 +50,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
 
     const template = await prisma.emailTemplate.update({
       where: {
-        id: params.id,
+        id: context.params.id,
       },
       data: {
         name: validatedData.name,
@@ -69,7 +73,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
   }
 }
 
-export async function DELETE(req: Request, { params }: { params: { id: string } }) {
+export async function DELETE(request: Request, context: any) {
   try {
     const session = await auth();
 
@@ -90,7 +94,7 @@ export async function DELETE(req: Request, { params }: { params: { id: string } 
     // Check if template exists and belongs to user
     const existingTemplate = await prisma.emailTemplate.findFirst({
       where: {
-        id: params.id,
+        id: context.params.id,
         createdById: user.id,
       },
     });
@@ -101,7 +105,7 @@ export async function DELETE(req: Request, { params }: { params: { id: string } 
 
     await prisma.emailTemplate.delete({
       where: {
-        id: params.id,
+        id: context.params.id,
       },
     });
 

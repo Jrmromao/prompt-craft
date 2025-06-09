@@ -1,23 +1,25 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { CommunityService } from '@/lib/services/communityService';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { CommentService } from '@/lib/services/commentService';
-import { dynamicRouteConfig, withDynamicRoute } from '@/lib/utils/dynamicRoute';
+
+// Route configuration
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 const commentSchema = z.object({
   content: z.string().min(1).max(1000),
   parentId: z.string().optional(),
 });
 
-// Export dynamic configuration
-export const { dynamic, revalidate, runtime } = dynamicRouteConfig;
-
-// Define the main handler
-async function commentsHandler(request: Request, context?: { params?: Record<string, string> }) {
+export async function GET(
+  request: NextRequest,
+  context: any
+) {
   try {
-    const promptId = context?.params?.id;
+    const promptId = context.params.id;
     if (!promptId) {
       return NextResponse.json({ error: 'Prompt ID is required' }, { status: 400 });
     }
@@ -47,10 +49,9 @@ async function commentsHandler(request: Request, context?: { params?: Record<str
   }
 }
 
-// Define the create handler
-async function createCommentHandler(
-  request: Request,
-  context?: { params?: Record<string, string> }
+export async function POST(
+  request: NextRequest,
+  context: any
 ) {
   try {
     const { userId } = await auth();
@@ -58,7 +59,7 @@ async function createCommentHandler(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const promptId = context?.params?.id;
+    const promptId = context.params.id;
     if (!promptId) {
       return NextResponse.json({ error: 'Prompt ID is required' }, { status: 400 });
     }
@@ -91,12 +92,3 @@ async function createCommentHandler(
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
-
-// Define fallback data
-const fallbackData = {
-  error: 'This endpoint is only available at runtime',
-};
-
-// Export the wrapped handlers
-export const GET = withDynamicRoute(commentsHandler, fallbackData);
-export const POST = withDynamicRoute(createCommentHandler, fallbackData);

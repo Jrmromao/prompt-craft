@@ -1,10 +1,14 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { prisma } from '@/lib/prisma';
 
+// Add required exports for Next.js 15.3.3
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export async function POST(
-  request: Request,
-  { params }: { params: { id: string } }
+  request: NextRequest,
+  context: any
 ) {
   try {
     const { userId } = await auth();
@@ -21,7 +25,7 @@ export async function POST(
 
     const testHistory = await prisma.promptTestHistory.create({
       data: {
-        promptId: params.id,
+        promptId: context.params.id,
         userId,
         versionId,
         ratingId,
@@ -43,8 +47,8 @@ export async function POST(
 }
 
 export async function GET(
-  request: Request,
-  { params }: { params: { id: string } }
+  request: NextRequest,
+  context: any
 ) {
   try {
     const { userId } = await auth();
@@ -57,7 +61,7 @@ export async function GET(
 
     const testHistory = await prisma.promptTestHistory.findMany({
       where: {
-        promptId: params.id,
+        promptId: context.params.id,
         userId,
         ...(versionId ? { versionId } : {}),
       },

@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
-import { dynamicRouteConfig, withDynamicRoute } from '@/lib/utils/dynamicRoute';
 
-// Export dynamic configuration
-export const { dynamic, revalidate, runtime } = dynamicRouteConfig;
+// Configure route
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 export async function GET() {
   try {
@@ -14,8 +14,7 @@ export async function GET() {
   }
 }
 
-// Define the main handler
-async function formsHandler(request: Request) {
+export async function POST(request: Request, context: any) {
   try {
     // Ensure request has content
     if (!request.body) {
@@ -33,11 +32,3 @@ async function formsHandler(request: Request) {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
-
-// Define fallback data
-const fallbackData = {
-  error: 'This endpoint is only available at runtime',
-};
-
-// Export the wrapped handler
-export const POST = withDynamicRoute(formsHandler, fallbackData);

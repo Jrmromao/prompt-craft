@@ -28,7 +28,7 @@ const securityHeaders = {
 
 export type RouteHandler = (
   req: Request | NextRequest,
-  context?: { params: Record<string, string> }
+  context: { params: Record<string, string> }
 ) => Promise<NextResponse>;
 
 export interface DynamicRouteConfig {
@@ -37,7 +37,7 @@ export interface DynamicRouteConfig {
 }
 
 export function createDynamicRoute(config: DynamicRouteConfig): RouteHandler {
-  return async (_req: Request | NextRequest, context?: { params: Record<string, string> }) => {
+  return async (_req: Request | NextRequest, context: { params: Record<string, string> }) => {
     try {
       const nextReq = _req instanceof NextRequest ? _req : toNextRequest(_req);
       return await config.handler(nextReq, context);
@@ -48,8 +48,8 @@ export function createDynamicRoute(config: DynamicRouteConfig): RouteHandler {
   };
 }
 
-export function validateOrigin(req: Request | NextRequest): boolean {
-  const headersList = headers();
+export async function validateOrigin(req: Request | NextRequest): Promise<boolean> {
+  const headersList = await headers();
   const origin = headersList.get('origin');
   const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || [];
 
@@ -58,7 +58,7 @@ export function validateOrigin(req: Request | NextRequest): boolean {
 }
 
 export function createProtectedRoute(handler: RouteHandler): RouteHandler {
-  return async (req: Request | NextRequest, context?: { params: Record<string, string> }) => {
+  return async (req: Request | NextRequest, context: { params: Record<string, string> }) => {
     const nextReq = req instanceof NextRequest ? req : toNextRequest(req);
     if (!validateOrigin(nextReq)) {
       return NextResponse.json({ error: 'Invalid origin' }, { status: 403 });
@@ -107,10 +107,10 @@ async function handleRateLimit(request: Request): Promise<NextResponse | null> {
 
 // Main wrapper function for dynamic routes
 export function withDynamicRoute(handler: RouteHandler, fallbackData: unknown): RouteHandler {
-  return async (request: Request, context?: { params: Record<string, string> }) => {
+  return async (request: Request, context: { params: Record<string, string> }) => {
     try {
       // Check if we're in a build context
-      const headersList = headers();
+      const headersList = await headers();
       const isBuildTime = headersList.get('x-vercel-deployment-url') !== null;
 
       if (isBuildTime) {

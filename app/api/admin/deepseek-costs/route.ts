@@ -2,13 +2,12 @@ import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { DeepseekCostService } from '@/lib/services/deepseekCostService';
 import { prisma } from '@/lib/prisma';
-import { dynamicRouteConfig, withDynamicRoute } from '@/lib/utils/dynamicRoute';
 
-// Export dynamic configuration
-export const { dynamic, revalidate, runtime } = dynamicRouteConfig;
+// Configure route
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
-// Define the main handler
-async function deepseekCostsHandler() {
+export async function GET(request: Request) {
   const { userId } = await auth();
   if (!userId) {
     return new NextResponse('Unauthorized', { status: 401 });
@@ -29,13 +28,3 @@ async function deepseekCostsHandler() {
 
   return NextResponse.json(costs);
 }
-
-// Define fallback data
-const fallbackData = {
-  totalCost: 0,
-  monthlyCosts: [],
-  usageByModel: {},
-};
-
-// Export the wrapped handler
-export const GET = withDynamicRoute(deepseekCostsHandler, fallbackData);

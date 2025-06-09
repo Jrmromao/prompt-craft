@@ -1,14 +1,13 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { CommunityService } from '@/lib/services/communityService';
-import { dynamicRouteConfig, withDynamicRoute } from '@/lib/utils/dynamicRoute';
 import { prisma } from '@/lib/prisma';
 
 // Export dynamic configuration
-export const { dynamic, revalidate, runtime } = dynamicRouteConfig;
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
-// Define the get vote handler
-async function getVoteHandler(request: Request, context?: { params?: Record<string, string> }) {
+export async function GET(request: Request, context: any) {
   try {
     const { userId: clerkUserId } = await auth();
     if (!clerkUserId) {
@@ -38,8 +37,7 @@ async function getVoteHandler(request: Request, context?: { params?: Record<stri
   }
 }
 
-// Define the vote handler
-async function voteHandler(request: Request, context?: { params?: Record<string, string> }) {
+export async function POST(request: Request, context: any) {
   try {
     const { userId: clerkUserId } = await auth();
     if (!clerkUserId) {
@@ -73,12 +71,3 @@ async function voteHandler(request: Request, context?: { params?: Record<string,
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
-
-// Define fallback data
-const fallbackData = {
-  error: 'This endpoint is only available at runtime',
-};
-
-// Export the wrapped handlers
-export const GET = withDynamicRoute(getVoteHandler, { vote: null });
-export const POST = withDynamicRoute(voteHandler, { upvotes: 0 });

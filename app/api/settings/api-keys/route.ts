@@ -2,10 +2,10 @@ import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { z } from 'zod';
 import { generateApiKey, rotateApiKey, listApiKeys, deleteApiKey } from '@/utils/api-keys';
-import { dynamicRouteConfig, withDynamicRoute } from '@/lib/utils/dynamicRoute';
 
 // Export dynamic configuration
-export const { dynamic, revalidate, runtime } = dynamicRouteConfig;
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 // Schema for creating a new API key
 const createApiKeySchema = z.object({
@@ -14,8 +14,8 @@ const createApiKeySchema = z.object({
   scopes: z.array(z.string()).optional(),
 });
 
-// Define the main handler
-async function apiKeysHandler(request: Request) {
+// GET: List API keys
+export async function GET(request: Request, context: any) {
   const { userId } = await auth();
   if (!userId) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -25,8 +25,8 @@ async function apiKeysHandler(request: Request) {
   return NextResponse.json(apiKeys);
 }
 
-// Define the POST handler
-async function createApiKeyHandler(request: Request) {
+// POST: Create a new API key
+export async function POST(request: Request, context: any) {
   try {
     const { userId } = await auth();
     if (!userId) {
@@ -63,15 +63,6 @@ async function createApiKeyHandler(request: Request) {
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }
-
-// Define fallback data
-const fallbackData = {
-  error: 'This endpoint is only available at runtime',
-};
-
-// Export the wrapped handlers
-export const GET = withDynamicRoute(apiKeysHandler, fallbackData);
-export const POST = withDynamicRoute(createApiKeyHandler, fallbackData);
 
 export async function DELETE(req: Request) {
   try {

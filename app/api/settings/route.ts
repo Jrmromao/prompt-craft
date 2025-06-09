@@ -8,13 +8,13 @@ import {
   generateApiKey,
   revokeApiKey,
 } from '@/app/services/settingsService';
-import { dynamicRouteConfig, withDynamicRoute } from '@/lib/utils/dynamicRoute';
 
 // Export dynamic configuration
-export const { dynamic, revalidate, runtime } = dynamicRouteConfig;
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
-// Define the main handler
-async function settingsHandler() {
+// GET: Get user settings
+export async function GET(request: Request, context: any) {
   const { userId } = await auth();
   if (!userId) {
     return new NextResponse('Unauthorized', { status: 401 });
@@ -27,36 +27,6 @@ async function settingsHandler() {
 
   return NextResponse.json(settings);
 }
-
-// Define fallback data
-const fallbackData = {
-  emailPreferences: {
-    marketingEmails: true,
-    productUpdates: true,
-    securityAlerts: true,
-  },
-  notificationSettings: {
-    emailNotifications: true,
-    pushNotifications: true,
-    browserNotifications: true,
-  },
-  themeSettings: {
-    theme: 'system',
-    accentColor: 'purple',
-  },
-  languagePreferences: {
-    language: 'en',
-    dateFormat: 'MM/DD/YYYY',
-    timeFormat: '12h',
-  },
-  securitySettings: {
-    twoFactorEnabled: false,
-    sessionTimeout: 30,
-  },
-};
-
-// Export the wrapped handler
-export const GET = withDynamicRoute(settingsHandler, fallbackData);
 
 export async function PATCH(req: Request) {
   try {
