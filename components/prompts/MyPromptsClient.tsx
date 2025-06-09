@@ -28,7 +28,6 @@ interface Prompt {
     imageUrl: string | null;
   };
   _count: {
-    comments: number;
     votes: number;
   };
 }
@@ -200,7 +199,7 @@ export function MyPromptsClient({ prompts }: MyPromptsClientProps) {
                           </div>
                           <div className="flex items-center gap-1">
                             <MessageSquare className="h-4 w-4 text-purple-400" />
-                            {prompt._count.comments}
+                            {prompt._count.votes} votes
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
@@ -279,7 +278,7 @@ export function MyPromptsClient({ prompts }: MyPromptsClientProps) {
                           </div>
                           <div className="flex items-center gap-1">
                             <MessageSquare className="h-4 w-4 text-purple-400" />
-                            {prompt._count.comments}
+                            {prompt._count.votes} votes
                           </div>
                         </div>
                         <div className="flex items-center gap-2">

@@ -1,3 +1,5 @@
+'use client';
+
 import React, { createContext, useContext, useState, ReactNode, useCallback, useEffect } from 'react';
 import { clientAnalyticsService } from '@/lib/services/clientAnalyticsService';
 import { useToast } from '@/components/ui/use-toast';
@@ -20,6 +22,8 @@ interface PromptAnalyticsContextValue {
     usage: boolean;
     copy: boolean;
   };
+  upvoteCount: number;
+  incrementUpvoteCount: (hasUpvoted: boolean) => void;
 }
 
 const PromptAnalyticsContext = createContext<PromptAnalyticsContextValue | undefined>(undefined);
@@ -58,6 +62,7 @@ export function PromptAnalyticsProvider({
     usage: false,
     copy: false,
   });
+  const [upvoteCount, setUpvoteCount] = useState(0);
   const { toast } = useToast();
 
   const incrementViewCount = useCallback(async () => {
@@ -124,6 +129,10 @@ export function PromptAnalyticsProvider({
     setCommentCount(prev => prev + 1);
   }, []);
 
+  const incrementUpvoteCount = useCallback((hasUpvoted: boolean) => {
+    setUpvoteCount(prev => hasUpvoted ? prev + 1 : prev - 1);
+  }, []);
+
   // Update initial values when they change
   useEffect(() => {
     setCopyCount(initialCopyCount);
@@ -157,6 +166,8 @@ export function PromptAnalyticsProvider({
         setCommentCount,
         incrementCommentCount,
         isLoading,
+        upvoteCount,
+        incrementUpvoteCount,
       }}
     >
       {children}

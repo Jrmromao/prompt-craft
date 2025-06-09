@@ -1,12 +1,19 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/components/ui/use-toast';
 import { useUser, useAuth } from '@clerk/nextjs';
 import { clientAnalyticsService } from '@/lib/services/clientAnalyticsService';
 import { usePromptAnalytics } from './PromptAnalyticsContext';
+import { Loader2, ChevronDown, ChevronUp } from 'lucide-react';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface Comment {
   id: string;
@@ -22,8 +29,9 @@ interface Comment {
   liked?: boolean;
 }
 
-const COMMENTS_PER_PAGE = 25;
+const COMMENTS_PER_PAGE = 10;
 const MAX_CHARACTERS = 1000;
+const REQUEST_COOLDOWN = 2000; // 2 seconds cooldown between requests
 
 interface BasicCommentsProps {
   promptId: string;
@@ -36,21 +44,35 @@ export function BasicComments({ promptId, initialComments = [], onCommentCountCh
   const [comments, setComments] = useState<Comment[]>(initialComments);
   const [newComment, setNewComment] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [totalComments, setTotalComments] = useState(initialComments.length);
+  const [hasInitialized, setHasInitialized] = useState(false);
+  const [isCommentsVisible, setIsCommentsVisible] = useState(true);
+  const [lastRequestTime, setLastRequestTime] = useState(0);
   const { user, isLoaded } = useUser();
   const { getToken } = useAuth();
   const { toast } = useToast();
   const { incrementViewCount, isLoading: analyticsLoading } = usePromptAnalytics();
 
-  // Track view when component mounts
+  // Throttled request function
+  const makeRequest = useCallback(async (requestFn: () => Promise<any>) => {
+    const now = Date.now();
+    if (now - lastRequestTime < REQUEST_COOLDOWN) {
+      return;
+    }
+    setLastRequestTime(now);
+    return requestFn();
+  }, [lastRequestTime]);
+
+  // Track view when component mounts - only once
   useEffect(() => {
     const trackView = async () => {
       try {
-        if (isLoaded && user) {
-          await incrementViewCount();
+        if (isLoaded && user && !hasInitialized) {
+          await makeRequest(() => incrementViewCount());
         }
       } catch (error) {
         console.error('Error tracking view:', error);
@@ -58,28 +80,37 @@ export function BasicComments({ promptId, initialComments = [], onCommentCountCh
     };
 
     trackView();
-  }, [promptId, isLoaded, user, incrementViewCount]);
+  }, [promptId, isLoaded, user, incrementViewCount, hasInitialized, makeRequest]);
 
-  const fetchComments = async () => {
+  const fetchComments = useCallback(async (pageNum: number = 1) => {
+    if (isLoading || isLoadingMore) return;
+
     try {
-      setIsLoading(true);
-      const response = await fetch(`/api/prompts/${promptId}/comments?page=${page}&limit=${COMMENTS_PER_PAGE}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
+      setIsLoading(pageNum === 1);
+      setIsLoadingMore(pageNum > 1);
+      
+      await makeRequest(async () => {
+        const response = await fetch(`/api/prompts/${promptId}/comments?page=${pageNum}&limit=${COMMENTS_PER_PAGE}`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+        });
+
+        if (!response.ok) {
+          if (response.status === 429) {
+            throw new Error('Too many requests. Please try again in a moment.');
+          }
+          const error = await response.json();
+          throw new Error(error.error || 'Failed to fetch comments');
+        }
+
+        const data = await response.json();
+        setComments(prev => pageNum === 1 ? data.comments : [...prev, ...data.comments]);
+        setTotalComments(data.totalComments || data.total || 0);
+        setHasMore(data.hasMore);
       });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to fetch comments');
-      }
-
-      const data = await response.json();
-      setComments(prev => page === 1 ? data.comments : [...prev, ...data.comments]);
-      setTotalComments(data.totalComments || data.total || 0);
-      setHasMore(data.hasMore);
     } catch (error) {
       console.error('Error fetching comments:', error);
       toast({
@@ -89,21 +120,24 @@ export function BasicComments({ promptId, initialComments = [], onCommentCountCh
       });
     } finally {
       setIsLoading(false);
+      setIsLoadingMore(false);
     }
-  };
+  }, [promptId, isLoading, isLoadingMore, makeRequest, toast]);
 
-  // Initial fetch
+  // Initial fetch only once when component mounts
   useEffect(() => {
-    setPage(1); // Reset page when promptId changes
-    fetchComments();
-  }, [promptId]);
-
-  // Fetch when page changes
-  useEffect(() => {
-    if (page > 1) { // Only fetch if not the first page
+    if (!hasInitialized && !isLoading) {
+      setHasInitialized(true);
       fetchComments();
     }
-  }, [page]);
+  }, [promptId, hasInitialized, isLoading, fetchComments]);
+
+  const loadMore = async () => {
+    if (isLoadingMore || !hasMore) return;
+    const nextPage = page + 1;
+    setPage(nextPage);
+    await fetchComments(nextPage);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -136,33 +170,56 @@ export function BasicComments({ promptId, initialComments = [], onCommentCountCh
     }
 
     setIsSubmitting(true);
+    const tempId = `temp-${Date.now()}`;
+    const tempComment: Comment = {
+      id: tempId,
+      content: newComment,
+      createdAt: new Date().toISOString(),
+      user: {
+        name: user.fullName || 'You',
+        imageUrl: user.imageUrl,
+      },
+    };
+
+    // Optimistic update
+    setComments(prev => [tempComment, ...prev]);
+    setNewComment('');
+    setTotalComments(prev => prev + 1);
+
     try {
       const token = await getToken();
-      const response = await fetch(`/api/prompts/${promptId}/comments`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        credentials: 'include',
-        body: JSON.stringify({ content: newComment }),
-      });
+      await makeRequest(async () => {
+        const response = await fetch(`/api/prompts/${promptId}/comments`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+          credentials: 'include',
+          body: JSON.stringify({ content: newComment }),
+        });
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to post comment');
-      }
+        if (!response.ok) {
+          if (response.status === 429) {
+            throw new Error('Too many requests. Please try again in a moment.');
+          }
+          const error = await response.json();
+          throw new Error(error.error || 'Failed to post comment');
+        }
 
-      const newCommentData = await response.json();
-      setComments(prev => [newCommentData, ...prev]);
-      setNewComment('');
-      setTotalComments(prev => prev + 1);
-      toast({
-        title: 'Success',
-        description: 'Comment posted successfully',
+        const newCommentData = await response.json();
+        setComments(prev => prev.map(comment => comment.id === tempId ? newCommentData : comment));
+        toast({
+          title: 'Success',
+          description: 'Comment posted successfully',
+        });
       });
     } catch (error) {
       console.error('Error posting comment:', error);
+      // Revert optimistic update on error
+      setComments(prev => prev.filter(comment => comment.id !== tempId));
+      setNewComment(newComment);
+      setTotalComments(prev => prev - 1);
       toast({
         title: 'Error',
         description: error instanceof Error ? error.message : 'Failed to post comment',
@@ -194,81 +251,118 @@ export function BasicComments({ promptId, initialComments = [], onCommentCountCh
           disabled={isSubmitting || !user}
           maxLength={MAX_CHARACTERS}
         />
-        <div className="flex justify-between items-center">
+        <div className="flex justify-end">
           <Button 
-            type="button" 
-            variant="outline" 
-            onClick={fetchComments}
-            disabled={isLoading}
+            type="submit" 
+            variant="default"
+            size="sm"
+            disabled={!newComment.trim() || isSubmitting || !user}
           >
-            {isLoading ? 'Refreshing...' : 'Refresh Comments'}
-          </Button>
-          <Button type="submit" disabled={!newComment.trim() || isSubmitting || !user}>
-            {isSubmitting ? 'Posting...' : 'Post Comment'}
+            {isSubmitting ? 'Posting...' : 'Post'}
           </Button>
         </div>
       </form>
 
       {/* Comments count and list */}
       <div className="space-y-4">
-        <div className="text-sm text-muted-foreground">
-          {totalComments} {totalComments === 1 ? 'comment' : 'comments'}
-        </div>
-        {isLoading ? (
-          <div className="space-y-4">
-            {[...Array(3)].map((_, i) => (
-              <div key={i} className="p-4 bg-background rounded-lg border animate-pulse">
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center space-x-2">
-                    <div className="w-8 h-8 rounded-full bg-gray-200" />
-                    <div className="space-y-2">
-                      <div className="h-4 w-24 bg-gray-200 rounded" />
-                      <div className="h-3 w-16 bg-gray-200 rounded" />
-                    </div>
-                  </div>
-                </div>
-                <div className="mt-2 h-4 bg-gray-200 rounded" />
-              </div>
-            ))}
+        <div className="flex items-center justify-between border-b pb-2">
+          <div className="text-sm font-medium">
+            {totalComments} {totalComments === 1 ? 'comment' : 'comments'}
           </div>
-        ) : comments.length === 0 ? (
-          <div className="text-center py-8 text-muted-foreground">
-            No comments yet. Be the first to comment!
-          </div>
-        ) : (
-          <>
-            {comments.map((comment) => (
-              <div key={comment.id} className="p-4 bg-background rounded-lg border">
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center space-x-2">
-                    {comment.user.imageUrl && (
-                      <img
-                        src={comment.user.imageUrl}
-                        alt={comment.user.name || 'User'}
-                        className="w-8 h-8 rounded-full"
-                      />
+          {totalComments > 0 && (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setIsCommentsVisible(!isCommentsVisible)}
+                    className="h-8 px-2 hover:bg-gray-100 dark:hover:bg-gray-800"
+                  >
+                    <span className="sr-only">{isCommentsVisible ? 'Hide comments' : 'Show comments'}</span>
+                    {isCommentsVisible ? (
+                      <ChevronUp className="h-5 w-5 text-gray-500" />
+                    ) : (
+                      <ChevronDown className="h-5 w-5 text-gray-500" />
                     )}
-                    <div>
-                      <p className="font-medium">{comment.user.name || 'Anonymous'}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {new Date(comment.createdAt).toLocaleDateString()}
-                      </p>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{isCommentsVisible ? 'Hide comments' : 'Show comments'}</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
+        </div>
+
+        {isCommentsVisible && (
+          <>
+            {isLoading ? (
+              <div className="space-y-4">
+                {[...Array(3)].map((_, i) => (
+                  <div key={i} className="p-4 bg-background rounded-lg border animate-pulse">
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-center space-x-2">
+                        <div className="w-8 h-8 rounded-full bg-gray-200" />
+                        <div className="space-y-2">
+                          <div className="h-4 w-24 bg-gray-200 rounded" />
+                          <div className="h-3 w-16 bg-gray-200 rounded" />
+                        </div>
+                      </div>
                     </div>
+                    <div className="mt-2 h-4 bg-gray-200 rounded" />
                   </div>
-                </div>
-                <p className="mt-2">{comment.content}</p>
+                ))}
               </div>
-            ))}
-            {hasMore && (
-              <div className="flex justify-center mt-4">
-                <Button
-                  variant="outline"
-                  onClick={() => setPage(prev => prev + 1)}
-                  disabled={isLoading}
-                >
-                  {isLoading ? 'Loading...' : 'Load More Comments'}
-                </Button>
+            ) : comments.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                No comments yet. Be the first to comment!
               </div>
+            ) : (
+              <>
+                {comments.map((comment) => (
+                  <div key={comment.id} className="p-4 bg-background rounded-lg border">
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-center space-x-2">
+                        {comment.user.imageUrl && (
+                          <img
+                            src={comment.user.imageUrl}
+                            alt={comment.user.name || 'User'}
+                            className="w-8 h-8 rounded-full"
+                          />
+                        )}
+                        <div>
+                          <p className="font-medium">{comment.user.name || 'Anonymous'}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {new Date(comment.createdAt).toLocaleDateString()}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                    <p className="mt-2">{comment.content}</p>
+                  </div>
+                ))}
+                {hasMore && (
+                  <div className="flex justify-center mt-4">
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={loadMore}
+                      disabled={isLoadingMore}
+                      className="w-full sm:w-auto"
+                    >
+                      {isLoadingMore ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Loading...
+                        </>
+                      ) : (
+                        'Load More'
+                      )}
+                    </Button>
+                  </div>
+                )}
+              </>
             )}
           </>
         )}

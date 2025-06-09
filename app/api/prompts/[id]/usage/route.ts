@@ -5,7 +5,7 @@ import { NextRequest } from 'next/server';
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { promptId: string } }
+  { params }: { params: { id: string } }
 ) {
   try {
     const { userId } = getAuth(request);
@@ -13,30 +13,34 @@ export async function POST(
       return new NextResponse('Unauthorized', { status: 401 });
     }
 
+    const body = await request.json();
+    const { result } = body;
+
     await prisma.$transaction(async (tx) => {
-      // Create view record
-      await tx.promptView.create({
+      // Create usage record
+      await tx.promptUsage.create({
         data: {
-          promptId: params.promptId,
+          promptId: params.id,
           userId,
+          result,
         },
       });
 
-      // Update prompt view count
+      // Update prompt usage count
       await tx.prompt.update({
-        where: { id: params.promptId },
+        where: { id: params.id },
         data: {
-          viewCount: {
+          usageCount: {
             increment: 1,
           },
-          lastViewedAt: new Date(),
+          lastUsedAt: new Date(),
         },
       });
     });
 
-    return new NextResponse('View tracked', { status: 200 });
+    return new NextResponse('Usage tracked', { status: 200 });
   } catch (error) {
-    console.error('Error tracking view:', error);
+    console.error('Error tracking usage:', error);
     return new NextResponse('Internal Server Error', { status: 500 });
   }
 } 

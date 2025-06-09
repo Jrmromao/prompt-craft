@@ -50,7 +50,11 @@ async function analyticsHandler(request: Request, context?: { params?: Record<st
 
     // Use AnalyticsService for prompt analytics
     const analyticsService = AnalyticsService.getInstance();
-    const analytics = await analyticsService.getAnalytics({ type: 'prompts', userId });
+    const analytics = await analyticsService.getAnalytics({ 
+      type: 'prompts', 
+      userId,
+      promptId 
+    });
     return NextResponse.json(analytics);
   } catch (error) {
     console.error('Error fetching prompt analytics:', error);

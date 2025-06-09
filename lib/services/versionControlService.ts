@@ -14,6 +14,7 @@ interface Version {
   prompt: {
     user: {
       name: string | null;
+      email: string | null;
       imageUrl: string | null;
     } | null;
   };
@@ -41,11 +42,41 @@ export class VersionControlService {
   ) {
     const prompt = await prisma.prompt.findUnique({
       where: { id: promptId },
-      include: { versions: true },
+      include: { 
+        versions: true,
+        tags: true 
+      },
     });
 
     if (!prompt) {
       throw new Error('Prompt not found');
+    }
+
+    // If this is the first version, create v1 with the original prompt content
+    if (prompt.versions.length === 0) {
+      await prisma.promptVersion.create({
+        data: {
+          promptId,
+          content: prompt.content,
+          description: 'Initial version',
+          commitMessage: 'Initial version',
+          tags: prompt.tags.map(tag => tag.name),
+          version: '1',
+        },
+        include: {
+          prompt: {
+            select: {
+              user: {
+                select: {
+                  name: true,
+                  email: true,
+                  imageUrl: true,
+                },
+              },
+            },
+          },
+        },
+      });
     }
 
     // Create the new version
@@ -64,6 +95,7 @@ export class VersionControlService {
             user: {
               select: {
                 name: true,
+                email: true,
                 imageUrl: true,
               },
             },
@@ -77,22 +109,62 @@ export class VersionControlService {
 
   // Get version history for a prompt
   public async getVersion(promptId: string) {
-    return prisma.promptVersion.findMany({
-      where: { promptId },
-      orderBy: { createdAt: 'desc' },
+    const prompt = await prisma.prompt.findUnique({
+      where: { id: promptId },
       include: {
-        prompt: {
-          select: {
-            user: {
+        tags: true,
+        versions: {
+          orderBy: { createdAt: 'desc' },
+          include: {
+            prompt: {
               select: {
-                name: true,
-                imageUrl: true,
+                user: {
+                  select: {
+                    name: true,
+                    email: true,
+                    imageUrl: true,
+                  },
+                },
               },
             },
           },
         },
       },
     });
+
+    if (!prompt) {
+      throw new Error('Prompt not found');
+    }
+
+    // If there are no versions yet, create v1 with the original prompt content
+    if (prompt.versions.length === 0) {
+      const v1 = await prisma.promptVersion.create({
+        data: {
+          promptId,
+          content: prompt.content,
+          description: 'Initial version',
+          commitMessage: 'Initial version',
+          tags: prompt.tags.map(tag => tag.name),
+          version: '1',
+        },
+        include: {
+          prompt: {
+            select: {
+              user: {
+                select: {
+                  name: true,
+                  email: true,
+                  imageUrl: true,
+                },
+              },
+            },
+          },
+        },
+      });
+      return [v1];
+    }
+
+    return prompt.versions;
   }
 
   // Get a specific version by ID
@@ -105,6 +177,7 @@ export class VersionControlService {
             user: {
               select: {
                 name: true,
+                email: true,
                 imageUrl: true,
               },
             },

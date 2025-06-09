@@ -63,7 +63,7 @@ interface UpdatePromptDialogProps {
   setContent: (content: string) => void;
   description: string;
   setDescription: (description: string) => void;
-  promptId: string;
+  id: string;
   currentPrompt: {
     id: string;
     name: string;
@@ -150,7 +150,7 @@ export function UpdatePromptDialog({
   setContent,
   description,
   setDescription,
-  promptId,
+  id,
   currentPrompt,
   onSuccess,
 }: UpdatePromptDialogProps) {
@@ -180,14 +180,7 @@ export function UpdatePromptDialog({
     setIsLoading(true);
 
     try {
-
-      console.log('content', content);
-      console.log('description', description);
-      console.log('type', type);
-      console.log('tags', selectedTags);
-      console.log('metadata', metadata);
-
-      const response = await fetch(`/api/prompts/${promptId}/versions`, {
+      const response = await fetch(`/api/prompts/${id}/versions`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -195,22 +188,22 @@ export function UpdatePromptDialog({
         body: JSON.stringify({
           content,
           description,
-          type,
+          commitMessage: `Update prompt: ${type} type with ${selectedTags.length} tags`,
           tags: selectedTags,
-          metadata,
-          commitMessage: 'Update prompt content and metadata',
         }),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to update prompt');
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to update prompt');
       }
 
       toast.success('Prompt updated successfully');
       onSuccess?.();
       onOpenChange(false);
     } catch (error) {
-      toast.error('Failed to update prompt. Please try again.');
+      console.error('Error updating prompt:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to update prompt. Please try again.');
     } finally {
       setIsLoading(false);
     }

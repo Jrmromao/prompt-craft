@@ -7,8 +7,11 @@ import { dynamicRouteConfig, withDynamicRoute } from '@/lib/utils/dynamicRoute';
 export const { dynamic, revalidate, runtime } = dynamicRouteConfig;
 
 // Define the main handler
-async function metricHandler(request: Request, context?: { params?: { metric?: string } }) {
-  const metric = context?.params?.metric || '';
+async function metricHandler(
+  request: Request,
+  context: { params: { metric: string } }
+) {
+  const metric = context.params.metric;
 
   const { userId } = await auth();
   if (!userId) {

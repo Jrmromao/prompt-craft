@@ -1,7 +1,7 @@
 export const clientAnalyticsService = {
-  async trackPromptView(promptId: string): Promise<void> {
+  async trackPromptView(id: string): Promise<void> {
     try {
-      const response = await fetch(`/api/prompts/${promptId}/view`, {
+      const response = await fetch(`/api/prompts/${id}/view`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -17,9 +17,9 @@ export const clientAnalyticsService = {
     }
   },
 
-  async trackPromptUsage(promptId: string, result: any): Promise<void> {
+  async trackPromptUsage(id: string, result: any): Promise<void> {
     try {
-      const response = await fetch(`/api/prompts/${promptId}/usage`, {
+      const response = await fetch(`/api/prompts/${id}/usage`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -36,9 +36,9 @@ export const clientAnalyticsService = {
     }
   },
 
-  async trackPromptCopy(promptId: string): Promise<void> {
+  async trackPromptCopy(id: string): Promise<void> {
     try {
-      const response = await fetch(`/api/prompts/${promptId}/copy`, {
+      const response = await fetch(`/api/prompts/${id}/copy`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

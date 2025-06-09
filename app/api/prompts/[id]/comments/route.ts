@@ -22,9 +22,22 @@ async function commentsHandler(request: Request, context?: { params?: Record<str
       return NextResponse.json({ error: 'Prompt ID is required' }, { status: 400 });
     }
 
+    // Get pagination parameters from URL
+    const url = new URL(request.url);
+    const page = parseInt(url.searchParams.get('page') || '1');
+    const limit = parseInt(url.searchParams.get('limit') || '10');
+    const orderBy = url.searchParams.get('orderBy') || 'createdAt';
+    const order = (url.searchParams.get('order') || 'desc') as 'asc' | 'desc';
+
     const commentService = CommentService.getInstance();
-    const comments = await commentService.getComments(promptId, 1, 100, 'createdAt', 'desc');
-    return NextResponse.json(comments);
+    const comments = await commentService.getComments(promptId, page, limit, orderBy, order);
+    
+    const response = NextResponse.json(comments);
+    
+    // Add cache control headers
+    response.headers.set('Cache-Control', 'public, s-maxage=10, stale-while-revalidate=59');
+    
+    return response;
   } catch (error) {
     console.error('Error fetching comments:', error);
     if (error instanceof Error) {
@@ -63,7 +76,13 @@ async function createCommentHandler(
     const { content, parentId } = validationResult.data;
     const commentService = CommentService.getInstance();
     const comment = await commentService.createComment(promptId, userId, content, parentId);
-    return NextResponse.json(comment);
+    
+    const response = NextResponse.json(comment);
+    
+    // Add cache control headers to prevent caching of POST requests
+    response.headers.set('Cache-Control', 'no-store');
+    
+    return response;
   } catch (error) {
     console.error('Error creating comment:', error);
     if (error instanceof Error) {

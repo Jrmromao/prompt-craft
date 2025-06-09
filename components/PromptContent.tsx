@@ -271,11 +271,11 @@ function PromptContentWithAnalytics({
           <Tabs defaultValue="content" className="w-full">
             <TabsList className="mb-4">
               <TabsTrigger value="content">Content</TabsTrigger>
-              <TabsTrigger value="comments">
-                Comments{' '}
+              <TabsTrigger value="comments" className="relative">
+                Comments
                 {commentCount > 0 && (
-                  <span className="ml-1 rounded-full bg-purple-100 px-2 py-0.5 text-xs text-purple-700 dark:bg-purple-900/30 dark:text-purple-300">
-                    {commentCount}
+                  <span className="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-purple-500 text-[11px] font-semibold text-white shadow-sm transition-transform hover:scale-110 dark:bg-purple-600">
+                    {commentCount > 99 ? '99+' : commentCount}
                   </span>
                 )}
               </TabsTrigger>
@@ -292,7 +292,11 @@ function PromptContentWithAnalytics({
             </TabsContent>
 
             <TabsContent value="comments" className="mt-0">
-              <BasicComments promptId={prompt.id} />
+              <BasicComments 
+                promptId={prompt.id} 
+                onCommentCountChange={setCommentCount}
+                initialComments={[]}
+              />
             </TabsContent>
 
             <TabsContent value="analytics" className="mt-0">

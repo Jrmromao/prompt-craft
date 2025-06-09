@@ -194,36 +194,31 @@ export class AnalyticsService {
   }
 
   public async getAnalytics(options: AnalyticsOptions): Promise<AnalyticsData> {
-    await this.validateAdminAccess();
+    // Only validate admin access for global analytics
+    if (!options.promptId) {
+      await this.validateAdminAccess();
+    }
 
     const promptId = options.promptId;
     const [metrics, activity, overview] = await Promise.all([
-      promptId ? this.getPromptMetrics(promptId) : {
+      promptId ? this.getPromptMetrics(promptId) : Promise.resolve({
         viewCount: 0,
         usageCount: 0,
         upvotes: 0,
         copyCount: 0,
         commentsCount: 0
-      },
-      promptId ? this.getRecentActivity(promptId) : {
+      }),
+      promptId ? this.getRecentActivity(promptId) : Promise.resolve({
         recentViews: [],
         recentUsages: [],
         recentCopies: []
-      },
+      }),
       this.getDashboardOverview()
     ]);
 
-    const { viewCount, usageCount, upvotes, copyCount, commentsCount } = metrics;
-    const { recentViews, recentUsages, recentCopies } = activity;
-    const { totalPromptViews, totalPromptCopies, mostPopularPrompt, mostActiveUser } = overview;
-
-    return {
-      viewCount,
-      usageCount,
-      upvotes,
-      copyCount,
-      commentsCount,
-      recentViews: recentViews.map(view => ({
+    // Transform activity data to match the expected types
+    const transformedActivity = {
+      recentViews: activity.recentViews.map(view => ({
         id: view.id,
         createdAt: view.createdAt.toISOString(),
         user: view.prompt.user ? {
@@ -231,7 +226,7 @@ export class AnalyticsService {
           imageUrl: view.prompt.user.imageUrl
         } : undefined
       })),
-      recentUsages: recentUsages.map(usage => ({
+      recentUsages: activity.recentUsages.map(usage => ({
         id: usage.id,
         createdAt: usage.createdAt.toISOString(),
         result: usage.result as string | undefined,
@@ -240,33 +235,35 @@ export class AnalyticsService {
           imageUrl: usage.user.imageUrl
         }
       })),
-      recentCopies: recentCopies.map(copy => ({
+      recentCopies: activity.recentCopies.map(copy => ({
         id: copy.id,
         createdAt: copy.createdAt.toISOString(),
         user: copy.user ? {
           name: copy.user.name,
           imageUrl: copy.user.imageUrl
         } : undefined
-      })),
-      totalUsers: await prisma.user.count(),
-      activeUsers: await prisma.user.count({
-        where: {
-          status: 'ACTIVE'
-        }
-      }),
-      totalPrompts: await prisma.prompt.count(),
-      totalGenerations: await prisma.promptUsage.count(),
-      averageResponseTime: 0, // TODO: Implement response time calculation
-      successRate: 0, // TODO: Implement success rate calculation
+      }))
+    };
+
+    return {
+      ...metrics,
+      ...transformedActivity,
+      ...overview,
+      totalUsers: 0, // These are global metrics, not needed for prompt-specific analytics
+      activeUsers: 0,
+      totalPrompts: 0,
+      totalGenerations: 0,
+      averageResponseTime: 0,
+      successRate: 0,
       dashboardOverview: {
-        totalPromptViews,
-        totalPromptCopies,
-        mostPopularPrompt,
-        mostActiveUser,
+        totalPromptViews: overview.totalPromptViews,
+        totalPromptCopies: overview.totalPromptCopies,
+        mostPopularPrompt: overview.mostPopularPrompt,
+        mostActiveUser: overview.mostActiveUser,
         recentActivity: {
-          usages: recentUsages.map(usage => ({
+          usages: transformedActivity.recentUsages.map(usage => ({
             id: usage.id,
-            createdAt: usage.createdAt.toISOString(),
+            createdAt: usage.createdAt,
             user: {
               name: usage.user.name
             },

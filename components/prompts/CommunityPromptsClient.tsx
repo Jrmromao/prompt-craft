@@ -40,7 +40,6 @@ interface Prompt {
   upvotes: number;
   _count: {
     votes: number;
-    comments: number;
   };
   tags: { id: string; name: string }[];
   slug: string;
@@ -305,9 +304,9 @@ export function CommunityPromptsClient({ initialPrompts, totalPrompts }: Communi
                               <TrendingUp className="h-4 w-4 text-purple-400" />
                               {prompt.upvotes}
                             </div>
-                            <div className="flex items-center gap-1">
-                              <MessageSquare className="h-4 w-4 text-purple-400" />
-                              {prompt._count.comments}
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <MessageSquare className="h-4 w-4" />
+                              <span>{prompt._count.votes} votes</span>
                             </div>
                           </div>
                         </div>
@@ -365,9 +364,9 @@ export function CommunityPromptsClient({ initialPrompts, totalPrompts }: Communi
                           <TrendingUp className="h-4 w-4 text-purple-400" />
                           {prompt.upvotes}
                         </div>
-                        <div className="flex items-center gap-1">
-                          <MessageSquare className="h-4 w-4 text-purple-400" />
-                          {prompt._count.comments}
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <MessageSquare className="h-4 w-4" />
+                          <span>{prompt._count.votes} votes</span>
                         </div>
                       </div>
                     </div>
