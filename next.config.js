@@ -81,6 +81,27 @@ const nextConfig = {
     }
     return config;
   },
+  // Configure dynamic routes
+  experimental: {
+    // Enable server actions
+    serverActions: true,
+    // Optimize dynamic routes
+    optimizeCss: false, // Disable CSS optimization temporarily
+    // Enable modern optimizations
+    optimizePackageImports: ['@clerk/nextjs', '@prisma/client'],
+  },
+  // Configure page generation
+  pageExtensions: ['ts', 'tsx', 'js', 'jsx'],
+  poweredByHeader: false,
+  reactStrictMode: true,
+  swcMinify: true,
+  // Handle error pages
+  onDemandEntries: {
+    // period (in ms) where the server will keep pages in the buffer
+    maxInactiveAge: 25 * 1000,
+    // number of pages that should be kept simultaneously without being disposed
+    pagesBufferLength: 2,
+  },
 };
 
 module.exports = nextConfig;

@@ -15,7 +15,7 @@ async function runScheduledBackup() {
 }
 
 // Schedule the backup job
-scheduleJob(BACKUP_SCHEDULE, runScheduledBackup);
+const job = scheduleJob('backup-job', BACKUP_SCHEDULE, runScheduledBackup);
 
 console.log(`Backup scheduler started. Next backup scheduled at ${new Date().toISOString()}`);
 

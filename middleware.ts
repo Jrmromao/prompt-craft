@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { quotaMiddleware } from './middleware/quota';
 import { rateLimitMiddleware } from './middleware/rate-limit';
-import { auth } from '@clerk/nextjs/server';
+import { auth, getAuth } from '@clerk/nextjs/server';
 
 // Define routes that don't require authentication
 const PUBLIC_ROUTES = [
@@ -56,6 +56,13 @@ const isPublicRoute = createRouteMatcher(PUBLIC_ROUTES);
 const isApiRoute = createRouteMatcher('/api/:path*');
 const isCommentRoute = createRouteMatcher('/api/prompts/:id/comments');
 const isVoteRoute = createRouteMatcher('/api/prompts/:id/vote');
+
+// List of paths that should be handled dynamically
+const dynamicPaths = [
+  '/community-prompts',
+  '/api/prompts/public',
+  '/api/auth/check-admin',
+];
 
 // Function to validate request origin
 function validateOrigin(request: NextRequest): boolean {
@@ -244,6 +251,28 @@ export default clerkMiddleware(async (auth, req) => {
         headers: response.headers,
       });
     }
+  }
+
+  const { pathname } = req.nextUrl;
+
+  // Check if the path should be handled dynamically
+  const isDynamicPath = dynamicPaths.some(path => pathname.startsWith(path));
+
+  if (isDynamicPath) {
+    // Add security headers for dynamic routes
+    const response = NextResponse.next();
+    
+    // Add security headers
+    response.headers.set('X-Content-Type-Options', 'nosniff');
+    response.headers.set('X-Frame-Options', 'DENY');
+    response.headers.set('X-XSS-Protection', '1; mode=block');
+    response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+    
+    // Add rate limiting headers
+    response.headers.set('X-RateLimit-Limit', '100');
+    response.headers.set('X-RateLimit-Remaining', '99');
+    
+    return response;
   }
 
   return NextResponse.next();
