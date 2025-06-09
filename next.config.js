@@ -4,103 +4,108 @@ const nextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'prompthive.co',
+        hostname: 'img.clerk.com',
       },
       {
         protocol: 'https',
-        hostname: 'www.prompthive.co',
+        hostname: 'images.clerk.dev',
       },
       {
         protocol: 'https',
-        hostname: 'prompt-craft-git-main-joao-romaos-projects.vercel.app',
+        hostname: 'uploadthing.com',
       },
       {
         protocol: 'https',
-        hostname: '**',
+        hostname: 'placehold.co',
       },
     ],
   },
-  // Ensure API routes are not statically optimized
-  typescript: {
-    ignoreBuildErrors: false,
+  experimental: {
+    optimizeCss: false, // Temporarily disable CSS optimization
+    optimizePackageImports: ['@clerk/nextjs', 'lucide-react'],
+    serverComponentsExternalPackages: ['@prisma/client', 'bcryptjs'],
   },
-  // Configure build output - only use standalone in production
-  output: process.env.NODE_ENV === 'production' ? 'standalone' : undefined,
-  // Configure ESLint
+  typescript: {
+    ignoreBuildErrors: true,
+  },
   eslint: {
-    // Warning: This allows production builds to successfully complete even if
-    // your project has ESLint errors.
     ignoreDuringBuilds: true,
   },
-  // Configure API routes and security headers
-  async headers() {
-    const cspHeader = `
-      default-src 'self';
-      script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.clerk.accounts.dev https://www.googletagmanager.com https://challenges.cloudflare.com;
-      connect-src 'self' https://*.clerk.accounts.dev;
-      img-src 'self' data: https: https://img.clerk.com;
-      worker-src 'self' blob:;
-      style-src 'self' 'unsafe-inline';
-      frame-src 'self' https://*.clerk.accounts.dev https://challenges.cloudflare.com;
-      form-action 'self';
-      frame-ancestors 'self';
-    `.replace(/\n/g, ' ').trim();
-
+  output: 'standalone',
+  poweredByHeader: false,
+  reactStrictMode: true,
+  swcMinify: true,
+  compiler: {
+    removeConsole: process.env.NODE_ENV === 'production',
+  },
+  headers: async () => {
     return [
-      {
-        source: '/api/:path*',
-        headers: [
-          { key: 'Access-Control-Allow-Credentials', value: 'true' },
-          { key: 'Access-Control-Allow-Origin', value: '*' },
-          { key: 'Access-Control-Allow-Methods', value: 'GET,DELETE,PATCH,POST,PUT' },
-          {
-            key: 'Access-Control-Allow-Headers',
-            value:
-              'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version',
-          },
-        ],
-      },
       {
         source: '/:path*',
         headers: [
           {
+            key: 'X-Frame-Options',
+            value: 'DENY',
+          },
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff',
+          },
+          {
+            key: 'X-XSS-Protection',
+            value: '1; mode=block',
+          },
+          {
+            key: 'Referrer-Policy',
+            value: 'strict-origin-when-cross-origin',
+          },
+          {
+            key: 'Permissions-Policy',
+            value: 'camera=(), microphone=(), geolocation=(), interest-cohort=()',
+          },
+          {
             key: 'Content-Security-Policy',
-            value: cspHeader
-          }
-        ]
-      }
+            value: "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline' https://clerk.promptcraft.ai; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://*.clerk.accounts.dev https://*.clerk.promptcraft.ai https://api.promptcraft.ai; frame-src 'self' https://clerk.promptcraft.ai;",
+          },
+        ],
+      },
     ];
   },
-  // Fix for crypto module in standalone mode
+  async rewrites() {
+    return [
+      {
+        source: '/api/:path*',
+        destination: '/api/:path*',
+      },
+    ];
+  },
+  async redirects() {
+    return [
+      {
+        source: '/api/auth/sign-in',
+        destination: '/sign-in',
+        permanent: true,
+      },
+      {
+        source: '/api/auth/sign-up',
+        destination: '/sign-up',
+        permanent: true,
+      },
+    ];
+  },
   webpack: (config, { isServer }) => {
-    if (isServer) {
+    if (!isServer) {
       config.resolve.fallback = {
         ...config.resolve.fallback,
-        crypto: require.resolve('crypto-browserify'),
+        fs: false,
+        net: false,
+        tls: false,
+        dns: false,
+        child_process: false,
+        readline: false,
       };
     }
     return config;
-  },
-  // Configure dynamic routes
-  experimental: {
-    // Enable server actions
-    serverActions: true,
-    // Optimize dynamic routes
-    optimizeCss: false, // Disable CSS optimization temporarily
-    // Enable modern optimizations
-    optimizePackageImports: ['@clerk/nextjs', '@prisma/client'],
-  },
-  // Configure page generation
-  pageExtensions: ['ts', 'tsx', 'js', 'jsx'],
-  poweredByHeader: false,
-  reactStrictMode: true,
-  swcMinify: true,
-  // Handle error pages
-  onDemandEntries: {
-    // period (in ms) where the server will keep pages in the buffer
-    maxInactiveAge: 25 * 1000,
-    // number of pages that should be kept simultaneously without being disposed
-    pagesBufferLength: 2,
   },
 };
 
