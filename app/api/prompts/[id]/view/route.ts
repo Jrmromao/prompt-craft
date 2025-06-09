@@ -13,7 +13,7 @@ export async function POST(
 ) {
   try {
     const { userId } = getAuth(request);
-    const ipAddress = request.headers.get('x-forwarded-for') || request.ip;
+    const ipAddress = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip');
     const userAgent = request.headers.get('user-agent');
 
     // Check if this is a unique view

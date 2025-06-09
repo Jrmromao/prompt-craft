@@ -14,6 +14,7 @@ interface VersionWarningDialogProps {
   onClose: () => void;
   onCompare: () => void;
   onCreate?: () => void;
+  action: 'create' | 'select' | 'clear';
 }
 
 export function VersionWarningDialog({
@@ -21,18 +22,52 @@ export function VersionWarningDialog({
   onClose,
   onCompare,
   onCreate,
+  action,
 }: VersionWarningDialogProps) {
+  const getDialogContent = () => {
+    switch (action) {
+      case 'create':
+        return {
+          title: "Create New Version",
+          description: "You have versions selected for comparison. Would you like to continue comparing versions or create a new version?",
+          primaryAction: "Create New Version",
+          secondaryAction: "Continue Comparing"
+        };
+      case 'select':
+        return {
+          title: "Select Version",
+          description: "You are currently creating a new version. Would you like to continue with version creation or switch to comparing versions?",
+          primaryAction: "Switch to Comparing",
+          secondaryAction: "Continue Creating"
+        };
+      case 'clear':
+        return {
+          title: "Clear Selection",
+          description: "You have two versions selected. Would you like to clear your selection?",
+          primaryAction: "Clear Selection",
+          secondaryAction: "Keep Selection"
+        };
+      default:
+        return {
+          title: "Warning",
+          description: "Please choose an action to continue.",
+          primaryAction: "Continue",
+          secondaryAction: "Cancel"
+        };
+    }
+  };
+
+  const content = getDialogContent();
+
   return (
     <AlertDialog open={isOpen} onOpenChange={onClose}>
       <AlertDialogContent className="w-[90vw] max-w-[500px] p-6">
         <AlertDialogHeader className="space-y-4">
           <AlertDialogTitle className="text-xl font-semibold text-purple-900 dark:text-purple-100">
-            Versions Selected
+            {content.title}
           </AlertDialogTitle>
           <AlertDialogDescription className="text-base text-gray-600 dark:text-gray-300">
-            {onCreate 
-              ? "You have versions selected for comparison. Would you like to continue comparing versions or create a new version?"
-              : "You are currently creating a new version. Would you like to continue with version creation or switch to comparing versions?"}
+            {content.description}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter className="flex flex-col sm:flex-row gap-3 mt-6">
@@ -40,22 +75,14 @@ export function VersionWarningDialog({
             onClick={onClose} 
             className="w-full sm:w-auto order-2 sm:order-1 mt-0 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-800"
           >
-            Cancel
+            {content.secondaryAction}
           </AlertDialogCancel>
           <AlertDialogAction 
-            onClick={onCompare} 
+            onClick={action === 'create' ? onCreate : onCompare} 
             className="w-full sm:w-auto order-1 sm:order-2 bg-purple-600 hover:bg-purple-700 text-white"
           >
-            {onCreate ? "Continue Comparing" : "Switch to Comparing"}
+            {content.primaryAction}
           </AlertDialogAction>
-          {onCreate && (
-            <AlertDialogAction 
-              onClick={onCreate} 
-              className="w-full sm:w-auto order-3 bg-purple-600 hover:bg-purple-700 text-white"
-            >
-              Create New Version
-            </AlertDialogAction>
-          )}
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>

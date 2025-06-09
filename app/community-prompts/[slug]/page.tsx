@@ -4,6 +4,7 @@ import { Metadata } from 'next';
 import { Suspense } from 'react';
 import { PromptContent } from '@/components/PromptContent';
 import { currentUser } from '@clerk/nextjs/server';
+import { TestPromptModal } from '@/components/TestPromptModal';
 
 // Mark page as dynamic since it uses headers() through AnalyticsTrackingService
 export const dynamic = 'force-dynamic';

@@ -38,7 +38,8 @@ export class VersionControlService {
     content: string,
     description: string | null,
     commitMessage: string,
-    tags: string[]
+    tags: string[],
+    baseVersionId?: string
   ) {
     const prompt = await prisma.prompt.findUnique({
       where: { id: promptId },
@@ -77,6 +78,16 @@ export class VersionControlService {
           },
         },
       });
+    }
+
+    // If baseVersionId is provided, verify it exists
+    if (baseVersionId) {
+      const baseVersion = await prisma.promptVersion.findUnique({
+        where: { id: baseVersionId },
+      });
+      if (!baseVersion) {
+        throw new Error('Base version not found');
+      }
     }
 
     // Create the new version

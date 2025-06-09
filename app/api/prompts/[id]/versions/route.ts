@@ -8,6 +8,7 @@ const createVersionSchema = z.object({
   description: z.string().optional(),
   commitMessage: z.string().min(1),
   tags: z.array(z.string()).optional(),
+  baseVersionId: z.string().optional(),
 });
 
 export async function GET(
@@ -66,8 +67,8 @@ export async function POST(
       );
     }
 
-    const { content, description, commitMessage, tags } = validationResult.data;
-    console.log('Creating version with:', { content, description, commitMessage, tags });
+    const { content, description, commitMessage, tags, baseVersionId } = validationResult.data;
+    console.log('Creating version with:', { content, description, commitMessage, tags, baseVersionId });
     
     const versionControlService = VersionControlService.getInstance();
     const newVersion = await versionControlService.createVersion(
@@ -75,7 +76,8 @@ export async function POST(
       content,
       description || null,
       commitMessage,
-      tags || []
+      tags || [],
+      baseVersionId
     );
 
     console.log('Version created successfully:', newVersion);

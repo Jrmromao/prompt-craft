@@ -9,8 +9,12 @@ export const { dynamic, revalidate, runtime } = dynamicRouteConfig;
 // Define the main handler
 async function metricHandler(
   request: Request,
-  context: { params: { metric: string } }
+  context?: { params: Record<string, string> }
 ) {
+  if (!context?.params?.metric) {
+    return NextResponse.json({ error: 'Metric parameter is required' }, { status: 400 });
+  }
+
   const metric = context.params.metric;
 
   const { userId } = await auth();

@@ -30,6 +30,7 @@ import { NavBarWrapper } from '@/components/layout/NavBarWrapper';
 import Playground from '@/components/Playground';
 import { PromptAnalyticsProvider, usePromptAnalytics } from '@/components/PromptAnalyticsContext';
 import { BasicComments } from '@/components/BasicComments';
+import { TestPromptModal } from './TestPromptModal';
 
 interface Tag {
   id: string;
@@ -65,6 +66,7 @@ export function PromptContent({ user, prompt }: PromptContentProps) {
   const [commentCount, setCommentCount] = useState<number>(0);
   const [upvotes, setUpvotes] = useState<number>(prompt.upvotes);
   const [copied, setCopied] = useState(false);
+  const [isTestModalOpen, setIsTestModalOpen] = useState(false);
 
   const copyToClipboard = async () => {
     try {
@@ -88,6 +90,21 @@ export function PromptContent({ user, prompt }: PromptContentProps) {
   const sharePrompt = () => {
     navigator.clipboard.writeText(window.location.href);
     toast.success('Link copied to clipboard!');
+  };
+
+  const handleTestPrompt = async (content: string, testInput: string) => {
+    // TODO: Implement actual API call to test the prompt
+    // This is a mock implementation
+    return {
+      result: "This is a sample test output. Replace with actual API call.",
+      rating: {
+        clarity: 4.5,
+        specificity: 4.2,
+        context: 4.0,
+        overall: 4.2,
+        feedback: "Good prompt structure and clarity."
+      }
+    };
   };
 
   return (
@@ -123,6 +140,13 @@ export function PromptContent({ user, prompt }: PromptContentProps) {
             setCommentCount={setCommentCount}
           />
         </PromptAnalyticsProvider>
+
+        <TestPromptModal
+          isOpen={isTestModalOpen}
+          onClose={() => setIsTestModalOpen(false)}
+          promptContent={prompt.content}
+          onTestPrompt={handleTestPrompt}
+        />
       </main>
     </div>
   );

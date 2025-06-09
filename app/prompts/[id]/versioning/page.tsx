@@ -107,20 +107,12 @@ export default function VersioningPage() {
 
   const handleVersionSelect = (version: Version) => {
     if (showPlayground) {
-      // If we're in playground mode and trying to select versions
-      setWarningDialogAction('select');
-      setShowWarningDialog(true);
+      // If we're in playground mode, just ignore the selection
       return;
     }
 
     if (selectedVersion1?.id === version.id) {
-      if (selectedVersion2) {
-        // If we have two versions selected and trying to clear one
-        setWarningDialogAction('clear');
-        setShowWarningDialog(true);
-      } else {
-        setSelectedVersion1(null);
-      }
+      setSelectedVersion1(null);
     } else if (selectedVersion2?.id === version.id) {
       setSelectedVersion2(null);
     } else if (!selectedVersion1) {
@@ -131,12 +123,10 @@ export default function VersioningPage() {
   };
 
   const handleNewVersionClick = () => {
-    if (selectedVersion1 || selectedVersion2) {
-      setWarningDialogAction('create');
-      setShowWarningDialog(true);
-    } else {
-      setShowPlayground(true);
-    }
+    // Clear selected versions and show playground without warning
+    setSelectedVersion1(null);
+    setSelectedVersion2(null);
+    setShowPlayground(true);
   };
 
   const handleWarningDialogCompare = () => {
@@ -272,6 +262,7 @@ export default function VersioningPage() {
                   warningDialogAction === 'select' ? handleWarningDialogSelect :
                   handleWarningDialogClear}
         onCreate={warningDialogAction === 'create' ? handleWarningDialogCreate : undefined}
+        action={warningDialogAction}
       />
     </div>
   );

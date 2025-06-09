@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,6 +8,14 @@ import { Textarea } from '@/components/ui/textarea';
 import { Loader2, X } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
+import { Version } from '@/types/version';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 interface NewVersionModalProps {
   isOpen: boolean;
@@ -17,9 +25,11 @@ interface NewVersionModalProps {
     description: string;
     commitMessage: string;
     tags: string[];
+    baseVersionId?: string;
   }) => Promise<void>;
   currentContent: string;
   currentTags?: string[];
+  versions?: Version[];
 }
 
 export function NewVersionModal({
@@ -28,6 +38,7 @@ export function NewVersionModal({
   onSubmit,
   currentContent,
   currentTags = [],
+  versions = [],
 }: NewVersionModalProps) {
   const [content, setContent] = useState(currentContent);
   const [description, setDescription] = useState('');
@@ -36,6 +47,20 @@ export function NewVersionModal({
   const [newTag, setNewTag] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showCommitStep, setShowCommitStep] = useState(false);
+  const [selectedVersionId, setSelectedVersionId] = useState<string>('');
+
+  // Reset form when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      setContent(currentContent);
+      setTags(currentTags);
+      setDescription('');
+      setCommitMessage('');
+      setNewTag('');
+      setShowCommitStep(false);
+      setSelectedVersionId('');
+    }
+  }, [isOpen, currentContent, currentTags]);
 
   const handleAddTag = () => {
     if (newTag.trim() && !tags.includes(newTag.trim())) {
@@ -62,12 +87,24 @@ export function NewVersionModal({
         description,
         commitMessage,
         tags,
+        baseVersionId: selectedVersionId || undefined,
       });
       onClose();
     } catch (error) {
       console.error('Failed to create new version:', error);
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleVersionSelect = (versionId: string) => {
+    setSelectedVersionId(versionId);
+    const selectedVersion = versions.find(v => v.id === versionId);
+    if (selectedVersion) {
+      setContent(selectedVersion.content);
+      setTags(selectedVersion.tags || []);
+      setDescription(`New version based on version ${selectedVersion.version}`);
+      setCommitMessage(`Update from version ${selectedVersion.version}`);
     }
   };
 
@@ -86,6 +123,26 @@ export function NewVersionModal({
         {!showCommitStep ? (
           <form onSubmit={handleNextStep} className="space-y-6">
             <div className="space-y-2">
+              <Label>Base Version</Label>
+              <Select
+                value={selectedVersionId}
+                onValueChange={handleVersionSelect}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a version to base on (optional)" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Latest Version</SelectItem>
+                  {versions.map((version) => (
+                    <SelectItem key={version.id} value={version.id}>
+                      Version {version.version} - {new Date(version.createdAt).toLocaleDateString()}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
               <Label htmlFor="description">Description</Label>
               <Input
                 id="description"
@@ -97,12 +154,23 @@ export function NewVersionModal({
             </div>
 
             <div className="space-y-2">
+              <Label htmlFor="content">Content</Label>
+              <Textarea
+                id="content"
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+                className="min-h-[200px]"
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
               <Label>Tags</Label>
-              <div className="flex space-x-2">
+              <div className="flex gap-2">
                 <Input
+                  placeholder="Add a tag"
                   value={newTag}
                   onChange={(e) => setNewTag(e.target.value)}
-                  placeholder="Add a tag"
                   onKeyPress={(e) => {
                     if (e.key === 'Enter') {
                       e.preventDefault();
@@ -114,31 +182,23 @@ export function NewVersionModal({
                   Add
                 </Button>
               </div>
-              <div className="mt-2 flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-2 mt-2">
                 {tags.map((tag) => (
-                  <Badge key={tag} variant="secondary">
+                  <div
+                    key={tag}
+                    className="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded-md text-sm flex items-center gap-1"
+                  >
                     {tag}
                     <button
                       type="button"
                       onClick={() => handleRemoveTag(tag)}
-                      className="ml-1 hover:text-destructive"
+                      className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
                     >
-                      <X className="h-3 w-3" />
+                      ×
                     </button>
-                  </Badge>
+                  </div>
                 ))}
               </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="content">Content</Label>
-              <Textarea
-                id="content"
-                value={content}
-                onChange={(e) => setContent(e.target.value)}
-                className="min-h-[300px] font-mono text-sm"
-                required
-              />
             </div>
 
             <DialogFooter>
