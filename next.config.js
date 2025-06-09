@@ -69,7 +69,7 @@ const nextConfig = {
           },
           {
             key: 'Content-Security-Policy',
-            value: "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline' https://clerk.promptcraft.ai https://*.clerk.accounts.dev https://*.clerk.com https://clerk.prompthive.co https://www.googletagmanager.com https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://*.clerk.accounts.dev https://*.clerk.promptcraft.ai https://api.promptcraft.ai; frame-src 'self' https://clerk.promptcraft.ai https://*.clerk.accounts.dev https://*.clerk.com https://clerk.prompthive.co;",
+            value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.clerk.accounts.dev https://clerk.prompthive.co https://www.googletagmanager.com https://challenges.cloudflare.com; connect-src 'self' https://*.clerk.accounts.dev https://clerk.prompthive.co; img-src 'self' data: https: https://img.clerk.com; worker-src 'self' blob:; style-src 'self' 'unsafe-inline'; frame-src 'self' https://*.clerk.accounts.dev https://clerk.prompthive.co https://challenges.cloudflare.com; form-action 'self'; frame-ancestors 'self'",
           },
         ],
       },
