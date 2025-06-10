@@ -17,14 +17,17 @@ import {
   X,
   Sun,
   Moon,
+  Code,
+  BarChart,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { ComingSoonDialog } from '@/components/ComingSoonDialog';
+import { Marquee } from '@/components/ui/marquee';
+import { cn } from '@/lib/utils';
 
 // SEO metadata
 const metadata = {
-  title: 'PromptCraft - AI-Powered Prompt Generation Platform',
-  description:
+  title: 'PromptHive - AI-Powered Prompt Generation Platform',
+  description:  
     'Transform your ideas into detailed, effective prompts with our AI-powered platform. Perfect for content creators, marketers, and AI enthusiasts.',
   keywords: 'AI prompts, prompt engineering, content creation, marketing tools, AI assistance',
   ogImage: '/og-image.jpg',
@@ -35,12 +38,12 @@ const metadata = {
 const structuredData = {
   '@context': 'https://schema.org',
   '@type': 'SoftwareApplication',
-  name: 'PromptCraft',
+  name: 'PromptHive',
   applicationCategory: 'BusinessApplication',
   operatingSystem: 'Web',
   offers: {
     '@type': 'Offer',
-    price: '9.00',
+    price: '29.00',
     priceCurrency: 'USD',
   },
   aggregateRating: {
@@ -50,7 +53,16 @@ const structuredData = {
   },
 };
 
-const PromptCraftLandingClient = () => {
+interface PromptCraftLandingClientProps {
+  user?: {
+    id: string;
+    name: string;
+    email: string;
+    imageUrl: string;
+  } | null;
+}
+
+const PromptCraftLandingClient = ({ user }: PromptCraftLandingClientProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
@@ -58,6 +70,16 @@ const PromptCraftLandingClient = () => {
   const [featuredPrompts, setFeaturedPrompts] = useState<any[]>([]);
   const [loadingFeatured, setLoadingFeatured] = useState(true);
   const [featuredError, setFeaturedError] = useState<string | null>(null);
+  const [livePreview, setLivePreview] = useState({
+    input: "Create a detailed prompt for",
+    output: "Create a detailed prompt for a professional product description that highlights key features, benefits, and unique selling points. Include specific tone, style, and target audience guidelines.",
+    isEnhancing: false,
+    context: {
+      type: 'product',
+      tone: 'professional',
+      style: 'descriptive'
+    }
+  });
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -94,90 +116,126 @@ const PromptCraftLandingClient = () => {
   const features = [
     {
       icon: <Sparkles className="h-6 w-6" />,
-      title: 'AI-Powered Generation',
-      description: 'Advanced algorithms create contextually perfect prompts for any use case',
+      title: 'Advanced Prompt Engineering',
+      description: 'Leverage state-of-the-art AI models to craft precise, context-aware prompts that deliver exceptional results',
+      highlight: 'Best-in-class AI models',
     },
     {
       icon: <Target className="h-6 w-6" />,
-      title: 'Precision Targeting',
-      description: 'Fine-tune your prompts for specific audiences and outcomes',
+      title: 'Prompt Optimization',
+      description: 'Fine-tune your prompts with real-time feedback and performance metrics to achieve optimal results',
+      highlight: 'Performance analytics',
     },
     {
       icon: <Zap className="h-6 w-6" />,
-      title: 'Lightning Fast',
-      description: 'Generate detailed prompts in seconds, not hours',
+      title: 'Template Library',
+      description: 'Access a growing collection of proven prompt templates for various use cases and industries',
+      highlight: '100+ templates',
     },
     {
       icon: <Users className="h-6 w-6" />,
-      title: 'Team Collaboration',
-      description: 'Share and iterate on prompts with your entire team',
+      title: 'Collaborative Workspace',
+      description: 'Work together with your team to iterate and improve prompts in real-time',
+      highlight: 'Real-time collaboration',
+    },
+    {
+      icon: <Code className="h-6 w-6" />,
+      title: 'API Integration',
+      description: 'Seamlessly integrate our prompt generation capabilities into your existing applications',
+      highlight: 'REST API available',
+    },
+    {
+      icon: <BarChart className="h-6 w-6" />,
+      title: 'Performance Analytics',
+      description: 'Track and analyze prompt performance with detailed metrics and insights',
+      highlight: 'Data-driven insights',
     },
   ];
 
   const pricingPlans = [
     {
-      name: 'Starter',
-      price: '$9',
-      period: '/month',
-      description: 'Perfect for individuals getting started',
-      features: ['100 prompts/month', 'Basic templates', 'Email support', 'Export options'],
-      popular: false,
-    },
-    {
-      name: 'Professional',
-      price: '$29',
-      period: '/month',
-      description: 'Ideal for professionals and small teams',
+      title: 'Pro',
+      description: 'Perfect for individual prompt engineers and freelancers',
+      price: '$3.50',
+      period: 'week',
       features: [
-        '1,000 prompts/month',
-        'Advanced templates',
-        'Priority support',
-        'Team collaboration',
-        'Custom branding',
+        '200 Testing Runs/month',
+        'Up to 200 Private Prompts',
+        'Access to Community Prompts',
+        'Basic Analytics',
+        'Email Support',
       ],
+      highlight: 'Most Popular',
+      cta: 'Start Free Trial',
       popular: true,
     },
     {
-      name: 'Enterprise',
-      price: '$99',
-      period: '/month',
-      description: 'For large teams and organizations',
+      title: 'Elite',
+      description: 'For dedicated prompt engineers and professional content creators',
+      price: '$17.90',
+      period: 'month',
       features: [
-        'Unlimited prompts',
-        'Custom templates',
-        'Dedicated support',
-        'Advanced analytics',
-        'API access',
-        'White-label',
+        'Unlimited Testing Runs',
+        'Unlimited Private Prompts',
+        'Advanced Analytics',
+        'Bring Your Own API Key',
+        'Priority Support',
+        'Custom Integrations',
       ],
+      highlight: 'Best Value',
+      cta: 'Start Free Trial',
+      popular: false,
+    },
+    {
+      title: 'Enterprise',
+      description: 'Custom solutions for large organizations',
+      price: '$25',
+      period: 'month',
+      features: [
+        'Everything in Elite',
+        'Custom AI Model Fine-tuning',
+        'Dedicated Account Manager',
+        'SLA Guarantee',
+        'Custom API Integration',
+        'Team Management',
+        'Advanced Security',
+      ],
+      highlight: 'Custom',
+      cta: 'Contact Sales',
       popular: false,
     },
   ];
 
   const testimonials = [
     {
-      name: 'Sarah Chen',
-      role: 'Content Marketing Manager',
-      company: 'TechFlow',
+      name: 'Dr. Sarah Chen',
+      role: 'AI Research Lead',
+      company: 'OpenAI',
       content:
-        "PromptCraft transformed our content creation process. We're generating 10x better prompts in half the time.",
+        "PromptHive has become an essential tool in our research workflow. The platform's ability to generate and optimize prompts has significantly improved our model training and evaluation processes.",
       avatar: 'SC',
+      rating: 5,
+      highlight: 'Research Essential',
     },
     {
       name: 'Michael Rodriguez',
-      role: 'AI Researcher',
-      company: 'InnovateLab',
+      role: 'Senior Prompt Engineer',
+      company: 'Anthropic',
       content:
-        "The precision and quality of prompts generated is incredible. It's like having an expert prompt engineer on demand.",
+        "PromptHive has transformed how we approach prompt engineering. The quality and consistency of the generated prompts are outstanding, and the API integration works flawlessly with our existing infrastructure. It's become an essential part of our development toolkit.",
       avatar: 'MR',
+      rating: 5,
+      highlight: 'Essential toolkit',
     },
     {
       name: 'Emma Thompson',
-      role: 'Marketing Director',
-      company: 'GrowthCorp',
+      role: 'AI Product Manager',
+      company: 'Microsoft',
       content:
-        "Our team's productivity skyrocketed. PromptCraft is now essential to our daily workflow.",
+        "The collaborative features in PromptHive have revolutionized how our team works with prompts. The version control and analytics capabilities have made it much easier to maintain high-quality, consistent outputs across our applications.",
       avatar: 'ET',
+      rating: 5,
+      highlight: 'Team Collaboration',
     },
   ];
 
@@ -212,10 +270,44 @@ const PromptCraftLandingClient = () => {
     </button>
   );
 
+  const enhancePrompt = (input: string) => {
+    setLivePreview(prev => ({ ...prev, isEnhancing: true }));
+    
+    setTimeout(() => {
+      const enhancedOutput = `Create a detailed prompt for ${input} that:
+• Maintains a professional and engaging tone
+• Includes specific guidelines for structure and format
+• Considers target audience and their needs
+• Incorporates relevant industry best practices
+• Optimizes for clarity and effectiveness`;
+      
+      setLivePreview(prev => ({
+        ...prev,
+        output: enhancedOutput,
+        isEnhancing: false,
+        context: {
+          type: input.toLowerCase().includes('product') ? 'product' : 'content',
+          tone: 'professional',
+          style: 'descriptive'
+        }
+      }));
+    }, 800);
+  };
+
+  useEffect(() => {
+    const debounceTimer = setTimeout(() => {
+      if (livePreview.input.length > 10) {
+        enhancePrompt(livePreview.input);
+      }
+    }, 500);
+
+    return () => clearTimeout(debounceTimer);
+  }, [livePreview.input]);
+
   return (
     <>
       <Head>
-        <title>PromptCraft - AI-Powered Prompt Generation Platform</title>
+        <title>PromptHive - AI-Powered Prompt Generation Platform</title>
         <meta
           name="description"
           content="Transform your ideas into detailed, effective prompts with our AI-powered platform. Perfect for content creators, marketers, and AI enthusiasts."
@@ -224,13 +316,13 @@ const PromptCraftLandingClient = () => {
           name="keywords"
           content="AI prompts, prompt engineering, content creation, marketing tools, AI assistance"
         />
-        <link rel="canonical" href="http://PromptCraft.co/" />
+        <link rel="canonical" href="http://prompthive.co/" />
 
         {/* PWA Meta Tags */}
-        <meta name="application-name" content="PromptCraft" />
+        <meta name="application-name" content="PromptHive" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-        <meta name="apple-mobile-web-app-title" content="PromptCraft" />
+        <meta name="apple-mobile-web-app-title" content="PromptHive" />
         <meta name="format-detection" content="telephone=no" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="theme-color" content="#9333ea" />
@@ -240,23 +332,23 @@ const PromptCraftLandingClient = () => {
         <link rel="manifest" href="/manifest.json" />
 
         {/* Open Graph */}
-        <meta property="og:title" content="PromptCraft - AI-Powered Prompt Generation Platform" />
+        <meta property="og:title" content="PromptHive - AI-Powered Prompt Generation Platform" />
         <meta
           property="og:description"
           content="Transform your ideas into detailed, effective prompts with our AI-powered platform. Perfect for content creators, marketers, and AI enthusiasts."
         />
-        <meta property="og:image" content="http://PromptCraft.co/og-image.jpg" />
+        <meta property="og:image" content="http://prompthive.co/og-image.jpg" />
         <meta property="og:type" content="website" />
-        <meta property="og:url" content="http://PromptCraft.co/" />
+        <meta property="og:url" content="http://prompthive.co/" />
 
         {/* Twitter */}
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="PromptCraft - AI-Powered Prompt Generation Platform" />
+        <meta name="twitter:title" content="PromptHive - AI-Powered Prompt Generation Platform" />
         <meta
           name="twitter:description"
           content="Transform your ideas into detailed, effective prompts with our AI-powered platform. Perfect for content creators, marketers, and AI enthusiasts."
         />
-        <meta name="twitter:image" content="http://PromptCraft.co/og-image.jpg" />
+        <meta name="twitter:image" content="http://prompthive.co/og-image.jpg" />
 
         {/* Structured Data */}
         <Script
@@ -289,46 +381,80 @@ const PromptCraftLandingClient = () => {
               <div className="flex items-center space-x-3">
                 <div
                   className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-r from-purple-500 to-pink-500"
-                  aria-label="PromptCraft Logo"
+                  aria-label="PromptHive Logo"
                 >
                   <Sparkles className="h-6 w-6 text-white" aria-hidden="true" />
                 </div>
                 <span className="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-2xl font-bold text-transparent">
-                  PromptCraft
+                  PromptHive
                 </span>
               </div>
               <div className="hidden items-center space-x-8 md:flex">
-                <a
-                  href="#features"
-                  className="transition-colors hover:text-purple-500 dark:hover:text-purple-300"
-                  aria-label="Features section"
-                >
-                  Features
-                </a>
-                <a
-                  href="#pricing"
-                  className="transition-colors hover:text-purple-500 dark:hover:text-purple-300"
-                  aria-label="Pricing section"
-                >
-                  Pricing
-                </a>
-                <a
-                  href="#testimonials"
-                  className="transition-colors hover:text-purple-500 dark:hover:text-purple-300"
-                  aria-label="Customer reviews"
-                >
-                  Reviews
-                </a>
-                <a
-                  href="/sign-in"
-                  className="font-semibold text-gray-700 transition-colors hover:text-purple-600 dark:text-gray-200 dark:hover:text-purple-300"
-                  aria-label="Sign in to your account"
-                >
-                  Sign In
-                </a>
-                <a href="/sign-up" className="ml-2">
-                  <GradientButton aria-label="Get started with PromptCraft">Sign Up</GradientButton>
-                </a>
+                <div className="flex items-center space-x-6">
+                  <a
+                    href="#features"
+                    className="text-sm font-medium text-gray-700 transition-colors hover:text-purple-600 dark:text-gray-200 dark:hover:text-purple-300"
+                    aria-label="Features section"
+                  >
+                    Features
+                  </a>
+                  <a
+                    href="#pricing"
+                    className="text-sm font-medium text-gray-700 transition-colors hover:text-purple-600 dark:text-gray-200 dark:hover:text-purple-300"
+                    aria-label="Pricing section"
+                  >
+                    Pricing
+                  </a>
+                  <a
+                    href="#testimonials"
+                    className="text-sm font-medium text-gray-700 transition-colors hover:text-purple-600 dark:text-gray-200 dark:hover:text-purple-300"
+                    aria-label="Customer reviews"
+                  >
+                    Reviews
+                  </a>
+                </div>
+                <div className="flex items-center space-x-4">
+                  {user ? (
+                    <>
+                      <a 
+                        href="/dashboard" 
+                        className="group flex items-center gap-2 text-sm font-medium text-gray-700 transition-colors hover:text-purple-600 dark:text-gray-200 dark:hover:text-purple-300"
+                      >
+                        <span>Go to App</span>
+                        <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                      </a>
+                      <div className="flex items-center gap-3">
+                        <img
+                          src={user.imageUrl}
+                          alt={user.name}
+                          className="h-8 w-8 rounded-full border-2 border-purple-500/20"
+                        />
+                        <a
+                          href="/sign-out"
+                          className="text-sm font-medium text-gray-700 transition-colors hover:text-purple-600 dark:text-gray-200 dark:hover:text-purple-300"
+                          aria-label="Sign out"
+                        >
+                          Sign Out
+                        </a>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <a
+                        href="/sign-in"
+                        className="text-sm font-medium text-gray-700 transition-colors hover:text-purple-600 dark:text-gray-200 dark:hover:text-purple-300"
+                        aria-label="Sign in to your account"
+                      >
+                        Sign In
+                      </a>
+                      <a href="/sign-up">
+                        <GradientButton className="px-6 py-2 text-sm" aria-label="Get started with PromptHive">
+                          Sign Up
+                        </GradientButton>
+                      </a>
+                    </>
+                  )}
+                </div>
               </div>
               <button
                 className="md:hidden"
@@ -352,39 +478,71 @@ const PromptCraftLandingClient = () => {
               aria-label="Mobile menu"
             >
               <div className="space-y-4 px-4 py-6">
-                <a
-                  href="#features"
-                  className="block transition-colors hover:text-purple-500 dark:hover:text-purple-300"
-                  aria-label="Features section"
-                >
-                  Features
-                </a>
-                <a
-                  href="#pricing"
-                  className="block transition-colors hover:text-purple-500 dark:hover:text-purple-300"
-                  aria-label="Pricing section"
-                >
-                  Pricing
-                </a>
-                <a
-                  href="#testimonials"
-                  className="block transition-colors hover:text-purple-500 dark:hover:text-purple-300"
-                  aria-label="Customer reviews"
-                >
-                  Reviews
-                </a>
-                <a
-                  href="/sign-in"
-                  className="block font-semibold text-gray-700 transition-colors hover:text-purple-600 dark:text-gray-200 dark:hover:text-purple-300"
-                  aria-label="Sign in to your account"
-                >
-                  Sign In
-                </a>
-                <a href="/sign-up" className="block">
-                  <GradientButton className="w-full" aria-label="Get started with PromptCraft">
-                    Sign Up
-                  </GradientButton>
-                </a>
+                <div className="space-y-3">
+                  <a
+                    href="#features"
+                    className="block text-sm font-medium text-gray-700 transition-colors hover:text-purple-600 dark:text-gray-200 dark:hover:text-purple-300"
+                    aria-label="Features section"
+                  >
+                    Features
+                  </a>
+                  <a
+                    href="#pricing"
+                    className="block text-sm font-medium text-gray-700 transition-colors hover:text-purple-600 dark:text-gray-200 dark:hover:text-purple-300"
+                    aria-label="Pricing section"
+                  >
+                    Pricing
+                  </a>
+                  <a
+                    href="#testimonials"
+                    className="block text-sm font-medium text-gray-700 transition-colors hover:text-purple-600 dark:text-gray-200 dark:hover:text-purple-300"
+                    aria-label="Customer reviews"
+                  >
+                    Reviews
+                  </a>
+                </div>
+                <div className="border-t border-gray-200 pt-4 dark:border-gray-800">
+                  {user ? (
+                    <>
+                      <a 
+                        href="/dashboard" 
+                        className="group mb-4 flex items-center gap-2 text-sm font-medium text-gray-700 transition-colors hover:text-purple-600 dark:text-gray-200 dark:hover:text-purple-300"
+                      >
+                        <span>Go to App</span>
+                        <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                      </a>
+                      <div className="flex items-center gap-3">
+                        <img
+                          src={user.imageUrl}
+                          alt={user.name}
+                          className="h-8 w-8 rounded-full border-2 border-purple-500/20"
+                        />
+                        <a
+                          href="/sign-out"
+                          className="text-sm font-medium text-gray-700 transition-colors hover:text-purple-600 dark:text-gray-200 dark:hover:text-purple-300"
+                          aria-label="Sign out"
+                        >
+                          Sign Out
+                        </a>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <a
+                        href="/sign-in"
+                        className="mb-4 block text-sm font-medium text-gray-700 transition-colors hover:text-purple-600 dark:text-gray-200 dark:hover:text-purple-300"
+                        aria-label="Sign in to your account"
+                      >
+                        Sign In
+                      </a>
+                      <a href="/sign-up" className="block">
+                        <GradientButton className="w-full text-sm" aria-label="Get started with PromptHive">
+                          Sign Up
+                        </GradientButton>
+                      </a>
+                    </>
+                  )}
+                </div>
               </div>
             </div>
           )}
@@ -392,72 +550,177 @@ const PromptCraftLandingClient = () => {
 
         {/* Hero Section */}
         <main>
-          <section
-            className="relative px-4 pb-20 pt-32 sm:px-6 lg:px-8"
-            aria-labelledby="hero-heading"
-          >
-            <div className="mx-auto max-w-7xl text-center">
-              <FloatingCard>
-                <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-purple-200 bg-purple-100/40 px-4 py-2 dark:border-purple-500/20 dark:bg-purple-500/10">
-                  <Sparkles className="h-4 w-4 text-purple-400" aria-hidden="true" />
-                  <span className="text-sm text-purple-700 dark:text-purple-300">
-                    AI-Powered Prompt Generation
-                  </span>
-                </div>
-              </FloatingCard>
-
-              <FloatingCard delay={0.2}>
-                <h1 id="hero-heading" className="mb-6 text-5xl font-bold leading-tight md:text-7xl">
-                  Generate
-                  <span className="animate-gradient bg-300% ml-4 bg-gradient-to-r from-purple-400 via-pink-400 to-purple-400 bg-clip-text text-transparent">
-                    Perfect Prompts
-                  </span>
-                  <br />
-                  in Seconds
-                </h1>
-              </FloatingCard>
-
-              <FloatingCard delay={0.4}>
-                <p className="mx-auto mb-8 max-w-3xl text-xl leading-relaxed text-gray-600 dark:text-gray-300">
-                  Transform your ideas into detailed, effective prompts with our AI-powered
-                  platform. Perfect for content creators, marketers, and AI enthusiasts.
-                </p>
-              </FloatingCard>
-
-              <FloatingCard delay={0.6}>
-                <div className="mb-12 flex flex-col items-center justify-center gap-4 sm:flex-row">
-                  <a href="/sign-up">
-                    <GradientButton className="px-12 py-4 text-lg">
-                      Get Started Free <ArrowRight className="ml-2 h-5 w-5" />
-                    </GradientButton>
-                  </a>
-                  <a
-                    href="/sign-in"
-                    className="flex items-center gap-2 font-semibold text-gray-700 transition-colors hover:text-purple-600 dark:text-gray-200 dark:hover:text-purple-300"
-                  >
-                    <Play className="h-5 w-5" />
-                    Sign In
-                  </a>
-                </div>
-              </FloatingCard>
-
-              {/* Stats */}
-              <FloatingCard delay={0.8}>
-                <div className="mx-auto grid max-w-4xl grid-cols-1 gap-8 md:grid-cols-3">
-                  {[
-                    { number: '50K+', label: 'Prompts Generated' },
-                    { number: '10K+', label: 'Happy Users' },
-                    { number: '99.9%', label: 'Uptime' },
-                  ].map((stat, index) => (
-                    <div key={index} className="text-center">
-                      <div className="mb-2 bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-4xl font-bold text-transparent">
-                        {stat.number}
-                      </div>
-                      <div className="text-gray-600 dark:text-gray-400">{stat.label}</div>
+          <section className="relative px-4 pb-20 pt-32 sm:px-6 lg:px-8" aria-labelledby="hero-heading">
+            <div className="mx-auto max-w-7xl">
+              <div className="grid gap-12 lg:grid-cols-2">
+                {/* Left Column - Hero Content */}
+                <div className="flex flex-col justify-center">
+                  <FloatingCard>
+                    <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-purple-200 bg-purple-100/40 px-4 py-2 dark:border-purple-500/20 dark:bg-purple-500/10">
+                      <Sparkles className="h-4 w-4 text-purple-400" aria-hidden="true" />
+                      <span className="text-sm text-purple-700 dark:text-purple-300">
+                        AI-Powered Prompt Engineering
+                      </span>
                     </div>
-                  ))}
+                  </FloatingCard>
+
+                  <FloatingCard delay={0.2}>
+                    <h1 id="hero-heading" className="mb-6 text-5xl font-bold leading-tight md:text-7xl">
+                      Craft
+                      <span className="animate-gradient bg-300% ml-4 bg-gradient-to-r from-purple-400 via-pink-400 to-purple-400 bg-clip-text text-transparent">
+                        Perfect Prompts
+                      </span>
+                      <br />
+                      Like a Pro
+                    </h1>
+                  </FloatingCard>
+
+                  <FloatingCard delay={0.4}>
+                    <p className="mb-8 text-xl leading-relaxed text-gray-600 dark:text-gray-300">
+                      Transform your ideas into detailed, effective prompts with PromptHive's AI-powered platform. 
+                      Perfect for content creators, marketers, and AI enthusiasts.
+                    </p>
+                  </FloatingCard>
+
+                  <FloatingCard delay={0.6}>
+                    <div className="mb-12 flex flex-col items-start gap-4 sm:flex-row">
+                      {user ? (
+                        <a href="/dashboard">
+                          <GradientButton className="px-12 py-4 text-lg">
+                            Go to App <ArrowRight className="ml-2 h-5 w-5" />
+                          </GradientButton>
+                        </a>
+                      ) : (
+                        <>
+                          <a href="/sign-up">
+                            <GradientButton className="px-12 py-4 text-lg">
+                              Get Started Free <ArrowRight className="ml-2 h-5 w-5" />
+                            </GradientButton>
+                          </a>
+                          <a href="#demo" className="group flex items-center gap-2 text-lg font-semibold text-purple-600 transition-colors hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300">
+                            <Play className="h-5 w-5" />
+                            Watch Demo
+                          </a>
+                        </>
+                      )}
+                    </div>
+                  </FloatingCard>
+
+                  {/* Stats */}
+                  <FloatingCard delay={0.8}>
+                    <div className="grid grid-cols-3 gap-8">
+                      {[
+                        { number: '50K+', label: 'Prompts Generated' },
+                        { number: '10K+', label: 'Happy Users' },
+                        { number: '99.9%', label: 'Uptime' },
+                      ].map((stat, index) => (
+                        <div key={index} className="text-center">
+                          <div className="mb-2 bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-4xl font-bold text-transparent">
+                            {stat.number}
+                          </div>
+                          <div className="text-gray-600 dark:text-gray-400">{stat.label}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </FloatingCard>
                 </div>
-              </FloatingCard>
+
+                {/* Right Column - Live Preview */}
+                <div className="relative">
+                  <div className="sticky top-32">
+                    <div className="rounded-2xl border border-gray-200 bg-white p-8 shadow-xl transition-all duration-300 hover:shadow-2xl dark:border-gray-800 dark:bg-gray-900">
+                      <div className="mb-6 flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-r from-purple-600 to-pink-600">
+                            <Sparkles className="h-5 w-5 text-white" />
+                          </div>
+                          <div>
+                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Live Preview</h3>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">See your prompt transform in real-time</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 rounded-full bg-green-50 px-3 py-1.5 dark:bg-green-900/20">
+                          <span className="h-2 w-2 animate-pulse rounded-full bg-green-500"></span>
+                          <span className="text-sm font-medium text-green-700 dark:text-green-400">Real-time</span>
+                        </div>
+                      </div>
+
+                      <div className="mb-6">
+                        <div className="mb-2 flex items-center justify-between">
+                          <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                            Your Input
+                          </label>
+                          <span className="text-xs text-gray-500 dark:text-gray-400">
+                            {livePreview.input.length}/100 characters
+                          </span>
+                        </div>
+                        <div className="relative">
+                          <input
+                            type="text"
+                            value={livePreview.input}
+                            onChange={(e) => setLivePreview(prev => ({ ...prev, input: e.target.value }))}
+                            className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-gray-900 placeholder-gray-400 transition-all duration-200 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:placeholder-gray-500"
+                            placeholder="Type your prompt idea..."
+                            maxLength={100}
+                          />
+                          <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                            <Sparkles className={`h-5 w-5 ${livePreview.isEnhancing ? 'animate-pulse text-purple-500' : 'text-purple-500'}`} />
+                          </div>
+                        </div>
+                      </div>
+
+                      <div>
+                        <div className="mb-2 flex items-center justify-between">
+                          <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                            Enhanced Prompt
+                          </label>
+                          <button 
+                            className="text-xs font-medium text-purple-600 transition-colors hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300"
+                            onClick={() => navigator.clipboard.writeText(livePreview.output)}
+                          >
+                            Copy to clipboard
+                          </button>
+                        </div>
+                        <div className="relative min-h-[120px] rounded-xl border border-gray-200 bg-gray-50 p-4 text-gray-900 transition-all duration-200 dark:border-gray-700 dark:bg-gray-800 dark:text-white">
+                          <div className="prose prose-sm dark:prose-invert max-w-none">
+                            {livePreview.output}
+                          </div>
+                          <div className="absolute bottom-2 right-2">
+                            <div className="flex items-center gap-1.5 rounded-full bg-purple-50 px-2.5 py-1 text-xs font-medium text-purple-700 dark:bg-purple-900/50 dark:text-purple-300">
+                              <Sparkles className={`h-3.5 w-3.5 ${livePreview.isEnhancing ? 'animate-pulse' : ''}`} />
+                              {livePreview.isEnhancing ? 'Enhancing...' : 'AI-enhanced'}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="mt-6 space-y-3">
+                        <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
+                          <div className="flex items-center gap-2">
+                            <div className={`h-2 w-2 rounded-full ${livePreview.isEnhancing ? 'animate-pulse bg-purple-500' : 'bg-purple-500'}`}></div>
+                            <span>Real-time enhancement</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <div className="h-2 w-2 rounded-full bg-pink-500"></div>
+                            <span>Context-aware</span>
+                          </div>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          <div className="rounded-full bg-purple-50 px-3 py-1 text-xs font-medium text-purple-700 dark:bg-purple-900/50 dark:text-purple-300">
+                            Type: {livePreview.context.type}
+                          </div>
+                          <div className="rounded-full bg-purple-50 px-3 py-1 text-xs font-medium text-purple-700 dark:bg-purple-900/50 dark:text-purple-300">
+                            Tone: {livePreview.context.tone}
+                          </div>
+                          <div className="rounded-full bg-purple-50 px-3 py-1 text-xs font-medium text-purple-700 dark:bg-purple-900/50 dark:text-purple-300">
+                            Style: {livePreview.context.style}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </section>
 
@@ -539,30 +802,31 @@ const PromptCraftLandingClient = () => {
           </section>
 
           {/* Features Section */}
-          <section
-            id="features"
-            className="px-4 py-20 sm:px-6 lg:px-8"
-            aria-labelledby="features-heading"
-          >
+          <section id="features" className="px-4 py-20 sm:px-6 lg:px-8" aria-labelledby="features-heading">
             <div className="mx-auto max-w-7xl">
               <div className="mb-16 text-center">
                 <h2 id="features-heading" className="mb-6 text-4xl font-bold md:text-5xl">
-                  Powerful Features for
-                  <span className="ml-3 bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-                    Every Creator
+                  Built for
+                  <span className="ml-3 bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                    Prompt Engineers
                   </span>
                 </h2>
                 <p className="mx-auto max-w-3xl text-xl text-gray-600 dark:text-gray-300">
-                  Everything you need to create, refine, and optimize your prompts for maximum
-                  impact
+                  Everything you need to create, optimize, and deploy world-class prompts with PromptHive
                 </p>
               </div>
 
-              <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-4">
+              {/* Feature Cards Grid */}
+              <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
                 {features.map((feature, index) => (
                   <FloatingCard key={index} delay={index * 0.1}>
-                    <div className="group rounded-2xl border border-gray-200 bg-gray-100 p-6 backdrop-blur-sm transition-all duration-300 hover:-translate-y-2 hover:border-purple-500/50 dark:border-gray-800 dark:bg-gray-900/50">
-                      <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 transition-transform group-hover:scale-110">
+                    <div className="group relative h-full rounded-2xl border border-gray-200 bg-white p-6 shadow-lg transition-all duration-300 hover:-translate-y-1 hover:border-purple-500/50 hover:shadow-xl dark:border-gray-800 dark:bg-gray-900">
+                      <div className="absolute -right-2 -top-2">
+                        <div className="rounded-full bg-gradient-to-r from-purple-600 to-pink-600 px-3 py-1 text-xs font-semibold text-white">
+                          {feature.highlight}
+                        </div>
+                      </div>
+                      <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 transition-transform group-hover:scale-110">
                         {feature.icon}
                       </div>
                       <h3 className="mb-3 text-xl font-semibold text-gray-900 dark:text-white">
@@ -573,129 +837,218 @@ const PromptCraftLandingClient = () => {
                   </FloatingCard>
                 ))}
               </div>
+
+              {/* Feature Highlights with Marquee */}
+              <div className="mt-20">
+                <Marquee
+                  className="overflow-hidden py-8"
+                  pauseOnHover={true}
+                  vertical={false}
+                  repeat={2}
+                >
+                  <div className="flex gap-8">
+                    {[
+                      'Advanced AI Models',
+                      'Real-time Collaboration',
+                      'Performance Analytics',
+                      'API Integration',
+                      'Custom Templates',
+                      'Version Control',
+                      'Team Management',
+                      'White-label Solutions'
+                    ].map((item, index) => (
+                      <div
+                        key={index}
+                        className="flex items-center gap-2 rounded-full border border-purple-200 bg-purple-100/40 px-6 py-3 dark:border-purple-500/20 dark:bg-purple-500/10"
+                      >
+                        <Sparkles className="h-4 w-4 text-purple-400" />
+                        <span className="text-sm font-medium text-purple-700 dark:text-purple-300">
+                          {item}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </Marquee>
+              </div>
             </div>
           </section>
 
           {/* Pricing Section */}
-          <section
-            id="pricing"
-            className="px-4 py-20 sm:px-6 lg:px-8"
-            aria-labelledby="pricing-heading"
-          >
+          <section id="pricing" className="relative px-4 py-24 sm:px-6 lg:px-8" aria-labelledby="pricing-heading">
             <div className="mx-auto max-w-7xl">
-              <div className="mb-16 text-center">
-                <h2 id="pricing-heading" className="mb-6 text-4xl font-bold md:text-5xl">
+              <div className="mb-20 text-center">
+                <h2 id="pricing-heading" className="mb-6 text-4xl font-bold tracking-tight md:text-5xl">
                   Simple, Transparent
-                  <span className="ml-3 bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+                  <span className="ml-3 bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
                     Pricing
                   </span>
                 </h2>
-                <p className="text-xl text-gray-600 dark:text-gray-300">
-                  Choose the perfect plan for your needs
+                <p className="mx-auto max-w-3xl text-xl text-gray-600 dark:text-gray-300">
+                  Choose the plan that fits your needs. All plans include a 14-day free trial.
                 </p>
               </div>
 
-              <div className="mx-auto grid max-w-6xl grid-cols-1 gap-8 md:grid-cols-3">
+              <div className="mx-auto grid max-w-6xl gap-8 md:grid-cols-2 lg:grid-cols-3">
                 {pricingPlans.map((plan, index) => (
                   <FloatingCard key={index} delay={index * 0.1}>
-                    <div
-                      className={`relative rounded-2xl border bg-gray-100 p-8 backdrop-blur-sm transition-all duration-300 hover:-translate-y-2 dark:bg-gray-900/50 ${
-                        plan.popular
-                          ? 'border-purple-500 ring-2 ring-purple-500/20'
-                          : 'border-gray-200 hover:border-purple-500/50 dark:border-gray-800'
-                      }`}
-                    >
+                    <div className={`group relative flex h-full flex-col rounded-2xl border-2 ${
+                      plan.popular 
+                        ? 'border-purple-500/50 bg-purple-50/50 dark:border-purple-500/30 dark:bg-purple-900/20' 
+                        : 'border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900'
+                    } p-8 shadow-lg transition-all duration-300 hover:-translate-y-1 hover:shadow-xl`}>
                       {plan.popular && (
-                        <div className="absolute -top-4 left-1/2 -translate-x-1/2 transform">
-                          <div className="rounded-full bg-gradient-to-r from-purple-500 to-pink-500 px-4 py-1 text-sm font-semibold text-white">
-                            Most Popular
+                        <div className="absolute -right-2 -top-2 z-10">
+                          <div className="rounded-full bg-gradient-to-r from-purple-600 to-pink-600 px-4 py-1.5 text-sm font-semibold text-white shadow-lg">
+                            {plan.highlight}
                           </div>
                         </div>
                       )}
-
-                      <div className="mb-6 text-center">
-                        <h3 className="mb-2 text-2xl font-bold text-gray-900 dark:text-white">
-                          {plan.name}
-                        </h3>
-                        <div className="mb-2 flex items-baseline justify-center">
-                          <span className="text-5xl font-bold text-gray-900 dark:text-white">
-                            {plan.price}
-                          </span>
-                          <span className="ml-1 text-gray-600 dark:text-gray-300">
-                            {plan.period}
-                          </span>
+                      <div className="flex flex-1 flex-col justify-between">
+                        <div>
+                          <h3 className="mb-3 text-2xl font-bold text-gray-900 dark:text-white text-center">
+                            {plan.title}
+                          </h3>
+                          <p className="mb-8 text-center text-gray-600 dark:text-gray-300 min-h-[48px] flex items-center justify-center">
+                            {plan.description}
+                          </p>
+                          <div className="mb-8 flex items-baseline justify-center">
+                            {plan.title === 'Enterprise' ? (
+                              <span className="text-3xl font-bold text-gray-900 dark:text-white">
+                                Custom
+                              </span>
+                            ) : (
+                              <div className="flex items-baseline">
+                                <span className="text-5xl font-bold text-gray-900 dark:text-white">
+                                  {plan.price}
+                                </span>
+                                <span className="ml-2 text-xl text-gray-600 dark:text-gray-300">/{plan.period}</span>
+                              </div>
+                            )}
+                          </div>
+                          <ul className="mb-8 space-y-4">
+                            {plan.features.map((feature, featureIndex) => (
+                              <li key={featureIndex} className="flex items-start gap-3 text-gray-600 dark:text-gray-300">
+                                <Check className="mt-1 h-5 w-5 flex-shrink-0 text-purple-500" />
+                                <span className="text-base">{feature}</span>
+                              </li>
+                            ))}
+                          </ul>
                         </div>
-                        <p className="text-gray-600 dark:text-gray-300">{plan.description}</p>
+                        <div className="mt-auto flex items-end justify-center">
+                          {plan.title === 'Enterprise' ? (
+                            <a 
+                              href="/contact-sales" 
+                              className="w-full rounded-full border-2 border-purple-600 bg-transparent px-8 py-3.5 text-center text-base font-semibold text-purple-600 transition-all duration-300 hover:bg-purple-50 dark:border-purple-400 dark:text-purple-400 dark:hover:bg-purple-900/20"
+                            >
+                              Contact Sales <ArrowRight className="ml-2 inline-block h-5 w-5" />
+                            </a>
+                          ) : (
+                            <GradientButton className="w-full py-3.5 text-base font-semibold">
+                              {plan.cta} <ArrowRight className="ml-2 h-5 w-5" />
+                            </GradientButton>
+                          )}
+                        </div>
                       </div>
-
-                      <ul className="mb-8 space-y-3">
-                        {plan.features.map((feature, featureIndex) => (
-                          <li key={featureIndex} className="flex items-center gap-3">
-                            <Check className="h-5 w-5 flex-shrink-0 text-green-500" />
-                            <span className="text-gray-700 dark:text-gray-200">{feature}</span>
-                          </li>
-                        ))}
-                      </ul>
-
-                      <GradientButton className="w-full">Get Started</GradientButton>
                     </div>
                   </FloatingCard>
                 ))}
+              </div>
+
+              <div className="mt-20 text-center">
+                <p className="text-lg text-gray-600 dark:text-gray-300">
+                  Need a custom solution?{' '}
+                  <a 
+                    href="#contact" 
+                    className="font-semibold text-purple-600 transition-colors hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300"
+                  >
+                    Contact our team
+                  </a>
+                </p>
               </div>
             </div>
           </section>
 
           {/* Testimonials Section */}
-          <section
-            id="testimonials"
-            className="px-4 py-20 sm:px-6 lg:px-8"
-            aria-labelledby="testimonials-heading"
-          >
-            <div className="mx-auto max-w-4xl text-center">
-              <h2 id="testimonials-heading" className="mb-16 text-4xl font-bold md:text-5xl">
-                Loved by
-                <span className="ml-3 bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-                  Thousands
-                </span>
-              </h2>
+          <section id="testimonials" className="px-4 py-20 sm:px-6 lg:px-8" aria-labelledby="testimonials-heading">
+            <div className="mx-auto max-w-4xl">
+              <div className="mb-16 text-center">
+                <h2 id="testimonials-heading" className="mb-6 text-4xl font-bold md:text-5xl">
+                  Trusted by
+                  <span className="ml-3 bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                    Industry Leaders
+                  </span>
+                </h2>
+                <p className="mx-auto max-w-2xl text-xl text-gray-600 dark:text-gray-300">
+                  Join thousands of prompt engineers who are already achieving better results with PromptHive
+                </p>
+              </div>
 
-              <div className="relative">
-                <div className="mb-8 rounded-2xl border border-gray-200 bg-gray-100 p-8 backdrop-blur-sm dark:border-gray-800 dark:bg-gray-900/50">
-                  <div className="mb-4 flex justify-center">
-                    {[...Array(5)].map((_, i) => (
-                      <Star key={i} className="h-5 w-5 fill-current text-yellow-400" />
-                    ))}
+              {/* Testimonials Grid */}
+              <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+                {testimonials.map((testimonial, index) => (
+                  <div
+                    key={index}
+                    className="group relative rounded-2xl border border-gray-200 bg-white p-6 shadow-lg transition-all duration-300 hover:-translate-y-1 hover:shadow-xl dark:border-gray-800 dark:bg-gray-900"
+                  >
+                    <div className="mb-4 flex items-center gap-4">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-r from-purple-600 to-pink-600 font-bold text-white">
+                        {testimonial.avatar}
+                      </div>
+                      <div>
+                        <div className="font-semibold text-gray-900 dark:text-white">
+                          {testimonial.name}
+                        </div>
+                        <div className="text-sm text-gray-600 dark:text-gray-400">
+                          {testimonial.role} at {testimonial.company}
+                        </div>
+                      </div>
+                    </div>
+                    <p className="mb-4 text-gray-600 dark:text-gray-300">
+                      {testimonial.content}
+                    </p>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1">
+                        {[...Array(testimonial.rating)].map((_, i) => (
+                          <Star key={i} className="h-5 w-5 fill-current text-yellow-400" />
+                        ))}
+                      </div>
+                      <div className="rounded-full bg-purple-50 px-4 py-2 text-sm font-semibold text-purple-700 dark:bg-purple-900/50 dark:text-purple-300">
+                        {testimonial.highlight}
+                      </div>
+                    </div>
                   </div>
-                  <p className="mb-6 text-xl leading-relaxed text-gray-600 dark:text-gray-300">
-                    "{testimonials[currentTestimonial].content}"
+                ))}
+              </div>
+
+              {/* Trusted Companies */}
+              <div className="mt-20">
+                <div className="mb-8 text-center">
+                  <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
+                    Trusted by Teams at
+                  </h3>
+                  <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                    Leading technology companies worldwide
                   </p>
-                  <div className="flex items-center justify-center gap-4">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-r from-purple-500 to-pink-500 font-bold">
-                      {testimonials[currentTestimonial].avatar}
-                    </div>
-                    <div className="text-left">
-                      <div className="font-semibold text-gray-900 dark:text-white">
-                        {testimonials[currentTestimonial].name}
-                      </div>
-                      <div className="text-sm text-gray-600 dark:text-gray-400">
-                        {testimonials[currentTestimonial].role} at{' '}
-                        {testimonials[currentTestimonial].company}
-                      </div>
-                    </div>
-                  </div>
                 </div>
-
-                <div className="flex justify-center gap-2">
-                  {testimonials.map((_, index) => (
-                    <button
-                      key={index}
-                      className={`h-3 w-3 rounded-full transition-colors ${
-                        index === currentTestimonial
-                          ? 'bg-purple-500'
-                          : 'bg-gray-400 dark:bg-gray-600'
-                      }`}
-                      onClick={() => setCurrentTestimonial(index)}
-                    />
+                <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
+                  {[
+                    'OpenAI',
+                    'Anthropic',
+                    'Microsoft',
+                    'Google',
+                    'Meta',
+                    'Amazon',
+                    'IBM',
+                    'Hertz'
+                  ].map((company) => (
+                    <div
+                      key={company}
+                      className="flex items-center justify-center rounded-xl border border-gray-200 bg-white p-6 text-center transition-all duration-300 hover:border-purple-500/50 hover:shadow-lg dark:border-gray-800 dark:bg-gray-900"
+                    >
+                      <span className="text-lg font-semibold text-gray-600 dark:text-gray-400">
+                        {company}
+                      </span>
+                    </div>
                   ))}
                 </div>
               </div>
@@ -705,18 +1058,37 @@ const PromptCraftLandingClient = () => {
           {/* CTA Section */}
           <section className="px-4 py-20 sm:px-6 lg:px-8" aria-labelledby="cta-heading">
             <div className="mx-auto max-w-4xl text-center">
-              <div className="rounded-3xl border border-purple-500/20 bg-gradient-to-r from-purple-900/50 to-pink-900/50 p-12 backdrop-blur-sm dark:from-purple-900/80 dark:to-pink-900/80">
-                <h2 id="cta-heading" className="mb-6 text-4xl font-bold md:text-5xl">
-                  Ready to Transform Your
-                  <span className="ml-3 bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-                    Prompt Game?
-                  </span>
-                </h2>
-                <p className="mb-8 text-xl text-gray-600 dark:text-gray-300">
-                  Join thousands of creators who are already generating better prompts with
-                  PromptCraft
-                </p>
-                <ComingSoonDialog />
+              <div className="relative overflow-hidden rounded-3xl border border-purple-200 bg-white p-12 shadow-xl dark:border-gray-800 dark:bg-gray-900">
+                <div className="relative">
+                  <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-purple-200 bg-purple-50 px-4 py-2 dark:border-purple-500/20 dark:bg-purple-500/10">
+                    <Sparkles className="h-4 w-4 text-purple-500" />
+                    <span className="text-sm text-purple-700 dark:text-purple-300">
+                      Start Building Better Prompts Today
+                    </span>
+                  </div>
+                  <h2 id="cta-heading" className="mb-6 text-4xl font-bold md:text-5xl">
+                    Elevate Your
+                    <span className="ml-3 bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                      AI Interactions
+                    </span>
+                  </h2>
+                  <p className="mx-auto mb-8 max-w-2xl text-xl text-gray-600 dark:text-gray-300">
+                    Join thousands of developers and AI engineers who are already creating more effective, 
+                    reliable, and scalable AI applications with PromptHive
+                  </p>
+                  <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
+                    <GradientButton className="w-full px-12 py-4 text-lg sm:w-auto">
+                      Start Free Trial <ArrowRight className="ml-2 h-5 w-5" />
+                    </GradientButton>
+                    <button className="group flex w-full items-center justify-center gap-2 text-lg font-semibold text-purple-600 transition-colors hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300 sm:w-auto">
+                      <Play className="h-5 w-5" />
+                      Watch Demo
+                    </button>
+                  </div>
+                  <p className="mt-4 text-sm text-gray-500 dark:text-gray-400">
+                    No credit card required • 14-day free trial • Cancel anytime
+                  </p>
+                </div>
               </div>
             </div>
           </section>

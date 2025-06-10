@@ -53,9 +53,6 @@ export default function SignUpPage() {
         <p className="mb-8 text-center text-base font-normal text-gray-600 dark:text-gray-300">
           Sign up and start creating amazing prompts
         </p>
-
-        
-
         <SignUp
             key={theme}
             appearance={{
@@ -66,7 +63,6 @@ export default function SignUpPage() {
                   'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold py-3 px-8 rounded-full transition-all duration-300 transform hover:scale-105 hover:shadow-lg hover:shadow-purple-500/20',
                 header: 'hidden',
                 footer: 'hidden',
-        
               },
           
             }}

@@ -1647,7 +1647,7 @@
 
 "@clerk/themes@^2.2.49":
   version "2.2.49"
-  resolved "https://registry.yarnpkg.com/@clerk/themes/-/themes-2.2.49.tgz#ad0304696c95a202c6eab8927ae8cb3ddbc1d83c"
+  resolved "https://registry.npmjs.org/@clerk/themes/-/themes-2.2.49.tgz"
   integrity sha512-bwiBE/H/LtYpQL13GXjw1XzA8Vi4KwXiDbDRQCGPuLwFz2PtPLr4uFSGfNP8qLGFrM2hs7UeAPS+7CDlVUOaAA==
   dependencies:
     "@clerk/types" "^4.60.0"
@@ -2254,6 +2254,13 @@
   version "14.2.25"
   resolved "https://registry.npmjs.org/@next/env/-/env-14.2.25.tgz"
   integrity sha512-JnzQ2cExDeG7FxJwqAksZ3aqVJrHjFwZQAEJ9gQZSoEhIow7SNoKZzju/AwQ+PLIR4NY8V0rhcVozx/2izDO0w==
+
+"@next/eslint-plugin-next@^15.3.3":
+  version "15.3.3"
+  resolved "https://registry.yarnpkg.com/@next/eslint-plugin-next/-/eslint-plugin-next-15.3.3.tgz#04a378b405f65f61165085f84971ccb4bbcf2f0a"
+  integrity sha512-VKZJEiEdpKkfBmcokGjHu0vGDG+8CehGs90tBEy/IDoDDKGngeyIStt2MmE5FYNyU9BhgR7tybNWTAJY/30u+Q==
+  dependencies:
+    fast-glob "3.3.1"
 
 "@next/swc-darwin-arm64@14.2.25":
   version "14.2.25"
@@ -4400,9 +4407,9 @@ acorn-walk@^8.0.2, acorn-walk@^8.1.1:
     acorn "^8.11.0"
 
 acorn@^8.1.0, acorn@^8.11.0, acorn@^8.4.1, acorn@^8.8.1:
-  version "8.14.1"
-  resolved "https://registry.npmjs.org/acorn/-/acorn-8.14.1.tgz"
-  integrity sha512-OvQ/2pUDKmgfCg++xsTX1wGxfTaszcHVcTctW4UJB4hibJx2HXxxO5UmVgyjMa+ZDsiaf5wWLXYpRWMmBI0QHg==
+  version "8.15.0"
+  resolved "https://registry.npmjs.org/acorn/-/acorn-8.15.0.tgz"
+  integrity sha512-NZyJarBfL7nWwIq+FDL6Zp/yHEhePMNnnJ0y3qfieCrmNvYct8uvtiV41UvlSe6apAfk0fY1FbWx+NwfmpvtTg==
 
 agent-base@6:
   version "6.0.2"
@@ -5951,6 +5958,17 @@ fast-equals@^5.0.1:
   version "5.2.2"
   resolved "https://registry.npmjs.org/fast-equals/-/fast-equals-5.2.2.tgz"
   integrity sha512-V7/RktU11J3I36Nwq2JnZEM7tNm17eBJz+u25qdxBZeCKiX6BkVSZQjwWIr+IobgnZy+ag73tTZgZi7tr0LrBw==
+
+fast-glob@3.3.1:
+  version "3.3.1"
+  resolved "https://registry.yarnpkg.com/fast-glob/-/fast-glob-3.3.1.tgz#784b4e897340f3dbbef17413b3f11acf03c874c4"
+  integrity sha512-kNFPyjhh5cKjrUltxs+wFx+ZkbRaxxmZ+X0ZU31SOsxCEtP9VPgtq2teZw1DebupL5GmDaNQ6yKMMVcM41iqDg==
+  dependencies:
+    "@nodelib/fs.stat" "^2.0.2"
+    "@nodelib/fs.walk" "^1.2.3"
+    glob-parent "^5.1.2"
+    merge2 "^1.3.0"
+    micromatch "^4.0.4"
 
 fast-glob@^3.3.0:
   version "3.3.3"
@@ -8342,7 +8360,7 @@ postcss@^8.4.23, postcss@^8.5.3:
 
 prettier@^3.5.3:
   version "3.5.3"
-  resolved "https://registry.npmjs.org/prettier/-/prettier-3.5.3.tgz"
+  resolved "https://registry.yarnpkg.com/prettier/-/prettier-3.5.3.tgz#4fc2ce0d657e7a02e602549f053b239cb7dfe1b5"
   integrity sha512-QQtaxnoDJeAkDvDKWCLiwIXkTgRhwYDEQCghU9Z6q03iyek/rxRh/2lC3HB7P8sWT2xC/y5JDctPLBIGzHKbhw==
 
 pretty-format@^27.0.2:

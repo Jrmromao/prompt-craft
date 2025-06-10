@@ -1,26 +1,58 @@
 {
   "extends": [
     "next/core-web-vitals",
-    "plugin:@typescript-eslint/recommended"
+    "eslint:recommended",
+    "plugin:@typescript-eslint/recommended",
+    "plugin:react/recommended",
+    "plugin:react-hooks/recommended",
+    "plugin:jsx-a11y/recommended",
+    "plugin:import/recommended",
+    "plugin:import/typescript",
+    "prettier"
   ],
-  "parser": "@typescript-eslint/parser",
-  "plugins": ["@typescript-eslint"],
+  "plugins": [
+    "@typescript-eslint",
+    "react",
+    "react-hooks",
+    "jsx-a11y",
+    "import",
+    "prettier"
+  ],
   "rules": {
-    "@typescript-eslint/no-unused-vars": ["warn", {
-      "argsIgnorePattern": "^_",
-      "varsIgnorePattern": "^_"
-    }],
+    "prettier/prettier": "error",
+    "react/react-in-jsx-scope": "off",
+    "react/prop-types": "off",
+    "@typescript-eslint/explicit-module-boundary-types": "off",
+    "@typescript-eslint/no-unused-vars": ["warn", { "argsIgnorePattern": "^_" }],
     "@typescript-eslint/no-explicit-any": "warn",
-    "no-console": ["warn", { "allow": ["warn", "error"] }],
-    "import/order": "off",
-    "react-hooks/exhaustive-deps": "warn",
-    "@typescript-eslint/ban-types": "off",
-    "@typescript-eslint/no-empty-interface": "off",
-    "@typescript-eslint/no-empty-function": "off"
+    "import/order": [
+      "error",
+      {
+        "groups": ["builtin", "external", "internal", "parent", "sibling", "index"],
+        "newlines-between": "always",
+        "alphabetize": { "order": "asc", "caseInsensitive": true }
+      }
+    ]
   },
   "settings": {
-    "next": {
-      "rootDir": "."
+    "react": {
+      "version": "detect"
+    },
+    "import/resolver": {
+      "typescript": {}
     }
+  },
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "ecmaVersion": 2021,
+    "sourceType": "module",
+    "ecmaFeatures": {
+      "jsx": true
+    }
+  },
+  "env": {
+    "browser": true,
+    "es2021": true,
+    "node": true
   }
 } 
