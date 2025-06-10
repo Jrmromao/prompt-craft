@@ -60,7 +60,7 @@ export function PromptsClient({ prompts }: PromptsClientProps) {
           <p className="mt-1 text-muted-foreground">Manage and organize your prompts</p>
         </div>
         <Button asChild>
-          <Link href="/prompts/new">
+          <Link href="/prompts/create">
             <PlusCircle className="mr-2 h-4 w-4" />
             Create Prompt
           </Link>

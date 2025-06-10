@@ -23,12 +23,14 @@ interface TestResult {
 interface TestPromptModalProps {
   isOpen: boolean;
   onClose: () => void;
+  promptId: string;
   promptContent: string;
   promptVersionId: string;
   onTestPrompt: (content: string, testInput: string, promptVersionId: string) => Promise<TestResult>;
+  onTestHistorySaved?: () => void;
 }
 
-export function TestPromptModal({ isOpen, onClose, promptContent, promptVersionId, onTestPrompt }: TestPromptModalProps) {
+export function TestPromptModal({ isOpen, onClose, promptId, promptContent, promptVersionId, onTestPrompt, onTestHistorySaved }: TestPromptModalProps) {
   const [testInput, setTestInput] = useState('');
   const [isTesting, setIsTesting] = useState(false);
   const [testResult, setTestResult] = useState<TestResult | null>(null);
@@ -40,6 +42,20 @@ export function TestPromptModal({ isOpen, onClose, promptContent, promptVersionI
       const result = await onTestPrompt(promptContent, testInput, promptVersionId);
       setTestResult(result);
       setShowResults(true);
+      // Save test history after test run
+      await fetch(`/api/prompts/${promptId}/test-history`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          promptVersionId,
+          input: testInput,
+          output: result.result,
+          // Optionally add tokensUsed/duration if available in result
+        }),
+      });
+      if (typeof onTestHistorySaved === 'function') {
+        onTestHistorySaved();
+      }
     } catch (error) {
       console.error('Error testing prompt:', error);
       toast.error('Failed to test prompt');

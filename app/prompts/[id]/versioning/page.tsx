@@ -50,6 +50,7 @@ export default function VersioningPage() {
     description: string;
     commitMessage: string;
     tags: string[];
+    tests?: Array<{ input: string; output: string; rating: any }>;
   }) => {
     try {
       console.log('Creating new version with data:', data);

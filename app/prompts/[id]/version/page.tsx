@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Play, Star, Clock, User, Plus } from 'lucide-react';
+import { ArrowLeft, Play, Star, Clock, User, Plus, FileText, History, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -10,7 +10,12 @@ import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { TestPromptModal } from '@/components/TestPromptModal';
+import { VersionPlayground } from '@/components/VersionPlayground';
 import ReactMarkdown from 'react-markdown';
+import { TestHistory } from '@/components/TestHistory';
+import { Version } from '@/types/version';
+import { Separator } from '@/components/ui/separator';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface TestResult {
   id: string;
@@ -22,18 +27,6 @@ interface TestResult {
     overall: number;
     feedback?: string;
   };
-}
-
-interface Version {
-  id: string;
-  version: number;
-  content: string;
-  createdAt: Date;
-  user?: {
-    name?: string;
-    imageUrl?: string;
-  };
-  testResults?: TestResult[];
 }
 
 interface Prompt {
@@ -175,12 +168,100 @@ export default function VersionPage({ params }: { params: { id: string } }) {
     }
   };
 
+  // Map API data to TestHistoryItem format for TestHistory component
+  let mappedTestHistory = testHistory.map((test) => ({
+    id: test.id,
+    createdAt: test.createdAt,
+    testInput: test.input,
+    testOutput: test.output,
+    tokensUsed: test.tokensUsed,
+    duration: test.duration,
+    rating: test.PromptVersion?.PromptTest?.PromptRating
+      ? {
+          id: test.PromptVersion.PromptTest.PromptRating.id,
+          clarity: test.PromptVersion.PromptTest.PromptRating.clarity,
+          specificity: test.PromptVersion.PromptTest.PromptRating.specificity,
+          context: test.PromptVersion.PromptTest.PromptRating.context,
+          overall: test.PromptVersion.PromptTest.PromptRating.overall,
+          feedback: test.PromptVersion.PromptTest.PromptRating.feedback,
+        }
+      : undefined,
+  }));
+  // Sort by best overall rating (descending), unrated last
+  mappedTestHistory = mappedTestHistory.sort((a, b) => {
+    const aRating = a.rating?.overall ?? -1;
+    const bRating = b.rating?.overall ?? -1;
+    return bRating - aRating;
+  });
+
   if (isLoading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="min-h-screen bg-background">
+        <div className="container mx-auto px-4 py-8">
+          {/* Header Skeleton */}
+          <div className="mb-8 space-y-4">
+            <div className="flex items-center gap-4">
+              <Skeleton className="h-10 w-10 rounded-full" />
+              <Skeleton className="h-8 w-64" />
+            </div>
+            <Skeleton className="h-4 w-96" />
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Left: Version Timeline Skeleton */}
+            <div className="lg:col-span-1">
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between mb-6">
+                    <Skeleton className="h-6 w-32" />
+                    <Skeleton className="h-10 w-36" />
+                  </div>
+                  <div className="space-y-4">
+                    {[1, 2, 3, 4].map((i) => (
+                      <div key={i} className="space-y-2">
+                        <Skeleton className="h-20 w-full" />
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Right: Content Skeleton */}
+            <div className="lg:col-span-2">
+              <Card>
+                <CardContent className="p-6">
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-4 mb-6">
+                      <Skeleton className="h-10 w-24" />
+                      <Skeleton className="h-10 w-24" />
+                      <Skeleton className="h-10 w-24" />
+                    </div>
+                    <div className="space-y-2">
+                      <Skeleton className="h-4 w-full" />
+                      <Skeleton className="h-4 w-3/4" />
+                      <Skeleton className="h-4 w-5/6" />
+                      <Skeleton className="h-4 w-2/3" />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   if (!prompt || !selectedVersion) {
-    return <div>Prompt not found</div>;
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100">Prompt not found</h2>
+          <Button onClick={() => router.back()}>Go Back</Button>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -213,7 +294,7 @@ export default function VersionPage({ params }: { params: { id: string } }) {
                   <h2 className="text-xl font-semibold">Version History</h2>
                   <Button
                     className="bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700"
-                    onClick={() => setIsCreateVersionOpen(true)}
+                    onClick={() => router.push(`/prompts/${promptId}/versioning`)}
                   >
                     <Plus className="mr-2 h-5 w-5" />
                     Create New Version
@@ -277,9 +358,19 @@ export default function VersionPage({ params }: { params: { id: string } }) {
                         <Button
                           onClick={() => setIsTestModalOpen(true)}
                           className="bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700"
+                          disabled={isLoadingHistory}
                         >
-                          <Play className="mr-2 h-4 w-4" />
-                          Run Test
+                          {isLoadingHistory ? (
+                            <>
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                              Loading...
+                            </>
+                          ) : (
+                            <>
+                              <Play className="mr-2 h-4 w-4" />
+                              Run Test
+                            </>
+                          )}
                         </Button>
                       </div>
                       <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -292,95 +383,18 @@ export default function VersionPage({ params }: { params: { id: string } }) {
                     <div className="space-y-4">
                       <h3 className="text-lg font-semibold">Test History</h3>
                       {isLoadingHistory ? (
-                        <div className="text-center py-8 text-muted-foreground">Loading test history...</div>
-                      ) : testHistory.length ? (
-                        <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2">
-                          {testHistory.map((test) => (
-                            <Card key={test.id}>
-                              <CardContent className="p-4 space-y-2">
-                                <div className="flex items-center justify-between mb-2">
-                                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                    <Clock className="h-4 w-4" />
-                                    {new Date(test.createdAt).toLocaleString()}
-                                  </div>
-                                  {test.tokensUsed && (
-                                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                                      <span>{test.tokensUsed} tokens</span>
-                                    </div>
-                                  )}
-                                </div>
-                                {test.input && (
-                                  <div className="text-xs"><span className="font-medium">Input:</span> <span className="text-muted-foreground">{test.input.length > 100 ? `${test.input.substring(0, 100)}...` : test.input}</span></div>
-                                )}
-                                {test.output && (
-                                  <div className="text-xs"><span className="font-medium">Output:</span> <span className="text-muted-foreground">{test.output.length > 100 ? `${test.output.substring(0, 100)}...` : test.output}</span></div>
-                                )}
-                                {test.PromptVersion?.PromptTest?.PromptRating && (
-                                  <div className="space-y-1 mt-2">
-                                    <div className="flex items-center gap-2 text-xs">
-                                      <span>Overall:</span>
-                                      <span className="font-semibold text-yellow-500">{test.PromptVersion.PromptTest.PromptRating.overall}/10</span>
-                                    </div>
-                                    <div className="grid grid-cols-3 gap-2 text-xs">
-                                      <div>Clarity: {test.PromptVersion.PromptTest.PromptRating.clarity}/10</div>
-                                      <div>Specificity: {test.PromptVersion.PromptTest.PromptRating.specificity}/10</div>
-                                      <div>Context: {test.PromptVersion.PromptTest.PromptRating.context}/10</div>
-                                    </div>
-                                    {test.PromptVersion.PromptTest.PromptRating.feedback && (
-                                      <div className="text-xs text-muted-foreground mt-1">Feedback: {test.PromptVersion.PromptTest.PromptRating.feedback}</div>
-                                    )}
-                                  </div>
-                                )}
-                              </CardContent>
-                            </Card>
+                        <div className="space-y-4">
+                          {[1, 2, 3].map((i) => (
+                            <div key={i} className="space-y-2">
+                              <Skeleton className="h-24 w-full" />
+                            </div>
                           ))}
                         </div>
                       ) : (
-                        <>
-                          <div className="text-center py-8 text-muted-foreground">No test results available for this version</div>
-                          <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2">
-                            <div className="text-center text-xs text-purple-500 mb-2">(Showing dummy data for testing)</div>
-                            {dummyTestHistory.map((test) => (
-                              <Card key={test.id}>
-                                <CardContent className="p-4 space-y-2">
-                                  <div className="flex items-center justify-between mb-2">
-                                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                      <Clock className="h-4 w-4" />
-                                      {new Date(test.createdAt).toLocaleString()}
-                                    </div>
-                                    {test.tokensUsed && (
-                                      <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                                        <span>{test.tokensUsed} tokens</span>
-                                      </div>
-                                    )}
-                                  </div>
-                                  {test.input && (
-                                    <div className="text-xs"><span className="font-medium">Input:</span> <span className="text-muted-foreground">{test.input.length > 100 ? `${test.input.substring(0, 100)}...` : test.input}</span></div>
-                                  )}
-                                  {test.output && (
-                                    <div className="text-xs"><span className="font-medium">Output:</span> <span className="text-muted-foreground">{test.output.length > 100 ? `${test.output.substring(0, 100)}...` : test.output}</span></div>
-                                  )}
-                                  {test.PromptVersion?.PromptTest?.PromptRating && (
-                                    <div className="space-y-1 mt-2">
-                                      <div className="flex items-center gap-2 text-xs">
-                                        <span>Overall:</span>
-                                        <span className="font-semibold text-yellow-500">{test.PromptVersion.PromptTest.PromptRating.overall}/10</span>
-                                      </div>
-                                      <div className="grid grid-cols-3 gap-2 text-xs">
-                                        <div>Clarity: {test.PromptVersion.PromptTest.PromptRating.clarity}/10</div>
-                                        <div>Specificity: {test.PromptVersion.PromptTest.PromptRating.specificity}/10</div>
-                                        <div>Context: {test.PromptVersion.PromptTest.PromptRating.context}/10</div>
-                                      </div>
-                                      {test.PromptVersion.PromptTest.PromptRating.feedback && (
-                                        <div className="text-xs text-muted-foreground mt-1">Feedback: {test.PromptVersion.PromptTest.PromptRating.feedback}</div>
-                                      )}
-                                    </div>
-                                  )}
-                                </CardContent>
-                              </Card>
-                            ))}
-                          </div>
-                        </>
+                        <TestHistory
+                          history={mappedTestHistory}
+                          onSelectTest={() => {}}
+                        />
                       )}
                     </div>
                   </TabsContent>
@@ -393,8 +407,45 @@ export default function VersionPage({ params }: { params: { id: string } }) {
         <TestPromptModal
           isOpen={isTestModalOpen}
           onClose={() => setIsTestModalOpen(false)}
+          promptId={prompt.id}
           promptContent={selectedVersion.content}
           promptVersionId={selectedVersion.id}
+          onTestPrompt={handleTestPrompt}
+          onTestHistorySaved={() => {
+            // Refetch test history after saving
+            setIsLoadingHistory(true);
+            fetch(`/api/prompts/${promptId}/test-history?promptVersionId=${selectedVersion.id}`)
+              .then(res => res.json())
+              .then(data => setTestHistory(data))
+              .catch(() => setTestHistory([]))
+              .finally(() => setIsLoadingHistory(false));
+          }}
+        />
+
+        <VersionPlayground
+          currentVersion={selectedVersion}
+          onSaveVersion={async (data) => {
+            try {
+              const response = await fetch(`/api/prompts/${promptId}/versions`, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data),
+              });
+
+              if (!response.ok) {
+                throw new Error('Failed to create version');
+              }
+
+              const newVersion = await response.json();
+              setVersions(prev => [...prev, newVersion]);
+              setSelectedVersion(newVersion);
+              setIsCreateVersionOpen(false);
+            } catch (error) {
+              console.error('Error creating version:', error);
+            }
+          }}
           onTestPrompt={handleTestPrompt}
         />
       </div>

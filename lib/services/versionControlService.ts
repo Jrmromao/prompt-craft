@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/prisma';
 import { diffWords } from 'diff';
+import crypto from 'crypto';
 
 interface Version {
   id: string;
@@ -39,7 +40,8 @@ export class VersionControlService {
     description: string | null,
     commitMessage: string,
     tags: string[],
-    baseVersionId?: string
+    baseVersionId?: string,
+    tests?: Array<{ input?: string; output: string; rating?: { clarity: number; specificity: number; context: number; overall: number; feedback: string; } }>
   ) {
     const prompt = await prisma.prompt.findUnique({
       where: { id: promptId },
@@ -99,6 +101,23 @@ export class VersionControlService {
         commitMessage,
         tags,
         version: (prompt.versions.length + 1).toString(),
+        PromptTest: tests ? {
+          create: tests.map(test => ({
+            id: crypto.randomUUID(),
+            input: test.input,
+            output: test.output,
+            updatedAt: new Date(),
+            PromptRating: test.rating ? {
+              create: {
+                clarity: test.rating.clarity,
+                specificity: test.rating.specificity,
+                context: test.rating.context,
+                overall: test.rating.overall,
+                feedback: test.rating.feedback,
+              },
+            } : undefined,
+          })),
+        } : undefined,
       },
       include: {
         prompt: {

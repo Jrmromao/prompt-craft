@@ -1,5 +1,5 @@
 'use client';
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo, useCallback, memo } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -24,6 +24,14 @@ import {
   Code2,
   Stethoscope,
   X,
+  ArrowLeft,
+  Play,
+  Star,
+  Clock,
+  User,
+  FileText,
+  History,
+  Loader2,
 } from 'lucide-react';
 import { AIService } from '@/lib/services/aiService';
 import type { PromptPayload, PromptType } from '@/types/ai';
@@ -42,6 +50,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { useUser } from '@clerk/nextjs';
+import { FloatingWarningBar } from '@/components/support/FloatingWarningBar';
 
 const PROMPT_TYPES: {
   value: PromptType;
@@ -433,7 +442,7 @@ Include disclaimer: [yes/no]`,
     tags: ['medical', 'case-study', 'documentation', 'clinical'],
     tone: 'professional',
     format: 'medical-report',
-    promptType: 'text',
+    promptType: 'medical',
   },
   {
     name: 'Patient Education Material',
@@ -456,7 +465,7 @@ Include medical review statement: [yes/no]`,
     tags: ['medical', 'patient', 'education', 'documentation'],
     tone: 'clear',
     format: 'patient-education',
-    promptType: 'text',
+    promptType: 'medical',
   },
   {
     name: 'Clinical Research Protocol',
@@ -480,7 +489,7 @@ Include ethical review statement: [yes/no]`,
     tags: ['medical', 'research', 'clinical', 'documentation'],
     tone: 'scientific',
     format: 'research-protocol',
-    promptType: 'text',
+    promptType: 'medical',
   },
   {
     name: 'Medical Documentation Template',
@@ -504,7 +513,7 @@ Include compliance statement: [yes/no]`,
     tags: ['medical', 'documentation', 'clinical', 'HIPAA'],
     tone: 'professional',
     format: 'medical-note',
-    promptType: 'text',
+    promptType: 'medical',
   },
 ];
 
@@ -534,47 +543,36 @@ function getLanguageName(code: string) {
   }
 }
 
-// Update the FloatingWarningBar component
-const FloatingWarningBar = ({ onClose }: { onClose: () => void }) => (
-  <div className="fixed left-0 right-0 top-0 z-50 bg-yellow-500 shadow-lg dark:bg-yellow-600">
-    <div className="mx-auto max-w-7xl px-4 py-3">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Info className="h-5 w-5 text-white" />
-          <p className="text-sm font-medium text-white">
-            Medical prompts are for educational purposes only. Always consult healthcare
-            professionals for medical decisions.
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Badge variant="secondary" className="bg-yellow-400/20 text-white hover:bg-yellow-400/30">
-            HIPAA Compliant
-          </Badge>
-          <Badge variant="secondary" className="bg-yellow-400/20 text-white hover:bg-yellow-400/30">
-            Professional Review Required
-          </Badge>
-          <button
-            onClick={onClose}
-            className="ml-2 rounded-full p-1 transition-colors hover:bg-yellow-400/20"
-          >
-            <X className="h-5 w-5 text-white" />
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-);
+interface FormData {
+  name: string;
+  description: string;
+  content: string;
+  isPublic: boolean;
+  tags: string[];
+  tone: string;
+  format: string;
+  wordCount: string;
+  targetAudience: string;
+  includeExamples: boolean;
+  includeKeywords: boolean;
+  temperature: number;
+  language: string;
+  promptType: string;
+  persona?: string;
+  includeImageDescription?: boolean;
+}
 
-export default function ClientPromptCreate({ user }: { user: NavBarUser }) {
+const ClientPromptCreate = memo(function ClientPromptCreate({ user }: { user: NavBarUser }) {
   const { toast } = useToast();
   const router = useRouter();
+  const { user: clerkUser } = useUser();
   const aiResponseRef = useRef<HTMLDivElement>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [aiResponse, setAiResponse] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [showHighlight, setShowHighlight] = useState(false);
   const [promptType, setPromptType] = useState<PromptType>('text');
-  const [formData, setFormData] = useState<any>({
+  const [formData, setFormData] = useState<FormData>({
     name: '',
     description: '',
     content: '',
@@ -586,19 +584,10 @@ export default function ClientPromptCreate({ user }: { user: NavBarUser }) {
     targetAudience: '',
     includeExamples: false,
     includeKeywords: false,
-    includeStructure: false,
-    includeImageDescription: false,
-    style: '',
-    resolution: '',
-    palette: '',
-    duration: '',
-    genre: '',
-    mood: '',
-    length: '',
-    instruments: '',
     temperature: 0.7,
-    persona: '',
     language: 'en',
+    promptType: 'text',
+    persona: '',
   });
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [editableAiResponse, setEditableAiResponse] = useState<string | null>(null);
@@ -610,11 +599,15 @@ export default function ClientPromptCreate({ user }: { user: NavBarUser }) {
     missingCredits: number;
   }>({ currentCredits: 0, requiredCredits: 0, missingCredits: 0 });
   const [showMedicalWarning, setShowMedicalWarning] = useState(false);
-  const { user: clerkUser } = useUser();
 
+  // Memoize expensive computations
+  const memoizedFormData = useMemo(() => formData, [formData]);
+  const memoizedSelectedTags = useMemo(() => selectedTags, [selectedTags]);
+
+  // Use effect for scroll behavior
   useEffect(() => {
     if (aiResponse && aiResponseRef.current) {
-      setTimeout(() => {
+      const scrollTimeout = setTimeout(() => {
         aiResponseRef.current?.scrollIntoView({
           behavior: 'smooth',
           block: 'center',
@@ -622,103 +615,98 @@ export default function ClientPromptCreate({ user }: { user: NavBarUser }) {
         });
       }, 100);
       setShowHighlight(true);
-      const timer = setTimeout(() => setShowHighlight(false), 2000);
-      return () => clearTimeout(timer);
+      const highlightTimeout = setTimeout(() => setShowHighlight(false), 2000);
+      return () => {
+        clearTimeout(scrollTimeout);
+        clearTimeout(highlightTimeout);
+      };
     }
   }, [aiResponse]);
 
+  // Use effect for spinner message
   useEffect(() => {
     if (isLoading || isGenerating) {
       setSpinnerMessage(getRandomSpinnerMessage());
     }
   }, [isLoading, isGenerating]);
 
+  // Use effect for medical warning
   useEffect(() => {
     setShowMedicalWarning(promptType === 'medical');
   }, [promptType]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.name || !formData.content) {
-      toast({
-        title: 'Validation Error',
-        description: 'Name and Prompt Content are required.',
-        variant: 'destructive',
-      });
+    console.log('Form submission started');
+    console.log('Form data:', formData);
+
+    if (isLoading) {
+      console.log('Form submission blocked - already loading');
       return;
     }
-    setIsLoading(true);
-    setIsGenerating(true);
-    setAiResponse(null);
+
     try {
-      const personaInstruction = formData.persona ? `Act as ${formData.persona}.` : '';
-      const temperatureInstruction =
-        formData.temperature !== undefined ? `Use a temperature of ${formData.temperature}.` : '';
-      const languageInstruction =
-        formData.language && formData.language !== 'en'
-          ? `Respond only in ${getLanguageName(formData.language)}.`
-          : '';
-      const imageDescriptionInstruction = formData.includeImageDescription
-        ? 'Include a detailed image description in your response.'
-        : '';
-      const brevityInstruction =
-        'Only return the prompt template, no extra explanations or examples.';
-      const llmPrompt = [
-        personaInstruction,
-        temperatureInstruction,
-        languageInstruction,
-        imageDescriptionInstruction,
-        brevityInstruction,
-        formData.content,
-      ]
-        .filter(Boolean)
-        .join('\n\n');
-      const aiService = AIService.getInstance();
-      let llmResponse;
-      try {
-        llmResponse = await aiService.generateText({
-          prompt: llmPrompt,
-          model: 'deepseek',
-          userId: clerkUser?.id,
-        });
-        setAiResponse(llmResponse);
-        setEditableAiResponse(llmResponse);
-        toast({ title: 'Success', description: 'Prompt template generated successfully' });
-      } catch (llmError: any) {
-        // Check for insufficient credits (402)
-        if (llmError.message && llmError.message.toLowerCase().includes('insufficient credits')) {
-          // Try to extract credit info if available
-          const errorData = llmError.response?.data || {};
-          setCreditsInfo({
-            currentCredits: errorData.currentCredits || 0,
-            requiredCredits: errorData.requiredCredits || 0,
-            missingCredits: errorData.missingCredits || 0,
-          });
-          setShowCreditsDialog(true);
-          setIsLoading(false);
-          setIsGenerating(false);
-          return;
-        }
-        toast({
-          title: 'LLM Error',
-          description: llmError instanceof Error ? llmError.message : 'Failed to get LLM response',
-          variant: 'destructive',
-        });
-        return;
+      setIsLoading(true);
+      console.log('Setting loading state to true');
+
+      // Prepare the prompt data
+      const promptData = {
+        title: formData.name.trim(),
+        content: formData.content.trim(),
+        description: formData.description.trim(),
+        tags: selectedTags,
+        isPublic: formData.isPublic || false,
+        temperature: formData.temperature || 0.7,
+        language: formData.language || 'en',
+        promptType: formData.promptType || 'text',
+        persona: formData.persona || '',
+      };
+
+      console.log('Submitting prompt data:', promptData);
+
+      const response = await fetch('/api/prompts', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(promptData),
+      });
+
+      console.log('Response status:', response.status);
+      console.log('Response headers:', Object.fromEntries(response.headers.entries()));
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => null);
+        console.error('API Error Response:', errorData);
+        throw new Error(errorData?.message || 'Failed to create prompt');
       }
+
+      const data = await response.json();
+      console.log('Success response:', data);
+
+      toast({
+        title: 'Success!',
+        description: 'Your prompt has been created successfully.',
+      });
+
+      router.push(`/prompts/${data.savedPrompt.id}`);
+    } catch (error: any) {
+      console.error('Error creating prompt:', error);
+      console.error('Error stack:', error.stack);
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to create prompt. Please try again.',
+        variant: 'destructive',
+      });
     } finally {
       setIsLoading(false);
-      setIsGenerating(false);
+      console.log('Setting loading state to false');
     }
-  };
+  }, [formData, selectedTags, isLoading, router, toast]);
 
-  const toggleTag = (tag: string) => {
-    setSelectedTags(prev => (prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]));
-  };
-
-  // ... (inject the fadeInUp and wave keyframes as before) ...
-
-  // ... (return the full JSX for the form, spinner, AI response, tips, and examples) ...
+  const toggleTag = useCallback((tag: string) => {
+    setSelectedTags((prev: string[]) => (prev.includes(tag) ? prev.filter((t: string) => t !== tag) : [...prev, tag]));
+  }, []);
 
   const MedicalDisclaimer = () => (
     <div className="mt-4 rounded-lg border border-yellow-200 bg-yellow-50 p-4 dark:border-yellow-800 dark:bg-yellow-900/20">
@@ -743,574 +731,530 @@ export default function ClientPromptCreate({ user }: { user: NavBarUser }) {
   );
 
   return (
-    <>
+    <div className="min-h-screen bg-background">
       <NavBar user={user} />
       {showMedicalWarning && <FloatingWarningBar onClose={() => setShowMedicalWarning(false)} />}
-      <div
-        className={`relative flex min-h-screen flex-col bg-white dark:bg-gray-900 ${showMedicalWarning ? 'pt-12' : ''}`}
-      >
-        {(isLoading || isGenerating) && (
-          <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-white/80 dark:bg-gray-900/80">
-            <div className="mb-6 h-16 w-16 animate-spin rounded-full border-b-4 border-purple-500"></div>
-            <div
-              className="px-4 text-center text-lg font-medium text-purple-700 dark:text-purple-300"
-              style={{
-                display: 'inline-block',
-                whiteSpace: 'pre',
-                animation: 'fadeInUp 0.7s cubic-bezier(.4,0,.2,1)',
-              }}
-            >
-              {spinnerMessage.split('').map((char, i) => (
-                <span
-                  key={i}
-                  style={{
-                    display: 'inline-block',
-                    animation: `wave 1.2s infinite`,
-                    animationDelay: `${i * 0.06}s`,
-                  }}
-                >
-                  {char}
-                </span>
-              ))}
+      <div className="container mx-auto px-4 py-8 relative">
+        {isLoading && (
+          <div className="absolute inset-0 z-40 flex flex-col items-center justify-center bg-white/70 dark:bg-black/70 rounded-lg">
+            <Loader2 className="h-12 w-12 animate-spin text-purple-600 mb-4" />
+            <div className="flex gap-1 text-lg font-semibold text-purple-700 dark:text-purple-300">
+              {spinnerMessage}
+              <span className="animate-bounce">.</span>
+              <span className="animate-bounce" style={{ animationDelay: '0.15s' }}>.</span>
+              <span className="animate-bounce" style={{ animationDelay: '0.3s' }}>.</span>
             </div>
           </div>
         )}
-        <div className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-4 py-10 md:flex-row md:px-8">
-          {/* Left: Form */}
-          <div className="flex-1 space-y-8">
-            <Card className="border-gray-200 dark:border-gray-800">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-2xl font-bold text-gray-900 dark:text-white">
-                  <Sparkles className="h-6 w-6 text-purple-500" />
-                  Create New AI Prompt
-                </CardTitle>
-                <CardDescription className="text-gray-500 dark:text-gray-400">
-                  Create a reusable prompt template for AI interactions.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                {/* Prompt Type Selection */}
-                <div className="space-y-4">
-                  <div className="flex items-center gap-1">
-                    <Label className="text-gray-700 dark:text-gray-200">Prompt Type</Label>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <span tabIndex={0}>
-                          <HelpCircle className="h-4 w-4 cursor-pointer text-gray-400 hover:text-purple-500" />
-                        </span>
-                      </TooltipTrigger>
-                      <TooltipContent>Select the type of content you want to create</TooltipContent>
-                    </Tooltip>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr,350px]">
+            {/* Left: Main Form */}
+            <div className="space-y-6">
+              <Card>
+                <CardContent className="p-6">
+                  {/* Prompt Type Selection */}
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-1">
+                      <Label className="text-gray-700 dark:text-gray-200">Prompt Type</Label>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <span tabIndex={0}>
+                            <HelpCircle className="h-4 w-4 cursor-pointer text-gray-400 hover:text-purple-500" />
+                          </span>
+                        </TooltipTrigger>
+                      </Tooltip>
+                    </div>
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                      {PROMPT_TYPES.map(({ value, label, icon: Icon, description, color }) => (
+                        <button
+                          key={value}
+                          onClick={() => setPromptType(value)}
+                          className={`group relative rounded-xl border p-4 transition-all duration-200 ${
+                            promptType === value
+                              ? `bg-gradient-to-r ${color} border-transparent text-white shadow-lg`
+                              : 'border-gray-200 bg-white hover:border-purple-300 dark:border-gray-700 dark:bg-gray-800 dark:hover:border-purple-700'
+                          }`}
+                        >
+                          <div className="flex items-start gap-3">
+                            <div
+                              className={`rounded-lg p-2 ${
+                                promptType === value
+                                  ? 'bg-white/20'
+                                  : 'bg-gray-100 group-hover:bg-purple-50 dark:bg-gray-700 dark:group-hover:bg-purple-900/20'
+                              }`}
+                            >
+                              <Icon
+                                className={`h-6 w-6 ${
+                                  promptType === value
+                                    ? 'text-white'
+                                    : 'text-gray-600 group-hover:text-purple-600 dark:text-gray-300 dark:group-hover:text-purple-400'
+                                }`}
+                              />
+                            </div>
+                            <div className="flex-1 text-left">
+                              <h3
+                                className={`font-medium ${
+                                  promptType === value
+                                    ? 'text-white'
+                                    : 'text-gray-900 group-hover:text-purple-600 dark:text-white dark:group-hover:text-purple-400'
+                                }`}
+                              >
+                                {label}
+                              </h3>
+                              <p
+                                className={`mt-1 text-sm ${
+                                  promptType === value
+                                    ? 'text-white/90'
+                                    : 'text-gray-500 group-hover:text-purple-500 dark:text-gray-400 dark:group-hover:text-purple-300'
+                                }`}
+                              >
+                                {description}
+                              </p>
+                            </div>
+                            {promptType === value && (
+                              <div className="absolute right-2 top-2">
+                                <Check className="h-5 w-5 text-white" />
+                              </div>
+                            )}
+                          </div>
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                    {PROMPT_TYPES.map(({ value, label, icon: Icon, description, color }) => (
+
+                  {/* Persona Field */}
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-1">
+                      <Label htmlFor="persona">AI Character / Persona</Label>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <span tabIndex={0}>
+                            <HelpCircle className="h-4 w-4 cursor-pointer text-gray-400 hover:text-purple-500" />
+                          </span>
+                        </TooltipTrigger>
+                      </Tooltip>
+                    </div>
+                    <Input
+                      id="persona"
+                      value={formData.persona}
+                      onChange={e => setFormData(prev => ({ ...prev, persona: e.target.value }))}
+                      placeholder="e.g., Act as a designer"
+                    />
+                  </div>
+
+                  {/* Name & Description */}
+                  <div className="grid grid-cols-1 gap-6">
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-1">
+                        <Label>Name</Label>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <span tabIndex={0}>
+                              <HelpCircle className="h-4 w-4 cursor-pointer text-gray-400 hover:text-purple-500" />
+                            </span>
+                          </TooltipTrigger>
+                        </Tooltip>
+                      </div>
+                      <Input
+                        value={formData.name}
+                        onChange={e => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                        placeholder="e.g., Debugging Error Message"
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-1">
+                        <Label>Description</Label>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <span tabIndex={0}>
+                              <HelpCircle className="h-4 w-4 cursor-pointer text-gray-400 hover:text-purple-500" />
+                            </span>
+                          </TooltipTrigger>
+                        </Tooltip>
+                      </div>
+                      <Textarea
+                        value={formData.description}
+                        onChange={e => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                        placeholder="Briefly explain what this prompt does"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Language Field */}
+                  <div className="space-y-2">
+                    <Label htmlFor="language">Prompt Language</Label>
+                    <select
+                      id="language"
+                      value={formData.language}
+                      onChange={e => setFormData(prev => ({ ...prev, language: e.target.value }))}
+                      className="w-full rounded border bg-white px-2 py-1 text-gray-900 dark:bg-gray-800 dark:text-white"
+                    >
+                      <option value="en">English</option>
+                      <option value="es">Spanish</option>
+                      <option value="fr">French</option>
+                      <option value="de">German</option>
+                      <option value="pt">Portuguese</option>
+                    </select>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                      Select the language in which the AI should respond.
+                    </p>
+                  </div>
+
+                  {/* Content */}
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-1">
+                      <Label>Prompt Content</Label>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <span tabIndex={0}>
+                            <HelpCircle className="h-4 w-4 cursor-pointer text-gray-400 hover:text-purple-500" />
+                          </span>
+                        </TooltipTrigger>
+                      </Tooltip>
+                    </div>
+                    <Textarea
+                      value={formData.content}
+                      onChange={e => setFormData(prev => ({ ...prev, content: e.target.value }))}
+                      placeholder="Enter your AI prompt template with [variables] in brackets"
+                      required
+                      className="min-h-[120px] font-mono"
+                    />
+                    {/* Test in Playground Button & Modal */}
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          className="mt-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700"
+                        >
+                          Test in Playground
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="max-w-4xl">
+                        <DialogHeader>
+                          <DialogTitle>Test Prompt in Playground</DialogTitle>
+                        </DialogHeader>
+                        <Playground initialPrompt={formData.content} showTitle={false} />
+                      </DialogContent>
+                    </Dialog>
+                  </div>
+
+                  {/* Image Description Option - Only for text type prompts */}
+                  {promptType === 'text' && (
+                    <div className="flex items-center space-x-2">
+                      <Switch
+                        id="includeImageDescription"
+                        checked={formData.includeImageDescription}
+                        onCheckedChange={checked =>
+                          setFormData(prev => ({ ...prev, includeImageDescription: checked }))
+                        }
+                        className="data-[state=checked]:bg-purple-500"
+                      />
+                      <Label
+                        htmlFor="includeImageDescription"
+                        className="flex items-center gap-2 text-gray-700 dark:text-gray-200"
+                      >
+                        <Image className="h-4 w-4" /> Include image description in the prompt
+                      </Label>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <span tabIndex={0}>
+                            <HelpCircle className="h-4 w-4 cursor-pointer text-gray-400 hover:text-purple-500" />
+                          </span>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          When enabled, the AI will include a detailed image description in its
+                          response.
+                        </TooltipContent>
+                      </Tooltip>
+                    </div>
+                  )}
+
+                  {/* Tags & Visibility */}
+                  <div className="space-y-2">
+                    <Label>Tags</Label>
+                    <div className="flex flex-wrap gap-2">
+                      {COMMON_TAGS.map(tag => (
+                        <Badge
+                          key={tag}
+                          variant={selectedTags.includes(tag) ? 'default' : 'outline'}
+                          className={`cursor-pointer transition-all ${
+                            selectedTags.includes(tag)
+                              ? 'bg-purple-500 text-white hover:bg-purple-600'
+                              : 'border-gray-200 bg-white text-gray-700 hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700'
+                          }`}
+                          onClick={() => toggleTag(tag)}
+                        >
+                          {selectedTags.includes(tag) ? (
+                            <Check className="mr-1 h-3 w-3" />
+                          ) : (
+                            <Plus className="mr-1 h-3 w-3" />
+                          )}
+                          {tag}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="flex items-center space-x-2">
+                    <Switch
+                      id="isPublic"
+                      checked={formData.isPublic}
+                      onCheckedChange={checked => setFormData(prev => ({ ...prev, isPublic: checked }))}
+                      className="data-[state=checked]:bg-purple-500"
+                    />
+                    <Label
+                      htmlFor="isPublic"
+                      className="flex items-center gap-2 text-gray-700 dark:text-gray-200"
+                    >
+                      {formData.isPublic ? (
+                        <>
+                          <Globe className="h-4 w-4" /> Make prompt public
+                        </>
+                      ) : (
+                        <>
+                          <Lock className="h-4 w-4" /> Keep prompt private
+                        </>
+                      )}
+                    </Label>
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="mt-6 flex justify-end gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => router.back()}
+                      disabled={isLoading}
+                      className="border-gray-200 text-gray-700 hover:bg-gray-100 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-800"
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      type="submit"
+                      disabled={isLoading}
+                      className="bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700"
+                    >
+                      {isLoading ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          {getRandomSpinnerMessage()}
+                        </>
+                      ) : (
+                        'Create Prompt'
+                      )}
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* AI Response Section */}
+              <Card
+                ref={aiResponseRef}
+                className={`border-gray-200 transition-all duration-500 dark:border-gray-800 ${
+                  showHighlight
+                    ? 'animate-fade-in border-purple-500 shadow-lg shadow-purple-500/20'
+                    : ''
+                }`}
+              >
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-lg">
+                    <Sparkles className="h-5 w-5 text-purple-500" />
+                    AI Response
+                  </CardTitle>
+                  <CardDescription>
+                    {isGenerating
+                      ? 'Generating your optimized prompt...'
+                      : "Here's what the AI generated for your prompt. You can edit it before copying."}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {isGenerating ? (
+                      <div className="flex items-center justify-center py-8">
+                        <div className="relative h-8 w-8 animate-spin rounded-full border-b-2 border-purple-500">
+                          <div className="absolute inset-0 rounded-full border-2 border-purple-200/30"></div>
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        <Textarea
+                          value={editableAiResponse ?? ''}
+                          onChange={e => setEditableAiResponse(e.target.value)}
+                          className="min-h-[200px] rounded-lg border-gray-200 bg-gray-50 font-mono text-gray-900 transition-all duration-300 placeholder:text-gray-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:placeholder:text-gray-400"
+                        />
+                        <Button
+                          type="button"
+                          onClick={async () => {
+                            if (editableAiResponse) {
+                              await navigator.clipboard.writeText(editableAiResponse);
+                              toast({
+                                title: 'Copied!',
+                                description: 'Prompt copied to clipboard.',
+                                variant: 'default',
+                              });
+                            }
+                          }}
+                          className="flex items-center gap-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white transition-all duration-300 hover:from-purple-700 hover:to-pink-700"
+                        >
+                          <Sparkles className="h-4 w-4" />
+                          Copy to Clipboard
+                        </Button>
+                      </>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Right: Tips & Examples */}
+            <div className="space-y-6">
+              <Card className="border-gray-200 dark:border-gray-800">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-lg">
+                    <Info className="h-5 w-5 text-purple-500" />
+                    Tips for Creating Effective Prompts
+                  </CardTitle>
+                  <CardDescription>Best practices for creating high-quality prompts</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <ul className="space-y-3 text-sm text-gray-700 dark:text-gray-300">
+                    <li>Be specific about your desired output format</li>
+                    <li>Include relevant context and constraints</li>
+                    <li>Specify the tone and style you want</li>
+                    <li>Mention any specific requirements or limitations</li>
+                    <li>Use clear and concise language</li>
+                  </ul>
+                </CardContent>
+              </Card>
+
+              {/* Temperature Card */}
+              <Card className="border-gray-200 dark:border-gray-800">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-lg">
+                    <Sparkles className="h-5 w-5 text-pink-500" />
+                    Temperature
+                  </CardTitle>
+                  <CardDescription>Controls the creativity of the AI's responses</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="temperature" className="text-gray-700 dark:text-gray-200">
+                        Temperature
+                      </Label>
+                      <span className="font-mono text-xs text-purple-600 dark:text-purple-300">
+                        {formData.temperature}
+                      </span>
+                    </div>
+                    <input
+                      id="temperature"
+                      type="range"
+                      min={0}
+                      max={1}
+                      step={0.01}
+                      value={formData.temperature}
+                      onChange={e =>
+                        setFormData(prev => ({ ...prev, temperature: parseFloat(e.target.value) }))
+                      }
+                      className="w-full accent-purple-500"
+                    />
+                    <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400">
+                      <span>Deterministic (0)</span>
+                      <span>Creative (1)</span>
+                    </div>
+                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                      <span className="font-medium text-purple-600 dark:text-purple-300">
+                        What is temperature?
+                      </span>{' '}
+                      Lower values make the AI more focused and predictable. Higher values make it
+                      more creative and diverse. For most use cases, 0.7 is a good starting point.
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="border-gray-200 dark:border-gray-800">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-lg">
+                    <Sparkles className="h-5 w-5 text-purple-500" />
+                    Example Prompts
+                  </CardTitle>
+                  <CardDescription>Browse through example prompts for inspiration</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 gap-3">
+                    {EXAMPLE_PROMPTS.filter(
+                      (example: ExamplePrompt) => example.promptType === promptType
+                    ).map((example: ExamplePrompt, index: number) => (
                       <button
-                        key={value}
-                        onClick={() => setPromptType(value)}
-                        className={`group relative rounded-xl border p-4 transition-all duration-200 ${
-                          promptType === value
-                            ? `bg-gradient-to-r ${color} border-transparent text-white shadow-lg`
+                        type="button"
+                        key={index}
+                        onClick={() => {
+                          const newTags = example.tags || [];
+                          setFormData(prev => ({
+                            ...prev,
+                            name: example.name,
+                            description: example.description,
+                            content: example.content,
+                            tone: example.tone || '',
+                            format: example.format || '',
+                            style: example.style || '',
+                            resolution: example.resolution || '',
+                            palette: example.palette || '',
+                            duration: example.duration || '',
+                            genre: example.genre || '',
+                            mood: example.mood || '',
+                            length: example.length || '',
+                            instruments: example.instruments || '',
+                            isPublic: false,
+                            tags: newTags,
+                          }));
+                          setSelectedTags(newTags);
+                        }}
+                        className={`w-full rounded-lg border p-3 text-left transition-all ${
+                          formData.name === example.name
+                            ? 'border-purple-500 bg-purple-50 shadow-sm dark:bg-gray-800'
                             : 'border-gray-200 bg-white hover:border-purple-300 dark:border-gray-700 dark:bg-gray-800 dark:hover:border-purple-700'
                         }`}
                       >
-                        <div className="flex items-start gap-3">
-                          <div
-                            className={`rounded-lg p-2 ${
-                              promptType === value
-                                ? 'bg-white/20'
-                                : 'bg-gray-100 group-hover:bg-purple-50 dark:bg-gray-700 dark:group-hover:bg-purple-900/20'
-                            }`}
-                          >
-                            <Icon
-                              className={`h-6 w-6 ${
-                                promptType === value
-                                  ? 'text-white'
-                                  : 'text-gray-600 group-hover:text-purple-600 dark:text-gray-300 dark:group-hover:text-purple-400'
-                              }`}
-                            />
-                          </div>
-                          <div className="flex-1 text-left">
-                            <h3
-                              className={`font-medium ${
-                                promptType === value
-                                  ? 'text-white'
-                                  : 'text-gray-900 group-hover:text-purple-600 dark:text-white dark:group-hover:text-purple-400'
-                              }`}
+                        <div className="font-medium text-gray-900 dark:text-white">
+                          {example.name}
+                        </div>
+                        <div className="mt-1 line-clamp-2 text-sm text-gray-500 dark:text-gray-400">
+                          {example.description}
+                        </div>
+                        <div className="mt-2 flex flex-wrap gap-1">
+                          {example.tags.slice(0, 3).map((tag: string) => (
+                            <Badge
+                              key={tag}
+                              variant="secondary"
+                              className="bg-purple-100 text-xs text-purple-700 dark:bg-purple-900/20 dark:text-purple-300"
                             >
-                              {label}
-                            </h3>
-                            <p
-                              className={`mt-1 text-sm ${
-                                promptType === value
-                                  ? 'text-white/90'
-                                  : 'text-gray-500 group-hover:text-purple-500 dark:text-gray-400 dark:group-hover:text-purple-300'
-                              }`}
+                              {tag}
+                            </Badge>
+                          ))}
+                          {example.tags.length > 3 && (
+                            <Badge
+                              variant="secondary"
+                              className="bg-gray-100 text-xs text-gray-600 dark:bg-gray-800 dark:text-gray-400"
                             >
-                              {description}
-                            </p>
-                          </div>
-                          {promptType === value && (
-                            <div className="absolute right-2 top-2">
-                              <Check className="h-5 w-5 text-white" />
-                            </div>
+                              +{example.tags.length - 3}
+                            </Badge>
                           )}
                         </div>
                       </button>
                     ))}
                   </div>
-                </div>
-                {/* Persona Field */}
-                <div className="space-y-2">
-                  <div className="flex items-center gap-1">
-                    <Label htmlFor="persona">AI Character / Persona</Label>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <span tabIndex={0}>
-                          <HelpCircle className="h-4 w-4 cursor-pointer text-gray-400 hover:text-purple-500" />
-                        </span>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        Describe the role or persona the AI should adopt for this prompt (e.g., "Act
-                        as a designer").
-                      </TooltipContent>
-                    </Tooltip>
-                  </div>
-                  <Input
-                    id="persona"
-                    value={formData.persona ?? ''}
-                    onChange={e => setFormData({ ...formData, persona: e.target.value })}
-                    placeholder="e.g., Act as a designer, Act as a writer"
-                  />
-                </div>
-                {/* Name & Description */}
-                <div className="grid grid-cols-1 gap-6">
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-1">
-                      <Label>Name</Label>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <span tabIndex={0}>
-                            <HelpCircle className="h-4 w-4 cursor-pointer text-gray-400 hover:text-purple-500" />
-                          </span>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          Give your prompt a clear, descriptive name so you can easily find it
-                          later.
-                        </TooltipContent>
-                      </Tooltip>
-                    </div>
-                    <Input
-                      value={formData.name}
-                      onChange={e => setFormData({ ...formData, name: e.target.value })}
-                      placeholder="e.g., Debugging Error Message"
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-1">
-                      <Label>Description</Label>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <span tabIndex={0}>
-                            <HelpCircle className="h-4 w-4 cursor-pointer text-gray-400 hover:text-purple-500" />
-                          </span>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          Briefly explain what this prompt does or its intended use case.
-                        </TooltipContent>
-                      </Tooltip>
-                    </div>
-                    <Textarea
-                      value={formData.description}
-                      onChange={e => setFormData({ ...formData, description: e.target.value })}
-                      placeholder="Briefly explain what this prompt does"
-                    />
-                  </div>
-                </div>
-                {/* Language Field */}
-                <div className="space-y-2">
-                  <Label htmlFor="language">Prompt Language</Label>
-                  <select
-                    id="language"
-                    value={formData.language ?? 'en'}
-                    onChange={e => setFormData({ ...formData, language: e.target.value })}
-                    className="w-full rounded border bg-white px-2 py-1 text-gray-900 dark:bg-gray-800 dark:text-white"
-                  >
-                    <option value="en">English</option>
-                    <option value="es">Spanish</option>
-                    <option value="fr">French</option>
-                    <option value="de">German</option>
-                    <option value="pt">Portuguese</option>
-                    {/* Add more languages as needed */}
-                  </select>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">
-                    Select the language in which the AI should respond.
-                  </p>
-                </div>
-                {/* Content */}
-                <div className="space-y-2">
-                  <div className="flex items-center gap-1">
-                    <Label>Prompt Content</Label>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <span tabIndex={0}>
-                          <HelpCircle className="h-4 w-4 cursor-pointer text-gray-400 hover:text-purple-500" />
-                        </span>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        Enter your AI prompt template. Use [variables] in brackets for customizable
-                        parts.
-                      </TooltipContent>
-                    </Tooltip>
-                  </div>
-                  <Textarea
-                    value={formData.content}
-                    onChange={e => setFormData({ ...formData, content: e.target.value })}
-                    placeholder="Enter your AI prompt template with [variables] in brackets"
-                    required
-                    className="min-h-[120px] font-mono"
-                  />
-                  {/* Test in Playground Button & Modal */}
-                  <Dialog>
-                    <DialogTrigger asChild>
-                      <Button
-                        type="button"
-                        variant="secondary"
-                        className="mt-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700"
-                      >
-                        Test in Playground
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="max-w-4xl">
-                      <DialogHeader>
-                        <DialogTitle>Test Prompt in Playground</DialogTitle>
-                      </DialogHeader>
-                      <Playground initialPrompt={formData.content} showTitle={false} />
-                    </DialogContent>
-                  </Dialog>
-                </div>
-                {/* Image Description Option - Only for text type prompts */}
-                {promptType === 'text' && (
-                  <div className="flex items-center space-x-2">
-                    <Switch
-                      id="includeImageDescription"
-                      checked={formData.includeImageDescription}
-                      onCheckedChange={checked =>
-                        setFormData({ ...formData, includeImageDescription: checked })
-                      }
-                      className="data-[state=checked]:bg-purple-500"
-                    />
-                    <Label
-                      htmlFor="includeImageDescription"
-                      className="flex items-center gap-2 text-gray-700 dark:text-gray-200"
-                    >
-                      <Image className="h-4 w-4" /> Include image description in the prompt
-                    </Label>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <span tabIndex={0}>
-                          <HelpCircle className="h-4 w-4 cursor-pointer text-gray-400 hover:text-purple-500" />
-                        </span>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        When enabled, the AI will include a detailed image description in its
-                        response.
-                      </TooltipContent>
-                    </Tooltip>
-                  </div>
-                )}
-                {/* Tags & Visibility */}
-                <div className="space-y-2">
-                  <Label>Tags</Label>
-                  <div className="flex flex-wrap gap-2">
-                    {COMMON_TAGS.map(tag => (
-                      <Badge
-                        key={tag}
-                        variant={selectedTags.includes(tag) ? 'default' : 'outline'}
-                        className={`cursor-pointer transition-all ${
-                          selectedTags.includes(tag)
-                            ? 'bg-purple-500 text-white hover:bg-purple-600'
-                            : 'border-gray-200 bg-white text-gray-700 hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700'
-                        }`}
-                        onClick={() => toggleTag(tag)}
-                      >
-                        {selectedTags.includes(tag) ? (
-                          <Check className="mr-1 h-3 w-3" />
-                        ) : (
-                          <Plus className="mr-1 h-3 w-3" />
-                        )}
-                        {tag}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Switch
-                    id="isPublic"
-                    checked={formData.isPublic}
-                    onCheckedChange={checked => setFormData({ ...formData, isPublic: checked })}
-                    className="data-[state=checked]:bg-purple-500"
-                  />
-                  <Label
-                    htmlFor="isPublic"
-                    className="flex items-center gap-2 text-gray-700 dark:text-gray-200"
-                  >
-                    {formData.isPublic ? (
-                      <>
-                        <Globe className="h-4 w-4" /> Make prompt public
-                      </>
-                    ) : (
-                      <>
-                        <Lock className="h-4 w-4" /> Keep prompt private
-                      </>
-                    )}
-                  </Label>
-                </div>
-                {/* Action Buttons */}
-                <div className="flex justify-end gap-2 pt-4">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => router.back()}
-                    disabled={isLoading}
-                    className="border-gray-200 text-gray-700 hover:bg-gray-100 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-800"
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    type="submit"
-                    onClick={handleSubmit}
-                    className="flex items-center justify-center bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700"
-                    disabled={isLoading}
-                  >
-                    {isLoading ? (
-                      <svg
-                        className="mr-2 h-5 w-5 animate-spin text-white"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                      >
-                        <circle
-                          className="opacity-25"
-                          cx="12"
-                          cy="12"
-                          r="10"
-                          stroke="currentColor"
-                          strokeWidth="4"
-                        ></circle>
-                        <path
-                          className="opacity-75"
-                          fill="currentColor"
-                          d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
-                        ></path>
-                      </svg>
-                    ) : null}
-                    {isLoading ? 'Creating...' : 'Create Prompt'}
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-            {/* AI Response Section */}
-            <Card
-              ref={aiResponseRef}
-              className={`border-gray-200 transition-all duration-500 dark:border-gray-800 ${
-                showHighlight
-                  ? 'animate-fade-in border-purple-500 shadow-lg shadow-purple-500/20'
-                  : ''
-              }`}
-            >
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-lg">
-                  <Sparkles className="h-5 w-5 text-purple-500" />
-                  AI Response
-                </CardTitle>
-                <CardDescription>
-                  {isGenerating
-                    ? 'Generating your optimized prompt...'
-                    : "Here's what the AI generated for your prompt. You can edit it before copying."}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {isGenerating ? (
-                    <div className="flex items-center justify-center py-8">
-                      <div className="relative h-8 w-8 animate-spin rounded-full border-b-2 border-purple-500">
-                        <div className="absolute inset-0 rounded-full border-2 border-purple-200/30"></div>
-                      </div>
-                    </div>
-                  ) : (
-                    <>
-                      <Textarea
-                        value={editableAiResponse ?? ''}
-                        onChange={e => setEditableAiResponse(e.target.value)}
-                        className="min-h-[200px] rounded-lg border-gray-200 bg-gray-50 font-mono text-gray-900 transition-all duration-300 placeholder:text-gray-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:placeholder:text-gray-400"
-                      />
-                      <Button
-                        type="button"
-                        onClick={async () => {
-                          if (editableAiResponse) {
-                            await navigator.clipboard.writeText(editableAiResponse);
-                            toast({
-                              title: 'Copied!',
-                              description: 'Prompt copied to clipboard.',
-                              variant: 'default',
-                            });
-                          }
-                        }}
-                        className="flex items-center gap-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white transition-all duration-300 hover:from-purple-700 hover:to-pink-700"
-                      >
-                        <Sparkles className="h-4 w-4" />
-                        Copy to Clipboard
-                      </Button>
-                    </>
+                  {promptType === 'medical' && selectedTags.some(tag => tag.includes('medical')) && (
+                    <MedicalDisclaimer />
                   )}
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </div>
           </div>
-          {/* Right: Tips & Examples */}
-          <div className="w-full space-y-6 md:w-[350px]">
-            <Card className="border-gray-200 dark:border-gray-800">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-lg">
-                  <Info className="h-5 w-5 text-purple-500" />
-                  Tips for Creating Effective Prompts
-                </CardTitle>
-                <CardDescription>Best practices for creating high-quality prompts</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-3 text-sm text-gray-700 dark:text-gray-300">
-                  <li>Be specific about your desired output format</li>
-                  <li>Include relevant context and constraints</li>
-                  <li>Specify the tone and style you want</li>
-                  <li>Mention any specific requirements or limitations</li>
-                  <li>Use clear and concise language</li>
-                </ul>
-              </CardContent>
-            </Card>
-            {/* Temperature Card */}
-            <Card className="border-gray-200 dark:border-gray-800">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-lg">
-                  <Sparkles className="h-5 w-5 text-pink-500" />
-                  Temperature
-                </CardTitle>
-                <CardDescription>Controls the creativity of the AI's responses</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="temperature" className="text-gray-700 dark:text-gray-200">
-                      Temperature
-                    </Label>
-                    <span className="font-mono text-xs text-purple-600 dark:text-purple-300">
-                      {formData.temperature ?? 0.7}
-                    </span>
-                  </div>
-                  <input
-                    id="temperature"
-                    type="range"
-                    min={0}
-                    max={1}
-                    step={0.01}
-                    value={formData.temperature ?? 0.7}
-                    onChange={e =>
-                      setFormData({ ...formData, temperature: parseFloat(e.target.value) })
-                    }
-                    className="w-full accent-purple-500"
-                  />
-                  <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400">
-                    <span>Deterministic (0)</span>
-                    <span>Creative (1)</span>
-                  </div>
-                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                    <span className="font-medium text-purple-600 dark:text-purple-300">
-                      What is temperature?
-                    </span>{' '}
-                    Lower values make the AI more focused and predictable. Higher values make it
-                    more creative and diverse. For most use cases, 0.7 is a good starting point.
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-            <Card className="border-gray-200 dark:border-gray-800">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-lg">
-                  <Sparkles className="h-5 w-5 text-purple-500" />
-                  Example Prompts
-                </CardTitle>
-                <CardDescription>Browse through example prompts for inspiration</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 gap-3">
-                  {EXAMPLE_PROMPTS.filter(
-                    (example: ExamplePrompt) => example.promptType === promptType
-                  ).map((example: ExamplePrompt, index: number) => (
-                    <button
-                      key={index}
-                      onClick={() => {
-                        const newTags = example.tags || [];
-                        setFormData({
-                          ...formData,
-                          name: example.name,
-                          description: example.description,
-                          content: example.content,
-                          tone: example.tone || '',
-                          format: example.format || '',
-                          style: example.style || '',
-                          resolution: example.resolution || '',
-                          palette: example.palette || '',
-                          duration: example.duration || '',
-                          genre: example.genre || '',
-                          mood: example.mood || '',
-                          length: example.length || '',
-                          instruments: example.instruments || '',
-                          isPublic: false,
-                          tags: newTags,
-                        });
-                        setSelectedTags(newTags);
-                      }}
-                      className={`w-full rounded-lg border p-3 text-left transition-all ${
-                        formData.name === example.name
-                          ? 'border-purple-500 bg-purple-50 shadow-sm dark:bg-gray-800'
-                          : 'border-gray-200 bg-white hover:border-purple-300 dark:border-gray-700 dark:bg-gray-800 dark:hover:border-purple-700'
-                      }`}
-                    >
-                      <div className="font-medium text-gray-900 dark:text-white">
-                        {example.name}
-                      </div>
-                      <div className="mt-1 line-clamp-2 text-sm text-gray-500 dark:text-gray-400">
-                        {example.description}
-                      </div>
-                      <div className="mt-2 flex flex-wrap gap-1">
-                        {example.tags.slice(0, 3).map((tag: string) => (
-                          <Badge
-                            key={tag}
-                            variant="secondary"
-                            className="bg-purple-100 text-xs text-purple-700 dark:bg-purple-900/20 dark:text-purple-300"
-                          >
-                            {tag}
-                          </Badge>
-                        ))}
-                        {example.tags.length > 3 && (
-                          <Badge
-                            variant="secondary"
-                            className="bg-gray-100 text-xs text-gray-600 dark:bg-gray-800 dark:text-gray-400"
-                          >
-                            +{example.tags.length - 3}
-                          </Badge>
-                        )}
-                      </div>
-                    </button>
-                  ))}
-                </div>
-                {promptType === 'medical' && selectedTags.some(tag => tag.includes('medical')) && (
-                  <MedicalDisclaimer />
-                )}
-              </CardContent>
-            </Card>
-          </div>
-        </div>
+        </form>
       </div>
       <InsufficientCreditsDialog
         open={showCreditsDialog}
@@ -1319,6 +1263,8 @@ export default function ClientPromptCreate({ user }: { user: NavBarUser }) {
         requiredCredits={creditsInfo.requiredCredits}
         missingCredits={creditsInfo.missingCredits}
       />
-    </>
+    </div>
   );
-}
+});
+
+export default ClientPromptCreate;

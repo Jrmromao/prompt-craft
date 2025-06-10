@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Star, Clock, Hash, MessageSquare } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
+import { TestHistoryReportModal } from '@/components/TestHistoryReportModal';
 
 interface TestHistoryItem {
   id: string;
@@ -27,10 +28,12 @@ interface TestHistoryProps {
 }
 
 export function TestHistory({ history, onSelectTest }: TestHistoryProps) {
-  const [selectedTest, setSelectedTest] = useState<string | null>(null);
+  const [selectedTest, setSelectedTest] = useState<TestHistoryItem | null>(null);
+  const [selectedRank, setSelectedRank] = useState<number | null>(null);
 
-  const handleSelectTest = (test: TestHistoryItem) => {
-    setSelectedTest(test.id);
+  const handleSelectTest = (test: TestHistoryItem, rank: number) => {
+    setSelectedTest(test);
+    setSelectedRank(rank);
     onSelectTest(test);
   };
 
@@ -63,16 +66,19 @@ export function TestHistory({ history, onSelectTest }: TestHistoryProps) {
 
         <ScrollArea className="h-[400px] pr-4">
           <div className="space-y-4">
-            {history.map((test) => (
+            {history.map((test, idx) => (
               <Card
                 key={test.id}
-                className={`p-4 cursor-pointer transition-colors ${
-                  selectedTest === test.id
+                className={`relative p-4 cursor-pointer transition-colors ${
+                  selectedTest?.id === test.id
                     ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20'
                     : 'hover:border-purple-300 dark:hover:border-purple-700'
                 }`}
-                onClick={() => handleSelectTest(test)}
+                onClick={() => handleSelectTest(test, idx + 1)}
               >
+                <div className="absolute top-2 right-2 bg-purple-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold shadow">
+                  {idx + 1}
+                </div>
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -132,6 +138,12 @@ export function TestHistory({ history, onSelectTest }: TestHistoryProps) {
           </div>
         </ScrollArea>
       </div>
+      <TestHistoryReportModal
+        open={!!selectedTest}
+        test={selectedTest}
+        rank={selectedRank}
+        onClose={() => { setSelectedTest(null); setSelectedRank(null); }}
+      />
     </Card>
   );
 } 

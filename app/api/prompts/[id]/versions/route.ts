@@ -9,6 +9,17 @@ const createVersionSchema = z.object({
   commitMessage: z.string().min(1),
   tags: z.array(z.string()).optional(),
   baseVersionId: z.string().optional(),
+  tests: z.array(z.object({
+    input: z.string().optional(),
+    output: z.string(),
+    rating: z.object({
+      clarity: z.number(),
+      specificity: z.number(),
+      context: z.number(),
+      overall: z.number(),
+      feedback: z.string(),
+    }).optional(),
+  })).optional(),
 });
 
 // Add required exports for Next.js 15.3.3
@@ -71,8 +82,8 @@ export async function POST(
       );
     }
 
-    const { content, description, commitMessage, tags, baseVersionId } = validationResult.data;
-    console.log('Creating version with:', { content, description, commitMessage, tags, baseVersionId });
+    const { content, description, commitMessage, tags, baseVersionId, tests } = validationResult.data;
+    console.log('Creating version with:', { content, description, commitMessage, tags, baseVersionId, tests });
     
     const versionControlService = VersionControlService.getInstance();
     const newVersion = await versionControlService.createVersion(
@@ -81,7 +92,8 @@ export async function POST(
       description || null,
       commitMessage,
       tags || [],
-      baseVersionId
+      baseVersionId,
+      tests || []
     );
 
     console.log('Version created successfully:', newVersion);

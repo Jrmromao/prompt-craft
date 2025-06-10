@@ -32,6 +32,7 @@ interface VersionPlaygroundProps {
     commitMessage: string;
     tags: string[];
     baseVersionId?: string;
+    tests: Array<{ input: string; output: string; rating: PromptRating }>;
   }) => Promise<void>;
   onTestPrompt: (content: string, testInput: string, currentVersionId: string) => Promise<{
     result: string;
@@ -115,6 +116,7 @@ export function VersionPlayground({
   const [step, setStep] = useState<'input' | 'output'>('input');
   const [versions, setVersions] = useState<Version[]>([]);
   const [showIdenticalWarning, setShowIdenticalWarning] = useState(false);
+  const [tests, setTests] = useState<Array<{ input: string; output: string; rating: PromptRating }>>([]);
 
   useEffect(() => {
     if (currentVersion) {
@@ -158,6 +160,8 @@ export function VersionPlayground({
       const result = await onTestPrompt(content, testInput || content, currentVersion.id);
       setTestOutput(result.result);
       setRating(result.rating);
+      // Save the test result
+      setTests(prev => [...prev, { input: testInput || content, output: result.result, rating: result.rating }]);
     } catch (error) {
       toast({
         title: 'Error',
@@ -202,6 +206,7 @@ export function VersionPlayground({
         commitMessage: isIdentical ? `Created identical version to ${currentVersion.version}` : commitMessage,
         tags,
         baseVersionId: currentVersion.id,
+        tests, // Send the tests along with the version data
       });
       toast({
         title: 'Success',
