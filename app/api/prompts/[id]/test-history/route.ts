@@ -17,9 +17,9 @@ export async function POST(
     }
 
     const body = await request.json();
-    const { versionId, ratingId, testInput, testOutput, tokensUsed, duration } = body;
+    const { promptVersionId, input, output, tokensUsed, duration } = body;
 
-    if (!versionId || !testInput || !testOutput) {
+    if (!promptVersionId || !output) {
       return new NextResponse('Missing required fields', { status: 400 });
     }
 
@@ -27,15 +27,15 @@ export async function POST(
       data: {
         promptId: context.params.id,
         userId,
-        versionId,
-        ratingId,
-        testInput,
-        testOutput,
+        promptVersionId,
+        input,
+        output,
         tokensUsed: tokensUsed || 0,
         duration: duration || 0,
+        updatedAt: new Date(),
       },
       include: {
-        rating: true,
+        PromptVersion: true,
       },
     });
 
@@ -57,16 +57,24 @@ export async function GET(
     }
 
     const { searchParams } = new URL(request.url);
-    const versionId = searchParams.get('versionId');
+    const promptVersionId = searchParams.get('promptVersionId');
 
     const testHistory = await prisma.promptTestHistory.findMany({
       where: {
         promptId: context.params.id,
         userId,
-        ...(versionId ? { versionId } : {}),
+        ...(promptVersionId ? { promptVersionId } : {}),
       },
       include: {
-        rating: true,
+        PromptVersion: {
+          include: {
+            PromptTest: {
+              include: {
+                PromptRating: true,
+              },
+            },
+          },
+        },
       },
       orderBy: {
         createdAt: 'desc',

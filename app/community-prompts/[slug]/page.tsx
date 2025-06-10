@@ -19,7 +19,14 @@ async function getPrompt(slug: string) {
   try {
     return await prisma.prompt.findFirst({
       where: { slug, isPublic: true },
-      include: { tags: true },
+      include: { 
+        tags: true,
+        versions: {
+          orderBy: { createdAt: 'desc' },
+          take: 1,
+          select: { id: true }
+        }
+      },
     });
   } catch (error) {
     console.error('Error fetching prompt:', error);
@@ -109,6 +116,11 @@ export default async function PromptDetailPage({ params }: PageProps) {
   const prompt = await getPrompt(resolvedParams.slug);
   if (!prompt) return notFound();
 
+  const promptWithVersion = {
+    ...prompt,
+    currentVersionId: prompt.versions[0]?.id || prompt.id
+  };
+
   const clerkUser = await currentUser();
   const user = clerkUser ? {
     name: clerkUser.fullName || '',
@@ -118,7 +130,7 @@ export default async function PromptDetailPage({ params }: PageProps) {
 
   return (
     <Suspense fallback={<LoadingSkeleton />}>
-      <PromptContent prompt={prompt} user={user} />
+      <PromptContent prompt={promptWithVersion} user={user} />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(getPromptJsonLd(prompt)) }}

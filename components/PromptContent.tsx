@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import ReactMarkdown from 'react-markdown';
 import { toast } from 'sonner';
@@ -14,7 +14,10 @@ import {
   Tag,
   User,
   Play,
+  GitBranch,
+  ChevronDown,
 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -50,6 +53,14 @@ interface Prompt {
   copyCount?: number;
   viewCount?: number;
   usageCount?: number;
+  currentVersionId: string;
+}
+
+interface Version {
+  id: string;
+  version: number;
+  content: string;
+  createdAt: Date;
 }
 
 export interface PromptContentProps {
@@ -67,10 +78,36 @@ export function PromptContent({ user, prompt }: PromptContentProps) {
   const [upvotes, setUpvotes] = useState<number>(prompt.upvotes);
   const [copied, setCopied] = useState(false);
   const [isTestModalOpen, setIsTestModalOpen] = useState(false);
+  const [currentVersionId, setCurrentVersionId] = useState<string>('');
+  const [versions, setVersions] = useState<Version[]>([]);
+  const [selectedVersion, setSelectedVersion] = useState<Version | null>(null);
+  const [isVersionSelectOpen, setIsVersionSelectOpen] = useState(false);
+  const router = useRouter();
+
+  useEffect(() => {
+    const fetchVersions = async () => {
+      try {
+        const response = await fetch(`/api/prompts/${prompt.id}/versions`);
+        if (response.ok) {
+          const versions = await response.json();
+          setVersions(versions);
+          if (versions.length > 0) {
+            setCurrentVersionId(versions[0].id);
+            setSelectedVersion(versions[0]);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching versions:', error);
+      }
+    };
+
+    fetchVersions();
+  }, [prompt.id]);
 
   const copyToClipboard = async () => {
     try {
-      await navigator.clipboard.writeText(prompt.content);
+      const contentToCopy = selectedVersion?.content || prompt.content;
+      await navigator.clipboard.writeText(contentToCopy);
       setCopied(true);
       toast.success('Prompt copied to clipboard!');
       
@@ -92,19 +129,28 @@ export function PromptContent({ user, prompt }: PromptContentProps) {
     toast.success('Link copied to clipboard!');
   };
 
-  const handleTestPrompt = async (content: string, testInput: string) => {
-    // TODO: Implement actual API call to test the prompt
-    // This is a mock implementation
-    return {
-      result: "This is a sample test output. Replace with actual API call.",
-      rating: {
-        clarity: 4.5,
-        specificity: 4.2,
-        context: 4.0,
-        overall: 4.2,
-        feedback: "Good prompt structure and clarity."
+  const handleTestPrompt = async (content: string, testInput: string, promptVersionId: string) => {
+    try {
+      const response = await fetch('/api/prompts/test', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ content, testInput, promptVersionId }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.details || 'Failed to test prompt');
       }
-    };
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Error testing prompt:', error);
+      toast.error('Failed to test prompt');
+      throw error;
+    }
   };
 
   return (
@@ -121,6 +167,7 @@ export function PromptContent({ user, prompt }: PromptContentProps) {
             Back to Community Prompts
           </Link>
         </div>
+
         <PromptAnalyticsProvider
           promptId={prompt.id}
           initialCopyCount={prompt.copyCount || 0}
@@ -128,115 +175,36 @@ export function PromptContent({ user, prompt }: PromptContentProps) {
           initialUsageCount={prompt.usageCount || 0}
           initialCommentCount={commentCount}
         >
-          {/* Wrap the content that needs analytics context */}
-          <PromptContentWithAnalytics 
-            prompt={prompt} 
-            displayName={displayName}
-            copied={copied}
-            setCopied={setCopied}
-            upvotes={upvotes}
-            setUpvotes={setUpvotes}
-            commentCount={commentCount}
-            setCommentCount={setCommentCount}
-          />
-        </PromptAnalyticsProvider>
-
-        <TestPromptModal
-          isOpen={isTestModalOpen}
-          onClose={() => setIsTestModalOpen(false)}
-          promptContent={prompt.content}
-          onTestPrompt={handleTestPrompt}
-        />
-      </main>
-    </div>
-  );
-}
-
-// Separate component that uses the analytics context
-function PromptContentWithAnalytics({ 
-  prompt, 
-  displayName, 
-  copied, 
-  setCopied,
-  upvotes,
-  setUpvotes,
-  commentCount,
-  setCommentCount
-}: { 
-  prompt: Prompt; 
-  displayName: string;
-  copied: boolean;
-  setCopied: (copied: boolean) => void;
-  upvotes: number;
-  setUpvotes: (upvotes: number) => void;
-  commentCount: number;
-  setCommentCount: (count: number) => void;
-}) {
-  const { incrementCopyCount } = usePromptAnalytics();
-
-  const copyToClipboard = async () => {
-    try {
-      await navigator.clipboard.writeText(prompt.content);
-      setCopied(true);
-      toast.success('Prompt copied to clipboard!');
-      
-      // Track copy event and update count
-      await incrementCopyCount();
-      
-      setTimeout(() => setCopied(false), 1000);
-    } catch (error) {
-      console.error('Error copying prompt:', error);
-      toast.error('Failed to copy prompt');
-    }
-  };
-
-  const sharePrompt = () => {
-    navigator.clipboard.writeText(window.location.href);
-    toast.success('Link copied to clipboard!');
-  };
-
-  return (
-    <div className="grid gap-6">
-      {/* Prompt Header Card */}
-      <Card className="border-2 border-purple-100 dark:border-purple-900/30">
-        <CardContent className="p-6">
-          <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
-            <div className="flex-1">
-              <div className="mb-2 flex items-center gap-2">
-                <h1 className="text-3xl font-bold text-purple-700 dark:text-purple-300">
-                  {prompt.name}
-                </h1>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8"
-                        onClick={sharePrompt}
-                      >
-                        <Share2 className="h-4 w-4" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>Share this prompt</TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
-
-              {prompt.description && (
-                <p className="mb-4 text-gray-600 dark:text-gray-300">{prompt.description}</p>
-              )}
-
-              <div className="mb-4 flex flex-wrap gap-2">
-                {prompt.tags.map(tag => (
-                  <Badge
-                    key={tag.id}
-                    className="bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300"
+          <div className="space-y-6">
+            {/* Header Section */}
+            <div className="flex flex-col gap-4">
+              <div className="flex items-start justify-between">
+                <div>
+                  <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+                    {prompt.name}
+                  </h1>
+                  <p className="mt-2 text-gray-600 dark:text-gray-400">
+                    {prompt.description}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <VoteButton id={prompt.id} initialUpvotes={upvotes} onVoteChange={setUpvotes} />
+                  <Button
+                    onClick={() => setIsTestModalOpen(true)}
+                    className="bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700"
                   >
-                    <Tag className="mr-1 h-3 w-3" />
-                    {tag.name}
-                  </Badge>
-                ))}
+                    <Play className="mr-2 h-4 w-4" />
+                    Test Prompt
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="ml-2 border-purple-300 text-purple-700 hover:bg-purple-50 dark:border-purple-700 dark:text-purple-300 dark:hover:bg-purple-900"
+                    onClick={() => router.push(`/prompts/${prompt.id}/versioning`)}
+                  >
+                    <GitBranch className="mr-2 h-4 w-4" />
+                    Manage Versions
+                  </Button>
+                </div>
               </div>
 
               <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
@@ -255,84 +223,184 @@ function PromptContentWithAnalytics({
               </div>
             </div>
 
-            <div className="flex flex-col gap-3">
-              <VoteButton id={prompt.id} initialUpvotes={upvotes} onVoteChange={setUpvotes} />
-              <Dialog>
-                <DialogTrigger asChild>
-                  <Button className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700">
-                    <Play className="mr-2 h-4 w-4" />
-                    Test in Playground
+            {/* Prompt Content Section */}
+            <div className="group rounded-xl border border-gray-200 bg-white/50 p-6 backdrop-blur-sm transition-all duration-300 hover:border-purple-500/50 dark:border-gray-800 dark:bg-gray-900/50">
+              <div className="flex flex-col gap-4">
+                {/* Version Selector */}
+                {versions.length > 0 && (
+                  <div className="flex items-center justify-between border-b border-gray-200 pb-4 dark:border-gray-800">
+                    <div className="flex items-center gap-2">
+                      <GitBranch className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                      <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Version History</span>
+                    </div>
+                    <Dialog open={isVersionSelectOpen} onOpenChange={setIsVersionSelectOpen}>
+                      <DialogTrigger asChild>
+                        <Button 
+                          variant="outline" 
+                          className="flex items-center gap-2 border-purple-200 bg-purple-50 text-purple-700 hover:bg-purple-100 dark:border-purple-800 dark:bg-purple-900/30 dark:text-purple-300 dark:hover:bg-purple-900/50"
+                        >
+                          <span className="font-medium">Version {selectedVersion?.version || 'Latest'}</span>
+                          <ChevronDown className="h-4 w-4" />
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="max-w-md">
+                        <DialogHeader>
+                          <DialogTitle className="flex items-center gap-2 text-xl">
+                            <GitBranch className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                            Select Version
+                          </DialogTitle>
+                          <p className="text-sm text-muted-foreground mt-1">
+                            Choose a version to view or test
+                          </p>
+                        </DialogHeader>
+                        <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-2">
+                          {versions.map((version) => (
+                            <div
+                              key={version.id}
+                              className={`rounded-lg border transition-all duration-200 ${
+                                selectedVersion?.id === version.id
+                                  ? 'border-purple-200 bg-purple-50 dark:border-purple-800 dark:bg-purple-900/30'
+                                  : 'border-gray-200 hover:border-purple-200 hover:bg-purple-50/50 dark:border-gray-800 dark:hover:border-purple-800 dark:hover:bg-purple-900/20'
+                              }`}
+                            >
+                              <Button
+                                variant="ghost"
+                                className={`w-full justify-start p-4 h-auto ${
+                                  selectedVersion?.id === version.id
+                                    ? 'text-purple-700 dark:text-purple-300'
+                                    : 'text-gray-700 dark:text-gray-300'
+                                }`}
+                                onClick={() => {
+                                  setSelectedVersion(version);
+                                  setIsVersionSelectOpen(false);
+                                }}
+                              >
+                                <div className="flex flex-col items-start gap-1">
+                                  <div className="flex items-center gap-2">
+                                    <span className="font-semibold">Version {version.version}</span>
+                                    {selectedVersion?.id === version.id && (
+                                      <Badge 
+                                        variant="secondary" 
+                                        className="bg-purple-100 text-purple-700 dark:bg-purple-900/50 dark:text-purple-300"
+                                      >
+                                        Current
+                                      </Badge>
+                                    )}
+                                  </div>
+                                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                    <Clock className="h-3 w-3" />
+                                    {new Date(version.createdAt).toLocaleDateString()}
+                                  </div>
+                                  <div className="mt-2 text-sm line-clamp-2 text-muted-foreground">
+                                    {version.content.substring(0, 100)}...
+                                  </div>
+                                </div>
+                              </Button>
+                            </div>
+                          ))}
+                        </div>
+                        <div className="mt-4 flex justify-end gap-2 border-t pt-4 dark:border-gray-800">
+                          <Button
+                            variant="outline"
+                            onClick={() => setIsVersionSelectOpen(false)}
+                          >
+                            Cancel
+                          </Button>
+                          <Button
+                            variant="default"
+                            className="bg-purple-600 hover:bg-purple-700 dark:bg-purple-500 dark:hover:bg-purple-600"
+                            onClick={() => setIsVersionSelectOpen(false)}
+                          >
+                            Done
+                          </Button>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+                  </div>
+                )}
+
+                {/* Content Header */}
+                <div className="flex justify-between items-center">
+                  <h2 className="text-xl font-semibold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+                    Prompt Content
+                  </h2>
+                  <Button
+                    onClick={copyToClipboard}
+                    variant="outline"
+                    className="text-sm"
+                  >
+                    {copied ? (
+                      <>
+                        <Check className="h-4 w-4 mr-2" />
+                        Copied!
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="h-4 w-4 mr-2" />
+                        Copy
+                      </>
+                    )}
                   </Button>
-                </DialogTrigger>
-                <DialogContent className="max-w-4xl">
-                  <DialogHeader>
-                    <DialogTitle>Test this Prompt in Playground</DialogTitle>
-                  </DialogHeader>
-                  <Playground initialPrompt={prompt.content} showTitle={false} />
-                </DialogContent>
-              </Dialog>
-              <Button
-                variant="outline"
-                className={`flex items-center gap-2 border-gray-300 transition-all duration-200 dark:border-gray-700 ${copied ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300' : ''}`}
-                onClick={copyToClipboard}
-                disabled={copied}
-              >
-                {copied ? (
-                  <Check className="h-4 w-4 text-green-500" />
-                ) : (
-                  <Copy className="h-4 w-4" />
-                )}
-                {copied ? 'Copied!' : 'Copy Prompt'}
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+                </div>
 
-      {/* Tabs Section */}
-      <Card>
-        <CardContent className="p-6">
-          <Tabs defaultValue="content" className="w-full">
-            <TabsList className="mb-4">
-              <TabsTrigger value="content">Content</TabsTrigger>
-              <TabsTrigger value="comments" className="relative">
-                Comments
-                {commentCount > 0 && (
-                  <span className="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-purple-500 text-[11px] font-semibold text-white shadow-sm transition-transform hover:scale-110 dark:bg-purple-600">
-                    {commentCount > 99 ? '99+' : commentCount}
-                  </span>
-                )}
-              </TabsTrigger>
-              <TabsTrigger value="analytics">Analytics</TabsTrigger>
-              <TabsTrigger value="history">Version History</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="content" className="mt-0">
-              <div className="prose prose-sm md:prose-base prose-headings:text-foreground prose-p:text-muted-foreground prose-li:text-foreground max-w-none">
-                <div className="overflow-x-auto rounded-lg border border-gray-100 bg-gray-50 p-4 text-sm text-gray-800 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-200">
-                  <ReactMarkdown>{prompt.content}</ReactMarkdown>
+                {/* Content */}
+                <div className="prose dark:prose-invert max-w-none">
+                  <ReactMarkdown>
+                    {selectedVersion?.content || prompt.content}
+                  </ReactMarkdown>
                 </div>
               </div>
-            </TabsContent>
+            </div>
 
-            <TabsContent value="comments" className="mt-0">
-              <BasicComments 
-                promptId={prompt.id} 
-                onCommentCountChange={setCommentCount}
-                initialComments={[]}
-              />
-            </TabsContent>
+            {/* Tabs Section */}
+            <Card>
+              <CardContent className="p-6">
+                <Tabs defaultValue="history" className="w-full">
+                  <TabsList className="mb-4">
+                    <TabsTrigger value="history" className="flex items-center gap-2">
+                      <GitBranch className="h-4 w-4" />
+                      Version History
+                    </TabsTrigger>
+                    <TabsTrigger value="comments" className="relative">
+                      Comments
+                      {commentCount > 0 && (
+                        <span className="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-purple-500 text-[11px] font-semibold text-white shadow-sm transition-transform hover:scale-110 dark:bg-purple-600">
+                          {commentCount > 99 ? '99+' : commentCount}
+                        </span>
+                      )}
+                    </TabsTrigger>
+                    <TabsTrigger value="analytics">Analytics</TabsTrigger>
+                  </TabsList>
 
-            <TabsContent value="analytics" className="mt-0">
-              <Analytics promptId={prompt.id} upvotes={upvotes} />
-            </TabsContent>
+                  <TabsContent value="history" className="mt-0">
+                    <VersionHistory id={prompt.id} />
+                  </TabsContent>
 
-            <TabsContent value="history" className="mt-0">
-              <VersionHistory id={prompt.id} />
-            </TabsContent>
-          </Tabs>
-        </CardContent>
-      </Card>
+                  <TabsContent value="comments" className="mt-0">
+                    <BasicComments 
+                      promptId={prompt.id} 
+                      onCommentCountChange={setCommentCount}
+                      initialComments={[]}
+                    />
+                  </TabsContent>
+
+                  <TabsContent value="analytics" className="mt-0">
+                    <Analytics promptId={prompt.id} upvotes={upvotes} />
+                  </TabsContent>
+                </Tabs>
+              </CardContent>
+            </Card>
+          </div>
+        </PromptAnalyticsProvider>
+
+        <TestPromptModal
+          isOpen={isTestModalOpen}
+          onClose={() => setIsTestModalOpen(false)}
+          promptContent={selectedVersion?.content || prompt.content}
+          promptVersionId={selectedVersion?.id || currentVersionId}
+          onTestPrompt={handleTestPrompt}
+        />
+      </main>
     </div>
   );
 }

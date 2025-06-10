@@ -1,30 +1,34 @@
-import { useEffect, useState } from 'react';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+'use client';
+
+import { useState, useEffect } from 'react';
+import { GitBranch, ChevronDown, ChevronUp, Clock, User, History } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { formatDistanceToNow } from 'date-fns';
-import { ChevronDown, ChevronUp, GitBranch } from 'lucide-react';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { Card } from '@/components/ui/card';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { useRouter } from 'next/navigation';
 
 interface Version {
   id: string;
-  version: string;
+  version: number;
   content: string;
-  description?: string;
-  createdAt: string;
-  user: {
-    name: string | null;
-    imageUrl: string | null;
+  createdAt: Date;
+  user?: {
+    name?: string;
+    imageUrl?: string;
   };
 }
 
 interface VersionTimelineProps {
   promptId: string;
+  onVersionSelect?: (version: Version) => void;
+  selectedVersionId?: string;
 }
 
-export function VersionTimeline({ promptId }: VersionTimelineProps) {
+export function VersionTimeline({ promptId, onVersionSelect, selectedVersionId }: VersionTimelineProps) {
   const [versions, setVersions] = useState<Version[]>([]);
-  const [expanded, setExpanded] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [expanded, setExpanded] = useState<{ [key: string]: boolean }>({});
   const router = useRouter();
 
   useEffect(() => {
@@ -35,102 +39,138 @@ export function VersionTimeline({ promptId }: VersionTimelineProps) {
           const data = await response.json();
           setVersions(data);
         }
-      } finally {
-        setIsLoading(false);
+      } catch (error) {
+        console.error('Error fetching versions:', error);
       }
     };
+
     fetchVersions();
   }, [promptId]);
 
-  if (isLoading) {
+  const toggleExpand = (versionId: string) => {
+    setExpanded(prev => ({
+      ...prev,
+      [versionId]: !prev[versionId]
+    }));
+  };
+
+  if (!versions.length) {
     return (
-      <div className="space-y-4">
-        <div className="h-8 w-32 animate-pulse rounded bg-gray-200" />
-        <div className="space-y-2">
-          {[...Array(3)].map((_, i) => (
-            <div key={i} className="h-20 animate-pulse rounded bg-gray-200" />
-          ))}
-        </div>
+      <div className="text-center py-8 text-muted-foreground">
+        No version history available
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between mb-4">
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <GitBranch className="h-5 w-5 text-purple-500" />
-          <h2 className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-xl font-semibold text-transparent">
-            Version Timeline
-          </h2>
+          <History className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+          <h2 className="text-lg font-semibold">Version History</h2>
         </div>
         <Button
           variant="outline"
-          className="border-purple-200 text-purple-600 hover:bg-purple-50 dark:border-purple-800 dark:text-purple-400 dark:hover:bg-purple-900/20"
-          onClick={() => router.push(`/prompts/${promptId}/versioning`)}
+          size="sm"
+          className="text-purple-600 hover:bg-purple-50 dark:text-purple-400 dark:hover:bg-purple-900/20"
+          onClick={() => router.push(`/prompts/${promptId}/version`)}
         >
-          Go to Versioning Page
+          <GitBranch className="h-4 w-4 mr-2" />
+          View Full History
         </Button>
       </div>
-      <ol className="relative border-l-2 border-purple-200 dark:border-purple-800">
-        {versions.map((version, idx) => (
-          <li key={version.id} className="mb-10 ml-4">
-            <div className="absolute -left-2.5 flex items-center justify-center w-5 h-5 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full ring-4 ring-white dark:ring-zinc-900">
-              <span className="text-xs font-bold text-white">{version.version}</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <Avatar className="w-8 h-8">
-                {version.user?.imageUrl ? (
-                  <AvatarImage src={version.user.imageUrl} alt={version.user.name || 'User'} />
-                ) : (
-                  <AvatarFallback>{version.user?.name?.[0] || '?'}</AvatarFallback>
-                )}
-              </Avatar>
-              <div>
-                <div className="flex items-center gap-2">
-                  <span className="font-semibold text-purple-700 dark:text-purple-300">Version {version.version}</span>
-                  <span className="text-xs text-gray-500 dark:text-gray-400">
-                    {formatDistanceToNow(new Date(version.createdAt), { addSuffix: true })}
-                  </span>
-                </div>
-                <div className="text-sm text-gray-700 dark:text-gray-300">
-                  {version.description || 'No description'}
-                </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="mt-1 px-2 text-xs text-purple-600 hover:bg-purple-50 dark:text-purple-400 dark:hover:bg-purple-900/20"
-                  onClick={() => setExpanded(expanded === version.id ? null : version.id)}
-                >
-                  {expanded === version.id ? (
-                    <>
-                      <ChevronUp className="inline h-4 w-4 mr-1" /> Hide Details
-                    </>
-                  ) : (
-                    <>
-                      <ChevronDown className="inline h-4 w-4 mr-1" /> Show Details
-                    </>
-                  )}
-                </Button>
-                {expanded === version.id && (
-                  <div className="mt-2 rounded bg-zinc-50 p-3 text-xs text-zinc-800 dark:bg-zinc-900/40 dark:text-zinc-200">
-                    <div className="mb-2">
-                      <span className="font-semibold">Content:</span>
-                      <pre className="whitespace-pre-wrap break-words mt-1">{version.content}</pre>
+
+      <ScrollArea className="h-[calc(100vh-200px)] pr-4">
+        <div className="space-y-4">
+          {versions.map((version, index) => (
+            <div
+              key={version.id}
+              className={`relative ${
+                index !== versions.length - 1 ? 'pb-8' : ''
+              }`}
+            >
+              {/* Timeline line */}
+              {index !== versions.length - 1 && (
+                <div className="absolute left-4 top-8 h-full w-0.5 bg-gray-200 dark:bg-gray-800" />
+              )}
+
+              <Card
+                className={`relative overflow-hidden transition-all duration-200 cursor-pointer ${
+                  selectedVersionId === version.id
+                    ? 'border-purple-200 bg-purple-50 dark:border-purple-800 dark:bg-purple-900/30'
+                    : 'hover:border-purple-200 hover:bg-purple-50/50 dark:hover:border-purple-800 dark:hover:bg-purple-900/20'
+                }`}
+                onClick={() => onVersionSelect?.(version)}
+              >
+                <div className="p-4">
+                  {/* Version header */}
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-purple-100 text-purple-700 dark:bg-purple-900/50 dark:text-purple-300">
+                        <GitBranch className="h-4 w-4" />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="font-semibold">Version {version.version}</span>
+                          {selectedVersionId === version.id && (
+                            <Badge 
+                              variant="secondary" 
+                              className="bg-purple-100 text-purple-700 dark:bg-purple-900/50 dark:text-purple-300"
+                            >
+                              Current
+                            </Badge>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
+                          <Clock className="h-3 w-3" />
+                          {new Date(version.createdAt).toLocaleDateString()}
+                        </div>
+                      </div>
                     </div>
-                    <div>
-                      <span className="font-semibold">Author:</span> {version.user?.name || 'Unknown'}
-                    </div>
-                    <div>
-                      <span className="font-semibold">Created:</span> {new Date(version.createdAt).toLocaleString()}
-                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 w-8 p-0"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleExpand(version.id);
+                      }}
+                    >
+                      {expanded[version.id] ? (
+                        <ChevronUp className="h-4 w-4" />
+                      ) : (
+                        <ChevronDown className="h-4 w-4" />
+                      )}
+                    </Button>
                   </div>
-                )}
-              </div>
+
+                  {/* Version details */}
+                  {expanded[version.id] && (
+                    <div className="mt-4 space-y-4 border-t pt-4 dark:border-gray-800">
+                      <div className="flex items-center gap-2">
+                        <Avatar className="h-6 w-6">
+                          <AvatarImage src={version.user?.imageUrl} />
+                          <AvatarFallback>
+                            {version.user?.name?.charAt(0) || 'U'}
+                          </AvatarFallback>
+                        </Avatar>
+                        <span className="text-sm text-muted-foreground">
+                          {version.user?.name || 'Unknown User'}
+                        </span>
+                      </div>
+                      <div className="rounded-md bg-gray-50 p-3 text-sm dark:bg-gray-900">
+                        <p className="line-clamp-3 text-muted-foreground">
+                          {version.content}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </Card>
             </div>
-          </li>
-        ))}
-      </ol>
+          ))}
+        </div>
+      </ScrollArea>
     </div>
   );
 } 

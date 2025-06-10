@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
+import { prisma } from '@/lib/prisma';
 
 const DEEPSEEK_API_URL = 'https://api.deepseek.com/v1/chat/completions';
 const DEEPSEEK_API_KEY = process.env.DEEPSEEK_API_KEY;
@@ -36,10 +37,21 @@ export async function POST(req: Request) {
       return new NextResponse('Unauthorized', { status: 401 });
     }
 
-    const { content, testInput } = await req.json();
+    const { content, testInput, promptVersionId } = await req.json();
 
     if (!content) {
-      return new NextResponse('Content is required', { status: 400 });
+      return new NextResponse(
+        JSON.stringify({
+          error: 'Missing required fields',
+          details: 'Content is required',
+        }),
+        { 
+          status: 400,
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      );
     }
 
     // First, get the prompt rating
@@ -77,10 +89,6 @@ export async function POST(req: Request) {
     let promptRating: PromptRating;
     
     try {
-      // Log the raw response for debugging
-      console.log('Raw rating response:', ratingData.choices[0].message.content);
-      
-      // Clean the response content to ensure it's valid JSON
       const cleanContent = ratingData.choices[0].message.content
         .replace(/```json\n?/g, '')
         .replace(/```\n?/g, '')
@@ -88,17 +96,13 @@ export async function POST(req: Request) {
         .replace(/[^}]*$/, '')
         .trim();
       
-      console.log('Cleaned content:', cleanContent);
-      
       promptRating = JSON.parse(cleanContent);
       
-      // Validate the rating object
       if (!promptRating.clarity || !promptRating.specificity || !promptRating.context || !promptRating.overall || !promptRating.feedback) {
         throw new Error('Invalid rating object structure');
       }
     } catch (error) {
       console.error('Failed to parse rating response:', error);
-      console.error('Raw content:', ratingData.choices[0].message.content);
       promptRating = {
         clarity: 0,
         specificity: 0,
@@ -108,7 +112,7 @@ export async function POST(req: Request) {
       };
     }
 
-    // Then, get the actual response
+    // Get the actual response
     const response = await fetch(DEEPSEEK_API_URL, {
       method: 'POST',
       headers: {
@@ -139,28 +143,53 @@ export async function POST(req: Request) {
       );
     }
 
-    const data = await response.json();
-    if (!data.choices?.[0]?.message?.content) {
-      throw new Error('Invalid response format from Deepseek API');
+    const responseData = await response.json();
+    const result = responseData.choices[0].message.content;
+
+    // Only create PromptTest and PromptRating if promptVersionId is provided
+    if (promptVersionId) {
+      const testResult = await prisma.$transaction(async (tx) => {
+        // Create PromptTest
+        const promptTest = await tx.promptTest.create({
+          data: {
+            id: crypto.randomUUID(),
+            promptVersionId,
+            input: testInput || content,
+            output: result,
+            tokensUsed: responseData.usage?.total_tokens || 0,
+            duration: Date.now() - Date.now(), // You might want to track actual duration
+            updatedAt: new Date(),
+          },
+        });
+
+        // Create PromptRating
+        const rating = await tx.promptRating.create({
+          data: {
+            clarity: promptRating.clarity,
+            specificity: promptRating.specificity,
+            context: promptRating.context,
+            overall: promptRating.overall,
+            feedback: promptRating.feedback,
+            promptTestId: promptTest.id,
+          },
+        });
+
+        return { promptTest, rating };
+      });
+
+      return NextResponse.json({
+        result,
+        rating: testResult.rating,
+      });
     }
 
+    // If no promptVersionId, just return the result and rating without saving
     return NextResponse.json({
-      result: data.choices[0].message.content,
-      rating: promptRating
+      result,
+      rating: promptRating,
     });
   } catch (error) {
-    console.error('Error testing prompt:', error);
-    return new NextResponse(
-      JSON.stringify({ 
-        error: 'Failed to test prompt',
-        details: error instanceof Error ? error.message : 'Unknown error'
-      }), 
-      { 
-        status: 500,
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      }
-    );
+    console.error('Error in test route:', error);
+    return new NextResponse('Internal Server Error', { status: 500 });
   }
 } 

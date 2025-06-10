@@ -39,10 +39,12 @@ export function PromptsClient({ prompts }: PromptsClientProps) {
             icon={PlusCircle}
             title="No prompts yet"
             description="Create your first prompt to get started with PromptCraft."
-            action={{
-              label: 'Create Prompt',
-              onClick: () => (window.location.href = '/prompts/new'),
-            }}
+            action={
+              <Button onClick={() => (window.location.href = '/prompts/new')}>
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Create Prompt
+              </Button>
+            }
           />
         </div>
       </div>

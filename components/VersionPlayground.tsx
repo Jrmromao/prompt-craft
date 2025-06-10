@@ -13,6 +13,7 @@ import { Version } from '@/types/version';
 import { useParams } from 'next/navigation';
 import { useToast } from '@/components/ui/use-toast';
 import { NewVersionModal } from '@/components/NewVersionModal';
+import { VersionHistory } from '@/components/VersionHistory';
 
 interface PromptRating {
   clarity: number;
@@ -31,7 +32,7 @@ interface VersionPlaygroundProps {
     tags: string[];
     baseVersionId?: string;
   }) => Promise<void>;
-  onTestPrompt: (content: string, testInput: string) => Promise<{
+  onTestPrompt: (content: string, testInput: string, currentVersionId: string) => Promise<{
     result: string;
     rating: PromptRating;
   }>;
@@ -153,7 +154,7 @@ export function VersionPlayground({
 
     setIsTesting(true);
     try {
-      const result = await onTestPrompt(content, content);
+      const result = await onTestPrompt(content, testInput || content, currentVersion.id);
       setTestOutput(result.result);
       setRating(result.rating);
     } catch (error) {
@@ -220,8 +221,8 @@ export function VersionPlayground({
 
   const renderStars = (score: number) => {
     const stars = [];
-    const maxStars = 5;
-    const normalizedScore = Math.min(Math.max(score, 0), 5);
+    const maxStars = 10;
+    const normalizedScore = Math.min(Math.max(score, 0), 10);
     const filledStars = Math.round(normalizedScore);
     
     for (let i = 1; i <= maxStars; i++) {
@@ -240,7 +241,7 @@ export function VersionPlayground({
       <div className="flex items-center gap-1">
         {stars}
         <span className="text-sm text-muted-foreground ml-1">
-          ({normalizedScore.toFixed(1)}/5)
+          ({normalizedScore.toFixed(1)}/10)
         </span>
       </div>
     );
@@ -270,11 +271,11 @@ export function VersionPlayground({
             Playground
           </TabsTrigger>
           <TabsTrigger 
-            value="test"
+            value="history"
             className="data-[state=active]:bg-purple-600 data-[state=active]:text-white"
           >
-            <Play className="h-4 w-4 mr-2" />
-            Test
+            <History className="h-4 w-4 mr-2" />
+            Version History
           </TabsTrigger>
         </TabsList>
 
@@ -524,11 +525,8 @@ export function VersionPlayground({
           </div>
         </TabsContent>
 
-        <TabsContent value="test" className="mt-6">
-          <div className="group rounded-2xl border border-gray-200 bg-white/50 p-6 backdrop-blur-sm transition-all duration-300 hover:border-purple-500/50 dark:border-gray-800 dark:bg-gray-900/50 max-h-[calc(100vh-200px)] overflow-y-auto">
-            <h2 className="mb-4 text-xl font-semibold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">Test History</h2>
-            <div className="text-gray-600 dark:text-gray-400">Test history will appear here. (Coming soon)</div>
-          </div>
+        <TabsContent value="history">
+          <VersionHistory id={promptId} />
         </TabsContent>
       </Tabs>
     </div>
