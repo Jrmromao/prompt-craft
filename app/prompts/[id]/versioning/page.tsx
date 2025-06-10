@@ -8,7 +8,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Version } from '@/types/version';
-import { Loader2, ArrowLeft } from 'lucide-react';
+import { Loader2, ArrowLeft, Plus } from 'lucide-react';
 import { Gravatar } from '@/components/Gravatar';
 import { toast } from 'sonner';
 
@@ -170,100 +170,112 @@ export default function VersioningPage() {
   }
 
   return (
-    <div className="flex flex-col md:flex-row gap-8 p-6 min-h-screen bg-background">
-      {/* Left: Version List/Timeline with selection controls */}
-      <div className="md:w-1/3 w-full">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-4">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => router.back()}
-              className="hover:bg-purple-100 dark:hover:bg-purple-900/30"
+    <div className="container mx-auto px-4 py-8">
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-2xl font-bold">Version History</h1>
+        <Button
+          className="bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700"
+          onClick={handleNewVersionClick}
+        >
+          <Plus className="mr-2 h-5 w-5" />
+          Create New Version
+        </Button>
+      </div>
+      <div className="flex flex-col md:flex-row gap-8 p-6 min-h-screen bg-background">
+        {/* Left: Version List/Timeline with selection controls */}
+        <div className="md:w-1/3 w-full">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-4">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => router.back()}
+                className="hover:bg-purple-100 dark:hover:bg-purple-900/30"
+              >
+                <ArrowLeft className="h-5 w-5 text-purple-600 dark:text-purple-300" />
+              </Button>
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                Versioning
+              </h1>
+            </div>
+            {/* <Button
+              onClick={handleNewVersionClick}
+              className="bg-purple-600 hover:bg-purple-700 text-white"
             >
-              <ArrowLeft className="h-5 w-5 text-purple-600 dark:text-purple-300" />
-            </Button>
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-              Versioning
-            </h1>
+              New Version
+            </Button> */}
           </div>
-          <Button
-            onClick={handleNewVersionClick}
-            className="bg-purple-600 hover:bg-purple-700 text-white"
-          >
-            New Version
-          </Button>
-        </div>
-        <div className="mb-4 text-sm text-muted-foreground">
-          Select any two versions to compare.
-        </div>
-        <div className="space-y-2">
-          {versions.map((version) => (
-            <div
-              key={version.id}
-              className={`flex items-center gap-2 p-2 rounded border cursor-pointer transition-colors ${
-                (selectedVersion1?.id === version.id || selectedVersion2?.id === version.id)
-                  ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20'
-                  : 'border-purple-100 dark:border-purple-900 hover:border-purple-300 dark:hover:border-purple-700'
-              }`}
-              onClick={() => handleVersionSelect(version)}
-            >
-              <input
-                type="checkbox"
-                checked={selectedVersion1?.id === version.id || selectedVersion2?.id === version.id}
-                onChange={() => handleVersionSelect(version)}
-                className="accent-purple-600"
-                disabled={Boolean(
-                  selectedVersion1 && selectedVersion2 &&
-                  !(selectedVersion1.id === version.id || selectedVersion2.id === version.id)
-                )}
-              />
-              <Gravatar 
-                email={version.prompt?.user?.email ?? 'anonymous@example.com'} 
-                size={24}
-                className="flex-shrink-0"
-              />
-              <div className="flex flex-col min-w-0">
-                <div className="flex items-center gap-2">
-                  <span className="font-semibold text-purple-700 dark:text-purple-300">v{version.version}</span>
-                  <span className="text-xs text-gray-500 dark:text-gray-400">
-                    {version.prompt?.user?.name ?? 'Anonymous'}
+          <div className="mb-4 text-sm text-muted-foreground">
+            Select any two versions to compare.
+          </div>
+          <div className="space-y-2">
+            {versions.map((version) => (
+              <div
+                key={version.id}
+                className={`flex items-center gap-2 p-2 rounded border cursor-pointer transition-colors ${
+                  (selectedVersion1?.id === version.id || selectedVersion2?.id === version.id)
+                    ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20'
+                    : 'border-purple-100 dark:border-purple-900 hover:border-purple-300 dark:hover:border-purple-700'
+                }`}
+                onClick={() => handleVersionSelect(version)}
+              >
+                <input
+                  type="checkbox"
+                  checked={selectedVersion1?.id === version.id || selectedVersion2?.id === version.id}
+                  onChange={() => handleVersionSelect(version)}
+                  className="accent-purple-600"
+                  disabled={Boolean(
+                    selectedVersion1 && selectedVersion2 &&
+                    !(selectedVersion1.id === version.id || selectedVersion2.id === version.id)
+                  )}
+                />
+                <Gravatar 
+                  email={version.prompt?.user?.email ?? 'anonymous@example.com'} 
+                  size={24}
+                  className="flex-shrink-0"
+                />
+                <div className="flex flex-col min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className="font-semibold text-purple-700 dark:text-purple-300">v{version.version}</span>
+                    <span className="text-xs text-gray-500 dark:text-gray-400">
+                      {version.prompt?.user?.name ?? 'Anonymous'}
+                    </span>
+                  </div>
+                  <span className="truncate text-xs text-gray-500 dark:text-gray-400">
+                    {version.description || 'No description'}
                   </span>
                 </div>
-                <span className="truncate text-xs text-gray-500 dark:text-gray-400">
-                  {version.description || 'No description'}
+                <span className="ml-auto text-xs text-gray-400 whitespace-nowrap">
+                  {new Date(version.createdAt).toLocaleDateString()}
                 </span>
               </div>
-              <span className="ml-auto text-xs text-gray-400 whitespace-nowrap">
-                {new Date(version.createdAt).toLocaleDateString()}
-              </span>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
-      </div>
 
-      {/* Right: Diff Viewer or Playground */}
-      <div className="md:w-2/3 w-full bg-white dark:bg-zinc-900/60 rounded-xl shadow p-6 min-h-[400px]">
-        {showPlayground ? (
-          <VersionPlayground
-            currentVersion={versions[versions.length - 1]}
-            onSaveVersion={handleCreateVersion}
-            onTestPrompt={handleTestPrompt}
-          />
-        ) : (
-          <DiffViewer version1={selectedVersion1} version2={selectedVersion2} />
-        )}
-      </div>
+        {/* Right: Diff Viewer or Playground */}
+        <div className="md:w-2/3 w-full bg-white dark:bg-zinc-900/60 rounded-xl shadow p-6 min-h-[400px]">
+          {showPlayground ? (
+            <VersionPlayground
+              currentVersion={versions[versions.length - 1]}
+              onSaveVersion={handleCreateVersion}
+              onTestPrompt={handleTestPrompt}
+            />
+          ) : (
+            <DiffViewer version1={selectedVersion1} version2={selectedVersion2} />
+          )}
+        </div>
 
-      <VersionWarningDialog
-        isOpen={showWarningDialog}
-        onClose={() => setShowWarningDialog(false)}
-        onCompare={warningDialogAction === 'create' ? handleWarningDialogCompare : 
-                  warningDialogAction === 'select' ? handleWarningDialogSelect :
-                  handleWarningDialogClear}
-        onCreate={warningDialogAction === 'create' ? handleWarningDialogCreate : undefined}
-        action={warningDialogAction}
-      />
+        <VersionWarningDialog
+          isOpen={showWarningDialog}
+          onClose={() => setShowWarningDialog(false)}
+          onCompare={warningDialogAction === 'create' ? handleWarningDialogCompare : 
+                    warningDialogAction === 'select' ? handleWarningDialogSelect :
+                    handleWarningDialogClear}
+          onCreate={warningDialogAction === 'create' ? handleWarningDialogCreate : undefined}
+          action={warningDialogAction}
+        />
+      </div>
     </div>
   );
 } 

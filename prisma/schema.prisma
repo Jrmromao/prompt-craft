@@ -502,16 +502,18 @@ model EmailTemplate {
 }
 
 model PromptRating {
-  id           String     @id @default(cuid())
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
-  clarity      Float
-  specificity  Float
-  context      Float
-  overall      Float
-  feedback     String
-  promptTestId String     @unique
-  PromptTest   PromptTest @relation(fields: [promptTestId], references: [id], onDelete: Cascade)
+  id              String           @id @default(cuid())
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  clarity         Float
+  specificity     Float
+  context         Float
+  overall         Float
+  feedback        String
+  promptTestId    String           @unique
+  testHistoryId   String?          @unique
+  PromptTest      PromptTest       @relation(fields: [promptTestId], references: [id], onDelete: Cascade)
+  testHistory     PromptTestHistory? @relation(fields: [testHistoryId], references: [id], onDelete: Cascade)
 }
 
 model PromptTestHistory {
@@ -522,16 +524,19 @@ model PromptTestHistory {
   input           String?
   output          String
   promptVersionId String
-  updatedAt       DateTime
+  updatedAt       DateTime      @updatedAt
   promptId        String
   userId          String
+  status          TestStatus    @default(SUCCESS)
   prompt          Prompt        @relation(fields: [promptId], references: [id], onDelete: Cascade)
   PromptVersion   PromptVersion @relation(fields: [promptVersionId], references: [id], onDelete: Cascade)
   user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rating          PromptRating?
 
   @@index([promptId])
   @@index([userId])
   @@index([promptVersionId])
+  @@index([status])
 }
 
 model PromptTest {
@@ -615,4 +620,11 @@ enum EmailSignupStatus {
   PENDING
   CONFIRMED
   UNSUBSCRIBED
+}
+
+enum TestStatus {
+  SUCCESS
+  FAILURE
+  ERROR
+  PENDING
 }

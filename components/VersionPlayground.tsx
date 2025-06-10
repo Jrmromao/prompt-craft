@@ -14,6 +14,7 @@ import { useParams } from 'next/navigation';
 import { useToast } from '@/components/ui/use-toast';
 import { NewVersionModal } from '@/components/NewVersionModal';
 import { VersionHistory } from '@/components/VersionHistory';
+import ReactMarkdown from 'react-markdown';
 
 interface PromptRating {
   clarity: number;
@@ -415,12 +416,23 @@ export function VersionPlayground({
               {testOutput && (
                 <div className="mt-6 space-y-4">
                   <h2 className="text-xl font-semibold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">Test Output</h2>
-                  <Textarea
-                    id="testOutput"
-                    value={testOutput}
-                    readOnly
-                    className="min-h-[200px] font-mono text-sm bg-white/50 dark:bg-gray-900/50 border-gray-200 dark:border-gray-800"
-                  />
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="testOutput" className="text-sm font-medium">Raw Markdown</Label>
+                      <Textarea
+                        id="testOutput"
+                        value={testOutput}
+                        onChange={(e) => setTestOutput(e.target.value)}
+                        className="min-h-[200px] font-mono text-sm bg-white/50 dark:bg-gray-900/50 border-gray-200 dark:border-gray-800"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium">Preview</Label>
+                      <div className="min-h-[200px] p-3 rounded-md border border-gray-200 dark:border-gray-800 bg-white/50 dark:bg-gray-900/50 prose dark:prose-invert max-w-none overflow-auto">
+                        <ReactMarkdown>{testOutput}</ReactMarkdown>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               )}
               {rating && (

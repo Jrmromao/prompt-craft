@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Play, Star, Clock, User } from 'lucide-react';
+import { ArrowLeft, Play, Star, Clock, User, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -44,6 +44,64 @@ interface Prompt {
   currentVersionId: string;
 }
 
+// Dummy data for testing
+const dummyTestHistory = [
+  {
+    id: 'dummy-1',
+    createdAt: new Date().toISOString(),
+    input: 'What is the capital of France?',
+    output: 'The capital of France is Paris.',
+    tokensUsed: 12,
+    PromptVersion: {
+      PromptTest: {
+        PromptRating: {
+          overall: 9,
+          clarity: 9,
+          specificity: 8,
+          context: 9,
+          feedback: 'Very clear and accurate.'
+        }
+      }
+    }
+  },
+  {
+    id: 'dummy-2',
+    createdAt: new Date(Date.now() - 1000 * 60 * 60).toISOString(),
+    input: 'List 3 uses for a paperclip.',
+    output: '1. Holding papers together. 2. Resetting devices. 3. Bookmark.',
+    tokensUsed: 18,
+    PromptVersion: {
+      PromptTest: {
+        PromptRating: {
+          overall: 8,
+          clarity: 8,
+          specificity: 7,
+          context: 8,
+          feedback: 'Good, but could be more specific.'
+        }
+      }
+    }
+  },
+  {
+    id: 'dummy-3',
+    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
+    input: 'Explain quantum computing in simple terms.',
+    output: 'Quantum computing uses quantum bits to perform calculations much faster than traditional computers for certain problems.',
+    tokensUsed: 25,
+    PromptVersion: {
+      PromptTest: {
+        PromptRating: {
+          overall: 7,
+          clarity: 7,
+          specificity: 6,
+          context: 7,
+          feedback: 'Simple explanation, but lacks detail.'
+        }
+      }
+    }
+  }
+];
+
 export default function VersionPage({ params }: { params: { id: string } }) {
   const promptId = params.id;
   const router = useRouter();
@@ -52,6 +110,9 @@ export default function VersionPage({ params }: { params: { id: string } }) {
   const [prompt, setPrompt] = useState<Prompt | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isTestModalOpen, setIsTestModalOpen] = useState(false);
+  const [testHistory, setTestHistory] = useState<any[]>([]);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+  const [isCreateVersionOpen, setIsCreateVersionOpen] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -81,6 +142,17 @@ export default function VersionPage({ params }: { params: { id: string } }) {
 
     if (promptId) fetchData();
   }, [promptId]);
+
+  // Fetch test history when selectedVersion changes
+  useEffect(() => {
+    if (!selectedVersion) return;
+    setIsLoadingHistory(true);
+    fetch(`/api/prompts/${promptId}/test-history?promptVersionId=${selectedVersion.id}`)
+      .then(res => res.json())
+      .then(data => setTestHistory(data))
+      .catch(() => setTestHistory([]))
+      .finally(() => setIsLoadingHistory(false));
+  }, [selectedVersion, promptId]);
 
   const handleTestPrompt = async (content: string, testInput: string, promptVersionId: string) => {
     try {
@@ -137,7 +209,16 @@ export default function VersionPage({ params }: { params: { id: string } }) {
           <div className="lg:col-span-1">
             <Card>
               <CardContent className="p-6">
-                <h2 className="text-xl font-semibold mb-4">Version History</h2>
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-xl font-semibold">Version History</h2>
+                  <Button
+                    className="bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700"
+                    onClick={() => setIsCreateVersionOpen(true)}
+                  >
+                    <Plus className="mr-2 h-5 w-5" />
+                    Create New Version
+                  </Button>
+                </div>
                 <ScrollArea className="h-[calc(100vh-200px)]">
                   <div className="space-y-4">
                     {versions.map((version) => (
@@ -210,48 +291,44 @@ export default function VersionPage({ params }: { params: { id: string } }) {
                   <TabsContent value="history" className="mt-0">
                     <div className="space-y-4">
                       <h3 className="text-lg font-semibold">Test History</h3>
-                      {selectedVersion.testResults?.length ? (
-                        <div className="space-y-4">
-                          {selectedVersion.testResults.map((result) => (
-                            <Card key={result.id}>
-                              <CardContent className="p-4">
-                                <div className="flex items-center justify-between mb-4">
-                                  <div className="flex items-center gap-2">
-                                    <Clock className="h-4 w-4 text-muted-foreground" />
-                                    <span className="text-sm text-muted-foreground">
-                                      {new Date(result.createdAt).toLocaleDateString()}
-                                    </span>
+                      {isLoadingHistory ? (
+                        <div className="text-center py-8 text-muted-foreground">Loading test history...</div>
+                      ) : testHistory.length ? (
+                        <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2">
+                          {testHistory.map((test) => (
+                            <Card key={test.id}>
+                              <CardContent className="p-4 space-y-2">
+                                <div className="flex items-center justify-between mb-2">
+                                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                    <Clock className="h-4 w-4" />
+                                    {new Date(test.createdAt).toLocaleString()}
                                   </div>
-                                  <TooltipProvider>
-                                    <Tooltip>
-                                      <TooltipTrigger asChild>
-                                        <div className="flex items-center gap-1">
-                                          <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                                          <span className="font-medium">{result.rating.overall}/10</span>
-                                        </div>
-                                      </TooltipTrigger>
-                                      <TooltipContent>
-                                        <div className="space-y-2">
-                                          <div className="flex items-center justify-between gap-4">
-                                            <span>Clarity:</span>
-                                            <span>{result.rating.clarity}/10</span>
-                                          </div>
-                                          <div className="flex items-center justify-between gap-4">
-                                            <span>Specificity:</span>
-                                            <span>{result.rating.specificity}/10</span>
-                                          </div>
-                                          <div className="flex items-center justify-between gap-4">
-                                            <span>Context:</span>
-                                            <span>{result.rating.context}/10</span>
-                                          </div>
-                                        </div>
-                                      </TooltipContent>
-                                    </Tooltip>
-                                  </TooltipProvider>
+                                  {test.tokensUsed && (
+                                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                      <span>{test.tokensUsed} tokens</span>
+                                    </div>
+                                  )}
                                 </div>
-                                {result.rating.feedback && (
-                                  <div className="rounded-md bg-gray-50 p-3 text-sm dark:bg-gray-900">
-                                    <p className="text-muted-foreground">{result.rating.feedback}</p>
+                                {test.input && (
+                                  <div className="text-xs"><span className="font-medium">Input:</span> <span className="text-muted-foreground">{test.input.length > 100 ? `${test.input.substring(0, 100)}...` : test.input}</span></div>
+                                )}
+                                {test.output && (
+                                  <div className="text-xs"><span className="font-medium">Output:</span> <span className="text-muted-foreground">{test.output.length > 100 ? `${test.output.substring(0, 100)}...` : test.output}</span></div>
+                                )}
+                                {test.PromptVersion?.PromptTest?.PromptRating && (
+                                  <div className="space-y-1 mt-2">
+                                    <div className="flex items-center gap-2 text-xs">
+                                      <span>Overall:</span>
+                                      <span className="font-semibold text-yellow-500">{test.PromptVersion.PromptTest.PromptRating.overall}/10</span>
+                                    </div>
+                                    <div className="grid grid-cols-3 gap-2 text-xs">
+                                      <div>Clarity: {test.PromptVersion.PromptTest.PromptRating.clarity}/10</div>
+                                      <div>Specificity: {test.PromptVersion.PromptTest.PromptRating.specificity}/10</div>
+                                      <div>Context: {test.PromptVersion.PromptTest.PromptRating.context}/10</div>
+                                    </div>
+                                    {test.PromptVersion.PromptTest.PromptRating.feedback && (
+                                      <div className="text-xs text-muted-foreground mt-1">Feedback: {test.PromptVersion.PromptTest.PromptRating.feedback}</div>
+                                    )}
                                   </div>
                                 )}
                               </CardContent>
@@ -259,9 +336,51 @@ export default function VersionPage({ params }: { params: { id: string } }) {
                           ))}
                         </div>
                       ) : (
-                        <div className="text-center py-8 text-muted-foreground">
-                          No test results available for this version
-                        </div>
+                        <>
+                          <div className="text-center py-8 text-muted-foreground">No test results available for this version</div>
+                          <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2">
+                            <div className="text-center text-xs text-purple-500 mb-2">(Showing dummy data for testing)</div>
+                            {dummyTestHistory.map((test) => (
+                              <Card key={test.id}>
+                                <CardContent className="p-4 space-y-2">
+                                  <div className="flex items-center justify-between mb-2">
+                                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                      <Clock className="h-4 w-4" />
+                                      {new Date(test.createdAt).toLocaleString()}
+                                    </div>
+                                    {test.tokensUsed && (
+                                      <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                        <span>{test.tokensUsed} tokens</span>
+                                      </div>
+                                    )}
+                                  </div>
+                                  {test.input && (
+                                    <div className="text-xs"><span className="font-medium">Input:</span> <span className="text-muted-foreground">{test.input.length > 100 ? `${test.input.substring(0, 100)}...` : test.input}</span></div>
+                                  )}
+                                  {test.output && (
+                                    <div className="text-xs"><span className="font-medium">Output:</span> <span className="text-muted-foreground">{test.output.length > 100 ? `${test.output.substring(0, 100)}...` : test.output}</span></div>
+                                  )}
+                                  {test.PromptVersion?.PromptTest?.PromptRating && (
+                                    <div className="space-y-1 mt-2">
+                                      <div className="flex items-center gap-2 text-xs">
+                                        <span>Overall:</span>
+                                        <span className="font-semibold text-yellow-500">{test.PromptVersion.PromptTest.PromptRating.overall}/10</span>
+                                      </div>
+                                      <div className="grid grid-cols-3 gap-2 text-xs">
+                                        <div>Clarity: {test.PromptVersion.PromptTest.PromptRating.clarity}/10</div>
+                                        <div>Specificity: {test.PromptVersion.PromptTest.PromptRating.specificity}/10</div>
+                                        <div>Context: {test.PromptVersion.PromptTest.PromptRating.context}/10</div>
+                                      </div>
+                                      {test.PromptVersion.PromptTest.PromptRating.feedback && (
+                                        <div className="text-xs text-muted-foreground mt-1">Feedback: {test.PromptVersion.PromptTest.PromptRating.feedback}</div>
+                                      )}
+                                    </div>
+                                  )}
+                                </CardContent>
+                              </Card>
+                            ))}
+                          </div>
+                        </>
                       )}
                     </div>
                   </TabsContent>
