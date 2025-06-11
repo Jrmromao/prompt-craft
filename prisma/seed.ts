@@ -13,15 +13,15 @@ async function main() {
       period: Period.MONTHLY,
       isActive: true,
       stripeProductId: 'prod_free',
-    },
-    {
-      name: 'LITE',
-      description: 'For regular users who need more power',
-      price: 3,
-      credits: 250,
-      period: Period.WEEKLY,
-      isActive: true,
-      stripeProductId: 'prod_lite_weekly',
+      maxPrompts: 10,
+      maxTokens: 1000,
+      maxTeamMembers: 1,
+      features: [
+        'Basic prompt types',
+        'No saving prompts',
+        'No prompt history'
+      ],
+      isEnterprise: false
     },
     {
       name: 'PRO',
@@ -31,7 +31,67 @@ async function main() {
       period: Period.MONTHLY,
       isActive: true,
       stripeProductId: 'prod_pro_monthly',
+      maxPrompts: 250,
+      maxTokens: 150000,
+      maxTeamMembers: 5,
+      features: [
+        'Unlimited saved prompts',
+        'Share prompts',
+        'Community prompt library',
+        'Priority support',
+        'Monthly credit reset'
+      ],
+      isEnterprise: false
     },
+    {
+      name: 'ELITE',
+      description: 'For dedicated prompt engineers and professional content creators',
+      price: 29.99,
+      credits: 5000,
+      period: Period.MONTHLY,
+      isActive: true,
+      stripeProductId: 'prod_elite_monthly',
+      maxPrompts: 1000,
+      maxTokens: 500000,
+      maxTeamMembers: 10,
+      features: [
+        'Unlimited Testing Runs',
+        'Unlimited Private Prompts',
+        'Advanced Analytics',
+        'Bring Your Own API Key',
+        'Priority Support',
+        'Custom Integrations'
+      ],
+      isEnterprise: false
+    },
+    {
+      name: 'ENTERPRISE',
+      description: 'Custom solutions for large organizations',
+      price: 0, // Custom pricing
+      credits: 0, // Custom credits
+      period: Period.MONTHLY,
+      isActive: true,
+      stripeProductId: 'prod_enterprise',
+      maxPrompts: 0, // Unlimited
+      maxTokens: 0, // Unlimited
+      maxTeamMembers: 0, // Unlimited
+      features: [
+        'Everything in Elite',
+        'Custom AI Model Fine-tuning',
+        'Dedicated Account Manager',
+        'SLA Guarantee',
+        'Custom API Integration',
+        'Team Management',
+        'Advanced Security'
+      ],
+      isEnterprise: true,
+      customLimits: {
+        // Custom limits will be set per customer
+        maxPrompts: null,
+        maxTokens: null,
+        maxTeamMembers: null
+      }
+    }
   ];
 
   for (const plan of plans) {

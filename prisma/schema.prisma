@@ -55,6 +55,9 @@ model User {
   assignedTickets      SupportTicket[]     @relation("AssignedTickets")
   supportTickets       SupportTicket[]
   votes                Vote[]
+  featureUsage         FeatureUsage[]
+  teamMembers          TeamMember[]
+  ownedTeams           Team[]             @relation("TeamOwner")
 
   @@index([clerkId])
   @@index([email])
@@ -72,6 +75,14 @@ model Plan {
   description     String
   stripeProductId String         @unique
   subscriptions   Subscription[]
+  
+  // New fields for plan limitations
+  maxPrompts      Int            @default(10)
+  maxTokens       Int            @default(1000)
+  maxTeamMembers  Int            @default(1)
+  features        String[]       @default([])
+  isEnterprise    Boolean        @default(false)
+  customLimits    Json?          // For enterprise custom limits
 
   @@index([isActive])
   @@index([period])
@@ -117,6 +128,7 @@ model Prompt {
   usageCount     Int                 @default(0)
   viewCount      Int                 @default(0)
   copyCount      Int                 @default(0)
+  promptType     String              @default("text")
   apiUsage       ApiUsage[]
   comments       Comment[]
   likes          CommentLike[]
@@ -288,6 +300,7 @@ model PromptUsage {
   userId    String
   createdAt DateTime @default(now())
   result    Json?
+  tokenCount Int     @default(0)
   prompt    Prompt   @relation(fields: [promptId], references: [id], onDelete: Cascade)
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -554,6 +567,44 @@ model PromptTest {
   @@index([promptVersionId])
 }
 
+model FeatureUsage {
+  id        String   @id @default(cuid())
+  userId    String
+  feature   String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([feature])
+}
+
+model TeamMember {
+  id        String   @id @default(cuid())
+  teamId    String
+  userId    String
+  role      TeamRole @default(MEMBER)
+  joinedAt  DateTime @default(now())
+  team      Team     @relation(fields: [teamId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@unique([teamId, userId])
+  @@index([teamId])
+  @@index([userId])
+}
+
+model Team {
+  id          String    @id @default(cuid())
+  name        String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  ownerId     String
+  owner       User      @relation("TeamOwner", fields: [ownerId], references: [id])
+  members     TeamMember[]
+  settings    Json?     @default("{\"maxMembers\": 5, \"allowedFeatures\": []}")
+
+  @@index([ownerId])
+}
+
 enum Role {
   USER
   ADMIN
@@ -627,4 +678,10 @@ enum TestStatus {
   FAILURE
   ERROR
   PENDING
+}
+
+enum TeamRole {
+  OWNER
+  ADMIN
+  MEMBER
 }
