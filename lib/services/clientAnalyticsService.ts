@@ -17,14 +17,14 @@ export const clientAnalyticsService = {
     }
   },
 
-  async trackPromptUsage(id: string, result: any): Promise<void> {
+  async trackPromptUsage(id: string, result: any, tokenCount?: number): Promise<void> {
     try {
       const response = await fetch(`/api/prompts/${id}/usage`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ result }),
+        body: JSON.stringify({ result, tokenCount }),
       });
 
       if (!response.ok) {

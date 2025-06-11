@@ -4,13 +4,6 @@ import { auth } from '@clerk/nextjs/server';
 import { prisma } from '@/lib/prisma';
 import { Role } from '@/utils/constants';
 
-// Define prompt limits per planType
-const PROMPT_LIMITS = {
-  FREE: 10,
-  LITE: 250,
-  PRO: Infinity,
-};
-
 export async function GET() {
   try {
     const { userId } = await auth();
@@ -21,11 +14,19 @@ export async function GET() {
       );
     }
 
-    // Get user and their planType
+    // Get user and their subscription
     const user = await prisma.user.findUnique({
       where: { clerkId: userId },
-      select: { id: true, planType: true },
+      select: {
+        id: true,
+        subscription: {
+          include: {
+            plan: true
+          }
+        }
+      },
     });
+
     if (!user) {
       return NextResponse.json(
         { canCreate: false, isLastFree: false, redirectTo: '/sign-up' },
@@ -33,23 +34,48 @@ export async function GET() {
       );
     }
 
-    const planType = user.planType || 'FREE';
-    const promptLimit = PROMPT_LIMITS[planType] ?? 0;
+    // If no subscription, use FREE plan limits
+    const plan = user.subscription?.plan || await prisma.plan.findUnique({
+      where: { name: 'FREE' }
+    });
 
-    // Pro users are unlimited
-    if (promptLimit === Infinity) {
-      return NextResponse.json({ canCreate: true, isLastFree: false, redirectTo: null });
+    if (!plan) {
+      return NextResponse.json(
+        { canCreate: false, isLastFree: false, redirectTo: '/pricing' },
+        { status: 404 }
+      );
+    }
+
+    // Enterprise plans have custom limits
+    if (plan.isEnterprise && plan.customLimits) {
+      const customLimits = plan.customLimits as any;
+      return NextResponse.json({
+        canCreate: true,
+        isLastFree: false,
+        redirectTo: null,
+        limits: customLimits
+      });
     }
 
     // Count prompts created by the user
     const promptCount = await prisma.prompt.count({ where: { userId: user.id } });
 
     // Check if user can create more prompts
-    const canCreate = promptCount < promptLimit;
-    const isLastFree = promptCount === promptLimit - 1;
+    const canCreate = plan.maxPrompts === 0 || promptCount < plan.maxPrompts;
+    const isLastFree = plan.maxPrompts > 0 && promptCount === plan.maxPrompts - 1;
     const redirectTo = canCreate ? null : '/pricing';
 
-    return NextResponse.json({ canCreate, isLastFree, redirectTo });
+    return NextResponse.json({
+      canCreate,
+      isLastFree,
+      redirectTo,
+      limits: {
+        maxPrompts: plan.maxPrompts,
+        maxTokens: plan.maxTokens,
+        maxTeamMembers: plan.maxTeamMembers,
+        features: plan.features
+      }
+    });
   } catch (error) {
     console.error('Error in /api/subscription/check:', error);
     return NextResponse.json(

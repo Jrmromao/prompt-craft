@@ -5,12 +5,19 @@ import { currentUser } from '@clerk/nextjs/server';
 export default async function Page() {
   const promptService = PromptService.getInstance();
   const featuredPrompts = await promptService.getFeaturedPrompts(3);
-  const user = await currentUser();
+  const clerkUser = await currentUser();
+  
+  const user = clerkUser ? {
+    id: clerkUser.id,
+    name: clerkUser.firstName + ' ' + clerkUser.lastName,
+    email: clerkUser.emailAddresses[0]?.emailAddress || '',
+    imageUrl: clerkUser.imageUrl
+  } : null;
 
   return (
     <div className="flex min-h-screen flex-col bg-white text-gray-900 dark:bg-black dark:text-white">
       <main className="flex-1">
-        <PromptCraftLandingClient />
+        <PromptCraftLandingClient user={user} />
       </main>
     </div>
   );

@@ -54,6 +54,7 @@ import type { KeyedMutator } from 'swr';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { useSidebarStore } from '@/components/layout/NavBarWrapper';
 import { useTheme } from '@/components/ThemeProvider';
+import { UsageTab } from '@/components/profile/UsageTab';
 
 const Sheet = dynamic(() => import('@/components/ui/sheet').then(mod => mod.Sheet), {
   ssr: false,
@@ -1013,7 +1014,7 @@ function ProfileContent({ user, currentPath }: ProfileClientProps) {
               </TabsContent>
               <TabsContent value="usage">
                 <Card className="rounded-2xl border border-border bg-card p-8 shadow-lg">
-                  <UsageStatsSection />
+                  <UsageTab />
                 </Card>
               </TabsContent>
               <TabsContent value="billing">

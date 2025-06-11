@@ -18,7 +18,7 @@ export async function POST(
     }
 
     const body = await request.json();
-    const { result } = body;
+    const { result, tokenCount } = body;
 
     await prisma.$transaction(async (tx) => {
       // Create usage record
@@ -27,6 +27,7 @@ export async function POST(
           promptId: context.params.id,
           userId,
           result,
+          tokenCount: tokenCount || 0
         },
       });
 

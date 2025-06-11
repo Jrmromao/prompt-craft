@@ -23,6 +23,14 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Marquee } from '@/components/ui/marquee';
 import { cn } from '@/lib/utils';
+import { Switch } from "@/components/ui/switch";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { useClerk } from '@clerk/nextjs';
 
 // SEO metadata
 const metadata = {
@@ -80,6 +88,8 @@ const PromptCraftLandingClient = ({ user }: PromptCraftLandingClientProps) => {
       style: 'descriptive'
     }
   });
+  const [isAnnual, setIsAnnual] = useState(false);
+  const { signOut } = useClerk();
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -152,12 +162,17 @@ const PromptCraftLandingClient = ({ user }: PromptCraftLandingClientProps) => {
     },
   ];
 
+  const getAnnualPrice = (price: string) => {
+    const numericPrice = parseFloat(price.replace('$', ''));
+    return `$${(numericPrice * 12 * 0.8).toFixed(2)}`; // 20% discount for annual
+  };
+
   const pricingPlans = [
     {
       title: 'Pro',
       description: 'Perfect for individual prompt engineers and freelancers',
-      price: '$3.50',
-      period: 'week',
+      price: '$9.99',
+      period: 'month',
       features: [
         '200 Testing Runs/month',
         'Up to 200 Private Prompts',
@@ -172,7 +187,7 @@ const PromptCraftLandingClient = ({ user }: PromptCraftLandingClientProps) => {
     {
       title: 'Elite',
       description: 'For dedicated prompt engineers and professional content creators',
-      price: '$17.90',
+      price: '$29.99',
       period: 'month',
       features: [
         'Unlimited Testing Runs',
@@ -189,7 +204,7 @@ const PromptCraftLandingClient = ({ user }: PromptCraftLandingClientProps) => {
     {
       title: 'Enterprise',
       description: 'Custom solutions for large organizations',
-      price: '$25',
+      price: 'Custom',
       period: 'month',
       features: [
         'Everything in Elite',
@@ -303,6 +318,10 @@ const PromptCraftLandingClient = ({ user }: PromptCraftLandingClientProps) => {
 
     return () => clearTimeout(debounceTimer);
   }, [livePreview.input]);
+
+  const handleSignOut = async () => {
+    await signOut();
+  };
 
   return (
     <>
@@ -429,13 +448,13 @@ const PromptCraftLandingClient = ({ user }: PromptCraftLandingClientProps) => {
                           alt={user.name}
                           className="h-8 w-8 rounded-full border-2 border-purple-500/20"
                         />
-                        <a
-                          href="/sign-out"
+                        <button
+                          onClick={handleSignOut}
                           className="text-sm font-medium text-gray-700 transition-colors hover:text-purple-600 dark:text-gray-200 dark:hover:text-purple-300"
                           aria-label="Sign out"
                         >
                           Sign Out
-                        </a>
+                        </button>
                       </div>
                     </>
                   ) : (
@@ -517,13 +536,13 @@ const PromptCraftLandingClient = ({ user }: PromptCraftLandingClientProps) => {
                           alt={user.name}
                           className="h-8 w-8 rounded-full border-2 border-purple-500/20"
                         />
-                        <a
-                          href="/sign-out"
+                        <button
+                          onClick={handleSignOut}
                           className="text-sm font-medium text-gray-700 transition-colors hover:text-purple-600 dark:text-gray-200 dark:hover:text-purple-300"
                           aria-label="Sign out"
                         >
                           Sign Out
-                        </a>
+                        </button>
                       </div>
                     </>
                   ) : (
@@ -583,7 +602,7 @@ const PromptCraftLandingClient = ({ user }: PromptCraftLandingClientProps) => {
                   </FloatingCard>
 
                   <FloatingCard delay={0.6}>
-                    <div className="mb-12 flex flex-col items-start gap-4 sm:flex-row">
+                    <div className="mb-12 flex flex-col gap-4 sm:flex-row sm:items-center">
                       {user ? (
                         <a href="/dashboard">
                           <GradientButton className="px-12 py-4 text-lg">
@@ -886,6 +905,34 @@ const PromptCraftLandingClient = ({ user }: PromptCraftLandingClientProps) => {
                 <p className="mx-auto max-w-3xl text-xl text-gray-600 dark:text-gray-300">
                   Choose the plan that fits your needs. All plans include a 14-day free trial.
                 </p>
+
+                <div className="mt-8 flex items-center justify-center gap-4">
+                  <span className={`text-sm ${!isAnnual ? 'text-gray-900 dark:text-gray-100' : 'text-gray-500 dark:text-gray-400'}`}>
+                    Monthly
+                  </span>
+                  <Switch
+                    checked={isAnnual}
+                    onCheckedChange={setIsAnnual}
+                    className="data-[state=checked]:bg-purple-600"
+                  />
+                  <div className="flex items-center gap-2">
+                    <span className={`text-sm ${isAnnual ? 'text-gray-900 dark:text-gray-100' : 'text-gray-500 dark:text-gray-400'}`}>
+                      Annual
+                    </span>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger>
+                          <Badge variant="secondary" className="cursor-help">
+                            Save 20%
+                          </Badge>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Get 2 months free with annual billing</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
+                </div>
               </div>
 
               <div className="mx-auto grid max-w-6xl gap-8 md:grid-cols-2 lg:grid-cols-3">
@@ -919,12 +966,19 @@ const PromptCraftLandingClient = ({ user }: PromptCraftLandingClientProps) => {
                             ) : (
                               <div className="flex items-baseline">
                                 <span className="text-5xl font-bold text-gray-900 dark:text-white">
-                                  {plan.price}
+                                  {isAnnual ? getAnnualPrice(plan.price) : plan.price}
                                 </span>
-                                <span className="ml-2 text-xl text-gray-600 dark:text-gray-300">/{plan.period}</span>
+                                <span className="ml-2 text-xl text-gray-600 dark:text-gray-300">
+                                  /{isAnnual ? 'year' : 'month'}
+                                </span>
                               </div>
                             )}
                           </div>
+                          {isAnnual && plan.title !== 'Enterprise' && (
+                            <p className="mt-1 text-center text-sm text-gray-500 dark:text-gray-400">
+                              {plan.price}/month when billed monthly
+                            </p>
+                          )}
                           <ul className="mb-8 space-y-4">
                             {plan.features.map((feature, featureIndex) => (
                               <li key={featureIndex} className="flex items-start gap-3 text-gray-600 dark:text-gray-300">
