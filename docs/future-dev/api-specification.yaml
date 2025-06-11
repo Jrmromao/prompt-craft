@@ -1,0 +1,400 @@
+openapi: 3.0.0
+info:
+  title: PromptCraft Enterprise API
+  version: 1.0.0
+  description: API specification for PromptCraft Enterprise features
+
+servers:
+  - url: https://api.promptcraft.com/v1
+    description: Production server
+  - url: https://staging-api.promptcraft.com/v1
+    description: Staging server
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+
+  schemas:
+    Prompt:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        content:
+          type: string
+        version:
+          type: integer
+        status:
+          type: string
+          enum: [draft, review, approved, archived]
+        metadata:
+          type: object
+          properties:
+            tags:
+              type: array
+              items:
+                type: string
+            department:
+              type: string
+            owner:
+              type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    Team:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        members:
+          type: array
+          items:
+            $ref: '#/components/schemas/TeamMember'
+        settings:
+          type: object
+          properties:
+            maxMembers:
+              type: integer
+            allowedFeatures:
+              type: array
+              items:
+                type: string
+
+    TeamMember:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        userId:
+          type: string
+        role:
+          type: string
+          enum: [OWNER, ADMIN, MEMBER]
+        joinedAt:
+          type: string
+          format: date-time
+
+    PromptVersion:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        promptId:
+          type: string
+        content:
+          type: string
+        version:
+          type: integer
+        changes:
+          type: object
+        createdBy:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+
+paths:
+  /prompts:
+    get:
+      summary: List prompts
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+          description: Page number
+        - in: query
+          name: limit
+          schema:
+            type: integer
+          description: Items per page
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [draft, review, approved, archived]
+      responses:
+        '200':
+          description: List of prompts
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Prompt'
+                  pagination:
+                    type: object
+                    properties:
+                      total:
+                        type: integer
+                      page:
+                        type: integer
+                      limit:
+                        type: integer
+
+    post:
+      summary: Create a new prompt
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - content
+              properties:
+                name:
+                  type: string
+                content:
+                  type: string
+                metadata:
+                  type: object
+      responses:
+        '201':
+          description: Prompt created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Prompt'
+
+  /prompts/{promptId}/versions:
+    get:
+      summary: Get prompt versions
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: promptId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of prompt versions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PromptVersion'
+
+    post:
+      summary: Create new version
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: promptId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - content
+              properties:
+                content:
+                  type: string
+                changes:
+                  type: object
+      responses:
+        '201':
+          description: Version created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PromptVersion'
+
+  /teams:
+    get:
+      summary: List teams
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: List of teams
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Team'
+
+    post:
+      summary: Create a new team
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+              properties:
+                name:
+                  type: string
+                settings:
+                  type: object
+      responses:
+        '201':
+          description: Team created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Team'
+
+  /teams/{teamId}/members:
+    get:
+      summary: List team members
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: teamId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of team members
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TeamMember'
+
+    post:
+      summary: Add team member
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: teamId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - userId
+                - role
+              properties:
+                userId:
+                  type: string
+                role:
+                  type: string
+                  enum: [OWNER, ADMIN, MEMBER]
+      responses:
+        '201':
+          description: Member added
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TeamMember'
+
+  /analytics/usage:
+    get:
+      summary: Get usage analytics
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: query
+          name: startDate
+          schema:
+            type: string
+            format: date
+        - in: query
+          name: endDate
+          schema:
+            type: string
+            format: date
+        - in: query
+          name: teamId
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Usage analytics
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  totalPrompts:
+                    type: integer
+                  activeUsers:
+                    type: integer
+                  usageByFeature:
+                    type: object
+                  costAnalysis:
+                    type: object
+
+  /analytics/performance:
+    get:
+      summary: Get performance metrics
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: query
+          name: promptId
+          schema:
+            type: string
+        - in: query
+          name: timeRange
+          schema:
+            type: string
+            enum: [day, week, month, year]
+      responses:
+        '200':
+          description: Performance metrics
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  responseTime:
+                    type: object
+                  successRate:
+                    type: object
+                  errorRate:
+                    type: object
+                  usageTrends:
+                    type: object 
