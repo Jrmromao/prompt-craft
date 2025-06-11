@@ -14,6 +14,33 @@ import {
   Bar
 } from 'recharts';
 
+interface UsageMetrics {
+  promptCount: number;
+  tokenUsage: number;
+  teamMemberCount: number;
+  usageByDay: { date: string; count: number }[];
+  usageByFeature: { feature: string; count: number }[];
+  tokenUsageByDay: { date: string; tokens: number }[];
+  status: string;
+  message: string;
+  lastUsedAt: string | Date;
+}
+
+interface UsageData {
+  metrics: UsageMetrics;
+  limits: {
+    maxPrompts: number;
+    maxTokens: number;
+    maxTeamMembers: number;
+    features: string[];
+  };
+  usagePercentages: {
+    prompts: number;
+    tokens: number;
+    teamMembers: number;
+  };
+}
+
 export function UsageTab() {
   const { data, loading, error } = useUsageMetrics();
 
@@ -29,7 +56,7 @@ export function UsageTab() {
     );
   }
 
-  const { metrics, limits, usagePercentages } = data;
+  const { metrics, limits, usagePercentages } = data as UsageData;
 
   return (
     <div className="space-y-6 p-4">
@@ -45,6 +72,7 @@ export function UsageTab() {
           current={metrics.tokenUsage}
           limit={limits.maxTokens}
           percentage={usagePercentages.tokens}
+          formatValue={(value) => `${value.toLocaleString()} tokens`}
         />
         <UsageCard
           title="Team Members"
@@ -81,23 +109,47 @@ export function UsageTab() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Feature Usage</CardTitle>
+            <CardTitle>Token Usage Over Time</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="h-[300px]">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={metrics.usageByFeature}>
+                <LineChart data={metrics.tokenUsageByDay}>
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="feature" />
+                  <XAxis dataKey="date" />
                   <YAxis />
-                  <Tooltip />
-                  <Bar dataKey="count" fill="#8884d8" />
-                </BarChart>
+                  <Tooltip formatter={(value) => [`${value} tokens`, 'Usage']} />
+                  <Line
+                    type="monotone"
+                    dataKey="tokens"
+                    stroke="#82ca9d"
+                    strokeWidth={2}
+                  />
+                </LineChart>
               </ResponsiveContainer>
             </div>
           </CardContent>
         </Card>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Feature Usage</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="h-[300px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={metrics.usageByFeature}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="feature" />
+                <YAxis />
+                <Tooltip />
+                <Bar dataKey="count" fill="#8884d8" />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>
@@ -126,11 +178,13 @@ function UsageCard({
   current,
   limit,
   percentage,
+  formatValue = (value) => value.toLocaleString(),
 }: {
   title: string;
   current: number;
   limit: number;
   percentage: number;
+  formatValue?: (value: number) => string;
 }) {
   return (
     <Card>
@@ -140,9 +194,9 @@ function UsageCard({
       <CardContent>
         <div className="space-y-2">
           <div className="flex justify-between text-sm">
-            <span>{current.toLocaleString()}</span>
+            <span>{formatValue(current)}</span>
             <span className="text-muted-foreground">
-              of {limit.toLocaleString()}
+              of {formatValue(limit)}
             </span>
           </div>
           <Progress value={percentage} className="h-2" />

@@ -19,19 +19,11 @@ interface Prompt {
 
 interface PromptManagerProps {
   prompts: Prompt[];
-  isLoading?: boolean;
-  onSave: (data: {
-    name: string;
-    description?: string;
-    content: string;
-    isPublic: boolean;
-    promptType?: 'text' | 'image' | 'video' | 'music' | 'software';
-    metadata?: any;
-    tags: string[];
-  }) => Promise<void>;
+  isLoading: boolean;
+  onSave: (prompt: any) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
-  onEdit: (id: string, data: Partial<Prompt>) => Promise<void>;
-  mode?: 'create' | 'full';
+  onEdit: (id: string, prompt: any) => Promise<void>;
+  mode?: 'full' | 'create';
   currentUserId?: string;
 }
 
@@ -56,6 +48,20 @@ export function PromptManager({
   const [tags, setTags] = React.useState<string[]>([]);
   const [newTag, setNewTag] = React.useState('');
   const [editingPrompt, setEditingPrompt] = React.useState<Prompt | null>(null);
+  
+  // New metadata state
+  const [systemPrompt, setSystemPrompt] = React.useState('');
+  const [context, setContext] = React.useState('');
+  const [examples, setExamples] = React.useState<string[]>([]);
+  const [constraints, setConstraints] = React.useState<string[]>([]);
+  const [outputFormat, setOutputFormat] = React.useState('');
+  const [temperature, setTemperature] = React.useState(0.7);
+  const [topP, setTopP] = React.useState(1);
+  const [frequencyPenalty, setFrequencyPenalty] = React.useState(0);
+  const [presencePenalty, setPresencePenalty] = React.useState(0);
+  const [maxTokens, setMaxTokens] = React.useState<number | undefined>();
+  const [validationRules, setValidationRules] = React.useState<string[]>([]);
+  const [fallbackStrategy, setFallbackStrategy] = React.useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -68,6 +74,21 @@ export function PromptManager({
       return;
     }
     try {
+      const metadata = {
+        systemPrompt,
+        context,
+        examples,
+        constraints,
+        outputFormat,
+        temperature,
+        topP,
+        frequencyPenalty,
+        presencePenalty,
+        maxTokens,
+        validationRules,
+        fallbackStrategy,
+      };
+
       if (editingPrompt) {
         await onEdit(editingPrompt.id, {
           name,
@@ -76,6 +97,7 @@ export function PromptManager({
           isPublic,
           promptType,
           tags: tags.map(tag => ({ id: '', name: tag })),
+          metadata,
         });
         toast({ title: 'Prompt updated successfully!' });
       } else {
@@ -86,6 +108,7 @@ export function PromptManager({
           isPublic,
           promptType,
           tags,
+          metadata,
         });
         toast({ title: 'Prompt created successfully!' });
       }
@@ -137,17 +160,30 @@ export function PromptManager({
     setTags([]);
     setNewTag('');
     setEditingPrompt(null);
+    // Reset metadata fields
+    setSystemPrompt('');
+    setContext('');
+    setExamples([]);
+    setConstraints([]);
+    setOutputFormat('');
+    setTemperature(0.7);
+    setTopP(1);
+    setFrequencyPenalty(0);
+    setPresencePenalty(0);
+    setMaxTokens(undefined);
+    setValidationRules([]);
+    setFallbackStrategy('');
   };
 
   const addTag = () => {
-    if (newTag && !tags.includes(newTag)) {
-      setTags([...tags, newTag]);
+    if (newTag.trim() && !tags.includes(newTag.trim())) {
+      setTags([...tags, newTag.trim()]);
       setNewTag('');
     }
   };
 
-  const removeTag = (tagToRemove: string) => {
-    setTags(tags.filter(tag => tag !== tagToRemove));
+  const removeTag = (tag: string) => {
+    setTags(tags.filter(t => t !== tag));
   };
 
   if (isLoading) {
@@ -186,6 +222,31 @@ export function PromptManager({
           setNewTag={setNewTag}
           addTag={addTag}
           removeTag={removeTag}
+          // New metadata props
+          systemPrompt={systemPrompt}
+          setSystemPrompt={setSystemPrompt}
+          context={context}
+          setContext={setContext}
+          examples={examples}
+          setExamples={setExamples}
+          constraints={constraints}
+          setConstraints={setConstraints}
+          outputFormat={outputFormat}
+          setOutputFormat={setOutputFormat}
+          temperature={temperature}
+          setTemperature={setTemperature}
+          topP={topP}
+          setTopP={setTopP}
+          frequencyPenalty={frequencyPenalty}
+          setFrequencyPenalty={setFrequencyPenalty}
+          presencePenalty={presencePenalty}
+          setPresencePenalty={setPresencePenalty}
+          maxTokens={maxTokens}
+          setMaxTokens={setMaxTokens}
+          validationRules={validationRules}
+          setValidationRules={setValidationRules}
+          fallbackStrategy={fallbackStrategy}
+          setFallbackStrategy={setFallbackStrategy}
         />
       </div>
     );
@@ -254,6 +315,31 @@ export function PromptManager({
         setNewTag={setNewTag}
         addTag={addTag}
         removeTag={removeTag}
+        // New metadata props
+        systemPrompt={systemPrompt}
+        setSystemPrompt={setSystemPrompt}
+        context={context}
+        setContext={setContext}
+        examples={examples}
+        setExamples={setExamples}
+        constraints={constraints}
+        setConstraints={setConstraints}
+        outputFormat={outputFormat}
+        setOutputFormat={setOutputFormat}
+        temperature={temperature}
+        setTemperature={setTemperature}
+        topP={topP}
+        setTopP={setTopP}
+        frequencyPenalty={frequencyPenalty}
+        setFrequencyPenalty={setFrequencyPenalty}
+        presencePenalty={presencePenalty}
+        setPresencePenalty={setPresencePenalty}
+        maxTokens={maxTokens}
+        setMaxTokens={setMaxTokens}
+        validationRules={validationRules}
+        setValidationRules={setValidationRules}
+        fallbackStrategy={fallbackStrategy}
+        setFallbackStrategy={setFallbackStrategy}
       />
     </div>
   );

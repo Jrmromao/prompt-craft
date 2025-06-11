@@ -155,33 +155,20 @@ export function MyPromptsClient({ prompts }: MyPromptsClientProps) {
               {recentPrompts.map(prompt => (
                 <Link key={prompt.id} href={`/prompts/${prompt.id}`}>
                   <Card className="group relative h-full overflow-hidden border-purple-200 transition-all hover:-translate-y-1 hover:border-purple-500/50 hover:shadow-lg hover:shadow-purple-500/5 dark:border-purple-500/20">
-                    <div className="absolute -top-4 left-4">
-                      <Badge className="rounded-full border border-white bg-gradient-to-r from-purple-600 to-pink-600 px-3 py-1 font-semibold text-white shadow dark:border-gray-900">
-                        Recent
-                      </Badge>
-                    </div>
                     <CardHeader>
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <CardTitle className="line-clamp-1 bg-gradient-to-r from-purple-700 to-pink-600 bg-clip-text text-transparent group-hover:from-purple-600 group-hover:to-pink-500 dark:from-purple-300 dark:to-pink-300">
-                            {prompt.name}
-                          </CardTitle>
-                          <CardDescription className="line-clamp-2">{prompt.description}</CardDescription>
-                        </div>
+                      <div className="absolute -top-4 left-4">
+                        <Badge className="rounded-full border border-white bg-gradient-to-r from-purple-600 to-pink-600 px-3 py-1 font-semibold text-white shadow dark:border-gray-900">
+                          Recent
+                        </Badge>
                       </div>
-                      <div className="mt-4 flex items-center gap-2">
-                        <Avatar className="h-6 w-6 ring-2 ring-purple-200 dark:ring-purple-500/20">
-                          <AvatarImage src={prompt.user.imageUrl || undefined} alt={prompt.user.name || 'User'} />
-                          <AvatarFallback className="bg-purple-100 text-purple-700 dark:bg-purple-500/10 dark:text-purple-300">
-                            {prompt.user.name?.[0]?.toUpperCase() || 'U'}
-                          </AvatarFallback>
-                        </Avatar>
-                        <span className="text-sm text-muted-foreground">{prompt.user.name || 'Anonymous'}</span>
-                      </div>
+                      <CardTitle className="mt-4 line-clamp-1 bg-gradient-to-r from-purple-700 to-pink-600 bg-clip-text text-transparent group-hover:from-purple-600 group-hover:to-pink-500 dark:from-purple-300 dark:to-pink-300">
+                        {prompt.name}
+                      </CardTitle>
+                      <CardDescription className="line-clamp-2">{prompt.description}</CardDescription>
                     </CardHeader>
                     <CardContent>
                       <div className="flex flex-wrap gap-2">
-                        {prompt.tags.map(tag => (
+                        {prompt.tags.slice(0, 2).map(tag => (
                           <Badge
                             key={tag.id}
                             variant="outline"
@@ -190,41 +177,30 @@ export function MyPromptsClient({ prompts }: MyPromptsClientProps) {
                             {tag.name}
                           </Badge>
                         ))}
+                        {prompt.tags.length > 2 && (
+                          <Badge
+                            variant="outline"
+                            className="border-purple-200 bg-purple-100/40 text-purple-700 dark:border-purple-500/20 dark:bg-purple-500/10 dark:text-purple-300"
+                          >
+                            +{prompt.tags.length - 2}
+                          </Badge>
+                        )}
                       </div>
                       <div className="mt-4 flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <Avatar className="h-6 w-6 ring-2 ring-purple-200 dark:ring-purple-500/20">
+                            <AvatarImage src={prompt.user.imageUrl || undefined} alt={prompt.user.name || 'User'} />
+                            <AvatarFallback className="bg-purple-100 text-purple-700 dark:bg-purple-500/10 dark:text-purple-300">
+                              {prompt.user.name?.[0]?.toUpperCase() || 'U'}
+                            </AvatarFallback>
+                          </Avatar>
+                          <span className="text-sm text-muted-foreground">{prompt.user.name || 'Anonymous'}</span>
+                        </div>
                         <div className="flex items-center gap-4 text-sm text-muted-foreground">
                           <div className="flex items-center gap-1">
-                            <Star className="h-4 w-4 fill-current text-yellow-400" />
-                            {prompt._count.votes}
-                          </div>
-                          <div className="flex items-center gap-1">
                             <MessageSquare className="h-4 w-4 text-purple-400" />
-                            {prompt._count.votes} votes
+                            <span>{prompt._count.votes} votes</span>
                           </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 text-purple-400 hover:bg-purple-100/40 hover:text-purple-600 dark:hover:bg-purple-500/10"
-                            onClick={e => {
-                              e.preventDefault();
-                              // Handle edit
-                            }}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 text-red-400 hover:bg-red-100/40 hover:text-red-600 dark:hover:bg-red-500/10"
-                            onClick={e => {
-                              e.preventDefault();
-                              // Handle delete
-                            }}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
                         </div>
                       </div>
                     </CardContent>

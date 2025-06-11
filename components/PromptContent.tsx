@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import ReactMarkdown from 'react-markdown';
 import { toast } from 'sonner';
@@ -18,6 +18,8 @@ import {
   ChevronDown,
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { useMediaQuery } from '@/hooks/useMediaQuery';
+import remarkGfm from 'remark-gfm';
 
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -83,6 +85,8 @@ export function PromptContent({ user, prompt }: PromptContentProps) {
   const [selectedVersion, setSelectedVersion] = useState<Version | null>(null);
   const [isVersionSelectOpen, setIsVersionSelectOpen] = useState(false);
   const router = useRouter();
+  const mainRef = useRef<HTMLDivElement>(null);
+  const isMobile = useMediaQuery('(max-width: 768px)');
 
   useEffect(() => {
     const fetchVersions = async () => {
@@ -153,10 +157,47 @@ export function PromptContent({ user, prompt }: PromptContentProps) {
     }
   };
 
+  // Copy code block handler for markdown
+  function CodeBlock({ children, ...props }: any) {
+    const codeRef = useRef<HTMLPreElement>(null);
+    return (
+      <div className="relative group">
+        <pre ref={codeRef} {...props} className="rounded-lg bg-gray-900 text-white p-4 overflow-x-auto text-sm font-mono">
+          {children}
+        </pre>
+        <button
+          className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition bg-gray-800 text-white px-2 py-1 rounded text-xs"
+          onClick={() => {
+            if (codeRef.current) {
+              navigator.clipboard.writeText(codeRef.current.textContent || '');
+              toast.success('Code copied!');
+            }
+          }}
+          aria-label="Copy code"
+        >
+          <Copy className="h-4 w-4 inline" />
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-white text-gray-900 dark:bg-black dark:text-white">
       <NavBarWrapper />
-      <main className="mx-auto max-w-4xl px-4 py-8">
+      {/* Sticky Action Bar */}
+      <div className="sticky top-0 z-30 bg-white/90 dark:bg-black/90 border-b border-gray-200 dark:border-gray-800 flex items-center gap-2 px-4 py-2 shadow-sm backdrop-blur-md">
+        <Button size="sm" variant="outline" onClick={copyToClipboard}>
+          <Copy className="h-4 w-4 mr-1" /> Copy
+        </Button>
+        <Button size="sm" variant="outline" onClick={() => setIsTestModalOpen(true)}>
+          <Play className="h-4 w-4 mr-1" /> Test
+        </Button>
+        <Button size="sm" variant="outline" onClick={sharePrompt}>
+          <Share2 className="h-4 w-4 mr-1" /> Share
+        </Button>
+        <span className="ml-auto text-xs text-gray-500 dark:text-gray-400 hidden sm:inline">Prompt ID: {prompt.id}</span>
+      </div>
+      <main ref={mainRef} className="mx-auto max-w-6xl px-4 py-10 space-y-10">
         {/* Back Navigation */}
         <div className="mb-6">
           <Link
@@ -167,7 +208,6 @@ export function PromptContent({ user, prompt }: PromptContentProps) {
             Back to Community Prompts
           </Link>
         </div>
-
         <PromptAnalyticsProvider
           promptId={prompt.id}
           initialCopyCount={prompt.copyCount || 0}
@@ -175,57 +215,53 @@ export function PromptContent({ user, prompt }: PromptContentProps) {
           initialUsageCount={prompt.usageCount || 0}
           initialCommentCount={commentCount}
         >
-          <div className="space-y-6">
+          <div className="space-y-10">
             {/* Header Section */}
-            <div className="flex flex-col gap-4">
-              <div className="flex items-start justify-between">
-                <div>
-                  <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-                    {prompt.name}
-                  </h1>
-                  <p className="mt-2 text-gray-600 dark:text-gray-400">
-                    {prompt.description}
-                  </p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <VoteButton id={prompt.id} initialUpvotes={upvotes} onVoteChange={setUpvotes} />
-                  <Button
-                    onClick={() => setIsTestModalOpen(true)}
-                    className="bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700"
-                  >
-                    <Play className="mr-2 h-4 w-4" />
-                    Test Prompt
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="ml-2 border-purple-300 text-purple-700 hover:bg-purple-50 dark:border-purple-700 dark:text-purple-300 dark:hover:bg-purple-900"
-                    onClick={() => router.push(`/prompts/${prompt.id}/versioning`)}
-                  >
-                    <GitBranch className="mr-2 h-4 w-4" />
-                    Manage Versions
-                  </Button>
+            <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+              <div>
+                <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent mb-2">
+                  {prompt.name}
+                </h1>
+                <p className="mt-2 text-lg text-gray-600 dark:text-gray-400 leading-relaxed">
+                  {prompt.description}
+                </p>
+                <div className="mt-4 flex flex-wrap items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
+                  <div className="flex items-center gap-1">
+                    <User className="h-4 w-4" />
+                    {displayName}
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Clock className="h-4 w-4" />
+                    {new Date(prompt.createdAt).toLocaleDateString()}
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Eye className="h-4 w-4" />
+                    {upvotes} upvotes
+                  </div>
                 </div>
               </div>
-
-              <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
-                <div className="flex items-center gap-1">
-                  <User className="h-4 w-4" />
-                  {displayName}
-                </div>
-                <div className="flex items-center gap-1">
-                  <Clock className="h-4 w-4" />
-                  {new Date(prompt.createdAt).toLocaleDateString()}
-                </div>
-                <div className="flex items-center gap-1">
-                  <Eye className="h-4 w-4" />
-                  {upvotes} upvotes
-                </div>
+              <div className="flex items-center gap-2 mt-4 md:mt-0">
+                <VoteButton id={prompt.id} initialUpvotes={upvotes} onVoteChange={setUpvotes} />
+                <Button
+                  onClick={() => setIsTestModalOpen(true)}
+                  className="bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700"
+                >
+                  <Play className="mr-2 h-4 w-4" />
+                  Test Prompt
+                </Button>
+                <Button
+                  variant="outline"
+                  className="ml-2 border-purple-300 text-purple-700 hover:bg-purple-50 dark:border-purple-700 dark:text-purple-300 dark:hover:bg-purple-900"
+                  onClick={() => router.push(`/prompts/${prompt.id}/versioning`)}
+                >
+                  <GitBranch className="mr-2 h-4 w-4" />
+                  Manage Versions
+                </Button>
               </div>
             </div>
-
             {/* Prompt Content Section */}
-            <div className="group rounded-xl border border-gray-200 bg-white/50 p-6 backdrop-blur-sm transition-all duration-300 hover:border-purple-500/50 dark:border-gray-800 dark:bg-gray-900/50">
-              <div className="flex flex-col gap-4">
+            <div className="group rounded-xl border border-gray-200 bg-white/50 p-8 backdrop-blur-sm transition-all duration-300 hover:border-purple-500/50 dark:border-gray-800 dark:bg-gray-900/50">
+              <div className="flex flex-col gap-6">
                 {/* Version Selector */}
                 {versions.length > 0 && (
                   <div className="flex items-center justify-between border-b border-gray-200 pb-4 dark:border-gray-800">
@@ -318,40 +354,19 @@ export function PromptContent({ user, prompt }: PromptContentProps) {
                     </Dialog>
                   </div>
                 )}
-
-                {/* Content Header */}
-                <div className="flex justify-between items-center">
-                  <h2 className="text-xl font-semibold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-                    Prompt Content
-                  </h2>
-                  <Button
-                    onClick={copyToClipboard}
-                    variant="outline"
-                    className="text-sm"
-                  >
-                    {copied ? (
-                      <>
-                        <Check className="h-4 w-4 mr-2" />
-                        Copied!
-                      </>
-                    ) : (
-                      <>
-                        <Copy className="h-4 w-4 mr-2" />
-                        Copy
-                      </>
-                    )}
-                  </Button>
-                </div>
-
                 {/* Content */}
-                <div className="prose dark:prose-invert max-w-none">
-                  <ReactMarkdown>
+                <div className="prose dark:prose-invert max-w-none p-0 overflow-x-auto">
+                  <ReactMarkdown
+                    remarkPlugins={[remarkGfm]}
+                    components={{
+                      code: CodeBlock,
+                    }}
+                  >
                     {selectedVersion?.content || prompt.content}
                   </ReactMarkdown>
                 </div>
               </div>
             </div>
-
             {/* Tabs Section */}
             <Card>
               <CardContent className="p-6">
@@ -371,11 +386,9 @@ export function PromptContent({ user, prompt }: PromptContentProps) {
                     </TabsTrigger>
                     <TabsTrigger value="analytics">Analytics</TabsTrigger>
                   </TabsList>
-
                   <TabsContent value="history" className="mt-0">
                     <VersionHistory id={prompt.id} />
                   </TabsContent>
-
                   <TabsContent value="comments" className="mt-0">
                     <BasicComments 
                       promptId={prompt.id} 
@@ -383,7 +396,6 @@ export function PromptContent({ user, prompt }: PromptContentProps) {
                       initialComments={[]}
                     />
                   </TabsContent>
-
                   <TabsContent value="analytics" className="mt-0">
                     <Analytics promptId={prompt.id} upvotes={upvotes} />
                   </TabsContent>
@@ -392,10 +404,10 @@ export function PromptContent({ user, prompt }: PromptContentProps) {
             </Card>
           </div>
         </PromptAnalyticsProvider>
-
         <TestPromptModal
           isOpen={isTestModalOpen}
           onClose={() => setIsTestModalOpen(false)}
+          promptId={prompt.id}
           promptContent={selectedVersion?.content || prompt.content}
           promptVersionId={selectedVersion?.id || currentVersionId}
           onTestPrompt={handleTestPrompt}

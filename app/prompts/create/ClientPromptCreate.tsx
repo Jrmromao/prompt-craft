@@ -32,6 +32,15 @@ import {
   FileText,
   History,
   Loader2,
+  MessageSquare,
+  BarChart,
+  PenTool,
+  Briefcase,
+  GraduationCap,
+  Wrench,
+  Microscope,
+  Settings,
+  type LucideIcon,
 } from 'lucide-react';
 import { AIService } from '@/lib/services/aiService';
 import type { PromptPayload, PromptType } from '@/types/ai';
@@ -48,140 +57,418 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from '@/components/ui/dialog';
 import { useUser } from '@clerk/nextjs';
 import { FloatingWarningBar } from '@/components/support/FloatingWarningBar';
+import ReactMarkdown from 'react-markdown';
 
 const PROMPT_TYPES: {
   value: PromptType;
   label: string;
-  icon: any;
+  icon: LucideIcon;
   description: string;
   color: string;
+  examples: {
+    name: string;
+    description: string;
+    content: string;
+    tags: string[];
+    tone?: string;
+    format?: string;
+  }[];
 }[] = [
   {
-    value: 'text',
-    label: 'Text',
+    value: 'content-creation',
+    label: 'Content Creation',
     icon: BookOpen,
-    description: 'Create text-based prompts for articles, stories, and general content',
-    color: 'from-blue-500 to-blue-600',
+    description: 'Create prompts for articles, blog posts, and general content',
+    color: 'from-purple-600 to-pink-600',
+    examples: [
+      {
+        name: 'Blog Post Generator',
+        description: 'Generate engaging blog posts with SEO optimization',
+        content: 'Write a blog post about [topic] that is [tone] and targets [audience]. Include SEO keywords and a clear structure.',
+        tags: ['blog', 'content', 'seo', 'writing'],
+        tone: 'professional',
+        format: 'article'
+      },
+      {
+        name: 'Social Media Post',
+        description: 'Create viral social media content',
+        content: 'Create a [platform] post about [topic] that will engage [audience]. Include hashtags and a call to action.',
+        tags: ['social-media', 'marketing', 'engagement'],
+        tone: 'casual',
+        format: 'social'
+      },
+      {
+        name: 'News Article',
+        description: 'Generate news article content',
+        content: 'Write a news article about [event] for [publication]. Include key facts, quotes, and context.',
+        tags: ['news', 'journalism', 'writing', 'content'],
+        tone: 'objective',
+        format: 'news'
+      },
+      {
+        name: 'Product Description',
+        description: 'Create compelling product descriptions',
+        content: 'Write a product description for [product] highlighting [features]. Include benefits and specifications.',
+        tags: ['marketing', 'product', 'content', 'sales'],
+        tone: 'persuasive',
+        format: 'product'
+      }
+    ]
   },
   {
-    value: 'image',
-    label: 'Image',
-    icon: Image,
-    description: 'Generate prompts for image creation and visual content',
-    color: 'from-purple-500 to-purple-600',
-  },
-  {
-    value: 'video',
-    label: 'Video',
-    icon: Video,
-    description: 'Create prompts for video content and motion graphics',
-    color: 'from-pink-500 to-pink-600',
-  },
-  {
-    value: 'music',
-    label: 'Music',
-    icon: Music,
-    description: 'Generate prompts for music and audio content',
-    color: 'from-green-500 to-green-600',
-  },
-  {
-    value: 'software',
-    label: 'Software',
+    value: 'code-generation',
+    label: 'Code Generation',
     icon: Code2,
-    description: 'Create prompts for coding and software development',
-    color: 'from-orange-500 to-orange-600',
+    description: 'Generate prompts for coding and software development',
+    color: 'from-blue-600 to-cyan-600',
+    examples: [
+      {
+        name: 'Function Generator',
+        description: 'Generate reusable code functions',
+        content: 'Create a [language] function that [purpose] with [requirements]. Include error handling and documentation.',
+        tags: ['code', 'development', 'programming', 'function'],
+        tone: 'technical',
+        format: 'code'
+      },
+      {
+        name: 'API Integration',
+        description: 'Generate API integration code',
+        content: 'Write code to integrate [API] with [framework] for [purpose]. Include authentication and error handling.',
+        tags: ['api', 'integration', 'backend', 'code'],
+        tone: 'technical',
+        format: 'code'
+      },
+      {
+        name: 'Database Query',
+        description: 'Generate database queries',
+        content: 'Create a [database] query to [operation] with [conditions]. Include proper indexing and optimization.',
+        tags: ['database', 'query', 'sql', 'code'],
+        tone: 'technical',
+        format: 'code'
+      },
+      {
+        name: 'Test Case Generator',
+        description: 'Generate unit test cases',
+        content: 'Write test cases for [function/component] covering [scenarios]. Include edge cases and error conditions.',
+        tags: ['testing', 'unit-test', 'code', 'quality'],
+        tone: 'technical',
+        format: 'code'
+      }
+    ]
   },
   {
-    value: 'medical',
-    label: 'Medical',
-    icon: Stethoscope,
-    description: 'Generate prompts for medical documentation and healthcare content',
-    color: 'from-red-500 to-red-600',
+    value: 'data-analysis',
+    label: 'Data Analysis',
+    icon: BarChart,
+    description: 'Create prompts for data analysis and visualization',
+    color: 'from-green-600 to-emerald-600',
+    examples: [
+      {
+        name: 'Data Visualization',
+        description: 'Generate data visualization code',
+        content: 'Create a visualization for [dataset] showing [insights]. Use [chart type] and include annotations.',
+        tags: ['data', 'visualization', 'analysis', 'charts'],
+        tone: 'analytical',
+        format: 'report'
+      },
+      {
+        name: 'Statistical Analysis',
+        description: 'Generate statistical analysis code',
+        content: 'Analyze [dataset] to find [insights]. Include [statistical methods] and present findings clearly.',
+        tags: ['statistics', 'analysis', 'data', 'research'],
+        tone: 'analytical',
+        format: 'report'
+      },
+      {
+        name: 'Predictive Model',
+        description: 'Generate predictive modeling code',
+        content: 'Create a predictive model for [target] using [features]. Include model evaluation and validation.',
+        tags: ['machine-learning', 'prediction', 'analysis', 'data'],
+        tone: 'analytical',
+        format: 'report'
+      },
+      {
+        name: 'Data Cleaning',
+        description: 'Generate data cleaning scripts',
+        content: 'Create a script to clean [dataset] by handling [issues]. Include data validation and transformation.',
+        tags: ['data-cleaning', 'preprocessing', 'analysis', 'code'],
+        tone: 'technical',
+        format: 'code'
+      }
+    ]
   },
+  {
+    value: 'creative-writing',
+    label: 'Creative Writing',
+    icon: PenTool,
+    description: 'Generate prompts for stories, poems, and creative content',
+    color: 'from-orange-600 to-amber-600',
+    examples: [
+      {
+        name: 'Story Generator',
+        description: 'Generate creative story ideas',
+        content: 'Write a [genre] story about [theme] with [character traits]. Include plot twists and character development.',
+        tags: ['story', 'creative', 'writing', 'fiction'],
+        tone: 'creative',
+        format: 'story'
+      },
+      {
+        name: 'Poem Generator',
+        description: 'Generate poetry prompts',
+        content: 'Create a [poem type] about [theme] using [style]. Include [literary devices] and emotional depth.',
+        tags: ['poetry', 'creative', 'writing', 'literature'],
+        tone: 'artistic',
+        format: 'poem'
+      },
+      {
+        name: 'Character Development',
+        description: 'Generate character profiles',
+        content: 'Create a character profile for [character type] with [background]. Include personality and motivations.',
+        tags: ['character', 'creative', 'writing', 'development'],
+        tone: 'creative',
+        format: 'profile'
+      },
+      {
+        name: 'Dialogue Generator',
+        description: 'Generate realistic dialogue',
+        content: 'Write a dialogue between [characters] about [topic]. Include subtext and emotional undertones.',
+        tags: ['dialogue', 'creative', 'writing', 'conversation'],
+        tone: 'natural',
+        format: 'dialogue'
+      }
+    ]
+  },
+  {
+    value: 'business',
+    label: 'Business',
+    icon: Briefcase,
+    description: 'Create prompts for business documents and analysis',
+    color: 'from-indigo-600 to-violet-600',
+    examples: [
+      {
+        name: 'Business Plan',
+        description: 'Generate business plan sections',
+        content: 'Create a [section] for a business plan about [business type]. Include market analysis and financial projections.',
+        tags: ['business', 'planning', 'strategy', 'analysis'],
+        tone: 'professional',
+        format: 'document'
+      },
+      {
+        name: 'Market Analysis',
+        description: 'Generate market analysis reports',
+        content: 'Analyze the market for [product/service] in [market]. Include competitors, trends, and opportunities.',
+        tags: ['market', 'analysis', 'business', 'research'],
+        tone: 'analytical',
+        format: 'report'
+      },
+      {
+        name: 'Financial Report',
+        description: 'Generate financial analysis',
+        content: 'Create a financial analysis for [company/project] covering [period]. Include key metrics and insights.',
+        tags: ['finance', 'analysis', 'business', 'report'],
+        tone: 'professional',
+        format: 'report'
+      },
+      {
+        name: 'Business Proposal',
+        description: 'Generate business proposals',
+        content: 'Write a business proposal for [project] targeting [client]. Include value proposition and timeline.',
+        tags: ['proposal', 'business', 'sales', 'document'],
+        tone: 'persuasive',
+        format: 'proposal'
+      }
+    ]
+  },
+  {
+    value: 'education',
+    label: 'Education',
+    icon: GraduationCap,
+    description: 'Generate prompts for educational content and learning materials',
+    color: 'from-teal-600 to-cyan-600',
+    examples: [
+      {
+        name: 'Lesson Plan',
+        description: 'Generate lesson plans',
+        content: 'Create a lesson plan for [subject] about [topic] for [grade level]. Include objectives and activities.',
+        tags: ['education', 'teaching', 'lesson-plan', 'learning'],
+        tone: 'educational',
+        format: 'lesson'
+      },
+      {
+        name: 'Study Guide',
+        description: 'Generate study guides',
+        content: 'Create a study guide for [subject] covering [topics]. Include key concepts and practice questions.',
+        tags: ['education', 'study', 'learning', 'guide'],
+        tone: 'educational',
+        format: 'guide'
+      },
+      {
+        name: 'Quiz Generator',
+        description: 'Generate educational quizzes',
+        content: 'Create a quiz for [subject] testing [topics]. Include various question types and difficulty levels.',
+        tags: ['education', 'quiz', 'assessment', 'learning'],
+        tone: 'educational',
+        format: 'quiz'
+      },
+      {
+        name: 'Learning Activity',
+        description: 'Generate interactive learning activities',
+        content: 'Design a learning activity for [subject] about [topic]. Include materials and instructions.',
+        tags: ['education', 'activity', 'interactive', 'learning'],
+        tone: 'engaging',
+        format: 'activity'
+      }
+    ]
+  },
+  {
+    value: 'technical',
+    label: 'Technical',
+    icon: Wrench,
+    description: 'Create prompts for technical documentation and guides',
+    color: 'from-slate-600 to-gray-600',
+    examples: [
+      {
+        name: 'API Documentation',
+        description: 'Generate API documentation',
+        content: 'Document the [API endpoint] with [parameters]. Include examples and error responses.',
+        tags: ['api', 'documentation', 'technical', 'guide'],
+        tone: 'technical',
+        format: 'documentation'
+      },
+      {
+        name: 'Technical Guide',
+        description: 'Generate technical guides',
+        content: 'Create a guide for [technology] explaining [concept]. Include setup steps and best practices.',
+        tags: ['technical', 'guide', 'documentation', 'tutorial'],
+        tone: 'technical',
+        format: 'guide'
+      },
+      {
+        name: 'System Architecture',
+        description: 'Generate system architecture documentation',
+        content: 'Document the architecture of [system] including [components]. Include diagrams and explanations.',
+        tags: ['architecture', 'technical', 'documentation', 'design'],
+        tone: 'technical',
+        format: 'documentation'
+      },
+      {
+        name: 'Troubleshooting Guide',
+        description: 'Generate troubleshooting guides',
+        content: 'Create a troubleshooting guide for [issue] in [system]. Include common problems and solutions.',
+        tags: ['troubleshooting', 'technical', 'guide', 'support'],
+        tone: 'technical',
+        format: 'guide'
+      }
+    ]
+  },
+  {
+    value: 'research',
+    label: 'Research',
+    icon: Microscope,
+    description: 'Generate prompts for research papers and analysis',
+    color: 'from-red-600 to-rose-600',
+    examples: [
+      {
+        name: 'Research Paper',
+        description: 'Generate research paper sections',
+        content: 'Write the [section] of a research paper about [topic]. Include methodology and findings.',
+        tags: ['research', 'academic', 'paper', 'analysis'],
+        tone: 'academic',
+        format: 'paper'
+      },
+      {
+        name: 'Literature Review',
+        description: 'Generate literature review prompts',
+        content: 'Review the literature on [topic] focusing on [aspects]. Include key findings and gaps.',
+        tags: ['research', 'literature', 'review', 'academic'],
+        tone: 'academic',
+        format: 'review'
+      },
+      {
+        name: 'Research Proposal',
+        description: 'Generate research proposals',
+        content: 'Write a research proposal for [study] investigating [topic]. Include methodology and timeline.',
+        tags: ['research', 'proposal', 'academic', 'planning'],
+        tone: 'academic',
+        format: 'proposal'
+      },
+      {
+        name: 'Data Analysis Report',
+        description: 'Generate research data analysis',
+        content: 'Analyze the research data from [study] focusing on [variables]. Include statistical methods and results.',
+        tags: ['research', 'analysis', 'data', 'academic'],
+        tone: 'academic',
+        format: 'report'
+      }
+    ]
+  },
+  {
+    value: 'custom',
+    label: 'Custom',
+    icon: Settings,
+    description: 'Create custom prompts for specific needs',
+    color: 'from-gray-600 to-slate-600',
+    examples: [
+      {
+        name: 'Custom Template',
+        description: 'Create a custom prompt template',
+        content: 'Create a [type] about [topic] with [specific requirements]. Include [custom elements].',
+        tags: ['custom', 'template', 'flexible', 'specialized'],
+        tone: 'customizable',
+        format: 'custom'
+      },
+      {
+        name: 'Specialized Format',
+        description: 'Create a specialized format prompt',
+        content: 'Generate content in [specialized format] for [purpose] with [requirements].',
+        tags: ['custom', 'specialized', 'format', 'template'],
+        tone: 'customizable',
+        format: 'custom'
+      },
+      {
+        name: 'Industry-Specific',
+        description: 'Create industry-specific prompts',
+        content: 'Generate [industry] content about [topic] following [industry standards].',
+        tags: ['custom', 'industry', 'specialized', 'template'],
+        tone: 'professional',
+        format: 'custom'
+      },
+      {
+        name: 'Multi-Purpose',
+        description: 'Create multi-purpose prompts',
+        content: 'Create a versatile prompt for [purposes] that can be adapted for [use cases].',
+        tags: ['custom', 'versatile', 'multi-purpose', 'template'],
+        tone: 'flexible',
+        format: 'custom'
+      }
+    ]
+  }
 ];
 
-const COMMON_TAGS = Array.from(
-  new Set([
-    'creative',
-    'business',
-    'social-media',
-    'twitter/X',
-    'instagram',
-    'facebook',
-    'content',
-    'writing',
-    'technical',
-    'educational',
-    'entertainment',
-    'news',
-    'review',
-    'storytelling',
-    'tutorial',
-    'guide',
-    'story',
-    'script',
-    'email',
-    'analysis',
-    'product',
-    'photography',
-    'character',
-    'design',
-    'marketing',
-    'jingle',
-    'soundtrack',
-    'emotional',
-    'developer',
-    'architect',
-    'problem-solving',
-    'advanced',
-    'debugging',
-    'error',
-    'troubleshooting',
-    'algorithm',
-    'performance',
-    'API',
-    'setup',
-    'code review',
-    'quality',
-    'security',
-    'testing',
-    'bugfix',
-    'market-research',
-    'image',
-    'video',
-    'music',
-    'background',
-    'ambient',
-    'upbeat',
-    'branding',
-    'software',
-    'language-specific',
-    'framework',
-    'dependency',
-    'documentation',
-    'optimization',
-    'integration',
-    'library',
-    'refactor',
-    'engineering',
-    'medical',
-    'healthcare',
-    'clinical',
-    'patient',
-    'diagnosis',
-    'treatment',
-    'research',
-    'documentation',
-    'compliance',
-    'HIPAA',
-    'medical-writing',
-    'case-study',
-    'medical-education',
-  ])
-);
+const COMMON_TAGS = [
+  // Content Creation
+  'blog', 'content', 'seo', 'writing', 'social-media', 'marketing', 'engagement',
+  // Code Generation
+  'code', 'development', 'programming', 'function', 'api', 'integration', 'backend',
+  // Data Analysis
+  'data', 'visualization', 'analysis', 'charts', 'statistics', 'research',
+  // Creative Writing
+  'story', 'creative', 'fiction', 'poetry', 'literature',
+  // Business
+  'business', 'planning', 'strategy', 'market', 'research',
+  // Education
+  'education', 'teaching', 'lesson-plan', 'learning', 'study', 'guide',
+  // Technical
+  'technical', 'documentation', 'tutorial', 'api', 'guide',
+  // Research
+  'research', 'academic', 'paper', 'literature', 'review',
+  // Custom
+  'custom', 'template', 'flexible', 'specialized'
+];
 
 interface ExamplePrompt {
   name: string;
@@ -199,321 +486,96 @@ interface ExamplePrompt {
   length?: string;
   instruments?: string;
   promptType: PromptType;
+  systemPrompt?: string;
+  context?: string;
+  examples?: string[];
+  constraints?: string[];
+  outputFormat?: string;
+  temperature?: number;
+  validationRules?: string[];
 }
 
 const EXAMPLE_PROMPTS: ExamplePrompt[] = [
-  // Text Prompts
   {
-    name: 'Tweet Prompt Generator',
-    description: 'Create a template for generating engaging tweets',
-    content:
-      'Create a prompt template for generating tweets about [topic] that includes:\n- Hook structure: [type of hook]\n- Key message points: [number] main points\n- Call to action format: [CTA style]\n- Hashtag strategy: [number] relevant hashtags\n\nTarget audience: [audience]\nTone: [tone]\nLength: [character count]',
-    tags: ['social-media', 'twitter/X', 'content'],
+    name: 'Blog Post Template',
+    description: 'A template for creating engaging blog posts',
+    content: 'Write a blog post about [topic] that is [tone] and targets [audience].',
+    tags: ['blog', 'content', 'writing'],
     tone: 'casual',
     format: 'social-media',
-    promptType: 'text',
+    promptType: 'content-creation',
   },
   {
     name: 'Story Prompt Template',
-    description: 'Create a template for generating story ideas',
-    content:
-      'Create a prompt template for a [genre] story that includes:\n- Setting: [type of setting]\n- Main character traits: [number] key traits\n- Conflict type: [conflict style]\n- Theme elements: [themes to explore]\n\nTarget audience: [audience]\nTone: [tone]\nLength: [word count]',
-    tags: ['creative', 'writing', 'storytelling'],
+    description: 'A template for creative story writing',
+    content: 'Write a story about [topic] with [genre] elements and [mood] tone.',
+    tags: ['story', 'creative', 'writing'],
     tone: 'creative',
     format: 'story',
-    promptType: 'text',
+    promptType: 'creative-writing',
   },
   {
     name: 'Business Analysis Prompt',
-    description: 'Create a template for generating business analysis prompts',
-    content:
-      'Create a prompt template for analyzing [industry] that includes:\n- Market aspects to analyze: [key areas]\n- Data points to consider: [specific metrics]\n- Comparison factors: [elements to compare]\n- Output format: [analysis structure]\n\nTarget audience: [audience]\nTone: [tone]\nDepth: [analysis level]',
-    tags: ['business', 'analysis', 'market-research'],
+    description: 'A template for business analysis reports',
+    content: 'Analyze the business case for [topic] considering [factors].',
+    tags: ['business', 'analysis', 'report'],
     tone: 'professional',
     format: 'article',
-    promptType: 'text',
-  },
-  // Image Prompts
-  {
-    name: 'Product Photo Prompt',
-    description: 'Create a template for generating product photo prompts',
-    content:
-      'Create a prompt template for product photography of [product type] that includes:\n- Style guidelines: [photography style]\n- Lighting requirements: [lighting setup]\n- Background specifications: [background type]\n- Composition rules: [composition guidelines]\n\nTarget audience: [audience]\nStyle: [style]\nResolution: [resolution]',
-    tags: ['image', 'product', 'photography'],
-    style: 'photorealistic',
-    resolution: '1024x1024',
-    palette: 'professional',
-    promptType: 'image',
+    promptType: 'business',
   },
   {
-    name: 'Character Design Prompt',
-    description: 'Create a template for generating character design prompts',
-    content:
-      'Create a prompt template for character design that includes:\n- Character type: [species/type]\n- Personality traits: [key traits]\n- Visual style: [art style]\n- Key features: [distinctive elements]\n\nTarget audience: [audience]\nStyle: [style]\nResolution: [resolution]',
-    tags: ['image', 'character', 'design'],
-    style: 'cartoon',
-    resolution: '1024x1024',
-    palette: 'vibrant',
-    promptType: 'image',
-  },
-  // Video Prompts
-  {
-    name: 'Product Demo Prompt',
-    description: 'Create a template for generating product demo video prompts',
-    content:
-      'Create a prompt template for a product demo video that includes:\n- Introduction structure: [intro format]\n- Feature presentation: [number] key features\n- Use case scenarios: [scenario types]\n- Call to action format: [CTA style]\n\nTarget audience: [audience]\nStyle: [style]\nDuration: [duration]',
-    tags: ['video', 'product', 'marketing'],
-    style: 'professional',
-    duration: '60s',
-    resolution: '1920x1080',
-    promptType: 'video',
+    name: 'Code Generation Template',
+    description: 'A template for generating code snippets',
+    content: 'Generate a [language] function that [purpose] with [requirements].',
+    tags: ['code', 'development', 'programming'],
+    tone: 'technical',
+    format: 'code',
+    promptType: 'code-generation',
   },
   {
-    name: 'Tutorial Video Prompt',
-    description: 'Create a template for generating tutorial video prompts',
-    content:
-      'Create a prompt template for a tutorial video that includes:\n- Topic breakdown: [main topic]\n- Step structure: [number] key steps\n- Visual requirements: [visual elements]\n- Learning objectives: [key takeaways]\n\nTarget audience: [audience]\nStyle: [style]\nDuration: [duration]',
-    tags: ['video', 'tutorial', 'educational'],
-    style: 'educational',
-    duration: '5min',
-    resolution: '1920x1080',
-    promptType: 'video',
-  },
-  // Music Prompts
-  {
-    name: 'Background Music Prompt',
-    description: 'Create a template for generating background music prompts',
-    content:
-      'Create a prompt template for background music that includes:\n- Genre specifications: [music genre]\n- Mood requirements: [emotional tone]\n- Instrumentation: [key instruments]\n- Structure elements: [musical structure]\n\nTarget audience: [audience]\nStyle: [style]\nDuration: [length]',
-    tags: ['music', 'background', 'ambient'],
-    genre: 'ambient',
-    mood: 'calm',
-    length: '2min',
-    instruments: 'piano, strings, pads',
-    promptType: 'music',
+    name: 'Data Analysis Template',
+    description: 'A template for data analysis tasks',
+    content: 'Analyze the dataset [description] to find [insights].',
+    tags: ['data', 'analysis', 'visualization'],
+    tone: 'analytical',
+    format: 'report',
+    promptType: 'data-analysis',
   },
   {
-    name: 'Jingle Creation',
-    description: 'Create catchy brand jingles',
-    content:
-      'Create a brand jingle for [brand] with:\n- Style: [style]\n- Mood: [mood]\n- Key instruments: [instruments]\n- Duration: [duration]\n- Key message: [message]',
-    tags: ['music', 'jingle', 'branding'],
-    genre: 'pop',
-    mood: 'upbeat',
-    length: '30s',
-    instruments: 'synth, drums, bass',
-    promptType: 'music',
+    name: 'Educational Content Template',
+    description: 'A template for creating educational materials',
+    content: 'Create an educational resource about [topic] for [audience] level.',
+    tags: ['education', 'learning', 'teaching'],
+    tone: 'educational',
+    format: 'lesson',
+    promptType: 'education',
   },
   {
-    name: 'Soundtrack',
-    description: 'Generate emotional soundtracks',
-    content:
-      'Create a soundtrack piece that conveys [emotion] with:\n- Genre: [genre]\n- Mood: [mood]\n- Instruments: [instruments]\n- Structure: [structure]\n- Duration: [duration]',
-    tags: ['music', 'soundtrack', 'emotional'],
-    genre: 'orchestral',
-    mood: 'dramatic',
-    length: '3min',
-    instruments: 'orchestra, choir',
-    promptType: 'music',
+    name: 'Technical Documentation Template',
+    description: 'A template for technical documentation',
+    content: 'Document the technical specifications for [system/feature].',
+    tags: ['technical', 'documentation', 'specs'],
+    tone: 'technical',
+    format: 'documentation',
+    promptType: 'technical',
   },
   {
-    name: 'Software Prompt Template',
-    description: 'Create a template for generating prompts to solve advanced software problems',
-    content: `Create a prompt template for solving advanced software engineering problems. The template should include:
-  - Problem context: [describe the system, domain, or use case]
-  - Specific requirements: [list all functional and non-functional requirements]
-  - Input and output formats: [define expected inputs and outputs]
-  - Constraints: [performance, security, scalability, etc.]
-  - Edge cases: [list possible edge cases to consider]
-  - Error handling: [how should errors be managed?]
-  - Example scenarios: [provide at least one example input and expected output]
-  - Technologies or tools: [specify any required frameworks, languages, or libraries]
-  - Testing: [describe how the solution should be tested]
-  - Additional notes: [any other relevant information]
-  
-  Target audience: [developer, architect, etc.]
-  Level: [beginner, intermediate, advanced]`,
-    tags: ['software', 'engineering', 'problem-solving', 'advanced'],
-    tone: 'professional',
-    format: 'technical',
-    promptType: 'software',
+    name: 'Research Analysis Template',
+    description: 'A template for research analysis',
+    content: 'Analyze the research findings on [topic] considering [methodology].',
+    tags: ['research', 'analysis', 'academic'],
+    tone: 'academic',
+    format: 'research',
+    promptType: 'research',
   },
   {
-    name: 'Debugging Error Message',
-    description: 'Create a prompt template for debugging a specific error message in code.',
-    content: `Create a prompt template for debugging the following error message in [programming language] (version: [version], libraries: [libraries]):
-  
-  Error message: [paste error message here]
-  
-  The template should include:
-  - Problem context
-  - Steps to reproduce
-  - Expected vs actual behavior
-  - Code snippets (if available)
-  - Troubleshooting steps
-  - Suggestions for further investigation
-  - Any relevant documentation or resources
-  `,
-    tags: ['software', 'debugging', 'error', 'troubleshooting', 'language-specific'],
-    tone: 'professional',
-    format: 'technical',
-    promptType: 'software',
-  },
-  {
-    name: 'Optimize Algorithm',
-    description:
-      'Create a prompt template for optimizing an algorithm in a specific language or library.',
-    content: `Create a prompt template for optimizing the following algorithm in [programming language] (version: [version], libraries: [libraries]):
-  
-  Algorithm description: [describe algorithm or paste code]
-  
-  The template should include:
-  - Current performance metrics
-  - Constraints (time, space, etc.)
-  - Desired improvements
-  - Edge cases
-  - Testing requirements
-  - Any relevant documentation or resources
-  `,
-    tags: ['software', 'optimization', 'algorithm', 'performance', 'language-specific'],
-    tone: 'professional',
-    format: 'technical',
-    promptType: 'software',
-  },
-  {
-    name: 'Integrate Third-Party Library',
-    description: 'Create a prompt template for integrating a third-party library or API.',
-    content: `Create a prompt template for integrating the [library/API name] (version: [version]) into a [programming language] project.
-  
-  The template should include:
-  - Project context
-  - Library/API purpose
-  - Installation steps
-  - Example usage
-  - Common pitfalls
-  - Version compatibility notes
-  - Testing and validation steps
-  - Any relevant documentation or resources
-  `,
-    tags: ['software', 'integration', 'library', 'API', 'setup', 'language-specific'],
-    tone: 'professional',
-    format: 'technical',
-    promptType: 'software',
-  },
-  {
-    name: 'Code Review Checklist',
-    description: 'Create a prompt template for reviewing code in a specific language or framework.',
-    content: `Create a prompt template for reviewing code written in [programming language] (version: [version], libraries: [libraries]).
-  
-  The template should include:
-  - Code style and conventions
-  - Correctness and logic
-  - Security considerations
-  - Performance
-  - Test coverage
-  - Documentation
-  - Suggestions for improvement
-  `,
-    tags: ['software', 'code review', 'quality', 'security', 'language-specific'],
-    tone: 'professional',
-    format: 'technical',
-    promptType: 'software',
-  },
-  // Medical Prompts
-  {
-    name: 'Medical Case Study Template',
-    description: 'Create a template for generating detailed medical case studies',
-    content: `IMPORTANT: This template is for educational purposes only. Always consult with qualified healthcare professionals for actual medical decisions.
-
-Create a medical case study template that includes:
-- Patient demographics: [age, gender, relevant history]
-- Presenting symptoms: [chief complaint and duration]
-- Medical history: [relevant conditions, medications, allergies]
-- Physical examination findings: [vital signs, relevant exam details]
-- Diagnostic tests: [lab results, imaging, other tests]
-- Assessment: [differential diagnosis]
-- Treatment plan: [medications, procedures, follow-up]
-- Outcome: [patient response, complications, resolution]
-
-Target audience: [medical professionals, students, etc.]
-Format: [structured case report]
-Include references: [yes/no]
-Include disclaimer: [yes/no]`,
-    tags: ['medical', 'case-study', 'documentation', 'clinical'],
-    tone: 'professional',
-    format: 'medical-report',
-    promptType: 'medical',
-  },
-  {
-    name: 'Patient Education Material',
-    description: 'Create a template for generating patient education materials',
-    content: `IMPORTANT: This material should be reviewed by healthcare professionals before distribution to patients.
-
-Create a patient education template about [medical condition/treatment] that includes:
-- Overview: [condition/treatment explanation]
-- Symptoms/Side effects: [what to expect]
-- Treatment options: [available approaches]
-- Self-care instructions: [home care guidelines]
-- Warning signs: [when to seek medical attention]
-- Lifestyle modifications: [recommended changes]
-- Follow-up care: [appointment schedule, monitoring]
-
-Target audience: [patient education level]
-Language level: [basic, intermediate, advanced]
-Include visual aids: [yes/no]
-Include medical review statement: [yes/no]`,
-    tags: ['medical', 'patient', 'education', 'documentation'],
-    tone: 'clear',
-    format: 'patient-education',
-    promptType: 'medical',
-  },
-  {
-    name: 'Clinical Research Protocol',
-    description: 'Create a template for generating clinical research protocols',
-    content: `IMPORTANT: This template should be reviewed by qualified researchers and institutional review boards (IRB) before implementation.
-
-Create a clinical research protocol template that includes:
-- Study title: [research question]
-- Background: [literature review, rationale]
-- Objectives: [primary and secondary endpoints]
-- Methodology: [study design, population, interventions]
-- Data collection: [variables, measurements, timeline]
-- Statistical analysis: [methods, sample size]
-- Ethical considerations: [informed consent, IRB]
-- Timeline: [study duration, milestones]
-
-Target audience: [researchers, IRB, funding agencies]
-Study type: [observational, interventional, etc.]
-Compliance requirements: [specific regulations]
-Include ethical review statement: [yes/no]`,
-    tags: ['medical', 'research', 'clinical', 'documentation'],
-    tone: 'scientific',
-    format: 'research-protocol',
-    promptType: 'medical',
-  },
-  {
-    name: 'Medical Documentation Template',
-    description: 'Create a template for generating standardized medical documentation',
-    content: `IMPORTANT: This template should be used in accordance with local medical regulations and institutional policies.
-
-Create a medical documentation template for [specialty/condition] that includes:
-- Patient information: [demographics, identifiers]
-- Chief complaint: [patient's main concern]
-- History of present illness: [symptom progression]
-- Review of systems: [pertinent positives/negatives]
-- Physical examination: [relevant findings]
-- Assessment: [diagnoses, problems]
-- Plan: [treatment, medications, follow-up]
-- Notes: [additional observations]
-
-Target audience: [healthcare providers]
-Specialty: [specific medical field]
-Compliance: [HIPAA, specific requirements]
-Include compliance statement: [yes/no]`,
-    tags: ['medical', 'documentation', 'clinical', 'HIPAA'],
-    tone: 'professional',
-    format: 'medical-note',
-    promptType: 'medical',
+    name: 'Custom Template',
+    description: 'A flexible template for custom needs',
+    content: 'Create a [type] about [topic] with [specific requirements].',
+    tags: ['custom', 'flexible', 'template'],
+    tone: 'customizable',
+    format: 'custom',
+    promptType: 'custom',
   },
 ];
 
@@ -557,9 +619,20 @@ interface FormData {
   includeKeywords: boolean;
   temperature: number;
   language: string;
-  promptType: string;
+  promptType: PromptType;
   persona?: string;
   includeImageDescription?: boolean;
+  systemPrompt?: string;
+  context?: string;
+  examples?: string[];
+  constraints?: string[];
+  outputFormat?: string;
+  topP?: number;
+  frequencyPenalty?: number;
+  presencePenalty?: number;
+  maxTokens?: number;
+  validationRules?: string[];
+  fallbackStrategy?: string;
 }
 
 const ClientPromptCreate = memo(function ClientPromptCreate({ user }: { user: NavBarUser }) {
@@ -570,24 +643,35 @@ const ClientPromptCreate = memo(function ClientPromptCreate({ user }: { user: Na
   const [isLoading, setIsLoading] = useState(false);
   const [aiResponse, setAiResponse] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [generatedPrompt, setGeneratedPrompt] = useState<string | null>(null);
   const [showHighlight, setShowHighlight] = useState(false);
-  const [promptType, setPromptType] = useState<PromptType>('text');
+  const [promptType, setPromptType] = useState<PromptType>('content-creation');
   const [formData, setFormData] = useState<FormData>({
     name: '',
     description: '',
     content: '',
     isPublic: false,
     tags: [],
-    tone: '',
-    format: '',
-    wordCount: '',
-    targetAudience: '',
-    includeExamples: false,
-    includeKeywords: false,
+    tone: 'professional',
+    format: 'article',
+    wordCount: '500',
+    targetAudience: 'general',
+    includeExamples: true,
+    includeKeywords: true,
     temperature: 0.7,
     language: 'en',
-    promptType: 'text',
-    persona: '',
+    promptType: 'content-creation',
+    systemPrompt: '',
+    context: '',
+    examples: [],
+    constraints: [],
+    outputFormat: '',
+    topP: 1,
+    frequencyPenalty: 0,
+    presencePenalty: 0,
+    maxTokens: 2000,
+    validationRules: [],
+    fallbackStrategy: '',
   });
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [editableAiResponse, setEditableAiResponse] = useState<string | null>(null);
@@ -599,6 +683,13 @@ const ClientPromptCreate = memo(function ClientPromptCreate({ user }: { user: Na
     missingCredits: number;
   }>({ currentCredits: 0, requiredCredits: 0, missingCredits: 0 });
   const [showMedicalWarning, setShowMedicalWarning] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showTestDialog, setShowTestDialog] = useState(false);
+  const [testResult, setTestResult] = useState<string | null>(null);
+  const [isTesting, setIsTesting] = useState(false);
+  const [newTag, setNewTag] = useState('');
+  const [tagError, setTagError] = useState<string | null>(null);
 
   // Memoize expensive computations
   const memoizedFormData = useMemo(() => formData, [formData]);
@@ -632,81 +723,163 @@ const ClientPromptCreate = memo(function ClientPromptCreate({ user }: { user: Na
 
   // Use effect for medical warning
   useEffect(() => {
-    setShowMedicalWarning(promptType === 'medical');
+    setShowMedicalWarning(promptType === 'research');
   }, [promptType]);
 
-  const handleSubmit = useCallback(async (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log('Form submission started');
-    console.log('Form data:', formData);
-
-    if (isLoading) {
-      console.log('Form submission blocked - already loading');
-      return;
+  const handleTest = async () => {
+    if (promptType === 'content-creation') {
+      // Handle content creation test
     }
+    if (!generatedPrompt) return;
+    
+    setIsTesting(true);
+    setError(null);
 
     try {
-      setIsLoading(true);
-      console.log('Setting loading state to true');
-
-      // Prepare the prompt data
-      const promptData = {
-        title: formData.name.trim(),
-        content: formData.content.trim(),
-        description: formData.description.trim(),
-        tags: selectedTags,
-        isPublic: formData.isPublic || false,
-        temperature: formData.temperature || 0.7,
-        language: formData.language || 'en',
-        promptType: formData.promptType || 'text',
-        persona: formData.persona || '',
-      };
-
-      console.log('Submitting prompt data:', promptData);
-
-      const response = await fetch('/api/prompts', {
+      const response = await fetch('/api/prompts/test', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(promptData),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          prompt: generatedPrompt,
+          temperature: formData.temperature,
+          maxTokens: formData.maxTokens,
+        }),
       });
-
-      console.log('Response status:', response.status);
-      console.log('Response headers:', Object.fromEntries(response.headers.entries()));
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => null);
-        console.error('API Error Response:', errorData);
-        throw new Error(errorData?.message || 'Failed to create prompt');
-      }
 
       const data = await response.json();
-      console.log('Success response:', data);
 
-      toast({
-        title: 'Success!',
-        description: 'Your prompt has been created successfully.',
-      });
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to test prompt');
+      }
 
-      router.push(`/prompts/${data.savedPrompt.id}`);
-    } catch (error: any) {
-      console.error('Error creating prompt:', error);
-      console.error('Error stack:', error.stack);
+      setTestResult(data.testResult);
+    } catch (error) {
+      console.error('Error:', error);
+      setError(error instanceof Error ? error.message : 'Failed to test prompt');
       toast({
         title: 'Error',
-        description: error.message || 'Failed to create prompt. Please try again.',
+        description: error instanceof Error ? error.message : 'Failed to test prompt',
         variant: 'destructive',
       });
     } finally {
-      setIsLoading(false);
-      console.log('Setting loading state to false');
+      setIsTesting(false);
     }
-  }, [formData, selectedTags, isLoading, router, toast]);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (promptType === 'content-creation') {
+      // Handle content creation submission
+    }
+    setIsGenerating(true);
+    setError(null);
+
+    try {
+      console.log('Form submitted');
+      const response = await fetch('/api/prompts/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      });
+
+      console.log('Response status:', response.status);
+      const data = await response.json();
+      console.log('Received data:', data);
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to generate prompt');
+      }
+
+      setGeneratedPrompt(data.generatedPrompt);
+      setShowTestDialog(true);
+    } catch (error) {
+      console.error('Error:', error);
+      setError(error instanceof Error ? error.message : 'Failed to generate prompt');
+      toast({
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'Failed to generate prompt',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const handleSave = async () => {
+    if (promptType === 'content-creation') {
+      // Handle content creation save
+    }
+    if (!generatedPrompt) return;
+    
+    setIsSubmitting(true);
+    setError(null);
+
+    try {
+      const response = await fetch('/api/prompts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...formData,
+          content: generatedPrompt,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to save prompt');
+      }
+
+      toast({
+        title: 'Success',
+        description: 'Prompt saved successfully',
+      });
+      router.push('/prompts');
+    } catch (error) {
+      console.error('Error:', error);
+      setError(error instanceof Error ? error.message : 'Failed to save prompt');
+      toast({
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'Failed to save prompt',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const toggleTag = useCallback((tag: string) => {
-    setSelectedTags((prev: string[]) => (prev.includes(tag) ? prev.filter((t: string) => t !== tag) : [...prev, tag]));
+    setSelectedTags((prev: string[]) => {
+      // If tag already exists, remove it
+      if (prev.includes(tag)) {
+        return prev.filter((t: string) => t !== tag);
+      }
+      // If tag doesn't exist, add it
+      return [...prev, tag];
+    });
   }, []);
+
+  const addNewTag = useCallback(() => {
+    const trimmedTag = newTag.trim();
+    
+    // Reset error state
+    setTagError(null);
+    
+    // Validate tag
+    if (!trimmedTag) {
+      setTagError('Tag cannot be empty');
+      return;
+    }
+    
+    if (selectedTags.includes(trimmedTag)) {
+      setTagError('This tag already exists');
+      return;
+    }
+    
+    // Add the tag
+    setSelectedTags(prev => [...prev, trimmedTag]);
+    setNewTag('');
+  }, [newTag, selectedTags]);
 
   const MedicalDisclaimer = () => (
     <div className="mt-4 rounded-lg border border-yellow-200 bg-yellow-50 p-4 dark:border-yellow-800 dark:bg-yellow-900/20">
@@ -729,6 +902,26 @@ const ClientPromptCreate = memo(function ClientPromptCreate({ user }: { user: Na
       </div>
     </div>
   );
+
+  const handlePromptTypeChange = (type: PromptType) => {
+    setPromptType(type);
+    const selectedType = PROMPT_TYPES.find(t => t.value === type);
+    if (selectedType?.examples?.[0]) {
+      const example = selectedType.examples[0];
+      setFormData(prev => ({
+        ...prev,
+        name: example.name,
+        description: example.description,
+        content: example.content,
+        tone: example.tone || 'professional',
+        format: example.format || 'article',
+        isPublic: false,
+        tags: example.tags,
+      }));
+      // Set initial tags based on the example
+      setSelectedTags(example.tags);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -765,10 +958,11 @@ const ClientPromptCreate = memo(function ClientPromptCreate({ user }: { user: Na
                       </Tooltip>
                     </div>
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                      {PROMPT_TYPES.map(({ value, label, icon: Icon, description, color }) => (
+                      {PROMPT_TYPES.map(({ value, label, icon: Icon, description, color, examples }) => (
                         <button
                           key={value}
-                          onClick={() => setPromptType(value)}
+                          type="button"
+                          onClick={() => handlePromptTypeChange(value)}
                           className={`group relative rounded-xl border p-4 transition-all duration-200 ${
                             promptType === value
                               ? `bg-gradient-to-r ${color} border-transparent text-white shadow-lg`
@@ -920,29 +1114,12 @@ const ClientPromptCreate = memo(function ClientPromptCreate({ user }: { user: Na
                       required
                       className="min-h-[120px] font-mono"
                     />
-                    {/* Test in Playground Button & Modal */}
-                    <Dialog>
-                      <DialogTrigger asChild>
-                        <Button
-                          type="button"
-                          variant="secondary"
-                          className="mt-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700"
-                        >
-                          Test in Playground
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent className="max-w-4xl">
-                        <DialogHeader>
-                          <DialogTitle>Test Prompt in Playground</DialogTitle>
-                        </DialogHeader>
-                        <Playground initialPrompt={formData.content} showTitle={false} />
-                      </DialogContent>
-                    </Dialog>
+          
                   </div>
 
-                  {/* Image Description Option - Only for text type prompts */}
-                  {promptType === 'text' && (
-                    <div className="flex items-center space-x-2">
+                  {/* Image Description Option - Only for content-creation type prompts */}
+                  {promptType === 'content-creation' && (
+                    <div className=" mt-4  mb-4 flex items-center space-x-2">
                       <Switch
                         id="includeImageDescription"
                         checked={formData.includeImageDescription}
@@ -952,11 +1129,17 @@ const ClientPromptCreate = memo(function ClientPromptCreate({ user }: { user: Na
                         className="data-[state=checked]:bg-purple-500"
                       />
                       <Label
+          
                         htmlFor="includeImageDescription"
-                        className="flex items-center gap-2 text-gray-700 dark:text-gray-200"
+                        className=" flex items-center gap-2 text-gray-700 dark:text-gray-200"
                       >
                         <Image className="h-4 w-4" /> Include image description in the prompt
+                        <span className="text-xs text-gray-500 dark:text-gray-400">
+                          (Only for content-creation type prompts)
+                        </span>
                       </Label>
+
+
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <span tabIndex={0}>
@@ -987,7 +1170,7 @@ const ClientPromptCreate = memo(function ClientPromptCreate({ user }: { user: Na
                           onClick={() => toggleTag(tag)}
                         >
                           {selectedTags.includes(tag) ? (
-                            <Check className="mr-1 h-3 w-3" />
+                            <X className="mr-1 h-3 w-3" />
                           ) : (
                             <Plus className="mr-1 h-3 w-3" />
                           )}
@@ -995,9 +1178,36 @@ const ClientPromptCreate = memo(function ClientPromptCreate({ user }: { user: Na
                         </Badge>
                       ))}
                     </div>
+                    <div className="mt-2 flex gap-2">
+                      <Input
+                        value={newTag}
+                        onChange={e => {
+                          setNewTag(e.target.value);
+                          setTagError(null);
+                        }}
+                        placeholder="Add custom tag"
+                        onKeyPress={e => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            addNewTag();
+                          }
+                        }}
+                        className={tagError ? 'border-red-500' : ''}
+                      />
+                      <Button 
+                        type="button" 
+                        onClick={addNewTag} 
+                        disabled={!newTag.trim() || selectedTags.includes(newTag.trim())}
+                      >
+                        Add Tag
+                      </Button>
+                    </div>
+                    {tagError && (
+                      <p className="mt-1 text-sm text-red-500">{tagError}</p>
+                    )}
                   </div>
 
-                  <div className="flex items-center space-x-2">
+                  <div className=" mt-4  mb-4 flex items-center space-x-2">
                     <Switch
                       id="isPublic"
                       checked={formData.isPublic}
@@ -1032,18 +1242,29 @@ const ClientPromptCreate = memo(function ClientPromptCreate({ user }: { user: Na
                       Cancel
                     </Button>
                     <Button
-                      type="submit"
-                      disabled={isLoading}
+                      type="button"
+                      onClick={handleTest}
+                      disabled={isTesting || !formData.content}
                       className="bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700"
                     >
-                      {isLoading ? (
+                      {isTesting ? (
                         <>
                           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          {getRandomSpinnerMessage()}
+                          Testing...
                         </>
                       ) : (
-                        'Create Prompt'
+                        <>
+                          <Play className="mr-2 h-4 w-4" />
+                          Test Prompt in Playground
+                        </>
                       )}
+                    </Button>
+                    <Button
+                      type="submit"
+                      disabled={isGenerating || isSubmitting}
+                      className="bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700"
+                    >
+                      {isGenerating ? 'Generating...' : 'Generate Prompt'}
                     </Button>
                   </div>
                 </CardContent>
@@ -1247,7 +1468,7 @@ const ClientPromptCreate = memo(function ClientPromptCreate({ user }: { user: Na
                       </button>
                     ))}
                   </div>
-                  {promptType === 'medical' && selectedTags.some(tag => tag.includes('medical')) && (
+                  {promptType === 'research' && selectedTags.some(tag => tag.includes('medical')) && (
                     <MedicalDisclaimer />
                   )}
                 </CardContent>
@@ -1263,6 +1484,170 @@ const ClientPromptCreate = memo(function ClientPromptCreate({ user }: { user: Na
         requiredCredits={creditsInfo.requiredCredits}
         missingCredits={creditsInfo.missingCredits}
       />
+      {/* Test Results Dialog */}
+      <Dialog open={showTestDialog} onOpenChange={setShowTestDialog}>
+        <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-bold">Review Generated Prompt</DialogTitle>
+            <DialogDescription className="text-base">
+              Review the AI-generated prompt and test it before saving. You can make adjustments and test multiple times.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="flex-1 overflow-y-auto space-y-6 py-4">
+            {/* Generated Prompt Section */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold flex items-center gap-2">
+                  <Sparkles className="h-5 w-5 text-purple-500" />
+                  Generated Prompt
+                </h3>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    navigator.clipboard.writeText(generatedPrompt || '');
+                    toast({
+                      title: 'Copied!',
+                      description: 'Prompt copied to clipboard',
+                    });
+                  }}
+                >
+                  <FileText className="h-4 w-4 mr-2" />
+                  Copy
+                </Button>
+              </div>
+              <div className="relative">
+                <div className="prose prose-sm dark:prose-invert max-w-none p-4 bg-muted rounded-lg border overflow-x-auto">
+                  <ReactMarkdown>{generatedPrompt || ''}</ReactMarkdown>
+                </div>
+              </div>
+            </div>
+
+            {/* Test Result Section */}
+            {testResult ? (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-semibold flex items-center gap-2">
+                    <Play className="h-5 w-5 text-green-500" />
+                    Test Result
+                  </h3>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      navigator.clipboard.writeText(testResult);
+                      toast({
+                        title: 'Copied!',
+                        description: 'Test result copied to clipboard',
+                      });
+                    }}
+                  >
+                    <FileText className="h-4 w-4 mr-2" />
+                    Copy
+                  </Button>
+                </div>
+                <div className="relative">
+                  <div className="prose prose-sm dark:prose-invert max-w-none p-4 bg-muted rounded-lg border overflow-x-auto">
+                    <ReactMarkdown>{testResult}</ReactMarkdown>
+                  </div>
+                </div>
+              </div>
+            ) : null}
+
+            {/* AI Response Section */}
+            {testResult ? (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-semibold flex items-center gap-2">
+                    <MessageSquare className="h-5 w-5 text-blue-500" />
+                    AI Response
+                  </h3>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      navigator.clipboard.writeText(testResult);
+                      toast({
+                        title: 'Copied!',
+                        description: 'AI response copied to clipboard',
+                      });
+                    }}
+                  >
+                    <FileText className="h-4 w-4 mr-2" />
+                    Copy
+                  </Button>
+                </div>
+                <div className="relative">
+                  <Textarea
+                    value={testResult}
+                    readOnly
+                    className="min-h-[200px] font-mono text-sm bg-muted border"
+                    style={{
+                      whiteSpace: 'pre-wrap',
+                      wordBreak: 'break-word',
+                    }}
+                  />
+                </div>
+              </div>
+            ) : null}
+
+            {/* Error Message */}
+            {error && (
+              <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+                <div className="flex items-center gap-2 text-red-600 dark:text-red-400">
+                  <X className="h-5 w-5" />
+                  <p className="font-medium">{error}</p>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex justify-end gap-3 pt-4 border-t">
+            <Button
+              variant="outline"
+              onClick={() => setShowTestDialog(false)}
+            >
+              Close
+            </Button>
+            <Button
+              onClick={handleTest}
+              disabled={isTesting}
+              className="bg-purple-600 hover:bg-purple-700"
+            >
+              {isTesting ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Testing...
+                </>
+              ) : (
+                <>
+                  <Play className="h-4 w-4 mr-2" />
+                  Test Prompt
+                </>
+              )}
+            </Button>
+            <Button
+              onClick={handleSave}
+              disabled={isSubmitting}
+              className="bg-green-600 hover:bg-green-700"
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <Check className="h-4 w-4 mr-2" />
+                  Save Prompt
+                </>
+              )}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 });
