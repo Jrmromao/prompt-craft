@@ -24,6 +24,7 @@ const securityHeaders = {
   'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
   'Content-Security-Policy':
     "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline';",
+  'Set-Cookie': 'SameSite=Strict; Secure; HttpOnly',
 } as const;
 
 export type RouteHandler = (

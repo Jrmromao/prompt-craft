@@ -25,10 +25,11 @@ const MAX_REQUEST_SIZE = 1024 * 1024; // 1MB in bytes
 
 // Different rate limits for different routes
 const ROUTE_LIMITS = {
-  default: 60, // 1 request per second
-  comments: 30, // 1 request every 2 seconds
-  votes: 20, // 1 request every 3 seconds
-};
+  default: 100,
+  comments: 50,
+  votes: 30,
+  cookies: 20,
+} satisfies Record<string, number>;
 
 export async function rateLimitMiddleware(request: NextRequest) {
   // Check request size
@@ -57,6 +58,8 @@ export async function rateLimitMiddleware(request: NextRequest) {
     maxRequests = ROUTE_LIMITS.comments;
   } else if (request.nextUrl.pathname.includes('/vote')) {
     maxRequests = ROUTE_LIMITS.votes;
+  } else if (request.nextUrl.pathname.includes('/cookies')) {
+    maxRequests = ROUTE_LIMITS.cookies;
   }
 
   // Use Redis for distributed rate limiting

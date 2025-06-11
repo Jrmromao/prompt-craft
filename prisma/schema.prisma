@@ -129,6 +129,7 @@ model Prompt {
   viewCount      Int                 @default(0)
   copyCount      Int                 @default(0)
   promptType     String              @default("text")
+  metadata       Json?               // Added metadata field
   apiUsage       ApiUsage[]
   comments       Comment[]
   likes          CommentLike[]
@@ -603,6 +604,20 @@ model Team {
   settings    Json?     @default("{\"maxMembers\": 5, \"allowedFeatures\": []}")
 
   @@index([ownerId])
+}
+
+model UsageMetrics {
+  id        String   @id @default(cuid())
+  userId    String
+  type      String   // PROMPT_TEST, PROMPT_CREATE, etc.
+  tokenCount Int
+  metadata  Json     // Additional usage data
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([type])
+  @@index([createdAt])
 }
 
 enum Role {

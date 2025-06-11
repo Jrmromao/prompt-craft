@@ -157,8 +157,46 @@ export class PromptService {
       content: string;
       isPublic?: boolean;
       tags?: string[];
+      systemPrompt?: string;
+      context?: string;
+      examples?: string[];
+      constraints?: string[];
+      outputFormat?: string;
+      temperature?: number;
+      topP?: number;
+      frequencyPenalty?: number;
+      presencePenalty?: number;
+      maxTokens?: number;
+      stopSequences?: string[];
+      validationRules?: string[];
+      fallbackStrategy?: string;
+      version?: string;
+      author?: string;
+      source?: string;
     }
   ): Promise<Prompt> {
+    // Validate required fields
+    if (!data.name || !data.content) {
+      throw new Error('Name and content are required');
+    }
+
+    // Validate AI/ML parameters
+    if (data.temperature !== undefined && (data.temperature < 0 || data.temperature > 1)) {
+      throw new Error('Temperature must be between 0 and 1');
+    }
+
+    if (data.topP !== undefined && (data.topP < 0 || data.topP > 1)) {
+      throw new Error('Top P must be between 0 and 1');
+    }
+
+    if (data.frequencyPenalty !== undefined && (data.frequencyPenalty < -2 || data.frequencyPenalty > 2)) {
+      throw new Error('Frequency penalty must be between -2 and 2');
+    }
+
+    if (data.presencePenalty !== undefined && (data.presencePenalty < -2 || data.presencePenalty > 2)) {
+      throw new Error('Presence penalty must be between -2 and 2');
+    }
+
     // Generate a unique slug for the prompt
     const { aiSlugify } = await import('./slugService');
     const baseSlug = await aiSlugify(data.name, data.description || '');
@@ -169,6 +207,27 @@ export class PromptService {
       i++;
     }
 
+    // Prepare metadata
+    const metadata = {
+      systemPrompt: data.systemPrompt,
+      context: data.context,
+      examples: data.examples,
+      constraints: data.constraints,
+      outputFormat: data.outputFormat,
+      temperature: data.temperature,
+      topP: data.topP,
+      frequencyPenalty: data.frequencyPenalty,
+      presencePenalty: data.presencePenalty,
+      maxTokens: data.maxTokens,
+      stopSequences: data.stopSequences,
+      validationRules: data.validationRules,
+      fallbackStrategy: data.fallbackStrategy,
+      version: data.version || '1.0.0',
+      author: data.author,
+      source: data.source,
+      lastUpdated: new Date(),
+    };
+
     const prompt = await prisma.prompt.create({
       data: {
         name: data.name,
@@ -177,6 +236,7 @@ export class PromptService {
         isPublic: data.isPublic || false,
         userId,
         slug: uniqueSlug,
+        metadata,
         tags: {
           connectOrCreate: (data.tags || []).map(tag => ({
             where: { name: tag },
