@@ -32,6 +32,7 @@ interface UsageMetricsProps {
     status: string;
     message: string;
     lastUsedAt: string | Date;
+    tokenUsageByDay: { date: string; tokens: number }[];
   };
   isLoading?: boolean;
 }
@@ -54,7 +55,7 @@ export function UsageMetrics({ metrics, isLoading = false }: UsageMetricsProps) 
         />
         <MetricCard
           title="Token Usage"
-          value={metrics.tokenUsage.toLocaleString()}
+          value={`${metrics.tokenUsage.toLocaleString()} tokens`}
           icon={<Zap className="h-4 w-4 text-muted-foreground" />}
         />
         <MetricCard
@@ -74,6 +75,7 @@ export function UsageMetrics({ metrics, isLoading = false }: UsageMetricsProps) 
         <TabsList>
           <TabsTrigger value="overview">Usage Over Time</TabsTrigger>
           <TabsTrigger value="features">Feature Usage</TabsTrigger>
+          <TabsTrigger value="tokens">Token Usage</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-4">
@@ -100,6 +102,41 @@ export function UsageMetrics({ metrics, isLoading = false }: UsageMetricsProps) 
                       type="monotone"
                       dataKey="count"
                       stroke="#8884d8"
+                      strokeWidth={2}
+                      dot={{ r: 4 }}
+                      activeDot={{ r: 6 }}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="tokens" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Token Usage Over Time</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="h-[400px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={metrics.tokenUsageByDay}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis
+                      dataKey="date"
+                      tickFormatter={(date) => format(new Date(date), 'MMM d')}
+                    />
+                    <YAxis />
+                    <Tooltip
+                      labelFormatter={(date) => format(new Date(date), 'MMMM d, yyyy')}
+                      formatter={(value) => [`${value} tokens`, 'Usage']}
+                    />
+                    <Legend />
+                    <Line
+                      type="monotone"
+                      dataKey="tokens"
+                      stroke="#82ca9d"
                       strokeWidth={2}
                       dot={{ r: 4 }}
                       activeDot={{ r: 6 }}

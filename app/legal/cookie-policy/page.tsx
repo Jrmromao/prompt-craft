@@ -42,6 +42,11 @@ export default function CookiePolicy() {
           cookies are strictly necessary to deliver the website, you cannot refuse them without
           impacting how our website functions.
         </p>
+        <ul>
+          <li><strong>Retention Period:</strong> Session duration or up to 1 year</li>
+          <li><strong>Purpose:</strong> Authentication, security, and basic functionality</li>
+          <li><strong>Examples:</strong> Session management, CSRF protection</li>
+        </ul>
 
         <h3>Analytics Cookies</h3>
         <p>
@@ -50,6 +55,11 @@ export default function CookiePolicy() {
           popular and see how visitors move around the site. All information these cookies collect
           is aggregated and therefore anonymous.
         </p>
+        <ul>
+          <li><strong>Retention Period:</strong> Up to 2 years</li>
+          <li><strong>Purpose:</strong> Website usage analysis and improvement</li>
+          <li><strong>Third-party Providers:</strong> Google Analytics, Plausible Analytics</li>
+        </ul>
 
         <h3>Functional Cookies</h3>
         <p>
@@ -58,6 +68,11 @@ export default function CookiePolicy() {
           pages. If you do not allow these cookies, then some or all of these services may not
           function properly.
         </p>
+        <ul>
+          <li><strong>Retention Period:</strong> Up to 1 year</li>
+          <li><strong>Purpose:</strong> Enhanced functionality and user preferences</li>
+          <li><strong>Examples:</strong> Language preferences, theme settings</li>
+        </ul>
 
         <h3>Marketing Cookies</h3>
         <p>
@@ -65,21 +80,52 @@ export default function CookiePolicy() {
           that are relevant and engaging for the individual user and thereby more valuable for
           publishers and third-party advertisers.
         </p>
+        <ul>
+          <li><strong>Retention Period:</strong> Up to 13 months</li>
+          <li><strong>Purpose:</strong> Targeted advertising and marketing</li>
+          <li><strong>Third-party Providers:</strong> Google Ads, Facebook Pixel</li>
+        </ul>
 
         <h3>Preference Cookies</h3>
         <p>
           These cookies allow the website to remember information that changes the way the website
           behaves or looks, like your preferred language or the region you are in.
         </p>
+        <ul>
+          <li><strong>Retention Period:</strong> Up to 1 year</li>
+          <li><strong>Purpose:</strong> User preferences and settings</li>
+          <li><strong>Examples:</strong> Language selection, region settings</li>
+        </ul>
+
+        <h2>Data Transfers</h2>
+        <p>
+          Some of our third-party cookie providers may transfer your data outside of your country of
+          residence. We ensure that such transfers comply with applicable data protection laws and
+          regulations. For transfers to countries outside the European Economic Area (EEA), we rely
+          on appropriate safeguards such as Standard Contractual Clauses approved by the European
+          Commission.
+        </p>
 
         <h2>How can you control cookies?</h2>
         <p>
           You have the right to decide whether to accept or reject cookies. You can exercise your
-          cookie preferences through our cookie consent banner. You can also set or amend your web
-          browser controls to accept or refuse cookies. If you choose to reject cookies, you may
-          still use our website though your access to some functionality and areas of our website
-          may be restricted.
+          cookie preferences through our cookie consent banner or cookie settings panel. You can also
+          set or amend your web browser controls to accept or refuse cookies. If you choose to reject
+          cookies, you may still use our website though your access to some functionality and areas
+          of our website may be restricted.
         </p>
+
+        <h2>Cookie Management</h2>
+        <p>
+          You can manage your cookie preferences at any time through our Cookie Settings panel,
+          accessible via the footer of our website. This allows you to:
+        </p>
+        <ul>
+          <li>View all active cookies</li>
+          <li>Enable or disable specific cookie categories</li>
+          <li>Export your cookie preferences</li>
+          <li>Clear all cookies</li>
+        </ul>
 
         <h2>How often will we update this Cookie Policy?</h2>
         <p>

@@ -8,7 +8,7 @@ import { Role, PlanType } from '@/utils/constants';
 
 // Export dynamic configuration
 export const dynamic = 'force-dynamic';
-export const revalidate = 0;
+export const runtime = 'nodejs';
 
 // GET /api/prompts
 export const GET = withPlanLimitsMiddleware(
@@ -45,30 +45,60 @@ export const POST = withPlanLimitsMiddleware(
       }
 
       const body = await req.json();
-      const { title, content, type } = body;
+      const { 
+        name,
+        description,
+        content,
+        isPublic,
+        tags,
+        promptType,
+        systemPrompt,
+        context,
+        examples,
+        constraints,
+        outputFormat,
+        temperature,
+        topP,
+        frequencyPenalty,
+        presencePenalty,
+        maxTokens,
+        validationRules,
+        fallbackStrategy
+      } = body;
 
-      if (!title || !content || !type) {
+      if (!name || !content) {
         return NextResponse.json(
-          { error: 'Missing required fields' },
+          { error: 'Name and content are required' },
           { status: 400 }
         );
       }
 
-      const prompt = await prisma.prompt.create({
-        data: {
-          name: title,
-          content,
-          promptType: type,
-          userId,
-          slug: title.toLowerCase().replace(/\s+/g, '-')
-        }
+      const promptService = PromptService.getInstance();
+      const prompt = await promptService.savePrompt(userId, {
+        name,
+        description,
+        content,
+        isPublic,
+        tags,
+        systemPrompt,
+        context,
+        examples,
+        constraints,
+        outputFormat,
+        temperature,
+        topP,
+        frequencyPenalty,
+        presencePenalty,
+        maxTokens,
+        validationRules,
+        fallbackStrategy
       });
 
       return NextResponse.json(prompt);
     } catch (error) {
       console.error('Error creating prompt:', error);
       return NextResponse.json(
-        { error: 'Failed to create prompt' },
+        { error: error instanceof Error ? error.message : 'Failed to create prompt' },
         { status: 500 }
       );
     }

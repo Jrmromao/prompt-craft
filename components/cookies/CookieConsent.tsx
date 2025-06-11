@@ -1,77 +1,93 @@
 import React, { useEffect, useState } from 'react';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
+import { Button } from '@/components/ui/button';
+import { X, Cookie, Settings2 } from 'lucide-react';
+import CookieManager from './CookieManager';
+import { motion, AnimatePresence } from 'framer-motion';
 
-interface CookiePopupProps {
-  onAccept: () => void;
-  onDecline: () => void;
-}
-
-const CookiePopup: React.FC<CookiePopupProps> = ({ onAccept, onDecline }) => {
-  const [showDialog, setShowDialog] = useState(false);
+export default function CookieConsent() {
+  const [showBanner, setShowBanner] = useState(false);
 
   useEffect(() => {
     const consentStatus = localStorage.getItem('cookie-consent-status');
     if (!consentStatus) {
-      setShowDialog(true);
-    } else if (consentStatus === 'accepted') {
-      onAccept();
+      setShowBanner(true);
     }
-  }, [onAccept]);
+  }, []);
 
   const handleAccept = () => {
     localStorage.setItem('cookie-consent-status', 'accepted');
-    setShowDialog(false);
-    onAccept();
+    setShowBanner(false);
   };
 
   const handleDecline = () => {
     localStorage.setItem('cookie-consent-status', 'declined');
-    setShowDialog(false);
-    onDecline();
+    setShowBanner(false);
   };
 
   return (
-    <AlertDialog open={showDialog} onOpenChange={setShowDialog}>
-      <AlertDialogContent className="max-w-xl">
-        <AlertDialogHeader>
-          <AlertDialogTitle>Cookie Settings</AlertDialogTitle>
-          <AlertDialogDescription className="space-y-3">
-            <p>
-              We use cookies and similar technologies to help personalize content, tailor and
-              measure ads, and provide a better experience.
-            </p>
-            <p>
-              By clicking &quot;Accept Cookies&quot;, you agree to this use of cookies. You can
-              change your cookie settings at any time by clicking &quot;Cookie Settings&quot; in the
-              footer.
-            </p>
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter className="flex-col gap-2 sm:flex-row">
-          <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
-            <AlertDialogCancel onClick={handleDecline} className="text-sm sm:mr-2">
-              Decline All
-            </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleAccept}
-              className="bg-primary text-sm hover:bg-primary/90"
-            >
-              Accept Cookies
-            </AlertDialogAction>
+    <AnimatePresence>
+      {showBanner && (
+        <motion.div
+          initial={{ y: 100, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          exit={{ y: 100, opacity: 0 }}
+          transition={{ type: 'spring', damping: 20 }}
+          className="fixed bottom-0 left-0 right-0 z-50 border-t bg-white/80 backdrop-blur-sm p-4 shadow-lg dark:border-gray-800 dark:bg-gray-900/80"
+        >
+          <div className="mx-auto max-w-7xl">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-start gap-4">
+                <div className="hidden rounded-full bg-emerald-100 p-2 dark:bg-emerald-900/50 sm:block">
+                  <Cookie className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                    We value your privacy
+                  </h3>
+                  <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                    We use cookies to enhance your browsing experience, serve personalized content, and
+                    analyze our traffic. By clicking &quot;Accept All&quot;, you consent to our use of
+                    cookies.{' '}
+                    <a
+                      href="/cookie-policy"
+                      className="font-medium text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300"
+                    >
+                      Read our Cookie Policy
+                    </a>
+                    .
+                  </p>
+                </div>
+              </div>
+              <div className="flex flex-wrap items-center gap-2 sm:flex-nowrap">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleDecline}
+                  className="flex-1 sm:flex-none"
+                >
+                  Decline All
+                </Button>
+                <CookieManager />
+                <Button
+                  size="sm"
+                  onClick={handleAccept}
+                  className="flex-1 bg-emerald-600 hover:bg-emerald-700 sm:flex-none"
+                >
+                  Accept All
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={() => setShowBanner(false)}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
           </div>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
-};
-
-export default CookiePopup;
+}
