@@ -186,7 +186,7 @@ export function PromptContent({ user, prompt }: PromptContentProps) {
   return (
     <div className="min-h-screen bg-white text-gray-900 dark:bg-black dark:text-white">
       <NavBarWrapper />
-
+ 
       <main ref={mainRef} className="mx-auto max-w-6xl px-4 py-10 space-y-10">
         {/* Back Navigation */}
         <div className="mb-6">
@@ -216,11 +216,14 @@ export function PromptContent({ user, prompt }: PromptContentProps) {
                 <p className="mt-2 text-lg text-gray-600 dark:text-gray-400 leading-relaxed">
                   {prompt.description}
                 </p>
+                <span className="ml-auto text-xs text-gray-500 dark:text-gray-400 hidden sm:inline">Prompt ID: {prompt.id}</span>
+
                 <div className="mt-4 flex flex-wrap items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
                   <div className="flex items-center gap-1">
                     <User className="h-4 w-4" />
                     {displayName}
                   </div>
+
                   <div className="flex items-center gap-1">
                     <Clock className="h-4 w-4" />
                     {new Date(prompt.createdAt).toLocaleDateString()}
@@ -251,53 +254,48 @@ export function PromptContent({ user, prompt }: PromptContentProps) {
               </div>
             </div>
             {/* Prompt Content Section */}
-            <div className="group rounded-xl border border-gray-200 bg-white/50 p-8 backdrop-blur-sm transition-all duration-300 hover:border-purple-500/50 dark:border-gray-800 dark:bg-gray-900/50">
-              <div className="flex flex-col gap-6">
+            <div className="group rounded-xl border border-gray-200 bg-white/50 p-2 backdrop-blur-sm transition-all duration-300 hover:border-purple-500/50 dark:border-gray-800 dark:bg-gray-900/50">
+              <div className="flex flex-col gap-2">
                 {/* Version Selector */}
                 {versions.length > 0 && (
-                  <div className="flex items-center justify-between border-b border-gray-200 pb-4 dark:border-gray-800">
-                    <div className="flex items-center gap-2">
-                      <GitBranch className="h-5 w-5 text-purple-600 dark:text-purple-400" />
-                      <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Version History</span>
+                  <div className="flex items-center justify-between border-b border-gray-200 pb-1 dark:border-gray-800">
+                    <div className="flex items-center gap-1">
+                      <GitBranch className="h-3 w-3 text-purple-600 dark:text-purple-400" />
+                      <span className="text-xs font-medium text-gray-700 dark:text-gray-300">Version History</span>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setIsContentExpanded(!isContentExpanded)}
-                        className="h-8 w-8 p-0"
-                      >
-                        {isContentExpanded ? (
-                          <ChevronDown className="h-5 w-5" />
-                        ) : (
-                          <ChevronRight className="h-5 w-5" />
-                        )}
-                      </Button>
-                      <Dialog open={isVersionSelectOpen} onOpenChange={setIsVersionSelectOpen}>
-                        <DialogTrigger asChild>
-                          <Button 
-                            variant="outline" 
-                            className="flex items-center gap-2 border-purple-200 bg-purple-50 text-purple-700 hover:bg-purple-100 dark:border-purple-800 dark:bg-purple-900/30 dark:text-purple-300 dark:hover:bg-purple-900/50"
-                          >
-                            <span className="font-medium">Version {selectedVersion?.version || 'Latest'}</span>
-                            <ChevronDown className="h-4 w-4" />
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent className="max-w-md">
-                          <DialogHeader>
-                            <DialogTitle className="flex items-center gap-2 text-xl">
-                              <GitBranch className="h-5 w-5 text-purple-600 dark:text-purple-400" />
-                              Select Version
-                            </DialogTitle>
-                            <p className="text-sm text-muted-foreground mt-1">
-                              Choose a version to view or test
-                            </p>
-                          </DialogHeader>
-                          <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-2">
-                            {versions.map((version) => (
-                              <div
-                                key={version.id}
-                                className={`rounded-lg border transition-all duration-200 ${
+                    <Dialog open={isVersionSelectOpen} onOpenChange={setIsVersionSelectOpen}>
+                      <DialogTrigger asChild>
+                        <Button 
+                          variant="outline" 
+                          className="flex items-center gap-2 border-purple-200 bg-purple-50 text-purple-700 hover:bg-purple-100 dark:border-purple-800 dark:bg-purple-900/30 dark:text-purple-300 dark:hover:bg-purple-900/50"
+                        >
+                          <span className="font-medium">Version {selectedVersion?.version || 'Latest'}</span>
+                          <ChevronDown className="h-4 w-4" />
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="max-w-md">
+                        <DialogHeader>
+                          <DialogTitle className="flex items-center gap-2 text-xl">
+                            <GitBranch className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                            Select Version
+                          </DialogTitle>
+                          <p className="text-sm text-muted-foreground mt-1">
+                            Choose a version to view or test
+                          </p>
+                        </DialogHeader>
+                        <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-2">
+                          {versions.map((version) => (
+                            <div
+                              key={version.id}
+                              className={`rounded-lg border transition-all duration-200 ${
+                                selectedVersion?.id === version.id
+                                  ? 'border-purple-200 bg-purple-50 dark:border-purple-800 dark:bg-purple-900/30'
+                                  : 'border-gray-200 hover:border-purple-200 hover:bg-purple-50/50 dark:border-gray-800 dark:hover:border-purple-800 dark:hover:bg-purple-900/20'
+                              }`}
+                            >
+                              <Button
+                                variant="ghost"
+                                className={`w-full justify-start p-4 h-auto ${
                                   selectedVersion?.id === version.id
                                     ? 'border-purple-200 bg-purple-50 dark:border-purple-800 dark:bg-purple-900/30'
                                     : 'border-gray-200 hover:border-purple-200 hover:bg-purple-50/50 dark:border-gray-800 dark:hover:border-purple-800 dark:hover:bg-purple-900/20'
@@ -360,18 +358,16 @@ export function PromptContent({ user, prompt }: PromptContentProps) {
                   </div>
                 )}
                 {/* Content */}
-                {isContentExpanded && (
-                  <div className="prose dark:prose-invert max-w-none p-0 overflow-x-auto">
-                    <ReactMarkdown
-                      remarkPlugins={[remarkGfm]}
-                      components={{
-                        code: CodeBlock,
-                      }}
-                    >
-                      {selectedVersion?.content || prompt.content}
-                    </ReactMarkdown>
-                  </div>
-                )}
+                <div className="prose dark:prose-invert max-w-none p-0 overflow-x-auto">
+                  <ReactMarkdown
+                    remarkPlugins={[remarkGfm]}
+                    components={{
+                      code: CodeBlock,
+                    }}
+                  >
+                    {selectedVersion?.content || prompt.content}
+                  </ReactMarkdown>
+                </div>
               </div>
             </div>
             {/* Tabs Section */}

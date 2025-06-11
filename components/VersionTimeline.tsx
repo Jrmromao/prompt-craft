@@ -63,11 +63,11 @@ export function VersionTimeline({ promptId, onVersionSelect, selectedVersionId }
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-2">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <History className="h-5 w-5 text-purple-600 dark:text-purple-400" />
-          <h2 className="text-lg font-semibold">Version History</h2>
+          <History className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+          <h2 className="text-base sm:text-lg font-semibold">Version History</h2>
         </div>
         <Button
           variant="outline"
@@ -75,23 +75,21 @@ export function VersionTimeline({ promptId, onVersionSelect, selectedVersionId }
           className="text-purple-600 hover:bg-purple-50 dark:text-purple-400 dark:hover:bg-purple-900/20"
           onClick={() => router.push(`/prompts/${promptId}/version`)}
         >
-          <GitBranch className="h-4 w-4 mr-2" />
+          <GitBranch className="h-4 w-4 mr-1" />
           View Full History
         </Button>
       </div>
 
-      <ScrollArea className="h-[calc(100vh-200px)] pr-4">
-        <div className="space-y-4">
+      <ScrollArea className="max-h-[60vh] pr-2">
+        <div className="space-y-2">
           {versions.map((version, index) => (
             <div
               key={version.id}
-              className={`relative ${
-                index !== versions.length - 1 ? 'pb-8' : ''
-              }`}
+              className={`relative ${index !== versions.length - 1 ? 'pb-4 sm:pb-6' : ''}`}
             >
               {/* Timeline line */}
               {index !== versions.length - 1 && (
-                <div className="absolute left-4 top-8 h-full w-0.5 bg-gray-200 dark:bg-gray-800" />
+                <div className="absolute left-4 top-8 h-full w-0.5 bg-gray-200 dark:bg-gray-800" style={{ minHeight: 24 }} />
               )}
 
               <Card
@@ -102,16 +100,16 @@ export function VersionTimeline({ promptId, onVersionSelect, selectedVersionId }
                 }`}
                 onClick={() => onVersionSelect?.(version)}
               >
-                <div className="p-4">
+                <div className="p-3 sm:p-4">
                   {/* Version header */}
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-purple-100 text-purple-700 dark:bg-purple-900/50 dark:text-purple-300">
-                        <GitBranch className="h-4 w-4" />
+                      <div className="flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-full bg-purple-100 text-purple-700 dark:bg-purple-900/50 dark:text-purple-300">
+                        <GitBranch className="h-4 w-4 sm:h-4 sm:w-4" />
                       </div>
                       <div>
                         <div className="flex items-center gap-2">
-                          <span className="font-semibold">Version {version.version}</span>
+                          <span className="font-semibold text-sm sm:text-base">Version {version.version}</span>
                           {selectedVersionId === version.id && (
                             <Badge 
                               variant="secondary" 
@@ -121,7 +119,7 @@ export function VersionTimeline({ promptId, onVersionSelect, selectedVersionId }
                             </Badge>
                           )}
                         </div>
-                        <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
+                        <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
                           <Clock className="h-3 w-3" />
                           {new Date(version.createdAt).toLocaleDateString()}
                         </div>
@@ -130,35 +128,35 @@ export function VersionTimeline({ promptId, onVersionSelect, selectedVersionId }
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="h-8 w-8 p-0"
+                      className="h-7 w-7 sm:h-8 sm:w-8 p-0"
                       onClick={(e) => {
                         e.stopPropagation();
                         toggleExpand(version.id);
                       }}
                     >
                       {expanded[version.id] ? (
-                        <ChevronUp className="h-4 w-4" />
+                        <ChevronUp className="h-4 w-4 sm:h-4 sm:w-4" />
                       ) : (
-                        <ChevronDown className="h-4 w-4" />
+                        <ChevronDown className="h-4 w-4 sm:h-4 sm:w-4" />
                       )}
                     </Button>
                   </div>
 
                   {/* Version details */}
                   {expanded[version.id] && (
-                    <div className="mt-4 space-y-4 border-t pt-4 dark:border-gray-800">
-                      <div className="flex items-center gap-2">
-                        <Avatar className="h-6 w-6">
+                    <div className="mt-3 space-y-2 border-t pt-3 dark:border-gray-800">
+                      <div className="flex items-center gap-1">
+                        <Avatar className="h-5 w-5 sm:h-6 sm:w-6">
                           <AvatarImage src={version.user?.imageUrl} />
                           <AvatarFallback>
                             {version.user?.name?.charAt(0) || 'U'}
                           </AvatarFallback>
                         </Avatar>
-                        <span className="text-sm text-muted-foreground">
+                        <span className="text-xs sm:text-sm text-muted-foreground">
                           {version.user?.name || 'Unknown User'}
                         </span>
                       </div>
-                      <div className="rounded-md bg-gray-50 p-3 text-sm dark:bg-gray-900">
+                      <div className="rounded-md bg-gray-50 p-2 sm:p-3 text-xs sm:text-sm dark:bg-gray-900">
                         <p className="line-clamp-3 text-muted-foreground">
                           {version.content}
                         </p>
