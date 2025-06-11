@@ -115,36 +115,48 @@ export function TestPromptModal({ isOpen, onClose, promptId, promptContent, prom
 
       {/* Results Modal */}
       <Dialog open={showResults} onOpenChange={() => setShowResults(false)}>
-        <DialogContent className="max-w-4xl">
-          <DialogHeader>
-            <DialogTitle>Test Results</DialogTitle>
-          </DialogHeader>
+        <DialogContent className="max-w-5xl w-[95vw] p-0 overflow-hidden">
+          <div className="sticky top-0 z-10 flex items-center justify-between bg-white dark:bg-gray-900 px-6 py-4 border-b border-gray-200 dark:border-gray-800">
+            <DialogHeader className="flex-1">
+              <DialogTitle className="text-2xl font-bold">Test Results</DialogTitle>
+            </DialogHeader>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setShowResults(false)}
+              className="ml-2"
+              aria-label="Close"
+            >
+              ×
+            </Button>
+          </div>
 
-          <div className="space-y-4">
-            <div className="rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-800">
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">Test Output</h3>
+          <div className="px-6 py-6 max-h-[80vh] overflow-y-auto space-y-8 bg-gray-50 dark:bg-gray-900">
+            <div className="rounded-lg border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-800 shadow-sm p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-200">Test Output</h3>
                 <Button
-                  variant="ghost"
+                  variant="outline"
                   size="sm"
                   onClick={() => {
                     navigator.clipboard.writeText(testResult?.result || '');
                     toast.success('Output copied to clipboard!');
                   }}
                   className="h-8 w-8 p-0"
+                  aria-label="Copy output"
                 >
                   <Copy className="h-4 w-4" />
                 </Button>
               </div>
-              <div className="prose prose-sm dark:prose-invert max-w-none">
+              <div className="prose prose-base dark:prose-invert max-w-none whitespace-pre-line leading-relaxed text-[1.05rem]">
                 <ReactMarkdown>{testResult?.result || ''}</ReactMarkdown>
               </div>
             </div>
 
             {testResult?.rating && (
-              <div className="space-y-4">
+              <div className="space-y-6">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">Rating Results</h3>
+                  <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-200">Rating Results</h3>
                   <div className="flex gap-2">
                     <Button
                       variant="outline"
@@ -167,96 +179,86 @@ export function TestPromptModal({ isOpen, onClose, promptId, promptContent, prom
                     </Button>
                   </div>
                 </div>
-                <div className="max-h-[200px] overflow-y-auto rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-800 dark:bg-gray-900">
-                  <div className="grid gap-4 md:grid-cols-3">
-                    <div className="rounded-lg border border-gray-200 bg-white p-3 shadow-sm dark:border-gray-800 dark:bg-gray-800">
-                      <h4 className="mb-1 text-sm font-medium text-gray-500 dark:text-gray-400">Clarity</h4>
-                      <div className="flex items-center justify-center">
-                        <div className="flex items-center gap-0.5">
-                          {[...Array(10)].map((_, i) => (
-                            <Star
-                              key={i}
-                              className={`h-4 w-4 ${
-                                i < (testResult?.rating?.clarity || 0)
-                                  ? 'fill-yellow-400 text-yellow-400'
-                                  : 'text-gray-300 dark:text-gray-600'
-                              }`}
-                            />
-                          ))}
-                        </div>
-                      </div>
-                      <p className="mt-1 text-center text-xs text-gray-600 dark:text-gray-400">
-                        {testResult?.rating?.clarity || 0}/10
-                      </p>
-                    </div>
-                    <div className="rounded-lg border border-gray-200 bg-white p-3 shadow-sm dark:border-gray-800 dark:bg-gray-800">
-                      <h4 className="mb-1 text-sm font-medium text-gray-500 dark:text-gray-400">Specificity</h4>
-                      <div className="flex items-center justify-center">
-                        <div className="flex items-center gap-0.5">
-                          {[...Array(10)].map((_, i) => (
-                            <Star
-                              key={i}
-                              className={`h-4 w-4 ${
-                                i < (testResult?.rating?.specificity || 0)
-                                  ? 'fill-yellow-400 text-yellow-400'
-                                  : 'text-gray-300 dark:text-gray-600'
-                              }`}
-                            />
-                          ))}
-                        </div>
-                      </div>
-                      <p className="mt-1 text-center text-xs text-gray-600 dark:text-gray-400">
-                        {testResult?.rating?.specificity || 0}/10
-                      </p>
-                    </div>
-                    <div className="rounded-lg border border-gray-200 bg-white p-3 shadow-sm dark:border-gray-800 dark:bg-gray-800">
-                      <h4 className="mb-1 text-sm font-medium text-gray-500 dark:text-gray-400">Context</h4>
-                      <div className="flex items-center justify-center">
-                        <div className="flex items-center gap-0.5">
-                          {[...Array(10)].map((_, i) => (
-                            <Star
-                              key={i}
-                              className={`h-4 w-4 ${
-                                i < (testResult?.rating?.context || 0)
-                                  ? 'fill-yellow-400 text-yellow-400'
-                                  : 'text-gray-300 dark:text-gray-600'
-                              }`}
-                            />
-                          ))}
-                        </div>
-                      </div>
-                      <p className="mt-1 text-center text-xs text-gray-600 dark:text-gray-400">
-                        {testResult?.rating?.context || 0}/10
-                      </p>
-                    </div>
-                  </div>
-                  <div className="mt-3 rounded-lg border border-gray-200 bg-white p-3 shadow-sm dark:border-gray-800 dark:bg-gray-800">
-                    <h4 className="mb-1 text-sm font-medium text-gray-500 dark:text-gray-400">Overall Rating</h4>
-                    <div className="flex items-center justify-center">
+                <div className="max-h-[220px] overflow-y-auto rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-800 dark:bg-gray-900 grid gap-6 md:grid-cols-3">
+                  <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-800">
+                    <h4 className="mb-2 text-base font-medium text-gray-600 dark:text-gray-300">Clarity</h4>
+                    <div className="flex items-center justify-center mb-1">
                       <div className="flex items-center gap-0.5">
                         {[...Array(10)].map((_, i) => (
                           <Star
                             key={i}
-                            className={`h-4 w-4 ${
-                              i < (testResult?.rating?.overall || 0)
-                                ? 'fill-yellow-400 text-yellow-400'
-                                : 'text-gray-300 dark:text-gray-600'
-                            }`}
+                            className={`h-5 w-5 ${i < (testResult?.rating?.clarity || 0)
+                              ? 'fill-yellow-400 text-yellow-400'
+                              : 'text-gray-300 dark:text-gray-600'}`}
                           />
                         ))}
                       </div>
                     </div>
-                    <p className="mt-1 text-center text-xs text-gray-600 dark:text-gray-400">
-                      {testResult?.rating?.overall || 0}/10
+                    <p className="text-center text-sm text-gray-600 dark:text-gray-400">
+                      {testResult?.rating?.clarity || 0}/10
                     </p>
                   </div>
-                  {testResult?.rating?.feedback && (
-                    <div className="mt-3 rounded-lg border border-gray-200 bg-white p-3 shadow-sm dark:border-gray-800 dark:bg-gray-800">
-                      <h4 className="mb-1 text-sm font-medium text-gray-500 dark:text-gray-400">Feedback</h4>
-                      <p className="text-xs text-gray-600 dark:text-gray-400">{testResult.rating.feedback}</p>
+                  <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-800">
+                    <h4 className="mb-2 text-base font-medium text-gray-600 dark:text-gray-300">Specificity</h4>
+                    <div className="flex items-center justify-center mb-1">
+                      <div className="flex items-center gap-0.5">
+                        {[...Array(10)].map((_, i) => (
+                          <Star
+                            key={i}
+                            className={`h-5 w-5 ${i < (testResult?.rating?.specificity || 0)
+                              ? 'fill-yellow-400 text-yellow-400'
+                              : 'text-gray-300 dark:text-gray-600'}`}
+                          />
+                        ))}
+                      </div>
                     </div>
-                  )}
+                    <p className="text-center text-sm text-gray-600 dark:text-gray-400">
+                      {testResult?.rating?.specificity || 0}/10
+                    </p>
+                  </div>
+                  <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-800">
+                    <h4 className="mb-2 text-base font-medium text-gray-600 dark:text-gray-300">Context</h4>
+                    <div className="flex items-center justify-center mb-1">
+                      <div className="flex items-center gap-0.5">
+                        {[...Array(10)].map((_, i) => (
+                          <Star
+                            key={i}
+                            className={`h-5 w-5 ${i < (testResult?.rating?.context || 0)
+                              ? 'fill-yellow-400 text-yellow-400'
+                              : 'text-gray-300 dark:text-gray-600'}`}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                    <p className="text-center text-sm text-gray-600 dark:text-gray-400">
+                      {testResult?.rating?.context || 0}/10
+                    </p>
+                  </div>
                 </div>
+                <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-800">
+                  <h4 className="mb-2 text-base font-medium text-gray-600 dark:text-gray-300">Overall Rating</h4>
+                  <div className="flex items-center justify-center mb-1">
+                    <div className="flex items-center gap-0.5">
+                      {[...Array(10)].map((_, i) => (
+                        <Star
+                          key={i}
+                          className={`h-5 w-5 ${i < (testResult?.rating?.overall || 0)
+                            ? 'fill-yellow-400 text-yellow-400'
+                            : 'text-gray-300 dark:text-gray-600'}`}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                  <p className="text-center text-sm text-gray-600 dark:text-gray-400">
+                    {testResult?.rating?.overall || 0}/10
+                  </p>
+                </div>
+                {testResult?.rating?.feedback && (
+                  <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-800">
+                    <h4 className="mb-2 text-base font-medium text-gray-600 dark:text-gray-300">Feedback</h4>
+                    <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-line">{testResult.rating.feedback}</p>
+                  </div>
+                )}
               </div>
             )}
           </div>

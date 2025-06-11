@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { AIService } from '@/lib/services/aiService';
-import { prisma } from '@/lib/prisma';
+import { MetricsService } from '@/lib/services/metricsService';
 
 // Export dynamic configuration
 export const dynamic = 'force-dynamic';
@@ -39,25 +39,19 @@ export async function POST(req: Request) {
     });
     console.log('Test completed');
 
-    try {
-      // Track usage
-      await prisma.usageMetrics.create({
-        data: {
-          userId,
-          type: 'PROMPT_TEST',
-          tokenCount: result.tokenCount,
-          metadata: {
-            promptLength: content.length,
-            temperature,
-            maxTokens,
-            model: result.model,
-          },
-        },
-      });
-    } catch (error) {
-      console.error('Error tracking usage:', error);
-      // Continue even if usage tracking fails
-    }
+    // Track usage using metrics service
+    const metricsService = MetricsService.getInstance();
+    await metricsService.trackUsage({
+      userId,
+      type: 'PROMPT_TEST',
+      tokenCount: result.tokenCount,
+      metadata: {
+        promptLength: content.length,
+        temperature,
+        maxTokens,
+        model: result.model,
+      },
+    });
 
     return NextResponse.json({
       result: result.text,
@@ -75,4 +69,4 @@ export async function POST(req: Request) {
       { status: 500 }
     );
   }
-} 
+}

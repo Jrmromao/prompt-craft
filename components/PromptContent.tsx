@@ -16,6 +16,7 @@ import {
   Play,
   GitBranch,
   ChevronDown,
+  ChevronRight,
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
@@ -84,6 +85,7 @@ export function PromptContent({ user, prompt }: PromptContentProps) {
   const [versions, setVersions] = useState<Version[]>([]);
   const [selectedVersion, setSelectedVersion] = useState<Version | null>(null);
   const [isVersionSelectOpen, setIsVersionSelectOpen] = useState(false);
+  const [isContentExpanded, setIsContentExpanded] = useState(true);
   const router = useRouter();
   const mainRef = useRef<HTMLDivElement>(null);
   const isMobile = useMediaQuery('(max-width: 768px)');
@@ -184,19 +186,7 @@ export function PromptContent({ user, prompt }: PromptContentProps) {
   return (
     <div className="min-h-screen bg-white text-gray-900 dark:bg-black dark:text-white">
       <NavBarWrapper />
-      {/* Sticky Action Bar */}
-      <div className="sticky top-0 z-30 bg-white/90 dark:bg-black/90 border-b border-gray-200 dark:border-gray-800 flex items-center gap-2 px-4 py-2 shadow-sm backdrop-blur-md">
-        <Button size="sm" variant="outline" onClick={copyToClipboard}>
-          <Copy className="h-4 w-4 mr-1" /> Copy
-        </Button>
-        <Button size="sm" variant="outline" onClick={() => setIsTestModalOpen(true)}>
-          <Play className="h-4 w-4 mr-1" /> Test
-        </Button>
-        <Button size="sm" variant="outline" onClick={sharePrompt}>
-          <Share2 className="h-4 w-4 mr-1" /> Share
-        </Button>
-        <span className="ml-auto text-xs text-gray-500 dark:text-gray-400 hidden sm:inline">Prompt ID: {prompt.id}</span>
-      </div>
+
       <main ref={mainRef} className="mx-auto max-w-6xl px-4 py-10 space-y-10">
         {/* Back Navigation */}
         <div className="mb-6">
@@ -222,6 +212,7 @@ export function PromptContent({ user, prompt }: PromptContentProps) {
                 <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent mb-2">
                   {prompt.name}
                 </h1>
+                <span className="text-sm text-gray-500 dark:text-gray-400">Prompt ID: {prompt.id}</span>
                 <p className="mt-2 text-lg text-gray-600 dark:text-gray-400 leading-relaxed">
                   {prompt.description}
                 </p>
@@ -269,102 +260,118 @@ export function PromptContent({ user, prompt }: PromptContentProps) {
                       <GitBranch className="h-5 w-5 text-purple-600 dark:text-purple-400" />
                       <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Version History</span>
                     </div>
-                    <Dialog open={isVersionSelectOpen} onOpenChange={setIsVersionSelectOpen}>
-                      <DialogTrigger asChild>
-                        <Button 
-                          variant="outline" 
-                          className="flex items-center gap-2 border-purple-200 bg-purple-50 text-purple-700 hover:bg-purple-100 dark:border-purple-800 dark:bg-purple-900/30 dark:text-purple-300 dark:hover:bg-purple-900/50"
-                        >
-                          <span className="font-medium">Version {selectedVersion?.version || 'Latest'}</span>
-                          <ChevronDown className="h-4 w-4" />
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent className="max-w-md">
-                        <DialogHeader>
-                          <DialogTitle className="flex items-center gap-2 text-xl">
-                            <GitBranch className="h-5 w-5 text-purple-600 dark:text-purple-400" />
-                            Select Version
-                          </DialogTitle>
-                          <p className="text-sm text-muted-foreground mt-1">
-                            Choose a version to view or test
-                          </p>
-                        </DialogHeader>
-                        <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-2">
-                          {versions.map((version) => (
-                            <div
-                              key={version.id}
-                              className={`rounded-lg border transition-all duration-200 ${
-                                selectedVersion?.id === version.id
-                                  ? 'border-purple-200 bg-purple-50 dark:border-purple-800 dark:bg-purple-900/30'
-                                  : 'border-gray-200 hover:border-purple-200 hover:bg-purple-50/50 dark:border-gray-800 dark:hover:border-purple-800 dark:hover:bg-purple-900/20'
-                              }`}
-                            >
-                              <Button
-                                variant="ghost"
-                                className={`w-full justify-start p-4 h-auto ${
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setIsContentExpanded(!isContentExpanded)}
+                        className="h-8 w-8 p-0"
+                      >
+                        {isContentExpanded ? (
+                          <ChevronDown className="h-5 w-5" />
+                        ) : (
+                          <ChevronRight className="h-5 w-5" />
+                        )}
+                      </Button>
+                      <Dialog open={isVersionSelectOpen} onOpenChange={setIsVersionSelectOpen}>
+                        <DialogTrigger asChild>
+                          <Button 
+                            variant="outline" 
+                            className="flex items-center gap-2 border-purple-200 bg-purple-50 text-purple-700 hover:bg-purple-100 dark:border-purple-800 dark:bg-purple-900/30 dark:text-purple-300 dark:hover:bg-purple-900/50"
+                          >
+                            <span className="font-medium">Version {selectedVersion?.version || 'Latest'}</span>
+                            <ChevronDown className="h-4 w-4" />
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-md">
+                          <DialogHeader>
+                            <DialogTitle className="flex items-center gap-2 text-xl">
+                              <GitBranch className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                              Select Version
+                            </DialogTitle>
+                            <p className="text-sm text-muted-foreground mt-1">
+                              Choose a version to view or test
+                            </p>
+                          </DialogHeader>
+                          <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-2">
+                            {versions.map((version) => (
+                              <div
+                                key={version.id}
+                                className={`rounded-lg border transition-all duration-200 ${
                                   selectedVersion?.id === version.id
-                                    ? 'text-purple-700 dark:text-purple-300'
-                                    : 'text-gray-700 dark:text-gray-300'
+                                    ? 'border-purple-200 bg-purple-50 dark:border-purple-800 dark:bg-purple-900/30'
+                                    : 'border-gray-200 hover:border-purple-200 hover:bg-purple-50/50 dark:border-gray-800 dark:hover:border-purple-800 dark:hover:bg-purple-900/20'
                                 }`}
-                                onClick={() => {
-                                  setSelectedVersion(version);
-                                  setIsVersionSelectOpen(false);
-                                }}
                               >
-                                <div className="flex flex-col items-start gap-1">
-                                  <div className="flex items-center gap-2">
-                                    <span className="font-semibold">Version {version.version}</span>
-                                    {selectedVersion?.id === version.id && (
-                                      <Badge 
-                                        variant="secondary" 
-                                        className="bg-purple-100 text-purple-700 dark:bg-purple-900/50 dark:text-purple-300"
-                                      >
-                                        Current
-                                      </Badge>
-                                    )}
+                                <Button
+                                  variant="ghost"
+                                  className={`w-full justify-start p-4 h-auto ${
+                                    selectedVersion?.id === version.id
+                                      ? 'text-purple-700 dark:text-purple-300'
+                                      : 'text-gray-700 dark:text-gray-300'
+                                  }`}
+                                  onClick={() => {
+                                    setSelectedVersion(version);
+                                    setIsVersionSelectOpen(false);
+                                  }}
+                                >
+                                  <div className="flex flex-col items-start gap-1">
+                                    <div className="flex items-center gap-2">
+                                      <span className="font-semibold">Version {version.version}</span>
+                                      {selectedVersion?.id === version.id && (
+                                        <Badge 
+                                          variant="secondary" 
+                                          className="bg-purple-100 text-purple-700 dark:bg-purple-900/50 dark:text-purple-300"
+                                        >
+                                          Current
+                                        </Badge>
+                                      )}
+                                    </div>
+                                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                      <Clock className="h-3 w-3" />
+                                      {new Date(version.createdAt).toLocaleDateString()}
+                                    </div>
+                                    <div className="mt-2 text-sm line-clamp-2 text-muted-foreground">
+                                      {version.content.substring(0, 100)}...
+                                    </div>
                                   </div>
-                                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                                    <Clock className="h-3 w-3" />
-                                    {new Date(version.createdAt).toLocaleDateString()}
-                                  </div>
-                                  <div className="mt-2 text-sm line-clamp-2 text-muted-foreground">
-                                    {version.content.substring(0, 100)}...
-                                  </div>
-                                </div>
-                              </Button>
-                            </div>
-                          ))}
-                        </div>
-                        <div className="mt-4 flex justify-end gap-2 border-t pt-4 dark:border-gray-800">
-                          <Button
-                            variant="outline"
-                            onClick={() => setIsVersionSelectOpen(false)}
-                          >
-                            Cancel
-                          </Button>
-                          <Button
-                            variant="default"
-                            className="bg-purple-600 hover:bg-purple-700 dark:bg-purple-500 dark:hover:bg-purple-600"
-                            onClick={() => setIsVersionSelectOpen(false)}
-                          >
-                            Done
-                          </Button>
-                        </div>
-                      </DialogContent>
-                    </Dialog>
+                                </Button>
+                              </div>
+                            ))}
+                          </div>
+                          <div className="mt-4 flex justify-end gap-2 border-t pt-4 dark:border-gray-800">
+                            <Button
+                              variant="outline"
+                              onClick={() => setIsVersionSelectOpen(false)}
+                            >
+                              Cancel
+                            </Button>
+                            <Button
+                              variant="default"
+                              className="bg-purple-600 hover:bg-purple-700 dark:bg-purple-500 dark:hover:bg-purple-600"
+                              onClick={() => setIsVersionSelectOpen(false)}
+                            >
+                              Done
+                            </Button>
+                          </div>
+                        </DialogContent>
+                      </Dialog>
+                    </div>
                   </div>
                 )}
                 {/* Content */}
-                <div className="prose dark:prose-invert max-w-none p-0 overflow-x-auto">
-                  <ReactMarkdown
-                    remarkPlugins={[remarkGfm]}
-                    components={{
-                      code: CodeBlock,
-                    }}
-                  >
-                    {selectedVersion?.content || prompt.content}
-                  </ReactMarkdown>
-                </div>
+                {isContentExpanded && (
+                  <div className="prose dark:prose-invert max-w-none p-0 overflow-x-auto">
+                    <ReactMarkdown
+                      remarkPlugins={[remarkGfm]}
+                      components={{
+                        code: CodeBlock,
+                      }}
+                    >
+                      {selectedVersion?.content || prompt.content}
+                    </ReactMarkdown>
+                  </div>
+                )}
               </div>
             </div>
             {/* Tabs Section */}
