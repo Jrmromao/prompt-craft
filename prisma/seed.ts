@@ -6,13 +6,13 @@ async function main() {
   // Create plans
   const plans = [
     {
-      name: 'FREE',
+      name: 'PRO',
       description: 'Perfect for trying out PromptCraft',
       price: 0,
       credits: 10,
       period: Period.MONTHLY,
       isActive: true,
-      stripeProductId: 'prod_free',
+      stripeProductId: 'prod_PRO',
       maxPrompts: 10,
       maxTokens: 1000,
       maxTeamMembers: 1,
@@ -112,7 +112,7 @@ async function main() {
       name: 'Test User',
       credits: 100,
       role: 'USER',
-      planType: 'FREE',
+      planType: 'PRO',
       creditCap: 1000,
     },
   });

@@ -334,27 +334,27 @@ export function PromptContent({ user, prompt }: PromptContentProps) {
                                     </div>
                                   </div>
                                 </Button>
-                              </div>
-                            ))}
-                          </div>
-                          <div className="mt-4 flex justify-end gap-2 border-t pt-4 dark:border-gray-800">
-                            <Button
-                              variant="outline"
-                              onClick={() => setIsVersionSelectOpen(false)}
-                            >
-                              Cancel
-                            </Button>
-                            <Button
-                              variant="default"
-                              className="bg-purple-600 hover:bg-purple-700 dark:bg-purple-500 dark:hover:bg-purple-600"
-                              onClick={() => setIsVersionSelectOpen(false)}
-                            >
-                              Done
-                            </Button>
-                          </div>
-                        </DialogContent>
-                      </Dialog>
-                    </div>
+                              </Button>
+                            </div>
+                          ))}
+                        </div>
+                        <div className="mt-4 flex justify-end gap-2 border-t pt-4 dark:border-gray-800">
+                          <Button
+                            variant="outline"
+                            onClick={() => setIsVersionSelectOpen(false)}
+                          >
+                            Cancel
+                          </Button>
+                          <Button
+                            variant="default"
+                            className="bg-purple-600 hover:bg-purple-700 dark:bg-purple-500 dark:hover:bg-purple-600"
+                            onClick={() => setIsVersionSelectOpen(false)}
+                          >
+                            Done
+                          </Button>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
                   </div>
                 )}
                 {/* Content */}

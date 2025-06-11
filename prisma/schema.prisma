@@ -19,7 +19,7 @@ model User {
   creditCap            Int                 @default(100)
   lastCreditReset      DateTime?
   stripeCustomerId     String?
-  planType             PlanType            @default(FREE)
+  planType             PlanType            @default(PRO)
   imageUrl             String?
   bio                  String?
   company              String?
@@ -626,9 +626,9 @@ enum Role {
 }
 
 enum PlanType {
-  FREE
-  LITE
   PRO
+  ELITE
+  ENTERPRISE
 }
 
 enum Period {
