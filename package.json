@@ -4,9 +4,9 @@
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
-    "test": "jest",
-    "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage",
+    "test": "jest --config jest.config.js",
+    "test:watch": "jest --config jest.config.js --watch",
+    "test:coverage": "jest --config jest.config.js --coverage",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:debug": "playwright test --debug",
@@ -66,7 +66,7 @@
     "@radix-ui/react-toast": "^1.2.2",
     "@radix-ui/react-tooltip": "^1.1.4",
     "@react-pdf/renderer": "^4.1.5",
-    "@stripe/stripe-js": "^6.1.0",
+    "@stripe/stripe-js": "^7.3.1",
     "@svgr/webpack": "^8.1.0",
     "@tanstack/react-query": "^5.69.0",
     "@tanstack/react-table": "^8.21.3",
@@ -114,7 +114,7 @@
     "resend": "^4.5.2",
     "sharp": "^0.34.2",
     "sonner": "^2.0.5",
-    "stripe": "^17.7.0",
+    "stripe": "^18.2.1",
     "svgo": "^3.3.2",
     "svix": "^1.62.0",
     "swr": "^2.3.3",
@@ -154,7 +154,6 @@
     "prettier": "^3.5.3",
     "ts-jest": "^29.3.2",
     "ts-node": "^10.9.2",
-    "typescript": "^5.3.3",
-    "vitest": "^3.2.2"
+    "typescript": "^5.3.3"
   }
 }

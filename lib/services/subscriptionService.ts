@@ -50,7 +50,7 @@ export class SubscriptionService {
     return {
       status: subscription.status,
       planName: subscription.plan.name,
-      period: subscription.plan.period,
+      period: subscription.plan.period as Period,
       periodEnd: subscription.currentPeriodEnd,
       autoRenew: !subscription.cancelAtPeriodEnd,
     };
@@ -81,7 +81,7 @@ export class SubscriptionService {
     return {
       status: subscription.status,
       planName: subscription.plan.name,
-      period: subscription.plan.period,
+      period: subscription.plan.period as Period,
       periodEnd: subscription.currentPeriodEnd,
       autoRenew: !subscription.cancelAtPeriodEnd,
     };
@@ -93,18 +93,10 @@ export class SubscriptionService {
       cancelAtPeriodEnd: true,
     })) as SubscriptionWithPlan;
 
-    // Update user role to FREE after cancellation
-    await prisma.user.update({
-      where: { id: userId },
-      data: {
-        planType: PlanType.FREE,
-      },
-    });
-
     return {
       status: subscription.status,
       planName: subscription.plan.name,
-      period: subscription.plan.period,
+      period: subscription.plan.period as Period,
       periodEnd: subscription.currentPeriodEnd,
       autoRenew: !subscription.cancelAtPeriodEnd,
     };
@@ -140,7 +132,7 @@ export class SubscriptionService {
     return {
       status: subscription.status,
       planName: subscription.plan.name,
-      period: subscription.plan.period,
+      period: subscription.plan.period as Period,
       periodEnd: subscription.currentPeriodEnd,
       autoRenew: !subscription.cancelAtPeriodEnd,
     };
@@ -227,7 +219,7 @@ export class SubscriptionService {
     return {
       status: subscription.status,
       planName: subscription.plan.name,
-      period: subscription.plan.period,
+      period: subscription.plan.period as Period,
       periodEnd: subscription.currentPeriodEnd,
       autoRenew: !subscription.cancelAtPeriodEnd,
     };

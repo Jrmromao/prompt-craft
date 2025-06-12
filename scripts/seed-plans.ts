@@ -31,7 +31,8 @@ async function seedPlans() {
           'Priority support',
           'Monthly credit reset'
         ],
-        isEnterprise: false
+        isEnterprise: false,
+        currency: 'USD'
       },
       {
         name: 'ELITE',
@@ -50,7 +51,8 @@ async function seedPlans() {
           'Priority Support',
           'Custom Integrations'
         ],
-        isEnterprise: false
+        isEnterprise: false,
+        currency: 'USD'
       },
       {
         name: 'ENTERPRISE',
@@ -70,7 +72,8 @@ async function seedPlans() {
           'Team Management',
           'Advanced Security'
         ],
-        isEnterprise: true
+        isEnterprise: true,
+        currency: 'USD'
       }
     ];
 

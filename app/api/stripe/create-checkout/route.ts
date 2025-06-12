@@ -7,12 +7,12 @@ import { Stripe } from 'stripe';
 // Constants for better maintainability
 const CURRENCY = 'usd';
 const SUBSCRIPTION_MODE = 'subscription';
-const SUCCESS_URL = '/settings/billing?success=true';
+const SUCCESS_URL = '/profile?tab=billing';
 const CANCEL_URL = '/pricing';
 
 // Error types for better error handling
 class PaymentError extends Error {
-  constructor(message: string, public statusCode: number = 500) {
+  constructor(message: string, public statusCode: number = 500, public code?: string) {
     super(message);
     this.name = 'PaymentError';
   }
@@ -20,8 +20,29 @@ class PaymentError extends Error {
 
 class ValidationError extends PaymentError {
   constructor(message: string) {
-    super(message, 400);
+    super(message, 400, 'VALIDATION_ERROR');
     this.name = 'ValidationError';
+  }
+}
+
+class CustomerError extends PaymentError {
+  constructor(message: string) {
+    super(message, 500, 'CUSTOMER_ERROR');
+    this.name = 'CustomerError';
+  }
+}
+
+class SubscriptionError extends PaymentError {
+  constructor(message: string) {
+    super(message, 500, 'SUBSCRIPTION_ERROR');
+    this.name = 'SubscriptionError';
+  }
+}
+
+class CheckoutError extends PaymentError {
+  constructor(message: string) {
+    super(message, 500, 'CHECKOUT_ERROR');
+    this.name = 'CheckoutError';
   }
 }
 
@@ -59,6 +80,11 @@ export async function POST(req: Request) {
 
       if (!plan) {
         throw new ValidationError('Plan not found');
+      }
+
+      // Verify currency consistency
+      if (plan.currency.toLowerCase() !== CURRENCY) {
+        throw new ValidationError(`Plan currency (${plan.currency}) does not match required currency (${CURRENCY})`);
       }
 
       return { user, plan };
@@ -233,13 +259,33 @@ export async function POST(req: Request) {
     
     if (error instanceof PaymentError) {
       return NextResponse.json(
-        { error: error.message },
+        { 
+          error: error.message,
+          code: error.code,
+          statusCode: error.statusCode
+        },
         { status: error.statusCode }
       );
     }
 
+    // Handle Stripe errors
+    if (error instanceof Stripe.errors.StripeError) {
+      return NextResponse.json(
+        { 
+          error: error.message,
+          code: error.type,
+          statusCode: error.statusCode || 500
+        },
+        { status: error.statusCode || 500 }
+      );
+    }
+
     return NextResponse.json(
-      { error: 'An unexpected error occurred' },
+      { 
+        error: 'An unexpected error occurred',
+        code: 'UNKNOWN_ERROR',
+        statusCode: 500
+      },
       { status: 500 }
     );
   }

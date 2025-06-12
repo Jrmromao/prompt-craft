@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { auth } from '@clerk/nextjs/server';
+import { auth } from '@clerk/nextjs';
 import { UsageService } from '@/lib/services/usageService';
 
 // Mark route as dynamic
@@ -7,17 +7,24 @@ export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
-    const { userId } = await auth();
+    const { userId } = auth();
+
     if (!userId) {
-      return new NextResponse('Unauthorized', { status: 401 });
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
     }
 
     const usageService = UsageService.getInstance();
-    const usage = await usageService.getUserUsage(userId);
+    const usageData = await usageService.getUserUsage(userId);
 
-    return NextResponse.json(usage);
+    return NextResponse.json(usageData);
   } catch (error) {
-    console.error('Error fetching user usage:', error);
-    return NextResponse.json({ error: 'Failed to fetch user usage' }, { status: 500 });
+    console.error('Error fetching usage data:', error);
+    return NextResponse.json(
+      { error: 'Failed to fetch usage data' },
+      { status: 500 }
+    );
   }
 }

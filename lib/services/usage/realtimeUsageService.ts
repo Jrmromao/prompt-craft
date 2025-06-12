@@ -84,11 +84,17 @@ export class RealtimeUsageService {
       },
     });
 
+    // If no subscription or plan, return default usage values
     if (!user?.subscription?.plan) {
-      throw new Error('No active subscription found');
+      return {
+        prompts: 0,
+        tokens: 0,
+        team_members: 0
+      };
     }
 
-    const features = JSON.parse(user.subscription.plan.features as string) as string[];
+    // The features field is already a string array in the Plan model
+    const features = user.subscription.plan.features;
     const usage: Record<string, number> = {};
 
     await Promise.all(
@@ -179,8 +185,9 @@ export class RealtimeUsageService {
       return;
     }
 
-    const planFeatures = JSON.parse(user.subscription.plan.features as string) as Record<string, number>;
-    const limit = planFeatures[`max${feature.charAt(0).toUpperCase() + feature.slice(1)}`] || 0;
+    // Get the feature limit from the plan's features array
+    const featureLimit = user.subscription.plan.features.find(f => f.startsWith(`max${feature.charAt(0).toUpperCase() + feature.slice(1)}`));
+    const limit = featureLimit ? parseInt(featureLimit.split(':')[1]) : 0;
 
     // Check if we're approaching the limit (80%, 90%, 95%)
     const thresholds = [0.8, 0.9, 0.95];

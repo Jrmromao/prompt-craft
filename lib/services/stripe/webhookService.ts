@@ -4,6 +4,19 @@ import Stripe from 'stripe';
 import { StripeWebhookError } from './errors';
 import { SubscriptionStatus } from '@prisma/client';
 import { DatabaseService } from '@/lib/services/database/databaseService';
+import { EmailService } from '@/lib/services/emailService';
+
+type StripeWebhookEvent = 
+  | 'checkout.session.completed'
+  | 'customer.subscription.created'
+  | 'customer.subscription.updated'
+  | 'customer.subscription.deleted'
+  | 'customer.subscription.trial_will_end'
+  | 'invoice.payment_succeeded'
+  | 'invoice.payment_failed'
+  | 'invoice.upcoming'
+  | 'payment_intent.succeeded'
+  | 'payment_intent.failed';
 
 interface WebhookEvent {
   id: string;
@@ -45,21 +58,32 @@ export class WebhookService {
     console.log('Processing webhook event:', event.type);
 
     try {
-      switch (event.type) {
+      switch (event.type as StripeWebhookEvent) {
         case 'checkout.session.completed':
           await this.handleCheckoutSessionCompleted(event.data.object as Stripe.Checkout.Session);
           break;
+        case 'customer.subscription.created':
         case 'customer.subscription.updated':
-          await this.handleSubscriptionUpdated(event.data.object as Stripe.Subscription);
-          break;
         case 'customer.subscription.deleted':
-          await this.handleSubscriptionDeleted(event.data.object as Stripe.Subscription);
+          await this.handleSubscriptionChange(event.data.object as Stripe.Subscription);
+          break;
+        case 'customer.subscription.trial_will_end':
+          await this.handleSubscriptionTrialWillEnd(event.data.object as Stripe.Subscription);
           break;
         case 'invoice.payment_succeeded':
           await this.handleInvoicePaymentSucceeded(event.data.object as Stripe.Invoice);
           break;
         case 'invoice.payment_failed':
           await this.handleInvoicePaymentFailed(event.data.object as Stripe.Invoice);
+          break;
+        case 'invoice.upcoming':
+          await this.handleInvoiceUpcoming(event.data.object as Stripe.Invoice);
+          break;
+        case 'payment_intent.succeeded':
+          await this.handlePaymentIntentSucceeded(event.data.object as Stripe.PaymentIntent);
+          break;
+        case 'payment_intent.failed':
+          await this.handlePaymentIntentFailed(event.data.object as Stripe.PaymentIntent);
           break;
         default:
           console.log(`Unhandled event type: ${event.type}`);
@@ -68,13 +92,8 @@ export class WebhookService {
       // Log successful event processing
       await this.logEvent(event, 'success');
     } catch (error) {
-      console.error(`Error processing webhook event ${event.type}:`, error);
-      
-      // Log failed event processing
-      await this.logEvent(event, 'error', error);
-
-      // Retry logic for failed events
-      await this.retryEvent(event);
+      console.error('Error handling webhook event:', error);
+      throw error;
     }
   }
 
@@ -150,7 +169,7 @@ export class WebhookService {
     });
   }
 
-  private async handleSubscriptionUpdated(subscription: Stripe.Subscription) {
+  private async handleSubscriptionChange(subscription: Stripe.Subscription) {
     const userId = subscription.metadata?.userId;
     if (!userId) {
       throw new Error('Missing userId in subscription metadata');
@@ -169,23 +188,37 @@ export class WebhookService {
     });
   }
 
-  private async handleSubscriptionDeleted(subscription: Stripe.Subscription) {
+  private async handleSubscriptionTrialWillEnd(subscription: Stripe.Subscription) {
     const userId = subscription.metadata?.userId;
     if (!userId) {
       throw new Error('Missing userId in subscription metadata');
     }
 
-    await prisma.user.update({
+    // Get user's email
+    const user = await prisma.user.findUnique({
       where: { id: userId },
+      select: { email: true },
+    });
+
+    if (!user?.email) {
+      throw new Error('User email not found');
+    }
+
+    // Create audit log
+    await prisma.auditLog.create({
       data: {
-        subscription: {
-          update: {
-            status: 'CANCELED',
-            currentPeriodEnd: new Date(subscription.current_period_end * 1000),
-          },
+        userId,
+        action: 'subscription.trial_ending',
+        resource: 'subscription',
+        details: {
+          subscriptionId: subscription.id,
+          trialEnd: new Date(subscription.trial_end! * 1000),
         },
       },
     });
+
+    // TODO: Send email notification
+    console.log('Trial ending soon for user:', user.email);
   }
 
   private async handleInvoicePaymentSucceeded(invoice: Stripe.Invoice) {
@@ -261,5 +294,179 @@ export class WebhookService {
         },
       },
     });
+  }
+
+  private async handleInvoiceUpcoming(invoice: Stripe.Invoice) {
+    const userId = invoice.metadata?.userId;
+    if (!userId) {
+      throw new Error('Missing userId in invoice metadata');
+    }
+
+    // Get user's email
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { email: true },
+    });
+
+    if (!user?.email) {
+      throw new Error('User email not found');
+    }
+
+    // Create audit log
+    await prisma.auditLog.create({
+      data: {
+        userId,
+        action: 'invoice.upcoming',
+        resource: 'invoice',
+        details: {
+          invoiceId: invoice.id,
+          amount: invoice.amount_due,
+          currency: invoice.currency,
+          dueDate: new Date(invoice.due_date! * 1000),
+        },
+      },
+    });
+
+    // TODO: Send email notification
+    console.log('Upcoming invoice for user:', user.email);
+  }
+
+  private async handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent) {
+    const userId = paymentIntent.metadata?.userId;
+    if (!userId) {
+      throw new Error('Missing userId in payment intent metadata');
+    }
+
+    try {
+      // Start a transaction to ensure data consistency
+      await prisma.$transaction(async (tx) => {
+        // Get user details for email
+        const user = await tx.user.findUnique({
+          where: { id: userId },
+          select: { email: true, name: true },
+        });
+
+        if (!user?.email) {
+          throw new Error('User email not found');
+        }
+
+        // Create payment record
+        await tx.auditLog.create({
+          data: {
+            userId,
+            action: 'payment.succeeded',
+            resource: 'payment_intent',
+            details: {
+              paymentIntentId: paymentIntent.id,
+              amount: paymentIntent.amount,
+              currency: paymentIntent.currency,
+              status: paymentIntent.status,
+              paymentMethodId: typeof paymentIntent.payment_method === 'string' 
+                ? paymentIntent.payment_method 
+                : paymentIntent.payment_method?.id,
+            },
+          },
+        });
+
+        // Update user's status
+        await tx.user.update({
+          where: { id: userId },
+          data: {
+            status: 'ACTIVE',
+          },
+        });
+
+        // Send success email
+        const emailService = EmailService.getInstance();
+        await emailService.sendEmail({
+          email: user.email,
+          subject: 'Payment Successful - PromptCraft',
+          html: `
+            <h1>Payment Successful</h1>
+            <p>Hello ${user.name || 'there'},</p>
+            <p>Your payment of ${(paymentIntent.amount / 100).toFixed(2)} ${paymentIntent.currency.toUpperCase()} has been processed successfully.</p>
+            <p>Thank you for your continued support!</p>
+          `,
+        });
+      });
+
+      // Log success
+      console.log(`Payment intent ${paymentIntent.id} succeeded for user ${userId}`);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      console.error(`Failed to process successful payment intent ${paymentIntent.id}:`, error);
+      throw new StripeWebhookError(`Failed to process successful payment intent: ${errorMessage}`);
+    }
+  }
+
+  private async handlePaymentIntentFailed(paymentIntent: Stripe.PaymentIntent) {
+    const userId = paymentIntent.metadata?.userId;
+    if (!userId) {
+      throw new Error('Missing userId in payment intent metadata');
+    }
+
+    try {
+      // Start a transaction to ensure data consistency
+      await prisma.$transaction(async (tx) => {
+        // Get user details for email
+        const user = await tx.user.findUnique({
+          where: { id: userId },
+          select: { email: true, name: true },
+        });
+
+        if (!user?.email) {
+          throw new Error('User email not found');
+        }
+
+        // Create payment failure record
+        await tx.auditLog.create({
+          data: {
+            userId,
+            action: 'payment.failed',
+            resource: 'payment_intent',
+            details: {
+              paymentIntentId: paymentIntent.id,
+              amount: paymentIntent.amount,
+              currency: paymentIntent.currency,
+              status: paymentIntent.status,
+              error: paymentIntent.last_payment_error ? {
+                code: paymentIntent.last_payment_error.code,
+                message: paymentIntent.last_payment_error.message,
+                type: paymentIntent.last_payment_error.type,
+                decline_code: paymentIntent.last_payment_error.decline_code,
+              } : null,
+              paymentMethodId: typeof paymentIntent.payment_method === 'string' 
+                ? paymentIntent.payment_method 
+                : paymentIntent.payment_method?.id,
+            },
+          },
+        });
+
+        // Update user's status
+        await tx.user.update({
+          where: { id: userId },
+          data: {
+            status: 'SUSPENDED',
+          },
+        });
+
+        // Send payment failure email
+        const emailService = EmailService.getInstance();
+        const errorMessage = paymentIntent.last_payment_error?.message || 'Unknown error';
+        await emailService.sendPaymentFailureAlert({
+          email: user.email,
+          error: errorMessage,
+        });
+      });
+
+      // Log failure
+      console.error(`Payment intent ${paymentIntent.id} failed for user ${userId}`, {
+        error: paymentIntent.last_payment_error,
+      });
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      console.error(`Failed to process failed payment intent ${paymentIntent.id}:`, error);
+      throw new StripeWebhookError(`Failed to process failed payment intent: ${errorMessage}`);
+    }
   }
 }

@@ -15,7 +15,7 @@ export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
 // Define the portal handler
-async function portalHandler(request: Request) {
+export async function GET(request: Request) {
   try {
     const { userId } = await auth();
     if (!userId) {
@@ -41,6 +41,3 @@ async function portalHandler(request: Request) {
     return response;
   }
 }
-
-// Export the handler
-export { portalHandler as GET };

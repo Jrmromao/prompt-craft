@@ -1,5 +1,6 @@
 import { stripe } from '@/lib/stripe';
 import { getProfileByClerkId } from '@/app/services/profileService';
+import { prisma } from '@/lib/prisma';
 
 export class BillingService {
   private static instance: BillingService;
@@ -49,7 +50,11 @@ export class BillingService {
    * Get the Stripe billing portal URL for a user
    */
   async getPortalUrl(userId: string): Promise<string> {
-    const user = await getProfileByClerkId(userId);
+    const user = await prisma.user.findUnique({
+      where: { clerkId: userId },
+      include: { subscription: true }
+    });
+    
     if (!user || !user.stripeCustomerId) {
       throw new Error('No Stripe customer');
     }
@@ -57,6 +62,12 @@ export class BillingService {
     const portalSession = await stripe.billingPortal.sessions.create({
       customer: user.stripeCustomerId,
       return_url: process.env.NEXT_PUBLIC_APP_URL + '/profile?tab=billing',
+      flow_data: user.subscription?.stripeSubscriptionId && user.subscription.stripeSubscriptionId !== 'pending' ? {
+        type: 'subscription_cancel',
+        subscription_cancel: {
+          subscription: user.subscription.stripeSubscriptionId,
+        },
+      } : undefined,
     });
 
     return portalSession.url;

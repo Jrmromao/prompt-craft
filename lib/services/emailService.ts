@@ -57,6 +57,24 @@ const EMAIL_TEMPLATES = {
   },
 } as const;
 
+interface EmailOptions {
+  email: string;
+  subject: string;
+  html: string;
+}
+
+interface UsageAlertOptions {
+  email: string;
+  feature: string;
+  usage: number;
+  limit: number;
+}
+
+interface PaymentFailureOptions {
+  email: string;
+  error: string;
+}
+
 export class EmailService {
   private static instance: EmailService;
   private resend: Resend;
@@ -70,6 +88,11 @@ export class EmailService {
       EmailService.instance = new EmailService();
     }
     return EmailService.instance;
+  }
+
+  private validateEmail(email: string): boolean {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
   }
 
   private async getTemplate(type: string) {
@@ -87,25 +110,51 @@ export class EmailService {
     return template;
   }
 
-  private async sendEmail(to: string, subject: string, html: string) {
+  public async sendEmail({ email, subject, html }: EmailOptions): Promise<{ success: boolean; error?: string }> {
     try {
-      const { data, error } = await this.resend.emails.send({
-        from: 'PromptCraft <support@promptcraft.ai>',
-        to,
+      if (!this.validateEmail(email)) {
+        return { success: false, error: 'Invalid email format' };
+      }
+
+      await this.resend.emails.send({
+        from: 'PromptCraft <noreply@promptcraft.ai>',
+        to: email,
         subject,
         html,
       });
-
-      if (error) {
-        console.error('Error sending email:', error);
-        throw error;
-      }
-
-      return data;
+      return { success: true };
     } catch (error) {
-      console.error('Error in sendEmail:', error);
-      throw error;
+      console.error('Failed to send email:', error);
+      return { success: false, error: error instanceof Error ? error.message : 'Failed to send email' };
     }
+  }
+
+  public async sendUsageAlert({ email, feature, usage, limit }: UsageAlertOptions): Promise<{ success: boolean; error?: string }> {
+    const percentage = Math.round((usage / limit) * 100);
+    const subject = `Usage Alert: ${percentage}% of ${feature} limit reached`;
+    const html = `
+      <h1>Usage Alert</h1>
+      <p>You have used ${percentage}% of your ${feature} limit.</p>
+      <p>Current usage: ${usage}/${limit}</p>
+      <p>Consider upgrading your plan to avoid service interruptions.</p>
+    `;
+    return this.sendEmail({ email, subject, html });
+  }
+
+  public async sendPaymentFailureAlert({ email, error }: PaymentFailureOptions): Promise<{ success: boolean; error?: string }> {
+    if (!this.validateEmail(email)) {
+      return { success: false, error: 'Invalid email format' };
+    }
+
+    const errorMessage = error || 'Unknown error';
+    const subject = 'Payment Failed - Action Required';
+    const html = `
+      <h1>Payment Failed</h1>
+      <p>We were unable to process your recent payment.</p>
+      <p>Error: ${errorMessage}</p>
+      <p>Please update your payment method to avoid service interruptions.</p>
+    `;
+    return this.sendEmail({ email, subject, html });
   }
 
   public async sendTicketCreatedNotification(
@@ -126,7 +175,7 @@ export class EmailService {
       .replace('{{priority}}', priority)
       .replace('{{description}}', description);
 
-    return this.sendEmail(to, template.subject, html);
+    return this.sendEmail({ email: to, subject: template.subject, html });
   }
 
   public async sendTicketInProgressNotification(
@@ -143,7 +192,7 @@ export class EmailService {
       .replace('{{ticketTitle}}', ticketTitle)
       .replace('{{comment}}', comment || '');
 
-    return this.sendEmail(to, template.subject, html);
+    return this.sendEmail({ email: to, subject: template.subject, html });
   }
 
   public async sendTicketResolvedNotification(
@@ -160,7 +209,7 @@ export class EmailService {
       .replace('{{ticketTitle}}', ticketTitle)
       .replace('{{resolution}}', resolution || '');
 
-    return this.sendEmail(to, template.subject, html);
+    return this.sendEmail({ email: to, subject: template.subject, html });
   }
 
   public async sendTicketClosedNotification(
@@ -177,7 +226,7 @@ export class EmailService {
       .replace('{{ticketTitle}}', ticketTitle)
       .replace('{{closingNote}}', closingNote || '');
 
-    return this.sendEmail(to, template.subject, html);
+    return this.sendEmail({ email: to, subject: template.subject, html });
   }
 
   public async sendTicketAssignedNotification(
@@ -194,7 +243,7 @@ export class EmailService {
       .replace('{{ticketTitle}}', ticketTitle)
       .replace('{{creatorName}}', creatorName);
 
-    return this.sendEmail(to, template.subject, html);
+    return this.sendEmail({ email: to, subject: template.subject, html });
   }
 
   public async sendTicketAssignedToCreatorNotification(
@@ -211,14 +260,14 @@ export class EmailService {
       .replace('{{ticketTitle}}', ticketTitle)
       .replace('{{assigneeName}}', assigneeName);
 
-    return this.sendEmail(to, template.subject, html);
+    return this.sendEmail({ email: to, subject: template.subject, html });
   }
 
   public async sendWelcomeEmail(to: string, userName: string) {
     const template = await this.getTemplate('WELCOME_EMAIL');
     const html = template.body.replace('{{userName}}', userName);
 
-    return this.sendEmail(to, template.subject, html);
+    return this.sendEmail({ email: to, subject: template.subject, html });
   }
 
   public async sendSecurityAlert(to: string, userName: string, location: string, device: string) {
@@ -228,7 +277,7 @@ export class EmailService {
       .replace('{{location}}', location)
       .replace('{{device}}', device);
 
-    return this.sendEmail(to, template.subject, html);
+    return this.sendEmail({ email: to, subject: template.subject, html });
   }
 
   public async sendSubscriptionRenewalReminder(
@@ -237,18 +286,18 @@ export class EmailService {
     planName: string,
     renewalDate: string
   ) {
-    return this.sendEmail(
+    return this.sendEmail({
       email,
-      EMAIL_TEMPLATES.SUBSCRIPTION_RENEWAL.subject,
-      EMAIL_TEMPLATES.SUBSCRIPTION_RENEWAL.html(name, planName, renewalDate)
-    );
+      subject: EMAIL_TEMPLATES.SUBSCRIPTION_RENEWAL.subject,
+      html: EMAIL_TEMPLATES.SUBSCRIPTION_RENEWAL.html(name, planName, renewalDate)
+    });
   }
 
   public async sendCreditUpdate(email: string, name: string, newBalance: number, reason: string) {
-    return this.sendEmail(
+    return this.sendEmail({
       email,
-      EMAIL_TEMPLATES.CREDIT_UPDATE.subject,
-      EMAIL_TEMPLATES.CREDIT_UPDATE.html(name, newBalance, reason)
-    );
+      subject: EMAIL_TEMPLATES.CREDIT_UPDATE.subject,
+      html: EMAIL_TEMPLATES.CREDIT_UPDATE.html(name, newBalance, reason)
+    });
   }
 }

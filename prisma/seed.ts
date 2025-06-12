@@ -1,4 +1,4 @@
-import { Period, PrismaClient } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
 
 const db = new PrismaClient();
 
@@ -9,13 +9,10 @@ async function main() {
       name: 'PRO',
       description: 'Perfect for trying out PromptCraft',
       price: 0,
-      credits: 10,
-      period: Period.MONTHLY,
+      period: 'MONTHLY',
       isActive: true,
       stripeProductId: 'prod_PRO',
-      maxPrompts: 10,
-      maxTokens: 1000,
-      maxTeamMembers: 1,
+      stripePriceId: 'price_PRO',
       features: [
         'Basic prompt types',
         'No saving prompts',
@@ -25,60 +22,45 @@ async function main() {
     },
     {
       name: 'ELITE',
-      description: 'For dedicated prompt engineers and professional content creators',
+      description: 'For power users who need more',
       price: 29.99,
-      credits: 5000,
-      period: Period.MONTHLY,
+      period: 'MONTHLY',
       isActive: true,
-      stripeProductId: 'prod_elite_monthly',
-      maxPrompts: 1000,
-      maxTokens: 500000,
-      maxTeamMembers: 10,
+      stripeProductId: 'prod_ELITE',
+      stripePriceId: 'price_ELITE',
       features: [
-        'Unlimited Testing Runs',
-        'Unlimited Private Prompts',
-        'Advanced Analytics',
-        'Bring Your Own API Key',
-        'Priority Support',
-        'Custom Integrations'
+        'All prompt types',
+        'Save prompts',
+        'Prompt history',
+        'Team collaboration'
       ],
       isEnterprise: false
     },
     {
       name: 'ENTERPRISE',
-      description: 'Custom solutions for large organizations',
-      price: 0, // Custom pricing
-      credits: 0, // Custom credits
-      period: Period.MONTHLY,
+      description: 'For large teams and organizations',
+      price: 99.99,
+      period: 'MONTHLY',
       isActive: true,
-      stripeProductId: 'prod_enterprise',
-      maxPrompts: 0, // Unlimited
-      maxTokens: 0, // Unlimited
-      maxTeamMembers: 0, // Unlimited
+      stripeProductId: 'prod_ENTERPRISE',
+      stripePriceId: 'price_ENTERPRISE',
       features: [
-        'Everything in Elite',
-        'Custom AI Model Fine-tuning',
-        'Dedicated Account Manager',
-        'SLA Guarantee',
-        'Custom API Integration',
-        'Team Management',
-        'Advanced Security'
+        'All ELITE features',
+        'Custom integrations',
+        'Priority support',
+        'Dedicated account manager'
       ],
-      isEnterprise: true,
-      customLimits: {
-        // Custom limits will be set per customer
-        maxPrompts: null,
-        maxTokens: null,
-        maxTeamMembers: null
-      }
+      isEnterprise: true
     }
   ];
 
   for (const plan of plans) {
     await db.plan.upsert({
-      where: { name: plan.name },
+      where: {
+        name: plan.name
+      },
       update: plan,
-      create: plan,
+      create: plan
     });
   }
 
@@ -161,11 +143,11 @@ async function main() {
     ],
   });
 
-  console.log('Database has been seeded. 🌱');
+  console.log('Database seeded successfully');
 }
 
 main()
-  .catch(e => {
+  .catch((e) => {
     console.error(e);
     process.exit(1);
   })

@@ -1,4 +1,16 @@
-import { render, screen } from '@testing-library/react';
+jest.doMock('@prisma/client', () => ({
+  Role: {
+    USER: 'USER',
+    ADMIN: 'ADMIN',
+  },
+  PlanType: {
+    PRO: 'PRO',
+    ELITE: 'ELITE',
+    ENTERPRISE: 'ENTERPRISE',
+  },
+}));
+
+import { render, screen, act } from '@testing-library/react';
 import ProfilePage from '@/app/profile/page';
 import { auth } from '@clerk/nextjs/server';
 import { currentUser } from '@clerk/nextjs/server';
@@ -21,10 +33,10 @@ jest.mock('@/app/services/profileService', () => ({
   getProfileByClerkId: jest.fn(),
 }));
 
-// Correctly mock the default export for ProfileClient
+// Correctly mock the named export for ProfileClient
 jest.mock('@/app/profile/ProfileClient', () => ({
   __esModule: true,
-  default: ({ user }: { user: any }) => (
+  ProfileClient: ({ user }: { user: any }) => (
     <div>
       <h2>Personal Information</h2>
       <div>{user.name}</div>
@@ -40,19 +52,6 @@ jest.mock('@/app/profile/ProfileClient', () => ({
       <div>{user.linkedin}</div>
     </div>
   ),
-}));
-
-// Mock the PlanType enum
-jest.mock('@prisma/client', () => ({
-  Role: {
-    USER: 'USER',
-    ADMIN: 'ADMIN',
-  },
-  PlanType: {
-    FREE: 'FREE',
-    LITE: 'LITE',
-    PRO: 'PRO',
-  },
 }));
 
 describe('ProfilePage', () => {
@@ -93,7 +92,10 @@ describe('ProfilePage', () => {
     });
     (getProfileByClerkId as jest.Mock).mockResolvedValueOnce(mockUser);
 
-    const page = await ProfilePage();
+    let page;
+    await act(async () => {
+      page = await ProfilePage();
+    });
     render(page);
 
     // Check if profile form is rendered

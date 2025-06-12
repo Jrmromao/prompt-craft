@@ -15,6 +15,7 @@ model User {
   clerkId              String              @unique
   credits              Int                 @default(0)
   name                 String?
+  password             String?
   role                 Role                @default(USER)
   creditCap            Int                 @default(100)
   lastCreditReset      DateTime?
@@ -42,7 +43,9 @@ model User {
   creditHistory        CreditHistory[]
   createdTemplates     EmailTemplate[]     @relation("CreatedTemplates")
   updatedTemplates     EmailTemplate[]     @relation("UpdatedTemplates")
+  featureUsage         FeatureUsage[]
   messages             Message[]
+  notifications        Notification[]
   playgroundRuns       PlaygroundRun[]
   prompts              Prompt[]
   promptCopies         PromptCopy[]
@@ -54,12 +57,11 @@ model User {
   subscription         Subscription?
   assignedTickets      SupportTicket[]     @relation("AssignedTickets")
   supportTickets       SupportTicket[]
-  votes                Vote[]
-  featureUsage         FeatureUsage[]
+  ownedTeams           Team[]              @relation("TeamOwner")
   teamMembers          TeamMember[]
-  ownedTeams           Team[]             @relation("TeamOwner")
   usages               Usage[]
-  notifications        Notification[]
+  votes                Vote[]
+  settings             UserSettings?
 
   @@index([clerkId])
   @@index([email])
@@ -68,17 +70,18 @@ model User {
 model Plan {
   id                  String         @id @default(cuid())
   name                String         @unique
-  description         String
   price               Float          @default(0)
-  period              String         @default("month")
-  features            String[]       @default([])
-  isActive            Boolean        @default(true)
-  isEnterprise        Boolean        @default(false)
-  stripeProductId     String         @default("")
-  stripePriceId       String         @default("")
-  stripeAnnualPriceId String?
   createdAt           DateTime       @default(now())
   updatedAt           DateTime       @updatedAt
+  isActive            Boolean        @default(true)
+  description         String
+  stripeProductId     String         @default("")
+  features            String[]       @default([])
+  isEnterprise        Boolean        @default(false)
+  stripePriceId       String         @default("")
+  stripeAnnualPriceId String?
+  period              String         @default("month")
+  currency            String         @default("USD")
   subscriptions       Subscription[]
 
   @@index([isActive])
@@ -86,20 +89,20 @@ model Plan {
 }
 
 model Subscription {
-  id                        String             @id @default(cuid())
-  userId                    String             @unique
-  stripeCustomerId          String             @unique
-  stripeSubscriptionId      String             @unique
+  id                           String             @id @default(cuid())
+  userId                       String             @unique
+  stripeCustomerId             String             @unique
+  stripeSubscriptionId         String             @unique
+  status                       SubscriptionStatus
+  currentPeriodStart           DateTime
+  currentPeriodEnd             DateTime
+  cancelAtPeriodEnd            Boolean            @default(false)
+  createdAt                    DateTime           @default(now())
+  updatedAt                    DateTime           @updatedAt
+  planId                       String
   stripeDefaultPaymentMethodId String?
-  status                    SubscriptionStatus
-  currentPeriodStart        DateTime
-  currentPeriodEnd          DateTime
-  cancelAtPeriodEnd         Boolean            @default(false)
-  createdAt                 DateTime           @default(now())
-  updatedAt                 DateTime           @updatedAt
-  planId                    String
-  plan                      Plan               @relation(fields: [planId], references: [id])
-  user                      User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan                         Plan               @relation(fields: [planId], references: [id])
+  user                         User               @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([planId])
@@ -113,10 +116,10 @@ model Subscription {
 model Usage {
   id        String   @id @default(cuid())
   userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   feature   String
   count     Int      @default(1)
   timestamp DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([feature])
@@ -140,7 +143,7 @@ model Prompt {
   viewCount      Int                 @default(0)
   copyCount      Int                 @default(0)
   promptType     String              @default("text")
-  metadata       Json?               // Added metadata field
+  metadata       Json?
   apiUsage       ApiUsage[]
   comments       Comment[]
   likes          CommentLike[]
@@ -307,14 +310,14 @@ model PromptView {
 }
 
 model PromptUsage {
-  id        String   @id @default(cuid())
-  promptId  String
-  userId    String
-  createdAt DateTime @default(now())
-  result    Json?
-  tokenCount Int     @default(0)
-  prompt    Prompt   @relation(fields: [promptId], references: [id], onDelete: Cascade)
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id         String   @id @default(cuid())
+  promptId   String
+  userId     String
+  createdAt  DateTime @default(now())
+  result     Json?
+  tokenCount Int      @default(0)
+  prompt     Prompt   @relation(fields: [promptId], references: [id], onDelete: Cascade)
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([promptId])
   @@index([userId])
@@ -527,36 +530,36 @@ model EmailTemplate {
 }
 
 model PromptRating {
-  id              String           @id @default(cuid())
-  createdAt       DateTime         @default(now())
-  updatedAt       DateTime         @updatedAt
-  clarity         Float
-  specificity     Float
-  context         Float
-  overall         Float
-  feedback        String
-  promptTestId    String           @unique
-  testHistoryId   String?          @unique
-  PromptTest      PromptTest       @relation(fields: [promptTestId], references: [id], onDelete: Cascade)
-  testHistory     PromptTestHistory? @relation(fields: [testHistoryId], references: [id], onDelete: Cascade)
+  id            String             @id @default(cuid())
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+  clarity       Float
+  specificity   Float
+  context       Float
+  overall       Float
+  feedback      String
+  promptTestId  String             @unique
+  testHistoryId String?            @unique
+  PromptTest    PromptTest         @relation(fields: [promptTestId], references: [id], onDelete: Cascade)
+  testHistory   PromptTestHistory? @relation(fields: [testHistoryId], references: [id], onDelete: Cascade)
 }
 
 model PromptTestHistory {
   id              String        @id @default(cuid())
+  promptId        String
+  userId          String
   createdAt       DateTime      @default(now())
   tokensUsed      Int?
   duration        Int?
   input           String?
   output          String
   promptVersionId String
-  updatedAt       DateTime      @updatedAt
-  promptId        String
-  userId          String
   status          TestStatus    @default(SUCCESS)
+  updatedAt       DateTime      @updatedAt
+  rating          PromptRating?
   prompt          Prompt        @relation(fields: [promptId], references: [id], onDelete: Cascade)
   PromptVersion   PromptVersion @relation(fields: [promptVersionId], references: [id], onDelete: Cascade)
   user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  rating          PromptRating?
 
   @@index([promptId])
   @@index([userId])
@@ -591,13 +594,13 @@ model FeatureUsage {
 }
 
 model TeamMember {
-  id        String   @id @default(cuid())
-  teamId    String
-  userId    String
-  role      TeamRole @default(MEMBER)
-  joinedAt  DateTime @default(now())
-  team      Team     @relation(fields: [teamId], references: [id])
-  user      User     @relation(fields: [userId], references: [id])
+  id       String   @id @default(cuid())
+  teamId   String
+  userId   String
+  role     TeamRole @default(MEMBER)
+  joinedAt DateTime @default(now())
+  team     Team     @relation(fields: [teamId], references: [id])
+  user     User     @relation(fields: [userId], references: [id])
 
   @@unique([teamId, userId])
   @@index([teamId])
@@ -605,26 +608,26 @@ model TeamMember {
 }
 
 model Team {
-  id          String    @id @default(cuid())
-  name        String
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  ownerId     String
-  owner       User      @relation("TeamOwner", fields: [ownerId], references: [id])
-  members     TeamMember[]
-  settings    Json?     @default("{\"maxMembers\": 5, \"allowedFeatures\": []}")
+  id        String       @id @default(cuid())
+  name      String
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+  ownerId   String
+  settings  Json?        @default("{\"maxMembers\": 5, \"allowedFeatures\": []}")
+  owner     User         @relation("TeamOwner", fields: [ownerId], references: [id])
+  members   TeamMember[]
 
   @@index([ownerId])
 }
 
 model UsageMetrics {
-  id        String   @id @default(cuid())
-  userId    String
-  type      String   // PROMPT_TEST, PROMPT_CREATE, etc.
+  id         String   @id @default(cuid())
+  userId     String
+  type       String
   tokenCount Int
-  metadata  Json     // Additional usage data
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  metadata   Json
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
   @@index([userId])
   @@index([type])
@@ -647,6 +650,19 @@ model Notification {
   @@index([type])
   @@index([createdAt])
   @@index([read])
+}
+
+model UserSettings {
+  id            String   @id @default(cuid())
+  userId        String   @unique
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  theme         String   @default("light")
+  notifications Boolean  @default(true)
+  language      String   @default("en")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([userId])
 }
 
 enum Role {

@@ -7,6 +7,12 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2025-02-24.acacia',
 });
 
+interface ErrorContext {
+  userId?: string;
+  action?: string;
+  [key: string]: any;
+}
+
 export class MonitoringService {
   private static instance: MonitoringService;
   private usageService: UsageTrackingService;
@@ -23,44 +29,35 @@ export class MonitoringService {
   }
 
   public async checkSubscriptionHealth(): Promise<void> {
-    const subscriptions = await prisma.subscription.findMany({
-      where: {
-        status: {
-          in: [SubscriptionStatus.ACTIVE, SubscriptionStatus.PAST_DUE],
+    try {
+      const unhealthySubscriptions = await prisma.subscription.findMany({
+        where: {
+          status: {
+            in: ['past_due', 'unpaid', 'canceled'],
+          },
         },
-      },
-      include: {
-        user: true,
-      },
-    });
+        include: {
+          user: true,
+        },
+      });
 
-    for (const subscription of subscriptions) {
-      try {
-        // Check Stripe subscription status
-        const stripeSubscription = await stripe.subscriptions.retrieve(
-          subscription.stripeSubscriptionId
-        );
-
-        // Update local subscription status if different
-        if (stripeSubscription.status !== subscription.status.toLowerCase()) {
-          await prisma.subscription.update({
-            where: { id: subscription.id },
-            data: {
-              status: stripeSubscription.status.toUpperCase() as SubscriptionStatus,
+      for (const subscription of unhealthySubscriptions) {
+        await prisma.auditLog.create({
+          data: {
+            type: 'SUBSCRIPTION_HEALTH_CHECK',
+            userId: subscription.userId,
+            details: {
+              subscriptionId: subscription.id,
+              status: subscription.status,
+              userId: subscription.userId,
+              email: subscription.user?.email,
             },
-          });
-        }
-
-        // Check for upcoming payment issues
-        if (stripeSubscription.status === 'past_due') {
-          await this.sendPaymentFailureAlert(subscription.userId);
-        }
-      } catch (error) {
-        console.error(
-          `Error checking subscription health for user ${subscription.userId}:`,
-          error
-        );
+          },
+        });
       }
+    } catch (error) {
+      console.error('Error checking subscription health:', error);
+      throw error;
     }
   }
 
@@ -163,5 +160,24 @@ export class MonitoringService {
       totalUsers,
       recentErrors,
     };
+  }
+
+  public async logError(error: Error, context: ErrorContext = {}): Promise<void> {
+    try {
+      await prisma.auditLog.create({
+        data: {
+          type: 'ERROR',
+          userId: context.userId,
+          details: {
+            message: error.message,
+            stack: error.stack,
+            ...context,
+          },
+        },
+      });
+    } catch (dbError) {
+      console.error('Error logging error to database:', dbError);
+      throw dbError;
+    }
   }
 } 

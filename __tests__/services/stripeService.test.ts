@@ -61,6 +61,7 @@ describe('StripeService', () => {
       const result = await service.createCheckoutSession({
         customerId: 'cus_test',
         planId: 'plan_test',
+        priceId: 'price_test',
         userId: 'user123',
         successUrl: 'https://success.url',
         cancelUrl: 'https://cancel.url',
@@ -68,18 +69,18 @@ describe('StripeService', () => {
 
       expect(stripe.checkout.sessions.create).toHaveBeenCalledWith({
         customer: 'cus_test',
-        line_items: [{ price: 'plan_test', quantity: 1 }],
+        line_items: [{ price: 'price_test', quantity: 1 }],
         mode: 'subscription',
         success_url: 'https://success.url',
         cancel_url: 'https://cancel.url',
-        metadata: { userId: 'user123', planId: 'plan_test' },
+        metadata: { userId: 'user123', planId: 'plan_test', priceId: 'price_test' },
       });
       expect(result).toEqual({
         id: 'sess_test',
         url: 'https://checkout.stripe.com/test',
         customerId: 'cus_test',
         subscriptionId: 'sub_test',
-        metadata: { userId: 'user123', planId: 'plan_test' },
+        metadata: { userId: 'user123', planId: 'plan_test', priceId: 'price_test' },
       });
     });
   });
