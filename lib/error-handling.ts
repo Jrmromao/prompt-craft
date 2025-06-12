@@ -1,19 +1,19 @@
 import { ErrorInfo } from 'react';
+import * as Sentry from '@sentry/nextjs';
 
 export interface ErrorDetails {
   error: Error;
-  errorInfo?: ErrorInfo;
-  timestamp: string;
-  url: string;
-  userAgent: string;
+  errorInfo?: React.ErrorInfo;
+  timestamp?: string;
+  url?: string;
+  userAgent?: string;
   componentStack?: string;
+  userId?: string;
+  [key: string]: any;
 }
 
 export const isConstructorError = (error: Error): boolean => {
-  return (
-    error.message.includes('Super constructor null') ||
-    error.message.includes('is not a constructor')
-  );
+  return error.message.includes('constructor') || error.stack?.includes('constructor');
 };
 
 export const handleConstructorError = (error: Error): void => {
@@ -40,8 +40,22 @@ export const logError = (details: ErrorDetails): void => {
     });
   }
 
-  // Here you can add your error tracking service integration
-  // Example: Sentry.captureException(details.error, { extra: details });
+  // Log to Sentry
+  Sentry.withScope((scope) => {
+    // Add user context if available
+    if (details.userId) {
+      scope.setUser({ id: details.userId });
+    }
+
+    // Add additional context
+    scope.setExtra('timestamp', details.timestamp);
+    scope.setExtra('url', details.url);
+    scope.setExtra('userAgent', details.userAgent);
+    scope.setExtra('componentStack', details.componentStack);
+
+    // Capture the error
+    Sentry.captureException(details.error);
+  });
 };
 
 export const getErrorRecoveryAction = (error: Error): 'reload' | 'retry' | 'fallback' => {

@@ -1,9 +1,10 @@
-import { stripe } from '@/lib/stripe';
+import * as Sentry from '@sentry/nextjs';
 import { getProfileByClerkId } from '@/app/services/profileService';
-import { prisma } from '@/lib/prisma';
+import { stripe } from '@/lib/stripe';
 
 export class BillingService {
   private static instance: BillingService;
+  private readonly logger = Sentry.logger;
 
   private constructor() {}
 
@@ -14,36 +15,46 @@ export class BillingService {
     return BillingService.instance;
   }
 
-  async getBillingOverview(userId: string) {
-    const user = await getProfileByClerkId(userId);
-    if (!user || !user.stripeCustomerId) {
-      throw new Error('No Stripe customer');
+  public async getBillingOverview(userId: string) {
+    this.logger.info('Fetching billing overview', { userId });
+    try {
+      const user = await getProfileByClerkId(userId);
+      if (!user || !user.stripeCustomerId) {
+        throw new Error('No Stripe customer');
+      }
+
+      // Fetch subscription
+      const subscriptions = await stripe.subscriptions.list({
+        customer: user.stripeCustomerId,
+        limit: 1,
+      });
+      const subscription = subscriptions.data[0] || null;
+
+      // Fetch invoices
+      const invoices = await stripe.invoices.list({
+        customer: user.stripeCustomerId,
+        limit: 10,
+      });
+
+      // Fetch payment methods
+      const paymentMethods = await stripe.paymentMethods.list({
+        customer: user.stripeCustomerId,
+        type: 'card',
+      });
+
+      this.logger.debug(this.logger.fmt`Retrieved ${invoices.data.length} invoices for user: ${userId}`);
+      return {
+        subscription,
+        invoices: invoices.data,
+        paymentMethods: paymentMethods.data,
+      };
+    } catch (error) {
+      this.logger.error('Failed to fetch billing overview', {
+        userId,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+      throw error;
     }
-
-    // Fetch subscription
-    const subscriptions = await stripe.subscriptions.list({
-      customer: user.stripeCustomerId,
-      limit: 1,
-    });
-    const subscription = subscriptions.data[0] || null;
-
-    // Fetch invoices
-    const invoices = await stripe.invoices.list({
-      customer: user.stripeCustomerId,
-      limit: 10,
-    });
-
-    // Fetch payment methods
-    const paymentMethods = await stripe.paymentMethods.list({
-      customer: user.stripeCustomerId,
-      type: 'card',
-    });
-
-    return {
-      subscription,
-      invoices: invoices.data,
-      paymentMethods: paymentMethods.data,
-    };
   }
 
   /**
