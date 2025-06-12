@@ -1,24 +1,32 @@
-import { NextResponse } from 'next/server';
-import { auth } from '@clerk/nextjs/server';
-import { DashboardService } from '@/lib/services/dashboardService';
+import { UserService } from '@/lib/services/userService';
 import { dynamicRouteConfig, withDynamicRoute } from '@/lib/utils/dynamicRoute';
+import { currentUser } from '@clerk/nextjs/server';
+import { NextResponse } from 'next/server';
 
 // Export dynamic configuration
 export const { dynamic, revalidate, runtime } = dynamicRouteConfig;
 
-export async function GET() {
-  try {
-    const { userId } = await auth();
-    if (!userId) {
-      return new NextResponse('Unauthorized', { status: 401 });
+// Route handler
+export const GET = withDynamicRoute(
+  async (req: Request) => {
+    try {
+      const userService = UserService.getInstance();
+      const clerkUser = await currentUser();
+      
+      if (!clerkUser) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      }
+
+      const creditHistory = await userService.getCreditHistory(clerkUser.id);
+      
+      return NextResponse.json(creditHistory);
+    } catch (error) {
+      console.error('Error fetching credit history:', error);
+      return NextResponse.json(
+        { error: 'Failed to fetch credit history' },
+        { status: 500 }
+      );
     }
-
-    const dashboardService = DashboardService.getInstance();
-    const history = await dashboardService.getCreditHistory(userId);
-
-    return NextResponse.json(history);
-  } catch (error) {
-    console.error('Error fetching credit history:', error);
-    return new NextResponse('Internal Server Error', { status: 500 });
-  }
-}
+  },
+  [] // Empty array as fallback data
+);

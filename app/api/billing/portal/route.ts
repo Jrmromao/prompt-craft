@@ -1,7 +1,14 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { BillingService } from '@/lib/services/billingService';
-import { securityHeaders } from '@/app/api/config';
+
+// Security headers for the response
+const securityHeaders = {
+  'Content-Security-Policy': "default-src 'self'",
+  'X-Content-Type-Options': 'nosniff',
+  'X-Frame-Options': 'DENY',  
+  'X-XSS-Protection': '1; mode=block',
+};
 
 // Export dynamic configuration
 export const dynamic = 'force-dynamic';
@@ -36,4 +43,4 @@ async function portalHandler(request: Request) {
 }
 
 // Export the handler
-export const GET = portalHandler;
+export { portalHandler as GET };

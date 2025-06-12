@@ -24,26 +24,6 @@ async function main() {
       isEnterprise: false
     },
     {
-      name: 'PRO',
-      description: 'For power users and professionals',
-      price: 12,
-      credits: 1500,
-      period: Period.MONTHLY,
-      isActive: true,
-      stripeProductId: 'prod_pro_monthly',
-      maxPrompts: 250,
-      maxTokens: 150000,
-      maxTeamMembers: 5,
-      features: [
-        'Unlimited saved prompts',
-        'Share prompts',
-        'Community prompt library',
-        'Priority support',
-        'Monthly credit reset'
-      ],
-      isEnterprise: false
-    },
-    {
       name: 'ELITE',
       description: 'For dedicated prompt engineers and professional content creators',
       price: 29.99,

@@ -6,6 +6,7 @@ import { Redis } from '@upstash/redis';
 import { Ratelimit } from '@upstash/ratelimit';
 
 import { AuditService } from '@/lib/services/auditService';
+import { stripe } from '@/lib/stripe';
 
 // Rate limit configurations
 const RATE_LIMIT_CONFIGS = {
@@ -107,14 +108,14 @@ export class SecurityService {
   }
 
   // Webhook signature verification
-  public verifyWebhookSignature(payload: string, signature: string, secret: string): boolean {
+  public verifyWebhookSignature(
+    payload: string,
+    signature: string,
+    secret: string
+  ): boolean {
     try {
-      const hmac = createHash('sha256');
-      hmac.update(payload);
-      hmac.update(secret);
-      const digest = hmac.digest('hex');
-
-      return timingSafeEqual(Buffer.from(signature), Buffer.from(digest));
+      stripe.webhooks.constructEvent(payload, signature, secret);
+      return true;
     } catch (error) {
       console.error('Webhook signature verification failed:', error);
       return false;

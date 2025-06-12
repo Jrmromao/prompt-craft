@@ -43,7 +43,7 @@ export function NavBar({ user, onMenuClick }: { user?: NavBarUser; onMenuClick?:
         <div className="container mx-auto px-4">
           <div className="flex h-16 items-center justify-between">
             <div className="flex items-center gap-8">
-              <Link href="/dashboard" className="flex items-center gap-2">
+              <Link href="/profile" className="flex items-center gap-2">
                 <Sparkles className="h-6 w-6 text-purple-500" />
                 <span className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-xl font-bold text-transparent">
                   PromptCraft

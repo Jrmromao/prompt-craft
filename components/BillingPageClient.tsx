@@ -45,7 +45,7 @@ export function BillingPageClient({ subscription }: { subscription?: Subscriptio
 
   const handleGoToDashboard = () => {
     setIsLoading(true);
-    router.push('/dashboard');
+    router.push('/profile');
   };
 
   // Format date for display

@@ -55,6 +55,7 @@ import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { useSidebarStore } from '@/components/layout/NavBarWrapper';
 import { useTheme } from '@/components/ThemeProvider';
 import { UsageTab } from '@/components/profile/UsageTab';
+import BillingInvoicesSection from '../../components/profile/BillingInvoicesSection';
 
 const Sheet = dynamic(() => import('@/components/ui/sheet').then(mod => mod.Sheet), {
   ssr: false,
@@ -65,17 +66,17 @@ const SheetContent = dynamic(() => import('@/components/ui/sheet').then(mod => m
 
 const accountOptions = [
   { label: 'Overview', icon: User, href: 'overview' },
-  { label: 'Usage', icon: BarChart2, href: 'usage' },
+  { label: 'Usage & Activity', icon: BarChart2, href: 'usage' },
   { label: 'Billing', icon: BillingIcon, href: 'billing' },
   { label: 'Settings', icon: Settings, href: 'settings' },
-  { label: 'Security', icon: User, href: 'security' },
+  { label: 'Security', icon: Lock, href: 'security' },
 ];
 const workspaceOptions = [{ label: 'My Prompts', icon: FileText, href: 'prompts' }];
 
 const PRIVATE_PROMPT_LIMITS = {
-  [PlanType.FREE]: 5,
-  [PlanType.LITE]: 200,
-  [PlanType.PRO]: Infinity,
+  [PlanType.PRO]: 5,
+  [PlanType.ELITE]: Infinity,
+  [PlanType.ENTERPRISE]: Infinity,
 };
 
 export interface ProfileClientProps {
@@ -95,6 +96,7 @@ export interface ProfileClientProps {
     website?: string;
     twitter?: string;
     linkedin?: string;
+    lastActivity?: string;
   };
   currentPath: string;
 }
@@ -702,170 +704,6 @@ function ProfileContent({ user, currentPath }: ProfileClientProps) {
     );
   }
 
-  function BillingSection() {
-    const { data, error, isLoading, mutate } = useSWR('/api/billing/overview', url =>
-      fetch(url).then(r => r.json())
-    );
-    const [portalLoading, setPortalLoading] = useReactState(false);
-    const [search, setSearch] = useReactState('');
-    const [debouncedSearch, setDebouncedSearch] = useReactState('');
-
-    // Debounce search input
-    useEffect(() => {
-      const t = setTimeout(() => setDebouncedSearch(search), 300);
-      return () => clearTimeout(t);
-    }, [search]);
-
-    if (isLoading) {
-      return <div className="p-8 text-center text-muted-foreground">Loading billing info...</div>;
-    }
-    if (error || !data) {
-      return <div className="p-8 text-center text-red-500">Failed to load billing info.</div>;
-    }
-
-    const { subscription, invoices, paymentMethods } = data;
-    const plan = subscription?.items?.data?.[0]?.price?.nickname || 'Unknown';
-    const renewal = subscription?.current_period_end
-      ? new Date(subscription.current_period_end * 1000).toLocaleDateString()
-      : '-';
-    const status = subscription?.status || 'Unknown';
-    const card = paymentMethods?.[0];
-
-    // Filter invoices by search
-    const filteredInvoices = (invoices || []).filter((inv: any) => {
-      if (!debouncedSearch) return true;
-      const date = new Date(inv.created * 1000).toLocaleDateString();
-      const amount = (inv.amount_paid / 100).toLocaleString(undefined, {
-        style: 'currency',
-        currency: inv.currency.toUpperCase(),
-      });
-      return (
-        date.includes(debouncedSearch) ||
-        amount.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
-        (inv.status || '').toLowerCase().includes(debouncedSearch.toLowerCase())
-      );
-    });
-
-    return (
-      <div className="flex flex-col gap-8">
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-          <div className="flex flex-col gap-2 rounded-lg bg-muted p-6">
-            <div className="mb-1 text-xs text-muted-foreground">Current Plan</div>
-            <div className="flex items-center gap-2 text-lg font-bold">
-              {plan}
-              <span
-                className={`rounded-full px-2 py-0.5 text-xs font-semibold ${status === 'active' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}
-              >
-                {status}
-              </span>
-            </div>
-            <div className="text-xs text-muted-foreground">Renews: {renewal}</div>
-          </div>
-          <div className="flex flex-col gap-2 rounded-lg bg-muted p-6">
-            <div className="mb-1 text-xs text-muted-foreground">Payment Method</div>
-            {card ? (
-              <div className="flex items-center gap-2">
-                <span className="text-lg">💳</span>
-                <span className="font-mono">**** **** **** {card.card.last4}</span>
-                <span className="text-xs text-muted-foreground">
-                  {card.card.brand.toUpperCase()}
-                </span>
-                <span className="text-xs text-muted-foreground">
-                  Exp {card.card.exp_month}/{card.card.exp_year}
-                </span>
-              </div>
-            ) : (
-              <div className="text-muted-foreground">No card on file</div>
-            )}
-          </div>
-        </div>
-        <div>
-          <button
-            className="rounded bg-gradient-to-r from-purple-600 to-pink-600 px-4 py-2 font-semibold text-white shadow transition hover:from-purple-700 hover:to-pink-700 disabled:opacity-60"
-            disabled={portalLoading}
-            onClick={async () => {
-              setPortalLoading(true);
-              try {
-                const res = await fetch('/api/billing/portal', { method: 'POST' });
-                if (!res.ok) throw new Error('Failed to create portal session');
-                const { url } = await res.json();
-                window.location.href = url;
-              } catch (err) {
-                toast.error('Could not open Stripe portal. Please try again.');
-              } finally {
-                setPortalLoading(false);
-              }
-            }}
-          >
-            {portalLoading ? 'Loading...' : 'Manage Subscription'}
-          </button>
-        </div>
-        <div>
-          <div className="mb-2 flex items-center gap-4 text-sm font-semibold">
-            <span>Invoices</span>
-            <input
-              type="text"
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              placeholder="Search by date, status, or amount..."
-              className="ml-auto rounded border border-border bg-background px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
-              style={{ maxWidth: 260 }}
-            />
-          </div>
-          <div className="overflow-x-auto">
-            <table className="min-w-full rounded-lg border text-sm">
-              <thead>
-                <tr className="bg-muted">
-                  <th className="px-3 py-2 text-left font-semibold">Date</th>
-                  <th className="px-3 py-2 text-left font-semibold">Amount</th>
-                  <th className="px-3 py-2 text-left font-semibold">Status</th>
-                  <th className="px-3 py-2 text-left font-semibold">Download</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredInvoices.length === 0 && (
-                  <tr>
-                    <td colSpan={4} className="py-4 text-center text-muted-foreground">
-                      No invoices
-                    </td>
-                  </tr>
-                )}
-                {filteredInvoices.map((inv: any, i: number) => (
-                  <tr key={i} className="border-t">
-                    <td className="whitespace-nowrap px-3 py-2">
-                      {new Date(inv.created * 1000).toLocaleDateString()}
-                    </td>
-                    <td className="px-3 py-2">
-                      {(inv.amount_paid / 100).toLocaleString(undefined, {
-                        style: 'currency',
-                        currency: inv.currency.toUpperCase(),
-                      })}
-                    </td>
-                    <td className="px-3 py-2 capitalize">{inv.status}</td>
-                    <td className="px-3 py-2">
-                      {inv.invoice_pdf ? (
-                        <a
-                          href={inv.invoice_pdf}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-purple-600 underline"
-                        >
-                          PDF
-                        </a>
-                      ) : (
-                        <span className="text-muted-foreground">-</span>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   function PromptsSection() {
     const [search, setSearch] = useReactState('');
     const [debouncedSearch, setDebouncedSearch] = useReactState('');
@@ -998,7 +836,7 @@ function ProfileContent({ user, currentPath }: ProfileClientProps) {
           </ErrorBoundary>
           {/* Tabs for profile sections */}
           <ErrorBoundary fallback={<div>Error</div>}>
-            <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
+            <Tabs value={activeTab} onValueChange={handleTabChange} defaultValue="overview" className="w-full">
               <TabsContent value="overview">
                 <Card className="rounded-2xl border border-border bg-card p-8 shadow-lg">
                   <div className="space-y-8">
@@ -1014,13 +852,11 @@ function ProfileContent({ user, currentPath }: ProfileClientProps) {
               </TabsContent>
               <TabsContent value="usage">
                 <Card className="rounded-2xl border border-border bg-card p-8 shadow-lg">
-                  <UsageTab />
+                  <UsageStatsSection />
                 </Card>
               </TabsContent>
-              <TabsContent value="billing">
-                <Card className="rounded-2xl border border-border bg-card p-8 shadow-lg">
-                  <BillingSection />
-                </Card>
+              <TabsContent value="billing" className="pt-4">
+                <BillingInvoicesSection />
               </TabsContent>
               <TabsContent value="prompts">
                 <Card className="rounded-2xl border border-border bg-card p-8 shadow-lg">

@@ -58,50 +58,47 @@ model User {
   featureUsage         FeatureUsage[]
   teamMembers          TeamMember[]
   ownedTeams           Team[]             @relation("TeamOwner")
+  usages               Usage[]
 
   @@index([clerkId])
   @@index([email])
 }
 
 model Plan {
-  id              String         @id @default(cuid())
-  name            String         @unique
-  price           Float
-  createdAt       DateTime       @default(now())
-  updatedAt       DateTime       @updatedAt
-  isActive        Boolean        @default(true)
-  credits         Int
-  period          Period
-  description     String
-  stripeProductId String         @unique
-  subscriptions   Subscription[]
-  
-  // New fields for plan limitations
-  maxPrompts      Int            @default(10)
-  maxTokens       Int            @default(1000)
-  maxTeamMembers  Int            @default(1)
-  features        String[]       @default([])
-  isEnterprise    Boolean        @default(false)
-  customLimits    Json?          // For enterprise custom limits
+  id                  String         @id @default(cuid())
+  name                String         @unique
+  description         String
+  price               Float          @default(0)
+  period              String         @default("month")
+  features            String[]       @default([])
+  isActive            Boolean        @default(true)
+  isEnterprise        Boolean        @default(false)
+  stripeProductId     String         @default("")
+  stripePriceId       String         @default("")
+  stripeAnnualPriceId String?
+  createdAt           DateTime       @default(now())
+  updatedAt           DateTime       @updatedAt
+  subscriptions       Subscription[]
 
   @@index([isActive])
-  @@index([period])
+  @@index([stripeProductId])
 }
 
 model Subscription {
-  id                   String             @id @default(cuid())
-  userId               String             @unique
-  stripeCustomerId     String             @unique
-  stripeSubscriptionId String             @unique
-  status               SubscriptionStatus
-  currentPeriodStart   DateTime
-  currentPeriodEnd     DateTime
-  cancelAtPeriodEnd    Boolean            @default(false)
-  createdAt            DateTime           @default(now())
-  updatedAt            DateTime           @updatedAt
-  planId               String
-  plan                 Plan               @relation(fields: [planId], references: [id])
-  user                 User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id                        String             @id @default(cuid())
+  userId                    String             @unique
+  stripeCustomerId          String             @unique
+  stripeSubscriptionId      String             @unique
+  stripeDefaultPaymentMethodId String?
+  status                    SubscriptionStatus
+  currentPeriodStart        DateTime
+  currentPeriodEnd          DateTime
+  cancelAtPeriodEnd         Boolean            @default(false)
+  createdAt                 DateTime           @default(now())
+  updatedAt                 DateTime           @updatedAt
+  planId                    String
+  plan                      Plan               @relation(fields: [planId], references: [id])
+  user                      User               @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([planId])
@@ -110,6 +107,19 @@ model Subscription {
   @@index([status])
   @@index([currentPeriodEnd])
   @@index([createdAt])
+}
+
+model Usage {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  feature   String
+  count     Int      @default(1)
+  timestamp DateTime @default(now())
+
+  @@index([userId])
+  @@index([feature])
+  @@index([timestamp])
 }
 
 model Prompt {
@@ -503,7 +513,7 @@ model EmailTemplate {
   type        String
   isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  updatedAt   DateTime @default(now())
   createdById String
   updatedById String
   createdBy   User     @relation("CreatedTemplates", fields: [createdById], references: [id])

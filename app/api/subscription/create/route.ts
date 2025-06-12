@@ -70,8 +70,9 @@ class CreateSubscriptionHandler extends BaseApiHandler {
     const session = await stripeService.createCheckoutSession({
       customerId,
       planId: planData.stripeProductId,
+      priceId: planData.stripePriceId,
       userId: user.id,
-      successUrl: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?success=true`,
+      successUrl: `${process.env.NEXT_PUBLIC_APP_URL}/profile?success=true`,
       cancelUrl: `${process.env.NEXT_PUBLIC_APP_URL}/pricing?canceled=true`,
     });
 

@@ -96,19 +96,32 @@ async function createOrUpdateUser(
     return false;
   }
 }
-export async function POST(req: Request) {
-  // Implement basic rate limiting
+
+// Helper function to check rate limit
+function checkRateLimit(): { isLimited: boolean; remainingTime: number } {
   const now = Date.now();
   requestTimestamps.push(now);
+  
   // Remove timestamps outside the current window
   while (requestTimestamps.length > 0 && requestTimestamps[0] < now - RATE_LIMIT_WINDOW) {
     requestTimestamps.shift();
   }
 
-  // Check if rate limit exceeded
-  if (requestTimestamps.length > MAX_REQUESTS_PER_WINDOW) {
-    console.warn('Rate limit exceeded for Clerk webhook');
-    return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
+  const isLimited = requestTimestamps.length > MAX_REQUESTS_PER_WINDOW;
+  const remainingTime = isLimited ? RATE_LIMIT_WINDOW - (now - requestTimestamps[0]) : 0;
+
+  return { isLimited, remainingTime };
+}
+
+export async function POST(req: Request) {
+  // Check rate limit
+  const { isLimited, remainingTime } = checkRateLimit();
+  if (isLimited) {
+    console.warn(`Rate limit exceeded for Clerk webhook. Retry after ${remainingTime}ms`);
+    return NextResponse.json(
+      { error: 'Too many requests', retryAfter: Math.ceil(remainingTime / 1000) },
+      { status: 429, headers: { 'Retry-After': Math.ceil(remainingTime / 1000).toString() } }
+    );
   }
 
   // Set a timeout to prevent long-running operations
@@ -289,9 +302,10 @@ async function processWebhook(req: Request): Promise<NextResponse> {
           // Create user in database
           await createOrUpdateUser(id, primaryEmail, first_name, last_name);
 
+          // TODO: Uncomment this when we have a welcome email
           // Send welcome email
-          const emailService = EmailService.getInstance();
-          await emailService.sendWelcomeEmail(primaryEmail, first_name || 'there');
+          // const emailService = EmailService.getInstance();
+          // await emailService.sendWelcomeEmail(primaryEmail, first_name || 'there');
 
           return NextResponse.json({ success: true });
         } catch (error) {

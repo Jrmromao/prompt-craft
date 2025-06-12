@@ -1,257 +1,113 @@
-import { useUsageMetrics } from '@/hooks/useUsageMetrics';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+'use client';
+
+import { Card } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Skeleton } from '@/components/ui/skeleton';
+import { Badge } from '@/components/ui/badge';
 import {
-  LineChart,
-  Line,
+  AreaChart,
+  Area,
   XAxis,
   YAxis,
-  CartesianGrid,
-  Tooltip,
+  Tooltip as RechartsTooltip,
   ResponsiveContainer,
-  BarChart,
-  Bar
+  CartesianGrid,
 } from 'recharts';
+import { format } from 'date-fns';
 
-interface UsageMetrics {
-  promptCount: number;
-  tokenUsage: number;
-  teamMemberCount: number;
-  usageByDay: { date: string; count: number }[];
-  usageByFeature: { feature: string; count: number }[];
-  tokenUsageByDay: { date: string; tokens: number }[];
-  status: string;
-  message: string;
-  lastUsedAt: string | Date;
+interface UsageTabProps {
+  user: {
+    credits: number;
+    creditCap: number;
+    planType: string;
+    lastActivity?: string;
+  };
+  usageData: Array<{
+    date: string;
+    credits: number;
+  }>;
+  recentPrompts: Array<{
+    id: string;
+    title: string;
+    createdAt: string;
+    creditsUsed: number;
+  }>;
 }
 
-interface UsageData {
-  metrics: UsageMetrics;
-  limits: {
-    maxPrompts: number;
-    maxTokens: number;
-    maxTeamMembers: number;
-    features: string[];
-  };
-  usagePercentages: {
-    prompts: number;
-    tokens: number;
-    teamMembers: number;
-  };
-}
-
-export function UsageTab() {
-  const { data, loading, error } = useUsageMetrics();
-
-  if (loading) {
-    return <UsageTabSkeleton />;
-  }
-
-  if (error || !data) {
-    return (
-      <div className="p-4 text-center text-red-500">
-        Error loading usage metrics: {error}
-      </div>
-    );
-  }
-
-  const { metrics, limits, usagePercentages } = data as UsageData;
-
+export function UsageTab({ user, usageData, recentPrompts }: UsageTabProps) {
   return (
-    <div className="space-y-6 p-4">
-      <div className="grid gap-4 md:grid-cols-3">
-        <UsageCard
-          title="Prompts"
-          current={metrics.promptCount}
-          limit={limits.maxPrompts}
-          percentage={usagePercentages.prompts}
-        />
-        <UsageCard
-          title="Tokens"
-          current={metrics.tokenUsage}
-          limit={limits.maxTokens}
-          percentage={usagePercentages.tokens}
-          formatValue={(value) => `${value.toLocaleString()} tokens`}
-        />
-        <UsageCard
-          title="Team Members"
-          current={metrics.teamMemberCount}
-          limit={limits.maxTeamMembers}
-          percentage={usagePercentages.teamMembers}
-        />
-      </div>
-
-      <div className="grid gap-4 md:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>Usage Over Time</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="h-[300px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={metrics.usageByDay}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="date" />
-                  <YAxis />
-                  <Tooltip />
-                  <Line
-                    type="monotone"
-                    dataKey="count"
-                    stroke="#8884d8"
-                    strokeWidth={2}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
+    <div className="space-y-8">
+      {/* Credits Overview */}
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+        <Card className="p-6">
+          <h3 className="text-sm font-medium text-gray-500 mb-2">Available Credits</h3>
+          <div className="text-3xl font-bold">{user.credits}</div>
+          <Progress value={(user.credits / user.creditCap) * 100} className="mt-2" />
+          <p className="mt-2 text-sm text-gray-500">
+            {user.credits} of {user.creditCap} credits used
+          </p>
         </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Token Usage Over Time</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="h-[300px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={metrics.tokenUsageByDay}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="date" />
-                  <YAxis />
-                  <Tooltip formatter={(value) => [`${value} tokens`, 'Usage']} />
-                  <Line
-                    type="monotone"
-                    dataKey="tokens"
-                    stroke="#82ca9d"
-                    strokeWidth={2}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
+        <Card className="p-6">
+          <h3 className="text-sm font-medium text-gray-500 mb-2">Current Plan</h3>
+          <div className="text-3xl font-bold">{user.planType}</div>
+          <p className="mt-2 text-sm text-gray-500">
+            {user.planType === 'FREE' ? 'Upgrade for more features' : 'Active plan'}
+          </p>
+        </Card>
+        <Card className="p-6">
+          <h3 className="text-sm font-medium text-gray-500 mb-2">Last Activity</h3>
+          <div className="text-3xl font-bold">
+            {user.lastActivity ? format(new Date(user.lastActivity), 'MMM d, yyyy') : 'No activity'}
+          </div>
         </Card>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Feature Usage</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="h-[300px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={metrics.usageByFeature}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="feature" />
-                <YAxis />
-                <Tooltip />
-                <Bar dataKey="count" fill="#8884d8" />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Available Features</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-2 md:grid-cols-3">
-            {limits.features.map((feature) => (
-              <div
-                key={feature}
-                className="flex items-center space-x-2 rounded-lg border p-3"
-              >
-                <div className="h-2 w-2 rounded-full bg-green-500" />
-                <span className="text-sm">{feature}</span>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  );
-}
-
-function UsageCard({
-  title,
-  current,
-  limit,
-  percentage,
-  formatValue = (value) => value.toLocaleString(),
-}: {
-  title: string;
-  current: number;
-  limit: number;
-  percentage: number;
-  formatValue?: (value: number) => string;
-}) {
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-sm font-medium">{title}</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-2">
-          <div className="flex justify-between text-sm">
-            <span>{formatValue(current)}</span>
-            <span className="text-muted-foreground">
-              of {formatValue(limit)}
-            </span>
-          </div>
-          <Progress value={percentage} className="h-2" />
+      {/* Usage Chart */}
+      <Card className="p-6">
+        <h3 className="text-lg font-medium mb-4">Usage History</h3>
+        <div className="h-[300px]">
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart data={usageData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis 
+                dataKey="date" 
+                tickFormatter={(date) => format(new Date(date), 'MMM d')}
+              />
+              <YAxis />
+              <RechartsTooltip 
+                labelFormatter={(date) => format(new Date(date), 'MMM d, yyyy')}
+                formatter={(value: number) => [`${value} credits`, 'Credits Used']}
+              />
+              <Area
+                type="monotone"
+                dataKey="credits"
+                stroke="#8884d8"
+                fill="#8884d8"
+                fillOpacity={0.3}
+              />
+            </AreaChart>
+          </ResponsiveContainer>
         </div>
-      </CardContent>
-    </Card>
-  );
-}
+      </Card>
 
-function UsageTabSkeleton() {
-  return (
-    <div className="space-y-6 p-4">
-      <div className="grid gap-4 md:grid-cols-3">
-        {[...Array(3)].map((_, i) => (
-          <Card key={i}>
-            <CardHeader>
-              <Skeleton className="h-4 w-24" />
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                <div className="flex justify-between">
-                  <Skeleton className="h-4 w-16" />
-                  <Skeleton className="h-4 w-16" />
-                </div>
-                <Skeleton className="h-2 w-full" />
+      {/* Recent Activity */}
+      <Card className="p-6">
+        <h3 className="text-lg font-medium mb-4">Recent Activity</h3>
+        <div className="space-y-4">
+          {recentPrompts.map((prompt) => (
+            <div
+              key={prompt.id}
+              className="flex items-center justify-between p-4 rounded-lg border"
+            >
+              <div>
+                <p className="font-medium">{prompt.title}</p>
+                <p className="text-sm text-gray-500">
+                  {format(new Date(prompt.createdAt), 'MMM d, yyyy HH:mm')}
+                </p>
               </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      <div className="grid gap-4 md:grid-cols-2">
-        {[...Array(2)].map((_, i) => (
-          <Card key={i}>
-            <CardHeader>
-              <Skeleton className="h-4 w-32" />
-            </CardHeader>
-            <CardContent>
-              <Skeleton className="h-[300px] w-full" />
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      <Card>
-        <CardHeader>
-          <Skeleton className="h-4 w-32" />
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-2 md:grid-cols-3">
-            {[...Array(6)].map((_, i) => (
-              <Skeleton key={i} className="h-10 w-full" />
-            ))}
-          </div>
-        </CardContent>
+              <Badge variant="secondary">{prompt.creditsUsed} credits</Badge>
+            </div>
+          ))}
+        </div>
       </Card>
     </div>
   );

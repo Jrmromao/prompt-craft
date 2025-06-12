@@ -30,7 +30,8 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useClerk } from '@clerk/nextjs';
+import { useClerk, useAuth, useSignIn } from '@clerk/nextjs';
+import { toast } from "@/components/ui/use-toast";
 
 // SEO metadata
 const metadata = {
@@ -70,6 +71,153 @@ interface PromptCraftLandingClientProps {
   } | null;
 }
 
+interface Plan {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  period: string;
+  features: string[];
+  isEnterprise: boolean;
+  stripeProductId: string;
+  stripePriceId: string;
+  stripeAnnualPriceId: string;
+}
+
+const PricingSection = ({ 
+  plans, 
+  isAnnual, 
+  setIsAnnual,
+  user 
+}: { 
+  plans: Plan[], 
+  isAnnual: boolean, 
+  setIsAnnual: (value: boolean) => void,
+  user?: {
+    id: string;
+    name: string;
+    email: string;
+    imageUrl: string;
+  } | null;
+}) => {
+  const { isSignedIn } = useClerk();
+
+  const handleSubscribe = async (plan: Plan) => {
+    try {
+      if (!isSignedIn) {
+        // Redirect to sign up with return URL
+        const returnUrl = encodeURIComponent('/pricing');
+        window.location.href = `/sign-up?redirect_url=${returnUrl}`;
+        return;
+      }
+
+      console.log('Starting subscription process for plan:', plan);
+      const priceId = isAnnual ? plan.stripeAnnualPriceId : plan.stripePriceId;
+      console.log('Price ID:', priceId);
+      
+      const response = await fetch(`${window.location.origin}/api/billing/checkout`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          priceId,
+        }),
+      });
+
+      const data = await response.json();
+      console.log('Checkout response:', data);
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to create checkout session');
+      }
+
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        throw new Error('No checkout URL received');
+      }
+    } catch (error) {
+      console.error('Error creating checkout session:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to start subscription process. Please try again.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  return (
+    <section className="py-24 bg-gradient-to-b from-white to-gray-50 dark:from-black dark:to-gray-900">
+      <div className="container mx-auto px-4">
+        <div className="text-center mb-16">
+          <h2 className="text-4xl font-bold mb-4">Simple, Transparent Pricing</h2>
+          <p className="text-xl text-gray-600 dark:text-gray-400">
+            Choose the plan that best fits your needs
+          </p>
+          <div className="flex items-center justify-center gap-4 mt-8">
+            <span className={cn("text-sm", !isAnnual && "text-purple-600 font-semibold")}>Monthly</span>
+            <Switch
+              checked={isAnnual}
+              onCheckedChange={setIsAnnual}
+              className="data-[state=checked]:bg-purple-600"
+            />
+            <span className={cn("text-sm", isAnnual && "text-purple-600 font-semibold")}>
+              Annual <span className="text-green-500">(Save 20%)</span>
+            </span>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-7xl mx-auto">
+          {plans.map((plan) => (
+            <div
+              key={plan.id}
+              className={cn(
+                "rounded-2xl p-8 border transition-all duration-300",
+                plan.isEnterprise
+                  ? "border-purple-500 bg-purple-50 dark:bg-purple-950/20"
+                  : "border-gray-200 dark:border-gray-800 hover:border-purple-500 dark:hover:border-purple-500"
+              )}
+            >
+              <div className="mb-8">
+                <h3 className="text-2xl font-bold mb-2">{plan.name}</h3>
+                <p className="text-gray-600 dark:text-gray-400 mb-4">{plan.description}</p>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-4xl font-bold">
+                    ${isAnnual ? (plan.price * 12 * 0.8).toFixed(2) : plan.price}
+                  </span>
+                  <span className="text-gray-600 dark:text-gray-400">/{plan.period}</span>
+                </div>
+              </div>
+
+              <ul className="space-y-4 mb-8">
+                {plan.features.map((feature, index) => (
+                  <li key={index} className="flex items-center gap-3">
+                    <Check className="h-5 w-5 text-green-500 flex-shrink-0" />
+                    <span>{feature}</span>
+                  </li>
+                ))}
+              </ul>
+
+              <button
+                onClick={() => handleSubscribe(plan)}
+                className={cn(
+                  "w-full py-3 px-6 rounded-lg font-semibold transition-all duration-300",
+                  plan.isEnterprise
+                    ? "bg-purple-600 text-white hover:bg-purple-700"
+                    : "bg-white text-purple-600 border-2 border-purple-600 hover:bg-purple-50 dark:bg-black dark:hover:bg-purple-950/20"
+                )}
+              >
+                {plan.isEnterprise ? "Contact Sales" : "Get Started"}
+              </button>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+};
+
 const PromptCraftLandingClient = ({ user }: PromptCraftLandingClientProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
@@ -89,7 +237,12 @@ const PromptCraftLandingClient = ({ user }: PromptCraftLandingClientProps) => {
     }
   });
   const [isAnnual, setIsAnnual] = useState(false);
-  const { signOut } = useClerk();
+  const [plans, setPlans] = useState<Plan[]>([]);
+  const [loadingPlans, setLoadingPlans] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const { signOut, isSignedIn } = useClerk();
+  const { signIn } = useSignIn();
+  const { getToken } = useAuth();
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -121,6 +274,22 @@ const PromptCraftLandingClient = ({ user }: PromptCraftLandingClientProps) => {
       }
     }
     fetchFeaturedPrompts();
+  }, []);
+
+  useEffect(() => {
+    async function fetchPlans() {
+      try {
+        const response = await fetch('/api/plans');
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || 'Failed to fetch plans');
+        setPlans(data.plans);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to load plans');
+      } finally {
+        setLoadingPlans(false);
+      }
+    }
+    fetchPlans();
   }, []);
 
   const features = [
@@ -323,6 +492,51 @@ const PromptCraftLandingClient = ({ user }: PromptCraftLandingClientProps) => {
     await signOut();
   };
 
+  const handleSubscribe = async (plan: Plan) => {
+    try {
+      if (!isSignedIn) {
+        // Redirect to sign up with return URL
+        const returnUrl = encodeURIComponent('/pricing');
+        window.location.href = `/sign-up?redirect_url=${returnUrl}`;
+        return;
+      }
+
+      console.log('Starting subscription process for plan:', plan);
+      const priceId = isAnnual ? plan.stripeAnnualPriceId : plan.stripePriceId;
+      console.log('Price ID:', priceId);
+      
+      const response = await fetch(`${window.location.origin}/api/billing/checkout`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          priceId,
+        }),
+      });
+
+      const data = await response.json();
+      console.log('Checkout response:', data);
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to create checkout session');
+      }
+
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        throw new Error('No checkout URL received');
+      }
+    } catch (error) {
+      console.error('Error creating checkout session:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to start subscription process. Please try again.',
+        variant: 'destructive',
+      });
+    }
+  };
+
   return (
     <>
       <Head>
@@ -436,7 +650,7 @@ const PromptCraftLandingClient = ({ user }: PromptCraftLandingClientProps) => {
                   {user ? (
                     <>
                       <a 
-                        href="/dashboard" 
+                        href="/profile" 
                         className="group flex items-center gap-2 text-sm font-medium text-gray-700 transition-colors hover:text-purple-600 dark:text-gray-200 dark:hover:text-purple-300"
                       >
                         <span>Go to App</span>
@@ -524,7 +738,7 @@ const PromptCraftLandingClient = ({ user }: PromptCraftLandingClientProps) => {
                   {user ? (
                     <>
                       <a 
-                        href="/dashboard" 
+                        href="/profile" 
                         className="group mb-4 flex items-center gap-2 text-sm font-medium text-gray-700 transition-colors hover:text-purple-600 dark:text-gray-200 dark:hover:text-purple-300"
                       >
                         <span>Go to App</span>
@@ -604,7 +818,7 @@ const PromptCraftLandingClient = ({ user }: PromptCraftLandingClientProps) => {
                   <FloatingCard delay={0.6}>
                     <div className="mb-12 flex flex-col gap-4 sm:flex-row sm:items-center">
                       {user ? (
-                        <a href="/dashboard">
+                        <a href="/profile">
                           <GradientButton className="px-12 py-4 text-lg">
                             Go to App <ArrowRight className="ml-2 h-5 w-5" />
                           </GradientButton>
@@ -893,134 +1107,12 @@ const PromptCraftLandingClient = ({ user }: PromptCraftLandingClientProps) => {
           </section>
 
           {/* Pricing Section */}
-          <section id="pricing" className="relative px-4 py-24 sm:px-6 lg:px-8" aria-labelledby="pricing-heading">
-            <div className="mx-auto max-w-7xl">
-              <div className="mb-20 text-center">
-                <h2 id="pricing-heading" className="mb-6 text-4xl font-bold tracking-tight md:text-5xl">
-                  Simple, Transparent
-                  <span className="ml-3 bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-                    Pricing
-                  </span>
-                </h2>
-                <p className="mx-auto max-w-3xl text-xl text-gray-600 dark:text-gray-300">
-                  Choose the plan that fits your needs. All plans include a 14-day free trial.
-                </p>
-
-                <div className="mt-8 flex items-center justify-center gap-4">
-                  <span className={`text-sm ${!isAnnual ? 'text-gray-900 dark:text-gray-100' : 'text-gray-500 dark:text-gray-400'}`}>
-                    Monthly
-                  </span>
-                  <Switch
-                    checked={isAnnual}
-                    onCheckedChange={setIsAnnual}
-                    className="data-[state=checked]:bg-purple-600"
-                  />
-                  <div className="flex items-center gap-2">
-                    <span className={`text-sm ${isAnnual ? 'text-gray-900 dark:text-gray-100' : 'text-gray-500 dark:text-gray-400'}`}>
-                      Annual
-                    </span>
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger>
-                          <Badge variant="secondary" className="cursor-help">
-                            Save 20%
-                          </Badge>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>Get 2 months free with annual billing</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  </div>
-                </div>
-              </div>
-
-              <div className="mx-auto grid max-w-6xl gap-8 md:grid-cols-2 lg:grid-cols-3">
-                {pricingPlans.map((plan, index) => (
-                  <FloatingCard key={index} delay={index * 0.1}>
-                    <div className={`group relative flex h-full flex-col rounded-2xl border-2 ${
-                      plan.popular 
-                        ? 'border-purple-500/50 bg-purple-50/50 dark:border-purple-500/30 dark:bg-purple-900/20' 
-                        : 'border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900'
-                    } p-8 shadow-lg transition-all duration-300 hover:-translate-y-1 hover:shadow-xl`}>
-                      {plan.popular && (
-                        <div className="absolute -right-2 -top-2 z-10">
-                          <div className="rounded-full bg-gradient-to-r from-purple-600 to-pink-600 px-4 py-1.5 text-sm font-semibold text-white shadow-lg">
-                            {plan.highlight}
-                          </div>
-                        </div>
-                      )}
-                      <div className="flex flex-1 flex-col justify-between">
-                        <div>
-                          <h3 className="mb-3 text-2xl font-bold text-gray-900 dark:text-white text-center">
-                            {plan.title}
-                          </h3>
-                          <p className="mb-8 text-center text-gray-600 dark:text-gray-300 min-h-[48px] flex items-center justify-center">
-                            {plan.description}
-                          </p>
-                          <div className="mb-8 flex items-baseline justify-center">
-                            {plan.title === 'Enterprise' ? (
-                              <span className="text-3xl font-bold text-gray-900 dark:text-white">
-                                Custom
-                              </span>
-                            ) : (
-                              <div className="flex items-baseline">
-                                <span className="text-5xl font-bold text-gray-900 dark:text-white">
-                                  {isAnnual ? getAnnualPrice(plan.price) : plan.price}
-                                </span>
-                                <span className="ml-2 text-xl text-gray-600 dark:text-gray-300">
-                                  /{isAnnual ? 'year' : 'month'}
-                                </span>
-                              </div>
-                            )}
-                          </div>
-                          {isAnnual && plan.title !== 'Enterprise' && (
-                            <p className="mt-1 text-center text-sm text-gray-500 dark:text-gray-400">
-                              {plan.price}/month when billed monthly
-                            </p>
-                          )}
-                          <ul className="mb-8 space-y-4">
-                            {plan.features.map((feature, featureIndex) => (
-                              <li key={featureIndex} className="flex items-start gap-3 text-gray-600 dark:text-gray-300">
-                                <Check className="mt-1 h-5 w-5 flex-shrink-0 text-purple-500" />
-                                <span className="text-base">{feature}</span>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                        <div className="mt-auto flex items-end justify-center">
-                          {plan.title === 'Enterprise' ? (
-                            <a 
-                              href="/contact-sales" 
-                              className="w-full rounded-full border-2 border-purple-600 bg-transparent px-8 py-3.5 text-center text-base font-semibold text-purple-600 transition-all duration-300 hover:bg-purple-50 dark:border-purple-400 dark:text-purple-400 dark:hover:bg-purple-900/20"
-                            >
-                              Contact Sales <ArrowRight className="ml-2 inline-block h-5 w-5" />
-                            </a>
-                          ) : (
-                            <GradientButton className="w-full py-3.5 text-base font-semibold">
-                              {plan.cta} <ArrowRight className="ml-2 h-5 w-5" />
-                            </GradientButton>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </FloatingCard>
-                ))}
-              </div>
-
-              <div className="mt-20 text-center">
-                <p className="text-lg text-gray-600 dark:text-gray-300">
-                  Need a custom solution?{' '}
-                  <a 
-                    href="#contact" 
-                    className="font-semibold text-purple-600 transition-colors hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300"
-                  >
-                    Contact our team
-                  </a>
-                </p>
-              </div>
-            </div>
-          </section>
+          <PricingSection 
+            plans={plans} 
+            isAnnual={isAnnual} 
+            setIsAnnual={setIsAnnual} 
+            user={user} 
+          />
 
           {/* Testimonials Section */}
           <section id="testimonials" className="px-4 py-20 sm:px-6 lg:px-8" aria-labelledby="testimonials-heading">

@@ -27,6 +27,7 @@ export interface StripeCheckoutSession {
   metadata: {
     userId: string;
     planId: string;
+    priceId: string;
   };
 }
 
@@ -40,6 +41,7 @@ export interface StripeError extends Error {
 export interface CreateCheckoutSessionParams {
   customerId: string;
   planId: string;
+  priceId: string;
   userId: string;
   successUrl: string;
   cancelUrl: string;

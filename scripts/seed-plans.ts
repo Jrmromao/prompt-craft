@@ -6,9 +6,9 @@ const prisma = new PrismaClient();
 /**
  * Seed plans for the application
  * This script creates three plans:
- * - PRO: Professional plan with 1000 credits per month
- * - ELITE: Advanced plan with 5000 credits per month
- * - ENTERPRISE: Custom plan with unlimited credits and dedicated support
+ * - PRO: Professional plan with basic features
+ * - ELITE: Advanced plan with premium features
+ * - ENTERPRISE: Custom plan with enterprise features
  */
 async function seedPlans() {
   try {
@@ -17,31 +17,61 @@ async function seedPlans() {
     const plans = [
       {
         name: 'PRO',
-        description: 'For professionals and growing teams. Get 1000 credits monthly, priority support, and advanced features.',
+        description: 'For professionals and growing teams. Get priority support and advanced features.',
         price: 49.99,
-        credits: 1000,
         period: Period.MONTHLY,
         isActive: true,
-        stripeProductId: 'prod_pro_monthly_plan',
+        stripeProductId: 'prod_STsnbGxz9EgRHW',
+        stripePriceId: 'price_1RYv1gPcCjSUfFvQWi6WW5UO', // Monthly price
+        stripeAnnualPriceId: 'price_1RYv1gPcCjSUfFvQWi6WW5UO', // Annual price
+        features: [
+          'Basic prompt types',
+          'Save prompts',
+          'Prompt history',
+          'Priority support',
+          'Monthly credit reset'
+        ],
+        isEnterprise: false
       },
       {
         name: 'ELITE',
-        description: 'For established businesses. Get 5000 credits monthly, dedicated support, and all premium features including API access.',
+        description: 'For established businesses. Get dedicated support and all premium features including API access.',
         price: 199.99,
-        credits: 5000,
         period: Period.MONTHLY,
         isActive: true,
-        stripeProductId: 'prod_elite_monthly_plan',
+        stripeProductId: 'prod_STsoyX8h6IpQH5',
+        stripePriceId: 'price_1RYv31PcCjSUfFvQtROPqaDC', // Monthly price
+        stripeAnnualPriceId: 'price_1RYv31PcCjSUfFvQtROPqaDC', // Annual price
+        features: [
+          'Unlimited Testing Runs',
+          'Unlimited Private Prompts',
+          'Advanced Analytics',
+          'Bring Your Own API Key',
+          'Priority Support',
+          'Custom Integrations'
+        ],
+        isEnterprise: false
       },
       {
         name: 'ENTERPRISE',
-        description: 'For large organizations. Custom credit limits, dedicated account manager, custom integrations, and enterprise-grade support.',
+        description: 'For large organizations. Custom solutions, dedicated account manager, and enterprise-grade support.',
         price: 499.99,
-        credits: 20000,
         period: Period.MONTHLY,
         isActive: true,
-        stripeProductId: 'prod_enterprise_monthly_plan',
-      },
+        stripeProductId: 'prod_STsp8bVRuv93pU',
+        stripePriceId: 'price_1RYv4KPcCjSUfFvQKaj1oRRs', // Monthly price
+        stripeAnnualPriceId: 'price_1RYv4KPcCjSUfFvQKaj1oRRs', // Annual price
+        features: [
+          'Everything in Elite',
+          'Custom AI Model Fine-tuning',
+          'Dedicated Account Manager',
+          'SLA Guarantee',
+          'Custom API Integration',
+          'Team Management',
+          'Advanced Security'
+        ],
+        isEnterprise: true
+      }
     ];
 
     // Use Promise.all to seed all plans concurrently

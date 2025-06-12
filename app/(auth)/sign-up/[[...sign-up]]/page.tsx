@@ -3,9 +3,13 @@ import { SignUp } from '@clerk/nextjs';
 import { Sparkles, Sun, Moon } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { dark } from '@clerk/themes';
+import { useSearchParams } from 'next/navigation';
 
 export default function SignUpPage() {
   const { theme, setTheme } = useTheme();
+  const searchParams = useSearchParams();
+  const redirectUrl = searchParams.get('redirect_url') || '/pricing';
+
   return (
     <div
       className={`relative flex min-h-screen items-center justify-center bg-white text-gray-900 transition-colors duration-300 dark:bg-black dark:text-white`}
@@ -64,11 +68,11 @@ export default function SignUpPage() {
                 header: 'hidden',
                 footer: 'hidden',
               },
-          
             }}
             routing="path"
             path="/sign-up"
             signInUrl="/sign-in"
+            afterSignUpUrl={redirectUrl}
           />
 
         <div className="mt-2 text-center">

@@ -3,6 +3,23 @@ import type { NextRequest } from 'next/server';
 import { SecurityService } from '@/lib/services/security/securityService';
 
 export async function stripeSecurityMiddleware(req: NextRequest) {
+  // Only allow POST requests
+  if (req.method !== 'POST') {
+    return new NextResponse('Method not allowed', { status: 405 });
+  }
+
+  // Verify content type
+  const contentType = req.headers.get('content-type');
+  if (contentType !== 'application/json') {
+    return new NextResponse('Invalid content type', { status: 400 });
+  }
+
+  // Verify Stripe signature
+  const signature = req.headers.get('stripe-signature');
+  if (!signature) {
+    return new NextResponse('Missing stripe-signature header', { status: 400 });
+  }
+
   const securityService = SecurityService.getInstance();
   const ip = req.headers.get('x-forwarded-for') || 'unknown';
   const userId = req.headers.get('x-user-id') || undefined;

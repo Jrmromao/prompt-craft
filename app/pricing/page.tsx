@@ -1,6 +1,10 @@
 import { Suspense } from 'react';
 import PricingContent from './PricingContent';
 
+
+
+console.log('PricingPage');
+
 export default function PricingPage() {
   return (
     <Suspense

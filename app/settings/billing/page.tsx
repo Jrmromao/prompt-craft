@@ -14,13 +14,27 @@ import {
 import { useToast } from '@/components/ui/use-toast';
 import { Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
+import { SubscriptionStatus, Plan } from '@prisma/client';
+
+// Define Period enum locally since it's not exported from @prisma/client
+enum Period {
+  WEEKLY = 'WEEKLY',
+  MONTHLY = 'MONTHLY',
+}
+
+interface SubscriptionWithPlan {
+  id: string;
+  status: SubscriptionStatus;
+  currentPeriodEnd: Date;
+  plan: Plan;
+}
 
 function BillingContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
-  const [subscription, setSubscription] = useState<any>(null);
+  const [subscription, setSubscription] = useState<SubscriptionWithPlan | null>(null);
   const selectedPlan = searchParams.get('plan');
 
   useEffect(() => {
@@ -108,7 +122,7 @@ function BillingContent() {
               <CardTitle>Current Plan</CardTitle>
               <CardDescription>
                 {subscription.plan.name} - ${subscription.plan.price}
-                {subscription.plan.period === 'WEEKLY' ? '/week' : '/month'}
+                {subscription.plan.period === Period.WEEKLY ? '/week' : '/month'}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -124,15 +138,17 @@ function BillingContent() {
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm font-medium">Credits</p>
-                  <p className="text-sm text-muted-foreground">
-                    {subscription.plan.credits} credits per {subscription.plan.period.toLowerCase()}
-                  </p>
+                  <p className="text-sm font-medium">Features</p>
+                  <ul className="text-sm text-muted-foreground list-disc list-inside">
+                    {subscription.plan.features.map((feature, index) => (
+                      <li key={index}>{feature}</li>
+                    ))}
+                  </ul>
                 </div>
               </div>
             </CardContent>
             <CardFooter>
-              {subscription.status === 'ACTIVE' && (
+              {subscription.status === SubscriptionStatus.ACTIVE && (
                 <Button
                   variant="destructive"
                   onClick={handleCancelSubscription}

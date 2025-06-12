@@ -48,6 +48,7 @@ export class StripeService {
   async createCheckoutSession({
     customerId,
     planId,
+    priceId,
     userId,
     successUrl,
     cancelUrl,
@@ -57,7 +58,7 @@ export class StripeService {
         customer: customerId,
         line_items: [
           {
-            price: planId,
+            price: priceId,
             quantity: 1,
           },
         ],
@@ -67,6 +68,7 @@ export class StripeService {
         metadata: {
           userId,
           planId,
+          priceId,
         },
       });
 
@@ -78,6 +80,7 @@ export class StripeService {
         metadata: {
           userId,
           planId,
+          priceId,
         },
       };
     } catch (error) {

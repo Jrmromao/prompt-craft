@@ -56,6 +56,7 @@ const isPublicRoute = createRouteMatcher(PUBLIC_ROUTES);
 const isApiRoute = createRouteMatcher('/api/:path*');
 const isCommentRoute = createRouteMatcher('/api/prompts/:id/comments');
 const isVoteRoute = createRouteMatcher('/api/prompts/:id/vote');
+const isStripeRoute = createRouteMatcher('/api/stripe/:path*');
 
 // List of paths that should be handled dynamically
 const dynamicPaths = [
@@ -193,6 +194,19 @@ export default clerkMiddleware(async (auth, req) => {
         status: 204,
         headers: response.headers,
       });
+    }
+
+    // Special handling for Stripe routes
+    if (isStripeRoute(req)) {
+      const { userId } = await auth();
+      if (!userId) {
+        console.error('Unauthorized access to Stripe endpoint');
+        return new NextResponse(JSON.stringify({ error: 'Unauthorized' }), {
+          status: 401,
+          headers: response.headers,
+        });
+      }
+      return response;
     }
 
     // Special handling for vote routes

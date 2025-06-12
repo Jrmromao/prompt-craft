@@ -14,7 +14,7 @@
     "dev": "next dev",
     "dev:debug": "next dev --turbopack --turbo",
     "dev:debug:ui": "next dev --turbopack --turbo --experimental-https",
-    "dev:ngrok": "ngrok http --url=promptcraft.ngrok.app 3000",
+    "dev:ngrok": "ngrok http 3000",
     "build": "next build",
     "start": "next start",
     "format": "prettier --write .",

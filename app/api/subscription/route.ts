@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
-import { SubscriptionService } from '@/lib/services/subscriptionService';
+import { prisma } from '@/lib/prisma';
 import { dynamicRouteConfig, withDynamicRoute } from '@/lib/utils/dynamicRoute';
+import { Period } from '@prisma/client';
 
 // Export dynamic configuration
 export const { dynamic, revalidate, runtime } = dynamicRouteConfig;
@@ -13,8 +14,35 @@ export async function GET() {
       return new NextResponse('Unauthorized', { status: 401 });
     }
 
-    const subscriptionService = SubscriptionService.getInstance();
-    const subscription = await subscriptionService.getSubscriptionDetails(userId);
+    const subscription = await prisma.subscription.findUnique({
+      where: { userId },
+      include: {
+        plan: true,
+      },
+    });
+
+    if (!subscription) {
+      return NextResponse.json({
+        status: 'INCOMPLETE',
+        plan: {
+          id: 'free',
+          name: 'FREE',
+          description: 'Free plan',
+          price: 0,
+          period: Period.MONTHLY,
+          features: ['Basic access'],
+          isActive: true,
+          isEnterprise: false,
+          stripeProductId: '',
+          stripePriceId: '',
+          stripeAnnualPriceId: null,
+          credits: 0,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        currentPeriodEnd: new Date(),
+      });
+    }
 
     return NextResponse.json(subscription);
   } catch (error) {
