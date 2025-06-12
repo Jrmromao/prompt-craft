@@ -13,7 +13,7 @@ export interface ErrorDetails {
 }
 
 export const isConstructorError = (error: Error): boolean => {
-  return error.message.includes('constructor') || error.stack?.includes('constructor');
+  return error.message.includes('constructor') || (error.stack?.includes('constructor') ?? false);
 };
 
 export const handleConstructorError = (error: Error): void => {

@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card } from '@/components/ui/card';
 import { toast } from 'sonner';
+import { trackUserFlowError, trackUserFlowEvent } from '@/lib/error-tracking';
 
 interface ProfileFormProps {
   user: {
@@ -36,6 +37,8 @@ export function ProfileForm({ user }: ProfileFormProps) {
     setIsLoading(true);
 
     try {
+      trackUserFlowEvent('profile_update', 'start_update', { userId: user.id });
+      
       if (clerkUser) {
         await clerkUser.update({
           firstName: formData.name.split(' ')[0],
@@ -43,13 +46,39 @@ export function ProfileForm({ user }: ProfileFormProps) {
         });
       }
 
+      trackUserFlowEvent('profile_update', 'update_success', { userId: user.id });
       toast.success('Profile updated successfully');
       router.refresh();
     } catch (error) {
+      trackUserFlowError('profile_update', error as Error, { 
+        userId: user.id,
+        formData 
+      });
       console.error('Error updating profile:', error);
       toast.error('Failed to update profile');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    try {
+      trackUserFlowEvent('profile_delete', 'start_delete', { userId: user.id });
+      
+      const response = await fetch('/api/profile', {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete account');
+      }
+
+      trackUserFlowEvent('profile_delete', 'delete_success', { userId: user.id });
+      toast.success('Account deleted successfully');
+      router.push('/');
+    } catch (error) {
+      trackUserFlowError('profile_delete', error as Error, { userId: user.id });
+      toast.error('Failed to delete account');
     }
   };
 

@@ -55,7 +55,7 @@ export default class ErrorBoundary extends Component<Props, State> {
       timestamp: new Date().toISOString(),
       url: window.location.href,
       userAgent: navigator.userAgent,
-      componentStack: errorInfo.componentStack,
+      componentStack: errorInfo.componentStack ?? undefined,
     });
 
     // Handle constructor errors specifically

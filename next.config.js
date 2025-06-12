@@ -1,7 +1,8 @@
-const { withSentryConfig } = require('@sentry/nextjs');
+const { withSentryConfig } = require("@sentry/nextjs");
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  reactStrictMode: true,
   images: {
     remotePatterns: [
       {
@@ -25,18 +26,19 @@ const nextConfig = {
         hostname: 'www.gravatar.com',
       },
     ],
+    domains: ['lh3.googleusercontent.com', 'avatars.githubusercontent.com'],
   },
   experimental: {
     optimizeCss: false, // Temporarily disable CSS optimization
     optimizePackageImports: ['@clerk/nextjs', 'lucide-react'],
     serverComponentsExternalPackages: ['@prisma/client', 'bcryptjs'],
+    serverActions: true,
   },
   typescript: {
     ignoreBuildErrors: true,
   },
   output: 'standalone',
   poweredByHeader: false,
-  reactStrictMode: true,
   swcMinify: true,
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production',
@@ -113,11 +115,23 @@ const nextConfig = {
 };
 
 const sentryWebpackPluginOptions = {
-  // Additional options for the Sentry Webpack plugin
-  silent: true, // Suppresses all logs
   // For all available options, see:
-  // https://github.com/getsentry/sentry-webpack-plugin#options.
+  // https://www.npmjs.com/package/@sentry/webpack-plugin#options
+
+  org: "prompthiveco",
+  project: "promptcraft",
+
+  // Only print logs for uploading source maps in CI
+  silent: !process.env.CI,
+
+  // Upload a larger set of source maps for prettier stack traces (increases build time)
+  widenClientFileUpload: true,
+
+  // Automatically tree-shake Sentry logger statements to reduce bundle size
+  disableLogger: true,
+
+  // Enables automatic instrumentation of Vercel Cron Monitors
+  automaticVercelMonitors: true,
 };
 
-// Make sure adding Sentry options is the last code to run before exporting
 module.exports = withSentryConfig(nextConfig, sentryWebpackPluginOptions);

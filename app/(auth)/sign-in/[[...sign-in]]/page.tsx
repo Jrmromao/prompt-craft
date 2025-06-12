@@ -3,9 +3,18 @@ import { SignIn } from '@clerk/nextjs';
 import { Sparkles, Sun, Moon } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { dark} from '@clerk/themes';
+import { trackUserFlowError, trackUserFlowEvent } from '@/lib/error-tracking';
 
 export default function SignInPage() {
   const { theme, setTheme } = useTheme();
+
+  const handleError = (error: Error) => {
+    trackUserFlowError('login', error, {
+      theme,
+      timestamp: new Date().toISOString(),
+    });
+  };
+
   return (
     <div
       className={`relative flex min-h-screen items-center justify-center bg-white text-gray-900 transition-colors duration-300 dark:bg-black dark:text-white`}
@@ -74,6 +83,8 @@ export default function SignInPage() {
           path="/sign-in"
           signUpUrl="/sign-up"
           fallbackRedirectUrl="/profile"
+          afterSignInUrl="/profile"
+          onError={handleError}
         />
 
         <div className="mt-2 text-center">
