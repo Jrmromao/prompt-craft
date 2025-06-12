@@ -15,6 +15,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { SubscriptionStatus, Plan } from '@prisma/client';
+import { RealtimeUsageDisplay } from '@/components/usage/RealtimeUsageDisplay';
 
 // Define Period enum locally since it's not exported from @prisma/client
 enum Period {
@@ -117,55 +118,65 @@ function BillingContent() {
         <h1 className="mb-8 text-3xl font-bold">Billing & Subscription</h1>
 
         {subscription ? (
-          <Card>
-            <CardHeader>
-              <CardTitle>Current Plan</CardTitle>
-              <CardDescription>
-                {subscription.plan.name} - ${subscription.plan.price}
-                {subscription.plan.period === Period.WEEKLY ? '/week' : '/month'}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div>
-                  <p className="text-sm font-medium">Status</p>
-                  <p className="text-sm text-muted-foreground">{subscription.status}</p>
+          <>
+            <Card>
+              <CardHeader>
+                <CardTitle>Current Plan</CardTitle>
+                <CardDescription>
+                  {subscription.plan.name} - ${subscription.plan.price}
+                  {subscription.plan.period === Period.WEEKLY ? '/week' : '/month'}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div>
+                    <p className="text-sm font-medium">Status</p>
+                    <p className="text-sm text-muted-foreground">{subscription.status}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">Next Billing Date</p>
+                    <p className="text-sm text-muted-foreground">
+                      {format(new Date(subscription.currentPeriodEnd), 'yyyy-MM-dd')}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">Features</p>
+                    <ul className="text-sm text-muted-foreground list-disc list-inside">
+                      {subscription.plan.features.map((feature, index) => (
+                        <li key={index}>{feature}</li>
+                      ))}
+                    </ul>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-sm font-medium">Next Billing Date</p>
-                  <p className="text-sm text-muted-foreground">
-                    {format(new Date(subscription.currentPeriodEnd), 'yyyy-MM-dd')}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium">Features</p>
-                  <ul className="text-sm text-muted-foreground list-disc list-inside">
-                    {subscription.plan.features.map((feature, index) => (
-                      <li key={index}>{feature}</li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-            </CardContent>
-            <CardFooter>
-              {subscription.status === SubscriptionStatus.ACTIVE && (
-                <Button
-                  variant="destructive"
-                  onClick={handleCancelSubscription}
-                  disabled={isLoading}
-                >
-                  {isLoading ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Canceling...
-                    </>
-                  ) : (
-                    'Cancel Subscription'
-                  )}
-                </Button>
-              )}
-            </CardFooter>
-          </Card>
+              </CardContent>
+              <CardFooter>
+                {subscription.status === SubscriptionStatus.ACTIVE && (
+                  <Button
+                    variant="destructive"
+                    onClick={handleCancelSubscription}
+                    disabled={isLoading}
+                  >
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Canceling...
+                      </>
+                    ) : (
+                      'Cancel Subscription'
+                    )}
+                  </Button>
+                )}
+              </CardFooter>
+            </Card>
+
+            <div className="mt-8">
+              <RealtimeUsageDisplay 
+                title="Real-time Usage"
+                showProgress={true}
+                className="w-full"
+              />
+            </div>
+          </>
         ) : selectedPlan ? (
           <Card>
             <CardHeader>

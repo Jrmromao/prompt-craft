@@ -13,6 +13,7 @@ import {
   CartesianGrid,
 } from 'recharts';
 import { format } from 'date-fns';
+import { RealtimeUsageDisplay } from '@/components/usage/RealtimeUsageDisplay';
 
 interface UsageTabProps {
   user: {
@@ -60,6 +61,13 @@ export function UsageTab({ user, usageData, recentPrompts }: UsageTabProps) {
           </div>
         </Card>
       </div>
+
+      {/* Real-time Usage */}
+      <RealtimeUsageDisplay 
+        title="Real-time Usage"
+        showProgress={true}
+        className="w-full"
+      />
 
       {/* Usage Chart */}
       <Card className="p-6">

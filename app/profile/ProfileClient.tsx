@@ -557,96 +557,51 @@ function ProfileContent({ user, currentPath }: ProfileClientProps) {
   );
 
   function UsageStatsSection() {
-    const { data, error, isLoading } = useSWR<UsageData>('/api/profile/usage', (url: string) =>
-      fetch(url).then(r => r.json())
-    );
-    const [dots, setDots] = useState(0);
+    const { data: usageData, error: usageError, isLoading: usageLoading } = useSWR<UsageData>('/api/usage', fetcher);
+    const recentActivity = usageData?.recentActivity || [];
 
-    useEffect(() => {
-      const interval = setInterval(() => {
-        setDots((prev: number) => (prev + 1) % 4);
-      }, 400);
-      return () => clearInterval(interval);
-    }, []);
-
-    if (isLoading) {
+    if (usageLoading) {
       return (
-        <div className="p-8 text-center text-muted-foreground">Loading usage{'.'.repeat(dots)}</div>
+        <div className="p-8 text-center text-muted-foreground">
+          Loading usage statistics...
+        </div>
       );
     }
-    if (error || !data) {
-      return <div className="p-8 text-center text-red-500">Failed to load usage data.</div>;
+
+    if (usageError || !usageData) {
+      return (
+        <div className="p-8 text-center text-red-500">
+          Failed to load usage statistics.
+        </div>
+      );
     }
 
-    const {
-      totalCreditsUsed,
-      creditsRemaining,
-      creditCap,
-      lastCreditReset,
-      totalRequests,
-      dailyUsage,
-      recentActivity,
-    } = data;
-
     return (
-      <div className="flex flex-col gap-8">
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-          <div className="rounded-lg bg-muted p-4 text-center">
-            <div className="mb-1 text-xs text-muted-foreground">Credits Used</div>
-            <div className="text-xl font-bold">{totalCreditsUsed}</div>
-          </div>
-          <div className="rounded-lg bg-muted p-4 text-center">
-            <div className="mb-1 text-xs text-muted-foreground">Credits Remaining</div>
-            <div className="text-xl font-bold">{creditsRemaining}</div>
-          </div>
-          <div className="rounded-lg bg-muted p-4 text-center">
-            <div className="mb-1 text-xs text-muted-foreground">Total Requests</div>
-            <div className="text-xl font-bold">{totalRequests}</div>
-          </div>
-          <div className="rounded-lg bg-muted p-4 text-center">
-            <div className="mb-1 text-xs text-muted-foreground">Last Reset</div>
-            <div className="text-sm font-semibold">
-              {lastCreditReset ? new Date(lastCreditReset).toLocaleDateString() : '-'}
-            </div>
-          </div>
-        </div>
-        <div className="mt-4">
-          <div className="mb-2 flex items-center justify-between">
-            <div className="text-sm font-semibold">Daily Usage (last 30 days)</div>
-          </div>
-          <div className="h-48 w-full rounded-xl border border-border bg-background md:h-56">
+      <div className="space-y-8">
+        {/* Usage Chart */}
+        <div>
+          <div className="mb-2 text-sm font-semibold">Daily Usage</div>
+          <div className="h-[300px] w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={dailyUsage} margin={{ top: 16, right: 24, left: 0, bottom: 0 }}>
+              <AreaChart data={usageData.dailyUsage}>
                 <defs>
                   <linearGradient id="usageGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#a855f7" stopOpacity={0.6} />
-                    <stop offset="95%" stopColor="#a855f7" stopOpacity={0.05} />
+                    <stop offset="5%" stopColor="#a855f7" stopOpacity={0.8} />
+                    <stop offset="95%" stopColor="#a855f7" stopOpacity={0.1} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                <CartesianGrid strokeDasharray="3 3" />
                 <XAxis
                   dataKey="date"
-                  tickFormatter={d => {
-                    const date = new Date(d);
-                    return `${date.getDate()}/${date.getMonth() + 1}`;
-                  }}
-                  fontSize={12}
-                  tick={{ fill: '#a1a1aa' }}
-                  minTickGap={4}
+                  tickFormatter={d => new Date(d).toLocaleDateString()}
                 />
-                <YAxis
-                  fontSize={12}
-                  tick={{ fill: '#a1a1aa' }}
-                  width={32}
-                  axisLine={false}
-                  tickLine={false}
-                />
+                <YAxis />
                 <RechartsTooltip
                   contentStyle={{
-                    background: '#fff',
-                    borderRadius: 8,
-                    border: '1px solid #e5e7eb',
-                    color: '#333',
+                    backgroundColor: 'white',
+                    border: '1px solid #e2e8f0',
+                    borderRadius: '0.5rem',
+                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
                   }}
                   labelFormatter={d => `Date: ${new Date(d).toLocaleDateString()}`}
                   formatter={v => [`${v} credits`, 'Used']}
