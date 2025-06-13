@@ -782,19 +782,6 @@ function ProfileContent({ user, currentPath }: ProfileClientProps) {
         </ErrorBoundary>
         {/* Main Content */}
         <main className="mx-auto flex w-full max-w-[1180px] flex-1 flex-col gap-8">
-          {/* Profile Header Card */}
-          {/* <ErrorBoundary fallback={<div>Error</div>}>
-            <ProfileHeader
-              user={user}
-              status={status}
-              statusColor={statusColor}
-              statusLabel={statusLabel}
-              isPro={isPro}
-              canUpgrade={canUpgrade}
-              creditPercentage={creditPercentage}
-              router={router}
-            />
-          </ErrorBoundary> */}
           {/* Tabs for profile sections */}
           <ErrorBoundary fallback={<div>Error</div>}>
             <Tabs value={activeTab} onValueChange={handleTabChange} defaultValue="overview" className="w-full">

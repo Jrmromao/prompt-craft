@@ -4,7 +4,8 @@ import { clerkClient } from '@clerk/nextjs/server';
 import { prisma } from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
 import { Prisma, UserStatus } from '@prisma/client';
-import { Role, requireRole, hasRole, toPrismaRole, fromPrismaRole } from '@/utils/roles';
+import { Role, hasRole, toPrismaRole, fromPrismaRole } from '@/utils/roles';
+import { requireRole } from '@/utils/roles.server';
 
 export type UserData = {
   id: string;

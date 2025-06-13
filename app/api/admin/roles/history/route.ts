@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { Role, requireRole } from '@/utils/roles';
+import { requireRole } from '@/utils/roles.server';
+import { Role } from '@/utils/roles';
+
 
 export async function GET() {
   try {
