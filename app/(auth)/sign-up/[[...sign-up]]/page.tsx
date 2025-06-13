@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { CalendarPopover } from '@/components/ui/calendar-popover';
 
 export default function SignUpPage() {
   const { theme, setTheme, toggleTheme } = useTheme();
@@ -18,7 +19,7 @@ export default function SignUpPage() {
   const { signUp } = useSignUp();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [dateOfBirth, setDateOfBirth] = useState("");
+  const [dateOfBirth, setDateOfBirth] = useState<string>("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -26,6 +27,7 @@ export default function SignUpPage() {
   const [githubHover, setGithubHover] = useState(false);
 
   function getAge(dateString: string): number {
+    if (!dateString) return 0;
     const today = new Date();
     const birthDate = new Date(dateString);
     let age = today.getFullYear() - birthDate.getFullYear();
@@ -40,11 +42,18 @@ export default function SignUpPage() {
     e.preventDefault();
     setError("");
     setSuccess(false);
+    
+    if (!dateOfBirth) {
+      setError("Please select your date of birth.");
+      return;
+    }
+
     const age = getAge(dateOfBirth);
     if (age < 16) {
       setError("You must be at least 16 years old to sign up.");
       return;
     }
+
     setLoading(true);
     try {
       if (!signUp) {
@@ -58,7 +67,6 @@ export default function SignUpPage() {
         unsafeMetadata: { dateOfBirth },
       });
       setSuccess(true);
-      // Optionally, redirect or continue sign-up flow
     } catch (err: unknown) {
       if (typeof err === 'object' && err !== null && 'errors' in err && Array.isArray((err as any).errors)) {
         setError((err as any).errors?.[0]?.message || "Sign up failed.");
@@ -182,38 +190,23 @@ export default function SignUpPage() {
           </label>
           <div className="flex flex-col gap-2">
             <Label htmlFor="dob">Date of Birth</Label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  id="dob"
-                  className="w-full justify-between font-normal"
-                  aria-label="Select date of birth"
-                >
-                  {dateOfBirth ? new Date(dateOfBirth).toLocaleDateString() : "Select date"}
-                  <ChevronDownIcon className="ml-2 h-4 w-4 opacity-50" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto overflow-hidden p-0" align="start">
-                <Calendar
-                  mode="single"
-                  selected={dateOfBirth ? new Date(dateOfBirth) : undefined}
-                  captionLayout="dropdown"
-                  fromYear={new Date().getFullYear() - 100}
-                  toYear={new Date().getFullYear() - 16}
-                  onSelect={date => {
-                    setDateOfBirth(date ? date.toISOString().split('T')[0] : '');
-                  }}
-                  disabled={date =>
-                    !date ||
-                    date > new Date() ||
-                    date.getFullYear() > new Date().getFullYear() - 16 ||
-                    date.getFullYear() < new Date().getFullYear() - 100
-                  }
-                  className="rounded-md border bg-background"
-                />
-              </PopoverContent>
-            </Popover>
+            <CalendarPopover
+              label=""
+              value={dateOfBirth ? new Date(dateOfBirth) : undefined}
+              onChange={(date) => {
+                if (date) {
+                  // Format as YYYY-MM-DD in local time
+                  const year = date.getFullYear();
+                  const month = String(date.getMonth() + 1).padStart(2, '0');
+                  const day = String(date.getDate()).padStart(2, '0');
+                  setDateOfBirth(`${year}-${month}-${day}`);
+                } else {
+                  setDateOfBirth("");
+                }
+              }}
+              placeholder="Select date"
+              className="w-full justify-between font-normal"
+            />
             <span className="text-xs text-gray-400 dark:text-gray-500">You must be at least 16 years old. No future dates allowed.</span>
           </div>
           <p className="text-xs text-gray-600 dark:text-gray-400">

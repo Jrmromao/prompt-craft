@@ -170,7 +170,7 @@ export function MyPromptsClient({ prompts }: MyPromptsClientProps) {
                       <div className="flex flex-wrap gap-2">
                         {prompt.tags.slice(0, 2).map(tag => (
                           <Badge
-                            key={tag.id}
+                            key={`${tag.id}-${tag.name}`}
                             variant="outline"
                             className="border-purple-200 bg-purple-100/40 text-purple-700 dark:border-purple-500/20 dark:bg-purple-500/10 dark:text-purple-300"
                           >
@@ -238,7 +238,7 @@ export function MyPromptsClient({ prompts }: MyPromptsClientProps) {
                       <div className="flex flex-wrap gap-2">
                         {prompt.tags.map(tag => (
                           <Badge
-                            key={tag.id}
+                            key={`${tag.id}-${tag.name}`}
                             variant="outline"
                             className="border-purple-200 bg-purple-100/40 text-purple-700 dark:border-purple-500/20 dark:bg-purple-500/10 dark:text-purple-300"
                           >
