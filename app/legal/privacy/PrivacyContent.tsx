@@ -29,6 +29,7 @@ export function PrivacyContent({ user }: PrivacyContentProps) {
     { id: 'international', title: 'International Data Transfers' },
     { id: 'changes', title: 'Changes to Policy' },
     { id: 'contact', title: 'Contact Us' },
+    { id: 'data-retention', title: 'Data Retention and Processing' },
   ];
 
   return (
@@ -464,6 +465,61 @@ export function PrivacyContent({ user }: PrivacyContentProps) {
                   </a>
                   .
                 </p>
+              </section>
+
+              <section id="data-retention">
+                <h2>3. Data Retention and Processing</h2>
+                
+                <h3>3.1 Data Retention Periods</h3>
+                <p>We retain your personal data for specific periods based on the type of data and its purpose:</p>
+                <ul>
+                  <li><strong>Account Data:</strong> Retained for the duration of your account's existence. Upon account deletion, data is permanently removed within 30 days.</li>
+                  <li><strong>Usage Data:</strong> Retained for 12 months from the date of collection.</li>
+                  <li><strong>Analytics Data:</strong> Retained for 13 months from the date of collection.</li>
+                  <li><strong>Marketing Preferences:</strong> Retained until you opt-out or request deletion.</li>
+                  <li><strong>Support Communications:</strong> Retained for 24 months from the last interaction.</li>
+                </ul>
+
+                <h3>3.2 Data Processing Procedures</h3>
+                <p>We process your data in accordance with the following procedures:</p>
+                <ul>
+                  <li><strong>Data Collection:</strong> We collect data directly from you when you create an account, use our services, or interact with our platform.</li>
+                  <li><strong>Data Storage:</strong> All data is stored in secure, encrypted databases with access controls and regular security audits.</li>
+                  <li><strong>Data Processing:</strong> Your data is processed for the following purposes:
+                    <ul>
+                      <li>Providing and maintaining our services</li>
+                      <li>Improving user experience</li>
+                      <li>Ensuring platform security</li>
+                      <li>Complying with legal obligations</li>
+                    </ul>
+                  </li>
+                  <li><strong>Data Sharing:</strong> We only share your data with:
+                    <ul>
+                      <li>Service providers who assist in operating our platform</li>
+                      <li>Legal authorities when required by law</li>
+                      <li>Third parties with your explicit consent</li>
+                    </ul>
+                  </li>
+                </ul>
+
+                <h3>3.3 Data Deletion Process</h3>
+                <p>When you request data deletion:</p>
+                <ul>
+                  <li>Your account and associated data are marked for deletion</li>
+                  <li>Data is permanently removed within 30 days</li>
+                  <li>Backup copies are deleted within 90 days</li>
+                  <li>You receive confirmation of deletion completion</li>
+                </ul>
+
+                <h3>3.4 Data Security Measures</h3>
+                <p>We implement the following security measures to protect your data:</p>
+                <ul>
+                  <li>Encryption of data in transit and at rest</li>
+                  <li>Regular security audits and penetration testing</li>
+                  <li>Access controls and authentication mechanisms</li>
+                  <li>Regular backup procedures</li>
+                  <li>Incident response and breach notification procedures</li>
+                </ul>
               </section>
 
               <div className="mt-8 rounded-lg bg-gray-50 p-4 dark:bg-gray-900">

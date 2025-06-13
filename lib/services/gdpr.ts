@@ -3,9 +3,9 @@ import { User, DataExportRequest, DataRectificationRequest } from '@prisma/clien
 import { Prisma } from '@prisma/client';
 
 export class GDPRService {
-  async exportUserData(userId: string): Promise<UserDataExport> {
+  async exportUserData(clerkId: string): Promise<UserDataExport> {
     const user = await prisma.user.findUnique({
-      where: { id: userId },
+      where: { clerkId },
       include: {
         consentHistory: true,
         dataProcessingRecords: true,
@@ -31,7 +31,7 @@ export class GDPRService {
     // Create export request record
     await prisma.dataExportRequest.create({
       data: {
-        userId,
+        userId: user.id,
         status: 'PENDING',
         format: 'JSON',
       },
@@ -41,17 +41,25 @@ export class GDPRService {
     return this.formatUserData(user);
   }
 
-  async handleDeletionRequest(userId: string): Promise<void> {
+  async handleDeletionRequest(clerkId: string): Promise<void> {
+    const user = await prisma.user.findUnique({
+      where: { clerkId },
+    });
+
+    if (!user) {
+      throw new Error('User not found');
+    }
+
     // Create deletion request record
     await prisma.user.update({
-      where: { id: userId },
+      where: { clerkId },
       data: {
         dataDeletionRequest: new Date(),
       },
     });
 
     // Implement deletion logic
-    await this.anonymizeUserData(userId);
+    await this.anonymizeUserData(clerkId);
   }
 
   async handleRectificationRequest(
@@ -109,12 +117,20 @@ export class GDPRService {
     }
   }
 
-  private async anonymizeUserData(userId: string): Promise<void> {
+  private async anonymizeUserData(clerkId: string): Promise<void> {
+    const user = await prisma.user.findUnique({
+      where: { clerkId },
+    });
+
+    if (!user) {
+      throw new Error('User not found');
+    }
+
     // Implement data anonymization
     await prisma.user.update({
-      where: { id: userId },
+      where: { clerkId },
       data: {
-        email: `deleted_${userId}@deleted.com`,
+        email: `deleted_${user.id}@deleted.com`,
         name: 'Deleted User',
         bio: null,
         company: null,
@@ -130,12 +146,12 @@ export class GDPRService {
 
     // Delete or anonymize related data
     await Promise.all([
-      prisma.apiKey.deleteMany({ where: { userId } }),
-      prisma.comment.deleteMany({ where: { userId } }),
-      prisma.prompt.deleteMany({ where: { userId } }),
-      prisma.promptTemplate.deleteMany({ where: { userId } }),
-      prisma.promptGeneration.deleteMany({ where: { userId } }),
-      prisma.vote.deleteMany({ where: { userId } }),
+      prisma.apiKey.deleteMany({ where: { userId: user.id } }),
+      prisma.comment.deleteMany({ where: { userId: user.id } }),
+      prisma.prompt.deleteMany({ where: { userId: user.id } }),
+      prisma.promptTemplate.deleteMany({ where: { userId: user.id } }),
+      prisma.promptGeneration.deleteMany({ where: { userId: user.id } }),
+      prisma.vote.deleteMany({ where: { userId: user.id } }),
     ]);
   }
 

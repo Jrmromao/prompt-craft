@@ -1,10 +1,10 @@
 import { GDPRService } from '@/lib/services/gdpr';
 
-const gdprService = new GDPRService();
-
 export async function enforceDataRetention() {
+  console.log('Starting data retention enforcement...');
+  
   try {
-    console.log('Starting data retention enforcement...');
+    const gdprService = new GDPRService();
     await gdprService.checkAndEnforceRetention();
     console.log('Data retention enforcement completed');
   } catch (error) {

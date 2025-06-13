@@ -17,21 +17,42 @@ export default function PrivacySettingsPage() {
   const handleExportData = async () => {
     try {
       setIsLoading(true);
-      const response = await fetch('/api/gdpr/export', { method: 'POST' });
-      if (!response.ok) throw new Error('Failed to export data');
+      const response = await fetch('/api/gdpr/export', { 
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to export data');
+      }
+
       const data = await response.json();
-      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      
+      // Create a blob with the data
+      const blob = new Blob([JSON.stringify(data, null, 2)], { 
+        type: 'application/json' 
+      });
+      
+      // Create a download link
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `user-data-${new Date().toISOString()}.json`;
+      a.download = `user-data-${new Date().toISOString().split('T')[0]}.json`;
+      
+      // Trigger the download
       document.body.appendChild(a);
       a.click();
+      
+      // Cleanup
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
-      toast.success('Data exported successfully');
+      
+      toast.success('Your data has been exported successfully');
     } catch (error) {
-      toast.error('Failed to export data');
+      console.error('Error exporting data:', error);
+      toast.error('Failed to export your data. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -58,16 +79,22 @@ export default function PrivacySettingsPage() {
   };
 
   const handleConsentChange = async (purpose: 'marketing' | 'analytics', granted: boolean) => {
+    const previousValue = purpose === 'marketing' ? marketingConsent : analyticsConsent;
     try {
-      if (purpose === 'marketing') setMarketingConsent(granted);
-      if (purpose === 'analytics') setAnalyticsConsent(granted);
-      await fetch('/api/gdpr/consent', {
+      const response = await fetch('/api/gdpr/consent', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ purpose, granted }),
       });
+      
+      if (!response.ok) throw new Error('Failed to update preferences');
+      
+      if (purpose === 'marketing') setMarketingConsent(granted);
+      if (purpose === 'analytics') setAnalyticsConsent(granted);
       toast.success('Preferences updated');
     } catch (error) {
+      if (purpose === 'marketing') setMarketingConsent(previousValue);
+      if (purpose === 'analytics') setAnalyticsConsent(previousValue);
       toast.error('Failed to update preferences');
     }
   };
@@ -92,8 +119,22 @@ export default function PrivacySettingsPage() {
           </div>
         </CardHeader>
         <CardContent>
-          <Button onClick={handleExportData} disabled={isLoading}>
-            <Download className="mr-2 h-4 w-4" /> Export Data
+          <Button 
+            onClick={handleExportData} 
+            disabled={isLoading}
+            className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+          >
+            {isLoading ? (
+              <>
+                <Download className="mr-2 h-4 w-4 animate-spin" />
+                Exporting...
+              </>
+            ) : (
+              <>
+                <Download className="mr-2 h-4 w-4" />
+                Export Data
+              </>
+            )}
           </Button>
         </CardContent>
       </Card>
@@ -108,7 +149,11 @@ export default function PrivacySettingsPage() {
           </div>
         </CardHeader>
         <CardContent>
-          <Button variant="destructive" onClick={() => setShowDeleteModal(true)}>
+          <Button 
+            variant="destructive" 
+            onClick={() => setShowDeleteModal(true)}
+            className="bg-red-600 hover:bg-red-700"
+          >
             <Trash2 className="mr-2 h-4 w-4" /> Delete Account
           </Button>
         </CardContent>
@@ -177,8 +222,20 @@ export default function PrivacySettingsPage() {
               <Button variant="outline" onClick={() => setShowDeleteModal(false)} disabled={isLoading}>
                 Cancel
               </Button>
-              <Button variant="destructive" onClick={handleDeleteAccount} disabled={isLoading || deleteConfirm !== 'DELETE'}>
-                Delete Account
+              <Button 
+                variant="destructive" 
+                onClick={handleDeleteAccount} 
+                disabled={isLoading || deleteConfirm !== 'DELETE'}
+                className="bg-red-600 hover:bg-red-700"
+              >
+                {isLoading ? (
+                  <>
+                    <Trash2 className="mr-2 h-4 w-4 animate-spin" />
+                    Deleting...
+                  </>
+                ) : (
+                  'Delete Account'
+                )}
               </Button>
             </div>
           </div>

@@ -18,6 +18,13 @@ This document outlines the core design principles and best practices that guide 
 - Muted backgrounds and subtle borders for a calm, modern feel.
 - Ensure all color choices meet WCAG AA contrast standards.
 
+## 2a. Typography & Font Choice
+- The app uses the Inter font family globally for all headings, UI, and body text.
+- Inter is a modern, highly readable, and open-source sans-serif font, inspired by leading SaaS and publishing platforms (such as Medium).
+- This choice ensures clarity, consistency, and a premium feel across all devices and screen sizes.
+- Font weights (400, 600, 700) are used for clear hierarchy and emphasis.
+- Fallbacks include 'Helvetica Neue', Arial, and system sans-serif fonts for maximum compatibility.
+
 ## 3. Responsiveness
 - The app is fully responsive and works on all device sizes (mobile, tablet, desktop).
 - Use flexible layouts (Flexbox, Grid) and relative units (rem, %, vw/vh).

@@ -72,7 +72,7 @@ class CreateSubscriptionHandler extends BaseApiHandler {
       planId: planData.stripeProductId,
       priceId: planData.stripePriceId,
       userId: user.id,
-      successUrl: `${process.env.NEXT_PUBLIC_APP_URL}/profile?success=true`,
+      successUrl: `${process.env.NEXT_PUBLIC_APP_URL}/signup?email=${encodeURIComponent(user.email)}&name=${encodeURIComponent(user.name || '')}`,
       cancelUrl: `${process.env.NEXT_PUBLIC_APP_URL}/pricing?canceled=true`,
     });
 

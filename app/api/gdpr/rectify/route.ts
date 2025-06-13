@@ -1,26 +1,22 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { GDPRService } from '@/lib/services/gdpr';
-import { User } from '@prisma/client';
 
-const gdprService = new GDPRService();
-
-export async function POST(request: Request) {
+export async function POST(req: Request) {
   try {
     const session = await auth();
     if (!session?.userId) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const data = await request.json();
-    await gdprService.handleRectificationRequest(session.userId, data as Partial<User>);
+    const data = await req.json();
+    const gdprService = new GDPRService();
     
-    return NextResponse.json({ message: 'Rectification request received' });
+    await gdprService.handleRectificationRequest(session.userId, data);
+    
+    return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Error processing rectification request:', error);
+    console.error('Error handling rectification request:', error);
     return NextResponse.json(
       { error: 'Failed to process rectification request' },
       { status: 500 }

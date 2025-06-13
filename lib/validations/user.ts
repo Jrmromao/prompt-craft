@@ -31,19 +31,22 @@ export const userProfileSchema = z.object({
     .string()
     .url('Invalid website URL')
     .max(2048, 'Website URL must be less than 2048 characters')
-    .optional(),
+    .optional()
+    .or(z.literal('')),
 
   twitter: z
     .string()
     .max(50, 'Twitter handle must be less than 50 characters')
     .regex(/^@?[A-Za-z0-9_]+$/, 'Invalid Twitter handle format')
-    .optional(),
+    .optional()
+    .or(z.literal('')),
 
   linkedin: z
     .string()
     .max(100, 'LinkedIn profile URL must be less than 100 characters')
     .url('Invalid LinkedIn profile URL')
-    .optional(),
+    .optional()
+    .or(z.literal('')),
 });
 
 // User settings validation schema
