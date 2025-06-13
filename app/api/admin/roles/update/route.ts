@@ -1,7 +1,9 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { prisma } from '@/lib/prisma';
-import { Role, requireRole, toPrismaRole } from '@/utils/roles';
+import { Role, toPrismaRole } from '@/utils/roles';
+import * as Sentry from '@sentry/nextjs';
+import { requireRole } from '@/utils/roles.server';
 
 export async function POST(req: Request) {
   try {
@@ -47,6 +49,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json(updatedUser);
   } catch (error) {
+    Sentry.captureException(error);
     console.error('Error updating role:', error);
     return new NextResponse('Internal Server Error', { status: 500 });
   }
