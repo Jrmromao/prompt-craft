@@ -1,7 +1,7 @@
 # Component Architecture
 
 ## Overview
-This document outlines the component architecture for PromptCraft's enterprise features, following React best practices and the Next.js project structure.
+This document outlines the component architecture for PromptHive's enterprise features, following React best practices and the Next.js project structure.
 
 ## Core Components Structure
 

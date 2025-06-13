@@ -26,7 +26,7 @@ describe('EmailService', () => {
 
       expect(result.success).toBe(true);
       expect(mockSend).toHaveBeenCalledWith({
-        from: 'PromptCraft <noreply@promptcraft.ai>',
+        from: 'PromptHive <noreply@promptcraft.ai>',
         to: 'test@example.com',
         subject: 'Test Subject',
         html: '<p>Test content</p>',
@@ -98,7 +98,7 @@ describe('EmailService', () => {
 
       expect(result.success).toBe(true);
       expect(mockSend).toHaveBeenCalledWith({
-        from: 'PromptCraft <noreply@promptcraft.ai>',
+        from: 'PromptHive <noreply@promptcraft.ai>',
         to: 'test@example.com',
         subject: expect.stringContaining('Usage Alert'),
         html: expect.stringContaining('90%'),
@@ -157,7 +157,7 @@ describe('EmailService', () => {
 
       expect(result.success).toBe(true);
       expect(mockSend).toHaveBeenCalledWith({
-        from: 'PromptCraft <noreply@promptcraft.ai>',
+        from: 'PromptHive <noreply@promptcraft.ai>',
         to: 'test@example.com',
         subject: 'Payment Failed - Action Required',
         html: expect.stringContaining('Card declined'),
@@ -233,7 +233,7 @@ describe('EmailService', () => {
 
       const result = await emailService.sendEmail({
         email: 'test@example.com',
-        subject: 'Payment Successful - PromptCraft',
+        subject: 'Payment Successful - PromptHive',
         html: `
           <h1>Payment Successful</h1>
           <p>Hello Test User,</p>
@@ -244,9 +244,9 @@ describe('EmailService', () => {
 
       expect(result.success).toBe(true);
       expect(mockSend).toHaveBeenCalledWith({
-        from: 'PromptCraft <noreply@promptcraft.ai>',
+        from: 'PromptHive <noreply@promptcraft.ai>',
         to: 'test@example.com',
-        subject: 'Payment Successful - PromptCraft',
+        subject: 'Payment Successful - PromptHive',
         html: expect.stringContaining('Payment Successful'),
       });
     });
@@ -256,7 +256,7 @@ describe('EmailService', () => {
 
       const result = await emailService.sendEmail({
         email: 'test@example.com',
-        subject: 'Payment Successful - PromptCraft',
+        subject: 'Payment Successful - PromptHive',
         html: '<p>Test content</p>',
       });
 
@@ -269,7 +269,7 @@ describe('EmailService', () => {
 
       const result = await emailService.sendEmail({
         email: 'test@example.com',
-        subject: 'Payment Successful - PromptCraft',
+        subject: 'Payment Successful - PromptHive',
         html: `
           <h1>Payment Successful</h1>
           <p>Hello there,</p>

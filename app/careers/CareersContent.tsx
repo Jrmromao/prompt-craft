@@ -1,5 +1,4 @@
 import { currentUser } from '@clerk/nextjs/server';
-import { NavBar } from '@/components/layout/NavBar';
 import { AuthOptionsBar } from '@/components/layout/AuthOptionsBar';
 import Link from 'next/link';
 
@@ -42,7 +41,6 @@ export default async function CareersContent() {
 
   return (
     <div className="min-h-screen bg-white text-gray-900 dark:bg-black dark:text-white">
-      {navUser ? <NavBar user={navUser} /> : <AuthOptionsBar />}
       <main className="mx-auto max-w-4xl px-4 py-16">
         <h1 className="mb-8 text-4xl font-bold">Careers</h1>
         <div className="grid gap-6">

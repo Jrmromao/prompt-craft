@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { auth, clerkClient } from '@clerk/nextjs/server';
 import { AuditAction } from '@/app/constants/audit';
 import { logAudit } from '@/app/lib/auditLogger';
+import { Redis } from '@upstash/redis';
 
 // Prevent static generation of this route
 export const dynamic = 'force-dynamic';
@@ -38,11 +39,55 @@ const mockLoginHistory: Session[] = [
   },
 ];
 
+const redis = Redis.fromEnv();
+const USER_CACHE_TTL = 600; // 10 minutes
+
+interface CachedUser {
+  id: string;
+  name: string;
+  email: string;
+  imageUrl?: string;
+  role: string;
+  planType: string;
+}
+
 export async function GET(request: Request) {
   try {
     const { userId } = await auth();
     if (!userId) {
       return new NextResponse('Unauthorized', { status: 401 });
+    }
+    // Ensure user exists in the database before logging, with Redis cache
+    const userCacheKey = `user:${userId}`;
+
+    let user: CachedUser | null = null
+
+    console.log('userId from Clerk:', userId);
+    console.log('userCacheKey:', userCacheKey);
+    user = await redis.get(userCacheKey);
+    console.log('User from Redis:', user);
+    if (!user) {
+      const dbUser = await import('@/lib/prisma').then(m => m.prisma.user.findUnique({ where: { clerkId: userId }, select: { id: true, name: true, email: true, imageUrl: true, role: true, planType: true } }));
+      console.log('User from DB:', dbUser);
+      if (!dbUser) {
+        console.log('User not found in database for clerkId:', userId);
+        return new NextResponse('User not found in database', { status: 404 });
+      }
+      // Normalize null fields to empty string for type safety
+      user = {
+        id: dbUser.id,
+        name: dbUser.name ?? '',
+        email: dbUser.email,
+        imageUrl: dbUser.imageUrl ?? undefined,
+        role: dbUser.role,
+        planType: dbUser.planType,
+      };
+      await redis.set(userCacheKey, JSON.stringify(user), { ex: USER_CACHE_TTL });
+      console.log('User cached in Redis:', user);
+    } else {
+      user = typeof user === 'string' ? JSON.parse(user) : user;
+      user = user as CachedUser;
+      console.log('Parsed user from Redis:', user);
     }
     // Get user's sessions
     const client = await clerkClient();
@@ -61,7 +106,7 @@ export async function GET(request: Request) {
     
     await logAudit({
       action: AuditAction.GET_LOGIN_HISTORY,
-      userId,
+      userId: user.id, // Use DB id for audit log
       resource: 'login-history',
       status: 'success',
       details: { loginHistory },

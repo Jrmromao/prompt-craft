@@ -14,11 +14,11 @@ interface BlogContentProps {
 
 const mockPosts = [
   {
-    title: 'Welcome to PromptCraft: The Future of AI Prompt Engineering',
+    title: 'Welcome to PromptHive: The Future of AI Prompt Engineering',
     date: '2024-06-01',
     summary:
-      'Discover how PromptCraft empowers creators and teams to build, share, and optimize AI prompts for every use case.',
-    slug: 'welcome-to-PromptCraft',
+      'Discover how PromptHive empowers creators and teams to build, share, and optimize AI prompts for every use case.',
+    slug: 'welcome-to-PromptHive',
   },
   {
     title: '5 Tips for Writing Better AI Prompts',
@@ -31,7 +31,7 @@ const mockPosts = [
     title: 'Community Spotlight: Top Prompts of the Month',
     date: '2024-05-10',
     summary:
-      'See what the PromptCraft community is creating and get inspired by the most popular prompts this month.',
+      'See what the PromptHive community is creating and get inspired by the most popular prompts this month.',
     slug: 'community-spotlight-may-2024',
   },
 ];
@@ -39,7 +39,6 @@ const mockPosts = [
 export default function BlogContent({ user }: BlogContentProps) {
   return (
     <div className="min-h-screen bg-white text-gray-900 dark:bg-black dark:text-white">
-      {user ? <NavBar user={user} /> : <AuthOptionsBar />}
       <main className="mx-auto max-w-4xl px-4 py-16">
         <h1 className="mb-8 text-4xl font-bold">Blog</h1>
         <div className="grid gap-8">

@@ -53,6 +53,7 @@
   - [x] Data subject requests
   - [x] Consent changes
   - [x] Data access logs
+- [x] Set up audit logging for Billing & Subscription - HIGH PRIORITY
 
 ### 3. User Management
 - [x] Complete team member management - HIGH PRIORITY

@@ -149,6 +149,13 @@ export default function SignInPage() {
             Sign up now
           </a>
         </div>
+        <div className="text-center mt-4">
+          <a href="/" className="inline-block w-full">
+            <button type="button" className="w-full rounded-md border border-gray-200 dark:border-gray-700 py-2 font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-[#232136] hover:bg-purple-50 dark:hover:bg-[#2a273f] transition">
+              Go Home
+            </button>
+          </a>
+        </div>
       </div>
       {/* Mobile Value Proposition (above card) */}
       <div className="flex md:hidden flex-col items-center justify-center w-full px-6 mt-8 mb-4">

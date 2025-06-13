@@ -1,7 +1,7 @@
 # Test info
 
 - Name: Stripe Subscription Flow >> User can see the subscription/checkout button and mock Stripe checkout
-- Location: /Users/joaofilipe/Desktop/Workspace/PromptCraft/e2e/stripe-subscription.spec.ts:4:7
+- Location: /Users/joaofilipe/Desktop/Workspace/PromptHive/e2e/stripe-subscription.spec.ts:4:7
 
 # Error details
 
@@ -10,7 +10,7 @@ Error: expect(received).toBe(expected) // Object.is equality
 
 Expected: "https://mocked-checkout.stripe.com/session"
 Received: "http://localhost:3000/pricing"
-    at /Users/joaofilipe/Desktop/Workspace/PromptCraft/e2e/stripe-subscription.spec.ts:34:24
+    at /Users/joaofilipe/Desktop/Workspace/PromptHive/e2e/stripe-subscription.spec.ts:34:24
 ```
 
 # Test source

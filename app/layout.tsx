@@ -13,7 +13,7 @@ import { ClerkProvider } from '@clerk/nextjs';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'PromptCraft - AI Prompt Engineering Platform',
+  title: 'PromptHive - AI Prompt Engineering Platform',
   description: 'Create, share, and discover AI prompts for various use cases',
 };
 

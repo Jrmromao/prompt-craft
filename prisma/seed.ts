@@ -7,7 +7,7 @@ async function main() {
   const plans = [
     {
       name: 'PRO',
-      description: 'Perfect for trying out PromptCraft',
+      description: 'Perfect for trying out PromptHive',
       price: 0,
       period: 'MONTHLY',
       isActive: true,

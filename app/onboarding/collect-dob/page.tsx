@@ -68,7 +68,7 @@ export default function CollectDobPage() {
         </h1>
         <p className="text-sm text-gray-600 dark:text-gray-400 text-center">
           For privacy and safety, please confirm your date of birth. <br />
-          <span className="font-medium">You must be at least 16 years old to use PromptCraft.</span>
+          <span className="font-medium">You must be at least 16 years old to use PromptHive.</span>
         </p>
         <form onSubmit={handleSubmit} className="flex flex-col gap-4" aria-labelledby="dob-heading">
           <label htmlFor="dob-calendar" className="flex flex-col gap-1 font-medium">

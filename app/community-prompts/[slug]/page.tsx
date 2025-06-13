@@ -41,13 +41,13 @@ function getPromptJsonLd(prompt: any) {
     '@type': 'CreativeWork',
     name: prompt.name,
     description: prompt.description,
-    url: `http://PromptCraft.co/community-prompts/${prompt.slug}`,
+    url: `http://PromptHive.co/community-prompts/${prompt.slug}`,
     keywords: prompt.tags.map((tag: any) => tag.name).join(', '),
     datePublished: prompt.createdAt.toISOString(),
     dateModified: prompt.updatedAt.toISOString(),
     author: {
       '@type': 'Organization',
-      name: 'PromptCraft',
+      name: 'PromptHive',
     },
   };
 }
@@ -55,10 +55,10 @@ function getPromptJsonLd(prompt: any) {
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const resolvedParams = await params;
   const prompt = await getPrompt(resolvedParams.slug);
-  if (!prompt) return { title: 'Prompt Not Found | PromptCraft' };
+  if (!prompt) return { title: 'Prompt Not Found | PromptHive' };
 
-  const title = `${prompt.name} | Community Prompt | PromptCraft`;
-  const description = prompt.description || 'Discover a top community prompt on PromptCraft.';
+  const title = `${prompt.name} | Community Prompt | PromptHive`;
+  const description = prompt.description || 'Discover a top community prompt on PromptHive.';
 
   return {
     title,
@@ -67,8 +67,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       title,
       description,
       type: 'article',
-      url: `http://PromptCraft.co/community-prompts/${prompt.slug}`,
-      images: [{ url: 'http://PromptCraft.co/og-image.jpg' }],
+      url: `http://PromptHive.co/community-prompts/${prompt.slug}`,
+      images: [{ url: 'http://PromptHive.co/og-image.jpg' }],
       publishedTime: prompt.createdAt.toISOString(),
       modifiedTime: prompt.updatedAt.toISOString(),
     },
@@ -76,10 +76,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       card: 'summary_large_image',
       title,
       description,
-      images: ['http://PromptCraft.co/og-image.jpg'],
+      images: ['http://PromptHive.co/og-image.jpg'],
     },
     alternates: {
-      canonical: `http://PromptCraft.co/community-prompts/${prompt.slug}`,
+      canonical: `http://PromptHive.co/community-prompts/${prompt.slug}`,
     },
   };
 }

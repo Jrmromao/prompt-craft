@@ -17,9 +17,6 @@ Sentry.init({
   // Set the environment
   environment: process.env.NODE_ENV,
 
-  // Enable performance monitoring
-  enableTracing: true,
-
   // Set the release version
   release: process.env.NEXT_PUBLIC_APP_VERSION || '1.0.0',
 });

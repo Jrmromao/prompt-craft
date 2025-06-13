@@ -5,8 +5,8 @@ import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 
 export const metadata: Metadata = {
-  title: 'FAQ | PromptCraft Support',
-  description: 'Frequently asked questions about PromptCraft',
+  title: 'FAQ | PromptHive Support',
+  description: 'Frequently asked questions about PromptHive',
 };
 
 const faqCategories = [
@@ -14,14 +14,14 @@ const faqCategories = [
     title: 'Getting Started',
     questions: [
       {
-        question: 'How do I get started with PromptCraft?',
+        question: 'How do I get started with PromptHive?',
         answer:
-          "To get started with PromptCraft, simply sign up for an account and follow our quick start guide. You'll be able to create your first prompt in minutes.",
+          "To get started with PromptHive, simply sign up for an account and follow our quick start guide. You'll be able to create your first prompt in minutes.",
       },
       {
         question: 'What are the system requirements?',
         answer:
-          'PromptCraft works on any modern web browser. We recommend using the latest version of Chrome, Firefox, Safari, or Edge for the best experience.',
+          'PromptHive works on any modern web browser. We recommend using the latest version of Chrome, Firefox, Safari, or Edge for the best experience.',
       },
     ],
   },
@@ -81,7 +81,7 @@ export default function FAQPage() {
           <div>
             <h1 className="text-4xl font-bold tracking-tight">Frequently Asked Questions</h1>
             <p className="mt-2 text-muted-foreground">
-              Find answers to common questions about PromptCraft
+              Find answers to common questions about PromptHive
             </p>
           </div>
           <Link href="/support">

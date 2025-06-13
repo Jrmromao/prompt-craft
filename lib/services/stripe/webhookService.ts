@@ -380,7 +380,7 @@ export class WebhookService {
         const emailService = EmailService.getInstance();
         await emailService.sendEmail({
           email: user.email,
-          subject: 'Payment Successful - PromptCraft',
+          subject: 'Payment Successful - PromptHive',
           html: `
             <h1>Payment Successful</h1>
             <p>Hello ${user.name || 'there'},</p>

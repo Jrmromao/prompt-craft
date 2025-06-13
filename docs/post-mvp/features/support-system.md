@@ -2,7 +2,7 @@
 
 ## Overview
 
-A comprehensive support system to help users get assistance, report issues, and provide feedback for the PromptCraft platform.
+A comprehensive support system to help users get assistance, report issues, and provide feedback for the PromptHive platform.
 
 ## Core Features
 

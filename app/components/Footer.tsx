@@ -11,7 +11,7 @@ export function Footer() {
         <div className="flex flex-col items-center gap-2 md:items-start">
           <div
             className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-r from-purple-500 to-pink-500"
-            aria-label="PromptCraft Logo"
+            aria-label="PromptHive Logo"
           >
             <Sparkles className="h-5 w-5 text-white" aria-hidden="true" />
           </div>
@@ -47,7 +47,7 @@ export function Footer() {
             </Link>
           </div>
           <div className="mt-1 text-xs">
-            &copy; {new Date().getFullYear()} PromptCraft. All rights reserved.
+            &copy; {new Date().getFullYear()} PromptHive. All rights reserved.
           </div>
         </div>
         {/* Right: Social & Contact */}
@@ -83,8 +83,8 @@ export function Footer() {
           </div>
           <div className="text-xs">
             Legal:{' '}
-            <a href="mailto:egal@PromptCraft.co" className="underline">
-              egal@PromptCraft.co
+            <a href="mailto:egal@PromptHive.co" className="underline">
+              egal@PromptHive.co
             </a>
           </div>
         </div>

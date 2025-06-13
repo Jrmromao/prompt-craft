@@ -1,8 +1,8 @@
 openapi: 3.0.0
 info:
-  title: PromptCraft Enterprise API
+  title: PromptHive Enterprise API
   version: 1.0.0
-  description: API specification for PromptCraft Enterprise features
+  description: API specification for PromptHive Enterprise features
 
 servers:
   - url: https://api.promptcraft.com/v1

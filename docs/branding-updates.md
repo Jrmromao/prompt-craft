@@ -1,6 +1,6 @@
-# PromptCraft Branding Updates
+# PromptHive Branding Updates
 
-This document tracks all the places where we need to update the branding from "PromptCraft" to "PromptCraft" for consistency.
+This document tracks all the places where we need to update the branding from "PromptHive" to "PromptHive" for consistency.
 
 ## Completed Updates
 
@@ -25,12 +25,12 @@ This document tracks all the places where we need to update the branding from "P
 
 - `app/legal/terms/page.tsx`
 
-  - Update all instances of "PromptCraft" to "PromptCraft"
-  - Update email from egal@PromptCraft.co to legal@PromptCraft.co
+  - Update all instances of "PromptHive" to "PromptHive"
+  - Update email from egal@PromptHive.co to legal@PromptHive.co
 
 - `app/legal/privacy/page.tsx`
-  - Update all instances of "PromptCraft" to "PromptCraft"
-  - Update email from egal@PromptCraft.co to legal@PromptCraft.co
+  - Update all instances of "PromptHive" to "PromptHive"
+  - Update email from egal@PromptHive.co to legal@PromptHive.co
 
 ### 2. Auth Pages
 
@@ -96,7 +96,7 @@ This document tracks all the places where we need to update the branding from "P
 
 ### URLs to Update
 
-- Update all instances of `PromptCraft.com` to `PromptCraft.co`
+- Update all instances of `PromptHive.com` to `PromptHive.co`
 - Update all canonical URLs
 - Update all OpenGraph URLs
 - Update all Twitter card URLs
@@ -110,9 +110,9 @@ This document tracks all the places where we need to update the branding from "P
 
 ## Next Steps
 
-1. Create a script to automate the replacement of "PromptCraft" with "PromptCraft" in all files
-2. Update all email addresses from @PromptCraft.com to @PromptCraft.co
-3. Update all URLs from PromptCraft.com to PromptCraft.co
+1. Create a script to automate the replacement of "PromptHive" with "PromptHive" in all files
+2. Update all email addresses from @PromptHive.com to @PromptHive.co
+3. Update all URLs from PromptHive.com to PromptHive.co
 4. Test all pages after updates to ensure no broken links
 5. Update any hardcoded references in the database or environment variables
 

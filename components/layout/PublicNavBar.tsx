@@ -27,7 +27,7 @@ export function PublicNavBar() {
           <Link href="/" className="flex items-center gap-2">
             <Sparkles className="h-6 w-6 text-purple-500" />
             <span className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-xl font-bold text-transparent">
-              PromptCraft
+              PromptHive
             </span>
           </Link>
           {/* Navigation Links */}

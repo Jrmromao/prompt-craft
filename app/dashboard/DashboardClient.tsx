@@ -91,7 +91,7 @@ export function DashboardClient({ user, recentPrompts, creditHistory }: Dashboar
           <EmptyState
             icon={PlusCircle}
             title="No prompts yet"
-            description="Create your first prompt to get started with PromptCraft."
+            description="Create your first prompt to get started with PromptHive."
             action={{
               label: 'Create Prompt',
               onClick: () => (window.location.href = '/prompts/new'),

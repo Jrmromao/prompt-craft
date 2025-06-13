@@ -1,3 +1,3 @@
 User-agent: *
 Allow: /
-Sitemap: http://PromptCraft.co/sitemap.xml 
+Sitemap: http://PromptHive.co/sitemap.xml 

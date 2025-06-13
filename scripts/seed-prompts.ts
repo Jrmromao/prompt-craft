@@ -16,7 +16,7 @@ async function main() {
     update: {},
     create: {
       clerkId: 'user_2y3AM5C06LBwfYwSMU0LyQ3HpoD',
-      email: 'admin@PromptCraft.com',
+      email: 'admin@PromptHive.com',
       name: 'Admin User',
       role: 'ADMIN',
       planType: 'PRO',
@@ -62,7 +62,7 @@ async function main() {
     },
     {
       name: 'Creative Brainstorm',
-      description: 'Unlock your creativity with this prompt.',
+      description: 'Transform Your Ideas Into Reality with A.I.-Powered Prompts',
       content: 'Generate 5 unique ideas for a new app.',
       isPublic: true,
       isApproved: false,

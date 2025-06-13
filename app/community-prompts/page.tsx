@@ -6,9 +6,9 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
 
 export const metadata: Metadata = {
-  title: 'Community Prompts | PromptCraft',
+  title: 'Community Prompts | PromptHive',
   description:
-    'Discover the best public prompts curated by the PromptCraft community. Browse, upvote, and get inspired by top AI prompts.',
+    'Discover the best public prompts curated by the PromptHive community. Browse, upvote, and get inspired by top AI prompts.',
 };
 
 export default async function CommunityPromptsPage() {

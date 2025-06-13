@@ -1,7 +1,7 @@
 # Database Migration Plan
 
 ## Overview
-This document outlines the database migration plan for implementing enterprise features in PromptCraft. The migration will be executed in phases to ensure minimal disruption and maintain data integrity.
+This document outlines the database migration plan for implementing enterprise features in PromptHive. The migration will be executed in phases to ensure minimal disruption and maintain data integrity.
 
 ## Current Schema Analysis
 The current database schema includes basic prompt management and user features. We need to extend it to support:

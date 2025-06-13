@@ -1,8 +1,8 @@
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Cookie Policy | PromptCraft',
-  description: 'Learn about how we use cookies and similar technologies on PromptCraft',
+  title: 'Cookie Policy | PromptHive',
+  description: 'Learn about how we use cookies and similar technologies on PromptHive',
 };
 
 export default function CookiePolicy() {
@@ -12,7 +12,7 @@ export default function CookiePolicy() {
 
       <div className="prose dark:prose-invert max-w-none">
         <p className="lead">
-          This Cookie Policy explains how PromptCraft ("we", "us", or "our") uses cookies and
+          This Cookie Policy explains how PromptHive ("we", "us", or "our") uses cookies and
           similar technologies to recognize you when you visit our website. It explains what these
           technologies are and why we use them, as well as your rights to control our use of them.
         </p>

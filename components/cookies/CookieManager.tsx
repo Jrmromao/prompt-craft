@@ -40,13 +40,13 @@ const cookieCategories: CookieCategory[] = [
     cookies: [
       {
         name: 'session',
-        provider: 'PromptCraft',
+        provider: 'PromptHive',
         purpose: 'Maintains user session',
         expiry: 'Session',
       },
       {
         name: 'csrf',
-        provider: 'PromptCraft',
+        provider: 'PromptHive',
         purpose: 'Security protection',
         expiry: 'Session',
       },
@@ -82,13 +82,13 @@ const cookieCategories: CookieCategory[] = [
     cookies: [
       {
         name: 'theme',
-        provider: 'PromptCraft',
+        provider: 'PromptHive',
         purpose: 'Stores user theme preference',
         expiry: '1 year',
       },
       {
         name: 'language',
-        provider: 'PromptCraft',
+        provider: 'PromptHive',
         purpose: 'Stores user language preference',
         expiry: '1 year',
       },

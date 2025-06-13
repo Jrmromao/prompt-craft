@@ -66,6 +66,6 @@ This document outlines the plan for implementing saving and reading test history
 
 ---
 
-**Owner:** PromptCraft Team
+**Owner:** PromptHive Team
 
 _Last updated: 2024-06-10_ 

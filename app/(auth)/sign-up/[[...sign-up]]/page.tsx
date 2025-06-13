@@ -1,23 +1,20 @@
 'use client';
 import { SignUp } from '@clerk/nextjs';
-import { Sparkles, Sun, Moon, CalendarIcon } from 'lucide-react';
+import { Sparkles, Sun, Moon, CalendarIcon, ChevronDownIcon } from 'lucide-react';
 import { useTheme } from '@/components/ThemeProvider';
 import { dark } from '@clerk/themes';
 import { useSearchParams } from 'next/navigation';
 import { useSignUp } from "@clerk/nextjs";
 import { useState, useEffect, useRef } from "react";
-import { DayPicker } from 'react-day-picker';
-import 'react-day-picker/dist/style.css';
 import Image from 'next/image';
-import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
-import { format, parseISO, isValid } from 'date-fns';
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import { Label } from "@/components/ui/label";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 export default function SignUpPage() {
   const { theme, setTheme, toggleTheme } = useTheme();
   const searchParams = useSearchParams();
-  const emailParam = searchParams.get('email');
-  const nameParam = searchParams.get('name');
-  const redirectUrl = searchParams.get('redirect_url') || '/pricing';
   const { signUp } = useSignUp();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -27,10 +24,6 @@ export default function SignUpPage() {
   const [success, setSuccess] = useState(false);
   const [showBanner, setShowBanner] = useState(true);
   const [githubHover, setGithubHover] = useState(false);
-
-  useEffect(() => {
-    if (emailParam) setEmail(emailParam);
-  }, [emailParam]);
 
   function getAge(dateString: string): number {
     const today = new Date();
@@ -187,48 +180,42 @@ export default function SignUpPage() {
               className="rounded-md border border-gray-200 dark:border-gray-700 px-3 py-2 text-black dark:text-white dark:bg-[#18122B] focus:outline-none focus:ring-2 focus:ring-purple-400"
             />
           </label>
-          <label className="flex flex-col gap-1 text-sm font-medium text-gray-700 dark:text-gray-200">
-            Date of Birth
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="dob">Date of Birth</Label>
             <Popover>
               <PopoverTrigger asChild>
-                <button
-                  type="button"
-                  className="flex items-center justify-between w-full rounded-md border border-gray-200 dark:border-gray-700 px-3 py-2 text-left text-black dark:text-white dark:bg-[#18122B] focus:outline-none focus:ring-2 focus:ring-purple-400"
-                  aria-label="Select your date of birth"
+                <Button
+                  variant="outline"
+                  id="dob"
+                  className="w-full justify-between font-normal"
+                  aria-label="Select date of birth"
                 >
-                  {dateOfBirth && isValid(parseISO(dateOfBirth))
-                    ? format(parseISO(dateOfBirth), 'PPP')
-                    : <span className="text-gray-400">Select date</span>}
-                  <CalendarIcon className="ml-2 h-5 w-5 text-purple-500" />
-                </button>
+                  {dateOfBirth ? new Date(dateOfBirth).toLocaleDateString() : "Select date"}
+                  <ChevronDownIcon className="ml-2 h-4 w-4 opacity-50" />
+                </Button>
               </PopoverTrigger>
-              <PopoverContent align="center" className="p-0 w-auto bg-white dark:bg-[#18122B] border border-gray-200 dark:border-gray-700">
-                <DayPicker
+              <PopoverContent className="w-auto overflow-hidden p-0" align="start">
+                <Calendar
                   mode="single"
                   selected={dateOfBirth ? new Date(dateOfBirth) : undefined}
+                  captionLayout="dropdown"
+                  fromYear={new Date().getFullYear() - 100}
+                  toYear={new Date().getFullYear() - 16}
                   onSelect={date => {
                     setDateOfBirth(date ? date.toISOString().split('T')[0] : '');
                   }}
-                  fromYear={new Date().getFullYear() - 100}
-                  toYear={new Date().getFullYear()}
-                  defaultMonth={new Date(new Date().setFullYear(new Date().getFullYear() - 16))}
-                  captionLayout="dropdown"
-                  showOutsideDays
-                  required
-                  disabled={date => date > new Date()}
-                  modifiersStyles={{
-                    selected: { backgroundColor: '#a855f7', color: 'white' },
-                    today: { borderColor: '#a855f7' },
-                  }}
-                  styles={{
-                    caption: { color: '#a855f7' },
-                    day: { borderRadius: '0.5rem', fontWeight: 500 },
-                  }}
+                  disabled={date =>
+                    !date ||
+                    date > new Date() ||
+                    date.getFullYear() > new Date().getFullYear() - 16 ||
+                    date.getFullYear() < new Date().getFullYear() - 100
+                  }
+                  className="rounded-md border bg-background"
                 />
               </PopoverContent>
             </Popover>
             <span className="text-xs text-gray-400 dark:text-gray-500">You must be at least 16 years old. No future dates allowed.</span>
-          </label>
+          </div>
           <p className="text-xs text-gray-600 dark:text-gray-400">
             By signing up, you confirm you are at least 16 years old and agree to our{' '}
             <a href="/privacy-policy" target="_blank" rel="noopener noreferrer" className="underline text-purple-600 dark:text-purple-400">Privacy Policy</a>.
@@ -248,6 +235,13 @@ export default function SignUpPage() {
           Already have an account?{' '}
           <a href="/sign-in" className="font-semibold text-purple-600 hover:underline dark:text-purple-400">
             Sign in
+          </a>
+        </div>
+        <div className="text-center mt-4">
+          <a href="/" className="inline-block w-full">
+            <button type="button" className="w-full rounded-md border border-gray-200 dark:border-gray-700 py-2 font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-[#232136] hover:bg-purple-50 dark:hover:bg-[#2a273f] transition">
+              Go Home
+            </button>
           </a>
         </div>
       </div>

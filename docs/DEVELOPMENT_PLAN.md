@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document outlines the development priorities, security improvements, and implementation guidelines for the PromptCraft platform. The plan is organized into phases to ensure systematic and efficient development.
+This document outlines the development priorities, security improvements, and implementation guidelines for the PromptHive platform. The plan is organized into phases to ensure systematic and efficient development.
 
 Priority Levels:
 

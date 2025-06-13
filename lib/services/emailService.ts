@@ -376,7 +376,7 @@ export class EmailService {
       }
 
       await this.resend.emails.send({
-        from: 'PromptCraft <noreply@promptcraft.ai>',
+        from: 'PromptHive <noreply@promptcraft.ai>',
         to: email,
         subject,
         html,

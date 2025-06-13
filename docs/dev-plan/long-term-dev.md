@@ -1,4 +1,4 @@
-Here’s a curated list of **long-term features** for PromptCraft to make it a serious, scalable AI SaaS with high retention, monetization potential, and defensibility:
+Here’s a curated list of **long-term features** for PromptHive to make it a serious, scalable AI SaaS with high retention, monetization potential, and defensibility:
 
 ---
 
@@ -50,7 +50,7 @@ Here’s a curated list of **long-term features** for PromptCraft to make it a s
 
 | Feature                              | Why It Matters                                    |
 | ------------------------------------ | ------------------------------------------------- |
-| ⚙️ **PromptCraft API**               | Let devs call prompt generation programmatically. |
+| ⚙️ **PromptHive API**               | Let devs call prompt generation programmatically. |
 | 🧑‍💻 **SDK or CLI**                    | Ideal for power users and dev teams.              |
 | 🔌 **Zapier / Make.com Integration** | Enables no-code automation.                       |
 

@@ -11,7 +11,7 @@ export function AuthOptionsBar() {
           <div className="flex items-center gap-2">
             <Link href="/">
               <span className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-xl font-bold text-transparent">
-                PromptCraft
+                PromptHive
               </span>
             </Link>
           </div>

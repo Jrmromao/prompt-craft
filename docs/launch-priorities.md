@@ -1,6 +1,6 @@
-# PromptCraft MVP Launch Priorities
+# PromptHive MVP Launch Priorities
 
-A prioritized checklist of features and tasks to complete before launching the first version of PromptCraft.
+A prioritized checklist of features and tasks to complete before launching the first version of PromptHive.
 
 ---
 

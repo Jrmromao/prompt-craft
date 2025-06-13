@@ -2,7 +2,7 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Search, Filter, MessageSquare, Share2, Sparkles, Users, Star, Clock, Edit, Trash2 } from 'lucide-react';
+import { Search, Filter, MessageSquare, Sparkles, Users, Star, Clock, Edit, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import { Input } from '@/components/ui/input';
 import {

@@ -19,7 +19,7 @@ export default function SupportPage() {
         <div className="space-y-4 text-center">
           <h1 className="text-4xl font-bold tracking-tight">How can we help you?</h1>
           <p className="mx-auto max-w-2xl text-lg text-muted-foreground">
-            We're here to help you get the most out of PromptCraft. Choose the best way to get
+            We're here to help you get the most out of PromptHive. Choose the best way to get
             support below.
           </p>
         </div>
@@ -141,7 +141,7 @@ export default function SupportPage() {
           <div className="grid gap-4 md:grid-cols-2">
             <Card>
               <CardContent className="pt-6">
-                <h3 className="mb-2 font-semibold">How do I get started with PromptCraft?</h3>
+                <h3 className="mb-2 font-semibold">How do I get started with PromptHive?</h3>
                 <p className="text-sm text-muted-foreground">
                   Learn the basics of creating and managing your AI prompts with our quick start
                   guide.
