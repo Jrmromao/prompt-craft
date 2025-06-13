@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { GDPRService } from '@/lib/services/gdpr';
+import { logAudit } from '@/app/lib/auditLogger';
+import { AuditAction } from '@/app/constants/audit';
 
 const gdprService = new GDPRService();
 
@@ -15,6 +17,14 @@ export async function POST() {
     }
 
     await gdprService.handleDeletionRequest(session.userId);
+
+    // Audit log for GDPR deletion request
+    await logAudit({
+      action: AuditAction.USER_DELETED,
+      userId: session.userId,
+      resource: 'user',
+      details: { reason: 'GDPR deletion request' },
+    });
     
     return NextResponse.json({ 
       message: 'Deletion request received. You will receive an email confirmation shortly.' 

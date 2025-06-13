@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma';
 import { Role, toPrismaRole } from '@/utils/roles';
 import * as Sentry from '@sentry/nextjs';
 import { requireRole } from '@/utils/roles.server';
+import { AuditAction } from '@/app/constants/audit';
 
 export async function POST(req: Request) {
   try {
@@ -44,6 +45,7 @@ export async function POST(req: Request) {
         oldRole: user.role,
         newRole: toPrismaRole(newRole),
         changedBy: userId,
+        action: AuditAction.ROLE_UPDATED,
       },
     });
 

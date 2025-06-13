@@ -697,6 +697,7 @@ model RoleChangeLog {
   newRole   Role
   changedBy String
   createdAt DateTime @default(now())
+  action    String 
 
   @@index([userId])
   @@index([changedBy])
