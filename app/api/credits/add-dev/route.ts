@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { prisma } from '@/lib/prisma';
+import { logAudit } from '@/app/lib/auditLogger';
+import { AuditAction } from '@/app/constants/audit';
 
 // Configure route as dynamic
 export const dynamic = 'force-dynamic';
@@ -35,6 +37,19 @@ export async function POST(req: Request) {
           increment: amount,
         },
       },
+    });
+
+    // Log the development credit addition
+    await logAudit({
+      userId,
+      action: AuditAction.CREDITS_ADDED,
+      resource: 'credits',
+      details: {
+        amount,
+        type: 'development_addition',
+        newBalance: updatedUser.credits,
+        environment: 'development'
+      }
     });
 
     return NextResponse.json({

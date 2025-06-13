@@ -1,71 +1,89 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, PlanType } from '@prisma/client';
 
-const db = new PrismaClient();
+const prisma = new PrismaClient();
 
 async function main() {
   // Create plans
   const plans = [
     {
-      name: 'PRO',
-      description: 'Perfect for trying out PromptHive',
+      name: 'Free',
+      description: 'Perfect for individuals getting started with prompt engineering',
       price: 0,
-      period: 'MONTHLY',
-      isActive: true,
-      stripeProductId: 'prod_PRO',
-      stripePriceId: 'price_PRO',
+      period: 'month',
+      currency: 'USD',
       features: [
-        'Basic prompt types',
-        'No saving prompts',
-        'No prompt history'
+        'Basic Prompt Management',
+        'Community Access',
+        'Basic Analytics'
       ],
-      isEnterprise: false
+      isEnterprise: false,
+      stripeProductId: 'prod_free',
+      stripePriceId: 'price_free',
+      stripeAnnualPriceId: null
     },
     {
-      name: 'ELITE',
-      description: 'For power users who need more',
-      price: 29.99,
-      period: 'MONTHLY',
-      isActive: true,
-      stripeProductId: 'prod_ELITE',
-      stripePriceId: 'price_ELITE',
+      name: 'Pro',
+      description: 'For professionals who need more power and flexibility',
+      price: 29,
+      period: 'month',
+      currency: 'USD',
       features: [
-        'All prompt types',
-        'Save prompts',
-        'Prompt history',
-        'Team collaboration'
+        'Advanced Prompt Management',
+        'Team Collaboration',
+        'Advanced Analytics',
+        'Custom Models'
       ],
-      isEnterprise: false
+      isEnterprise: false,
+      stripeProductId: 'prod_pro',
+      stripePriceId: 'price_pro',
+      stripeAnnualPriceId: 'price_pro_annual'
     },
     {
-      name: 'ENTERPRISE',
-      description: 'For large teams and organizations',
-      price: 99.99,
-      period: 'MONTHLY',
-      isActive: true,
-      stripeProductId: 'prod_ENTERPRISE',
-      stripePriceId: 'price_ENTERPRISE',
+      name: 'Elite',
+      description: 'For teams that need enterprise-grade features and support',
+      price: 99,
+      period: 'month',
+      currency: 'USD',
       features: [
-        'All ELITE features',
-        'Custom integrations',
-        'Priority support',
-        'Dedicated account manager'
+        'Enterprise Features',
+        'Unlimited Team Members',
+        'Priority Support',
+        'Custom Integrations'
       ],
-      isEnterprise: true
+      isEnterprise: false,
+      stripeProductId: 'prod_elite',
+      stripePriceId: 'price_elite',
+      stripeAnnualPriceId: 'price_elite_annual'
+    },
+    {
+      name: 'Enterprise',
+      description: 'Custom solutions for large organizations',
+      price: -1, // Custom pricing
+      period: 'month',
+      currency: 'USD',
+      features: [
+        'Custom Solutions',
+        'Dedicated Support',
+        'SLA Guarantee',
+        'Custom Development'
+      ],
+      isEnterprise: true,
+      stripeProductId: 'prod_enterprise',
+      stripePriceId: 'price_enterprise',
+      stripeAnnualPriceId: null
     }
   ];
 
   for (const plan of plans) {
-    await db.plan.upsert({
-      where: {
-        name: plan.name
-      },
+    await prisma.plan.upsert({
+      where: { name: plan.name },
       update: plan,
       create: plan
     });
   }
 
   // Create a dummy user
-  const user = await db.user.upsert({
+  const user = await prisma.user.upsert({
     where: { email: 'testuser@example.com' },
     update: {},
     create: {
@@ -80,7 +98,7 @@ async function main() {
   });
 
   // Add dummy PromptGeneration records
-  await db.promptGeneration.createMany({
+  await prisma.promptGeneration.createMany({
     data: [
       {
         userId: user.id,
@@ -110,7 +128,7 @@ async function main() {
   });
 
   // Add dummy CreditHistory records
-  await db.creditHistory.createMany({
+  await prisma.creditHistory.createMany({
     data: [
       {
         userId: user.id,
@@ -143,14 +161,14 @@ async function main() {
     ],
   });
 
-  console.log('Database seeded successfully');
+  console.log('✅ Seed completed successfully');
 }
 
 main()
   .catch((e) => {
-    console.error(e);
+    console.error('❌ Seed failed:', e);
     process.exit(1);
   })
   .finally(async () => {
-    await db.$disconnect();
+    await prisma.$disconnect();
   });

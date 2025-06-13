@@ -4,10 +4,11 @@ import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Loader2, Play, Copy, Star } from 'lucide-react';
+import { Loader2, Play, Copy, Star, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import ReactMarkdown from 'react-markdown';
+import Link from 'next/link';
 
 interface TestResult {
   result: string;
@@ -28,9 +29,19 @@ interface TestPromptModalProps {
   promptVersionId: string;
   onTestPrompt: (content: string, testInput: string, promptVersionId: string) => Promise<TestResult>;
   onTestHistorySaved?: () => void;
+  userPlan?: string;
 }
 
-export function TestPromptModal({ isOpen, onClose, promptId, promptContent, promptVersionId, onTestPrompt, onTestHistorySaved }: TestPromptModalProps) {
+export function TestPromptModal({ 
+  isOpen, 
+  onClose, 
+  promptId, 
+  promptContent, 
+  promptVersionId, 
+  onTestPrompt, 
+  onTestHistorySaved,
+  userPlan = 'FREE'
+}: TestPromptModalProps) {
   const [testInput, setTestInput] = useState('');
   const [isTesting, setIsTesting] = useState(false);
   const [testResult, setTestResult] = useState<TestResult | null>(null);
@@ -58,7 +69,11 @@ export function TestPromptModal({ isOpen, onClose, promptId, promptContent, prom
       }
     } catch (error) {
       console.error('Error testing prompt:', error);
-      toast.error('Failed to test prompt');
+      if (error instanceof Error && error.message.includes('not available in your current plan')) {
+        toast.error('Please upgrade your plan to test prompts');
+      } else {
+        toast.error('Failed to test prompt');
+      }
     } finally {
       setIsTesting(false);
     }
@@ -71,6 +86,8 @@ export function TestPromptModal({ isOpen, onClose, promptId, promptContent, prom
     setShowResults(false);
   };
 
+  const isFreeUser = userPlan === 'FREE';
+
   return (
     <>
       {/* Test Input Modal */}
@@ -81,34 +98,49 @@ export function TestPromptModal({ isOpen, onClose, promptId, promptContent, prom
           </DialogHeader>
           
           <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="testInput">Test Input</Label>
-              <Textarea
-                id="testInput"
-                value={testInput}
-                onChange={(e) => setTestInput(e.target.value)}
-                placeholder="Enter test input (optional, defaults to prompt content)"
-                className="min-h-[100px] font-mono text-sm"
-              />
-            </div>
+            {isFreeUser ? (
+              <div className="text-center py-8 space-y-4">
+                <Lock className="h-12 w-12 mx-auto text-muted-foreground" />
+                <h3 className="text-lg font-semibold">Upgrade Required</h3>
+                <p className="text-muted-foreground">
+                  Prompt testing is available in our Pro plan and above. Upgrade to unlock this feature and more.
+                </p>
+                <Button asChild className="mt-4">
+                  <Link href="/pricing">View Plans</Link>
+                </Button>
+              </div>
+            ) : (
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="testInput">Test Input</Label>
+                  <Textarea
+                    id="testInput"
+                    value={testInput}
+                    onChange={(e) => setTestInput(e.target.value)}
+                    placeholder="Enter test input (optional, defaults to prompt content)"
+                    className="min-h-[100px] font-mono text-sm"
+                  />
+                </div>
 
-            <Button
-              onClick={handleTest}
-              disabled={isTesting}
-              className="w-full"
-            >
-              {isTesting ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Testing...
-                </>
-              ) : (
-                <>
-                  <Play className="mr-2 h-4 w-4" />
-                  Run Test
-                </>
-              )}
-            </Button>
+                <Button
+                  onClick={handleTest}
+                  disabled={isTesting}
+                  className="w-full"
+                >
+                  {isTesting ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Testing...
+                    </>
+                  ) : (
+                    <>
+                      <Play className="mr-2 h-4 w-4" />
+                      Run Test
+                    </>
+                  )}
+                </Button>
+              </>
+            )}
           </div>
         </DialogContent>
       </Dialog>

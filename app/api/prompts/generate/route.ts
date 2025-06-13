@@ -1,6 +1,10 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { AIService } from '@/lib/services/aiService';
+import { CreditService } from '@/app/lib/services/creditService';
+import { prisma } from '@/lib/prisma';
+import { PLANS } from '@/app/constants/plans';
+import { PlanType } from '@prisma/client';
 
 // Export dynamic configuration
 export const dynamic = 'force-dynamic';
@@ -38,6 +42,16 @@ export async function POST(req: Request) {
       );
     }
 
+    // Check if user has enough credits
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { planType: true }
+    });
+
+    if (!user) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+
     // Construct the prompt generation request
     const generationPrompt = `Create a professional AI prompt with the following specifications. DO NOT include any introductory text like "Certainly!" or "Here is" at the beginning of your response. Start directly with the prompt content:
 
@@ -58,6 +72,29 @@ Please generate a complete, well-structured prompt that follows best practices f
     const aiService = AIService.getInstance();
     console.log('AI service initialized');
 
+    // Calculate credit cost
+    const estimatedTokens = Math.ceil(generationPrompt.length / 4); // Rough estimate
+    const creditCost = CreditService.calculateTokenCost(estimatedTokens, maxTokens || 2000, 'gpt-4');
+
+    // Check if user has enough credits
+    const hasEnoughCredits = await CreditService.hasEnoughCredits(userId, creditCost);
+    if (!hasEnoughCredits) {
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { planType: true }
+      });
+      
+      const plan = PLANS[user?.planType.toUpperCase() as PlanType];
+      const errorMessage = plan?.credits.enabled 
+        ? `Insufficient credits. You need ${creditCost} credits for this operation. Please purchase more credits to continue.`
+        : 'This operation is not available in your current plan. Please upgrade to continue.';
+
+      return NextResponse.json(
+        { error: errorMessage },
+        { status: 402 }
+      );
+    }
+
     // Generate the prompt
     console.log('Generating prompt...');
     const generatedPrompt = await aiService.generateText(generationPrompt, {
@@ -65,6 +102,32 @@ Please generate a complete, well-structured prompt that follows best practices f
       maxTokens: maxTokens || 2000,
     });
     console.log('Prompt generated');
+
+    // Deduct credits
+    const actualCreditCost = CreditService.calculateTokenCost(
+      generatedPrompt.tokenCount,
+      generatedPrompt.tokenCount,
+      generatedPrompt.model
+    );
+
+    const creditsDeducted = await CreditService.deductCredits(
+      userId,
+      actualCreditCost,
+      `Generated prompt: ${name}`,
+      {
+        promptType,
+        model: generatedPrompt.model,
+        inputTokens: generatedPrompt.tokenCount,
+        outputTokens: generatedPrompt.tokenCount
+      }
+    );
+
+    if (!creditsDeducted) {
+      return NextResponse.json(
+        { error: 'Failed to deduct credits. Please try again.' },
+        { status: 500 }
+      );
+    }
 
     // Post-process the generated prompt to remove any introductory text
     let processedPrompt = generatedPrompt.text;
@@ -99,7 +162,8 @@ Please generate a complete, well-structured prompt that follows best practices f
         temperature,
         maxTokens,
         tokenCount: generatedPrompt.tokenCount,
-        model: generatedPrompt.model
+        model: generatedPrompt.model,
+        creditsUsed: actualCreditCost
       }
     });
   } catch (error) {

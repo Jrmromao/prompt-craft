@@ -31,6 +31,7 @@ import {
 } from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
+import { PlanType, PLANS } from '../constants/plans';
 
 interface UserPlan {
   name: string;
@@ -39,17 +40,21 @@ interface UserPlan {
 }
 
 interface Plan {
-  id: string;
+  id: PlanType;
   name: string;
   description: string;
-  price: number;
-  period: 'WEEKLY' | 'MONTHLY';
-  credits: number;
+  price: {
+    monthly: number;
+    annual: number;
+  };
   features: string[];
   isEnterprise: boolean;
   stripeProductId: string;
   stripePriceId: string;
   stripeAnnualPriceId: string;
+  limits: {
+    tokens: number;
+  };
 }
 
 export default function PricingContent() {
@@ -59,7 +64,7 @@ export default function PricingContent() {
   const [isLoading, setIsLoading] = useState<string | null>(null);
   const [currentPlan, setCurrentPlan] = useState<UserPlan | null>(null);
   const [isLoadingPlan, setIsLoadingPlan] = useState(true);
-  const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
+  const [selectedPlan, setSelectedPlan] = useState<PlanType | null>(null);
   const [showComparison, setShowComparison] = useState(false);
   const [isAnnual, setIsAnnual] = useState(false);
   const [plans, setPlans] = useState<Plan[]>([]);
@@ -104,7 +109,7 @@ export default function PricingContent() {
     }
   }, [user]);
 
-  const handlePlanSelect = (planId: string) => {
+  const handlePlanSelect = (planId: PlanType) => {
     const plan = plans.find(p => p.id === planId);
     if (!plan) return;
 
@@ -116,11 +121,11 @@ export default function PricingContent() {
     setShowComparison(true);
   };
 
-  const handleSubscribe = async (planId: string) => {
+  const handleSubscribe = async (planId: PlanType) => {
     const plan = plans.find(p => p.id === planId);
     if (!plan) return;
 
-    setIsLoading(planId);
+    setIsLoading(planId.toString());
     try {
       const response = await fetch('/api/stripe/create-checkout', {
         method: 'POST',
@@ -167,15 +172,31 @@ export default function PricingContent() {
     return {
       addedFeatures,
       removedFeatures,
-      priceChange: selectedPlanData.price - currentPlanData.price,
+      priceChange: selectedPlanData.price.monthly - currentPlanData.price.monthly,
       benefits: selectedPlanData.features
     };
   };
 
   const comparison = getPlanComparison();
 
-  const getAnnualPrice = (price: number) => {
-    return `$${(price * 12 * 0.8).toFixed(2)}`; // 20% discount for annual
+  const getDisplayPrice = (plan: Plan) => {
+    if (plan.isEnterprise) return 'Custom';
+    if (plan.id === PlanType.FREE) return 'Free';
+    return isAnnual 
+      ? `$${plan.price.annual}`
+      : `$${plan.price.monthly}`;
+  };
+
+  const getMonthlyPrice = (plan: Plan) => {
+    if (plan.isEnterprise || plan.id === PlanType.FREE) return '';
+    return `$${plan.price.monthly}/month when billed monthly`;
+  };
+
+  const getTokenDisplay = (plan: Plan) => {
+    if (plan.id === PlanType.ELITE || plan.id === PlanType.ENTERPRISE) {
+      return 'Unlimited tokens';
+    }
+    return `${plan.limits.tokens.toLocaleString()} tokens/month`;
   };
 
   const getFeatureIcon = (feature: string) => {
@@ -321,7 +342,7 @@ export default function PricingContent() {
                   <div className="rounded-lg bg-gray-50 p-3 dark:bg-gray-800">
                     <p className="text-sm">
                       Price Change: {comparison.priceChange > 0 ? '+' : ''}
-                      ${comparison.priceChange.toFixed(2)}/{selectedPlan === 'PRO' ? 'week' : 'month'}
+                      ${comparison.priceChange.toFixed(2)}/{selectedPlan === PlanType.PRO ? 'week' : 'month'}
                     </p>
                   </div>
                 )}
@@ -336,10 +357,10 @@ export default function PricingContent() {
               </Button>
               <Button
                 onClick={() => handleSubscribe(selectedPlan!)}
-                disabled={isLoading === selectedPlan}
+                disabled={isLoading === selectedPlan?.toString()}
                 className="bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700"
               >
-                {isLoading === selectedPlan ? (
+                {isLoading === selectedPlan?.toString() ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Processing...
@@ -360,22 +381,20 @@ export default function PricingContent() {
           ) : (
             plans.map(plan => {
               const isCurrentPlan = currentPlan?.name === plan.name;
-              const displayPrice = plan.isEnterprise 
-                ? 'Custom'
-                : isAnnual 
-                  ? getAnnualPrice(plan.price)
-                  : `$${plan.price}`;
+              const displayPrice = getDisplayPrice(plan);
+              const monthlyPrice = getMonthlyPrice(plan);
+              const tokenDisplay = getTokenDisplay(plan);
               
               return (
                 <Card
                   key={plan.id}
                   className={`group relative flex flex-col transition-all duration-300 hover:scale-105 ${
-                    plan.name === 'PRO'
+                    plan.id === PlanType.PRO
                       ? 'border-purple-500 shadow-lg shadow-purple-500/20 dark:shadow-purple-500/10'
                       : 'border-gray-200 dark:border-gray-800'
                   } ${isCurrentPlan ? 'ring-2 ring-purple-500' : ''}`}
                 >
-                  {plan.name === 'PRO' && (
+                  {plan.id === PlanType.PRO && (
                     <div className="absolute -top-4 left-1/2 -translate-x-1/2">
                       <Badge className="bg-gradient-to-r from-purple-600 to-pink-600 px-4 py-1 text-white">
                         Most Popular
@@ -394,17 +413,23 @@ export default function PricingContent() {
                         <span className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-4xl font-bold text-transparent">
                           {displayPrice}
                         </span>
-                        {!plan.isEnterprise && (
+                        {!plan.isEnterprise && plan.id !== PlanType.FREE && (
                           <span className="text-gray-600 dark:text-gray-300">
                             /{isAnnual ? 'year' : 'month'}
                           </span>
                         )}
                       </div>
-                      {isAnnual && !plan.isEnterprise && (
+                      {isAnnual && monthlyPrice && (
                         <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                          ${plan.price}/month when billed monthly
+                          {monthlyPrice}
                         </p>
                       )}
+                      <div className="mt-2 flex items-center gap-2">
+                        <Sparkles className="h-4 w-4 text-purple-500" />
+                        <span className="text-sm text-gray-600 dark:text-gray-300">
+                          {tokenDisplay}
+                        </span>
+                      </div>
                     </div>
                     <ul className="space-y-3">
                       {plan.features.map(feature => (
@@ -423,14 +448,14 @@ export default function PricingContent() {
                   <CardFooter>
                     <Button
                       onClick={() => handlePlanSelect(plan.id)}
-                      disabled={isLoading === plan.id}
+                      disabled={isLoading === plan.id.toString()}
                       className={`w-full ${
-                        plan.name === 'PRO'
+                        plan.id === PlanType.PRO
                           ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700'
                           : 'border-2 border-purple-600 bg-white text-purple-600 hover:bg-purple-50'
                       }`}
                     >
-                      {isLoading === plan.id ? (
+                      {isLoading === plan.id.toString() ? (
                         <>
                           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                           Processing...
@@ -471,6 +496,24 @@ export default function PricingContent() {
               <h3 className="mb-2 font-medium">Is there a free trial?</h3>
               <p className="text-sm text-gray-600 dark:text-gray-400">
                 Yes, all paid plans come with a 14-day free trial. No credit card required to start.
+              </p>
+            </div>
+            <div className="rounded-lg border border-gray-200 p-4 dark:border-gray-800">
+              <h3 className="mb-2 font-medium">How does token usage work?</h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Each plan includes a monthly token allowance that resets at the beginning of your billing cycle. Tokens are used for all AI operations - the more complex the operation, the more tokens it uses. Elite and Enterprise plans include unlimited tokens. You can purchase additional tokens at any time if you need more than your monthly allowance.
+              </p>
+            </div>
+            <div className="rounded-lg border border-gray-200 p-4 dark:border-gray-800">
+              <h3 className="mb-2 font-medium">What happens if I run out of tokens?</h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                You can purchase additional tokens at any time, or upgrade to a higher tier plan for a larger monthly token allowance. Elite and Enterprise plans include unlimited tokens. Basic features remain available even when you run out of tokens. Your token allowance will automatically reset at the start of your next billing cycle.
+              </p>
+            </div>
+            <div className="rounded-lg border border-gray-200 p-4 dark:border-gray-800">
+              <h3 className="mb-2 font-medium">How many tokens do I need?</h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                A typical prompt uses 100-500 tokens. The Free plan's 10,000 tokens are perfect for testing and small projects. The Pro plan's 100,000 tokens are ideal for regular usage at just $19/month. If you need more, the Elite plan offers 500,000 tokens for $49/month, or you can purchase additional tokens as needed.
               </p>
             </div>
           </div>

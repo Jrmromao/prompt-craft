@@ -20,7 +20,7 @@ model User {
   creditCap            Int                 @default(100)
   lastCreditReset      DateTime?
   stripeCustomerId     String?
-  planType             PlanType            @default(PRO)
+  planType             PlanType            @default(FREE)
   imageUrl             String?
   bio                  String?
   company              String?
@@ -65,6 +65,7 @@ model User {
   errors               Error[]
   versions             Version[]
   lastActiveAt         DateTime?
+  creditPurchases      CreditPurchase[]
 
   // GDPR Compliance Fields
   dataRetentionPeriod DateTime?
@@ -77,6 +78,7 @@ model User {
 
   @@index([clerkId])
   @@index([email])
+  @@index([planType])
 }
 
 model Plan {
@@ -757,6 +759,20 @@ model DataRectificationRequest {
   @@index([requestedAt])
 }
 
+model CreditPurchase {
+  id              String   @id @default(cuid())
+  userId          String
+  amount          Int
+  price           Float
+  stripeSessionId String   @unique
+  createdAt       DateTime @default(now())
+  user            User     @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([createdAt])
+  @@index([stripeSessionId])
+}
+
 enum Role {
   USER
   ADMIN
@@ -764,6 +780,7 @@ enum Role {
 }
 
 enum PlanType {
+  FREE
   PRO
   ELITE
   ENTERPRISE

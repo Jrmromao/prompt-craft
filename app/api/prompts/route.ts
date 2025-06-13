@@ -5,6 +5,7 @@ import { PromptService } from '@/lib/services/promptService';
 import { AIService } from '@/lib/services/aiService';
 import { prisma } from '@/lib/prisma';
 import { Role, PlanType } from '@/utils/constants';
+import { PLANS } from '@/app/constants/plans';
 
 // Export dynamic configuration
 export const dynamic = 'force-dynamic';
@@ -71,6 +72,36 @@ export const POST = withPlanLimitsMiddleware(
           { error: 'Name and content are required' },
           { status: 400 }
         );
+      }
+
+      // Check user's plan and private prompt limit
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { planType: true }
+      });
+
+      if (!user) {
+        return NextResponse.json({ error: 'User not found' }, { status: 404 });
+      }
+
+      // If creating a private prompt, check the limit for free users
+      if (!isPublic && user.planType === PlanType.FREE) {
+        const privatePromptCount = await prisma.prompt.count({
+          where: {
+            userId,
+            isPublic: false,
+            createdAt: {
+              gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1) // First day of current month
+            }
+          }
+        });
+
+        if (privatePromptCount >= 3) {
+          return NextResponse.json(
+            { error: 'Free users can only create 3 private prompts per month. Please upgrade your plan to create more private prompts.' },
+            { status: 403 }
+          );
+        }
       }
 
       const promptService = PromptService.getInstance();

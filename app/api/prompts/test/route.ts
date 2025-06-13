@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { AIService } from '@/lib/services/aiService';
 import { MetricsService } from '@/lib/services/metricsService';
+import { prisma } from '@/lib/prisma';
+import { PLANS } from '@/app/constants/plans';
+import { PlanType } from '@prisma/client';
 
 // Export dynamic configuration
 export const dynamic = 'force-dynamic';
@@ -13,6 +16,24 @@ export async function POST(req: Request) {
     if (!userId) {
       console.log('No userId found');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Check user's plan
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { planType: true }
+    });
+
+    if (!user) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+
+    const plan = PLANS[user.planType.toUpperCase() as PlanType];
+    if (!plan?.features.promptTesting) {
+      return NextResponse.json(
+        { error: 'Prompt testing is not available in your current plan. Please upgrade to continue.' },
+        { status: 403 }
+      );
     }
 
     const body = await req.json();

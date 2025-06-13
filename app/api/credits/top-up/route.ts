@@ -1,17 +1,16 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
-import { CreditService } from '@/lib/services/creditService';
-import { CreditType } from '@/utils/constants';
-import { dynamicRouteConfig, withDynamicRoute } from '@/lib/utils/dynamicRoute';
+import { CreditService } from '@/app/lib/services/creditService';
+import { logAudit } from '@/app/lib/auditLogger';
+import { AuditAction } from '@/app/constants/audit';
 
-// Export dynamic configuration
-export const { dynamic, revalidate, runtime } = dynamicRouteConfig;
+export const dynamic = 'force-dynamic';
 
 export async function POST(req: Request) {
   try {
     const { userId } = await auth();
     if (!userId) {
-      return new NextResponse('Unauthorized', { status: 401 });
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const body = await req.json();
@@ -21,17 +20,36 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Invalid amount' }, { status: 400 });
     }
 
-    const creditService = CreditService.getInstance();
-    const newBalance = await creditService.addCredits(
-      userId,
-      amount,
-      CreditType.TOP_UP,
-      'Manual credit top-up'
-    );
+    try {
+      await CreditService.addCredits(
+        userId,
+        amount,
+        'Manual credit top-up',
+        { source: 'manual' }
+      );
 
-    return NextResponse.json({ newBalance });
+      // Get updated balance
+      const newBalance = await CreditService.getCreditBalance(userId);
+
+      return NextResponse.json({
+        success: true,
+        newBalance,
+        message: 'Credits added successfully'
+      });
+    } catch (error) {
+      if (error instanceof Error) {
+        return NextResponse.json(
+          { error: error.message },
+          { status: 400 }
+        );
+      }
+      throw error;
+    }
   } catch (error) {
-    console.error('Error topping up credits:', error);
-    return NextResponse.json({ error: 'Failed to top up credits' }, { status: 500 });
+    console.error('Error in credit top-up:', error);
+    return NextResponse.json(
+      { error: 'Failed to process credit top-up' },
+      { status: 500 }
+    );
   }
 }

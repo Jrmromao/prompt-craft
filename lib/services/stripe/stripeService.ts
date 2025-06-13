@@ -7,6 +7,7 @@ import {
   CreateCheckoutSessionParams,
   CreateCustomerParams,
   UpdateSubscriptionParams,
+  CreateCreditPurchaseParams,
 } from './types';
 
 export class StripeService {
@@ -152,6 +153,57 @@ export class StripeService {
         customer: customerId,
         limit,
       });
+    } catch (error) {
+      this.handleError(error);
+      throw error;
+    }
+  }
+
+  async createCreditPurchaseSession({
+    customerId,
+    amount,
+    price,
+    userId,
+    successUrl,
+    cancelUrl,
+  }: CreateCreditPurchaseParams): Promise<StripeCheckoutSession> {
+    try {
+      const session = await stripe.checkout.sessions.create({
+        customer: customerId,
+        line_items: [
+          {
+            price_data: {
+              currency: 'usd',
+              product_data: {
+                name: `${amount} Credits`,
+                description: 'AI Model Usage Credits',
+              },
+              unit_amount: price * 100, // Convert to cents
+            },
+            quantity: 1,
+          },
+        ],
+        mode: 'payment',
+        success_url: successUrl,
+        cancel_url: cancelUrl,
+        metadata: {
+          userId,
+          amount: amount.toString(),
+          type: 'credit_purchase',
+        },
+      });
+
+      return {
+        id: session.id,
+        url: session.url,
+        customerId: session.customer as string,
+        subscriptionId: null,
+        metadata: {
+          userId,
+          amount: amount.toString(),
+          type: 'credit_purchase',
+        },
+      };
     } catch (error) {
       this.handleError(error);
       throw error;

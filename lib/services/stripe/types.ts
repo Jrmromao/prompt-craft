@@ -12,7 +12,7 @@ export interface StripeCustomer {
 export interface StripeSubscription {
   id: string;
   customerId: string;
-  status: Stripe.Subscription.Status;
+  status: string;
   currentPeriodStart: Date;
   currentPeriodEnd: Date;
   cancelAtPeriodEnd: boolean;
@@ -26,14 +26,16 @@ export interface StripeCheckoutSession {
   subscriptionId: string | null;
   metadata: {
     userId: string;
-    planId: string;
-    priceId: string;
+    planId?: string;
+    priceId?: string;
+    amount?: string;
+    type?: string;
   };
 }
 
 export interface StripeError extends Error {
-  type: string;
-  code: string;
+  type?: string;
+  code?: string;
   decline_code?: string;
   raw?: any;
 }
@@ -53,8 +55,17 @@ export interface CreateCustomerParams {
   clerkId: string;
 }
 
+export interface CreateCreditPurchaseParams {
+  customerId: string;
+  amount: number;
+  price: number;
+  userId: string;
+  successUrl: string;
+  cancelUrl: string;
+}
+
 export interface UpdateSubscriptionParams {
   subscriptionId: string;
-  cancelAtPeriodEnd?: boolean;
+  cancelAtPeriodEnd: boolean;
   prorationBehavior?: 'always_invoice' | 'create_prorations' | 'none';
 }

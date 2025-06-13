@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { VersionControlService } from '@/lib/services/versionControlService';
 import { z } from 'zod';
+import { prisma } from '@/lib/prisma';
+import { PLANS } from '@/app/constants/plans';
+import { PlanType } from '@prisma/client';
 
 const createVersionSchema = z.object({
   content: z.string().min(1),
@@ -61,6 +64,25 @@ export async function POST(
     if (!userId) {
       console.log('Unauthorized: No userId');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Check user's plan
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { planType: true }
+    });
+
+    if (!user) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+
+    // Check if user's plan allows version creation
+    const plan = PLANS[user.planType.toUpperCase() as PlanType];
+    if (!plan?.features.versionControl) {
+      return NextResponse.json(
+        { error: 'Version control is not available in your current plan. Please upgrade to continue.' },
+        { status: 403 }
+      );
     }
 
     const promptId = context.params.id;

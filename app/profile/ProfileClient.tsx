@@ -56,8 +56,9 @@ import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { useSidebarStore } from '@/components/layout/NavBarWrapper';
 import { useTheme } from '@/components/ThemeProvider';
 import { UsageTab } from '@/components/profile/UsageTab';
-import BillingInvoicesSection from '../../components/profile/BillingInvoicesSection';
-import PrivacySettingsPage from './privacy/page';
+import BillingInvoicesSection from '@/components/profile/BillingInvoicesSection';
+import PrivacySettingsPage from '@/app/profile/privacy/page';
+import CreditPurchaseSection from '@/app/components/profile/CreditPurchaseSection';
 
 const Sheet = dynamic(() => import('@/components/ui/sheet').then(mod => mod.Sheet), {
   ssr: false,
@@ -77,6 +78,7 @@ const accountOptions = [
 const workspaceOptions = [{ label: 'My Prompts', icon: FileText, href: 'prompts' }];
 
 const PRIVATE_PROMPT_LIMITS = {
+  [PlanType.FREE]: 0,
   [PlanType.PRO]: 5,
   [PlanType.ELITE]: Infinity,
   [PlanType.ENTERPRISE]: Infinity,
@@ -856,7 +858,10 @@ function ProfileContent({ user, currentPath }: ProfileClientProps) {
                 </Card>
               </TabsContent>
               <TabsContent value="billing" className="pt-4">
-                <BillingInvoicesSection />
+                <div className="grid gap-8 md:grid-cols-2">
+                  <BillingInvoicesSection />
+                  <CreditPurchaseSection />
+                </div>
               </TabsContent>
               <TabsContent value="prompts">
                 <Card className="rounded-2xl border border-border bg-card p-8 shadow-lg">

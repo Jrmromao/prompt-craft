@@ -43,6 +43,12 @@ interface Tag {
   name: string;
 }
 
+interface PromptMetadata {
+  copyCount?: number;
+  viewCount?: number;
+  usageCount?: number;
+}
+
 interface Prompt {
   id: string;
   name: string;
@@ -67,12 +73,26 @@ interface Version {
 }
 
 export interface PromptContentProps {
-  user?: {
+  user: {
+    id: string;
     name: string;
     email: string;
-    imageUrl?: string;
+    planType: string;
   };
-  prompt: Prompt;
+  prompt: {
+    id: string;
+    name: string;
+    description: string | null;
+    content: string;
+    promptType: string;
+    tags: Tag[];
+    upvotes: number;
+    metadata?: PromptMetadata;
+    createdAt: Date;
+    copyCount: number;
+    viewCount: number;
+    usageCount: number;
+  };
 }
 
 export function PromptContent({ user, prompt }: PromptContentProps) {
@@ -414,6 +434,7 @@ export function PromptContent({ user, prompt }: PromptContentProps) {
           promptContent={selectedVersion?.content || prompt.content}
           promptVersionId={selectedVersion?.id || currentVersionId}
           onTestPrompt={handleTestPrompt}
+          userPlan={user.planType}
         />
       </main>
     </div>

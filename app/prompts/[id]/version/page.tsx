@@ -16,6 +16,8 @@ import { TestHistory } from '@/components/TestHistory';
 import { Version } from '@/types/version';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
+import { currentUser } from '@clerk/nextjs/server';
+import { redirect } from 'next/navigation';
 
 interface TestResult {
   id: string;
@@ -95,7 +97,21 @@ const dummyTestHistory = [
   }
 ];
 
-export default function VersionPage({ params }: { params: { id: string } }) {
+interface PageProps {
+  params: {
+    id: string;
+  };
+  searchParams: {
+    versionId?: string;
+  };
+}
+
+export default async function VersionPage({ params, searchParams }: PageProps) {
+  const user = await currentUser();
+  if (!user) {
+    redirect('/sign-in');
+  }
+
   const promptId = params.id;
   const router = useRouter();
   const [versions, setVersions] = useState<Version[]>([]);
@@ -420,6 +436,7 @@ export default function VersionPage({ params }: { params: { id: string } }) {
               .catch(() => setTestHistory([]))
               .finally(() => setIsLoadingHistory(false));
           }}
+          userPlan={user.publicMetadata.planType as string}
         />
 
         <VersionPlayground
