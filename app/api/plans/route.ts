@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { PLAN_TIERS } from '@/constants/plans';
+import { PLANS } from '@/app/constants/plans';
 
 export async function GET() {
   try {
@@ -22,16 +22,14 @@ export async function GET() {
         stripeProductId: true,
         stripePriceId: true,
         stripeAnnualPriceId: true,
-        credits: true,
       },
     });
 
     // Enhance plans with tier information
     const enhancedPlans = plans.map(plan => {
-      const tier = PLAN_TIERS[plan.name as keyof typeof PLAN_TIERS];
+      const tier = PLANS[plan.name.toUpperCase() as keyof typeof PLANS];
       return {
         ...plan,
-        credits: tier?.credits || plan.credits,
         features: tier?.features || plan.features,
       };
     });

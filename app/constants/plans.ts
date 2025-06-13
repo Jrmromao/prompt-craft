@@ -5,13 +5,7 @@ export enum PlanType {
   ENTERPRISE = 'ENTERPRISE'
 }
 
-export type PlanFeature = {
-  name: string;
-  description: string;
-  isPostMVP?: boolean;
-};
-
-export type Plan = {
+export interface Plan {
   id: PlanType;
   name: string;
   description: string;
@@ -19,220 +13,153 @@ export type Plan = {
     monthly: number;
     annual: number;
   };
-  features: PlanFeature[];
+  features: Array<{
+    name: string;
+    description: string;
+  }>;
   limits: {
     promptRuns: number;
     testRuns: number;
-    teamMembers?: number;
-    customModels?: number;
     tokens: number;
   };
   models: {
-    deepseek: boolean;
     gpt35: boolean;
-    premium: boolean;
+    gpt4: boolean;
   };
   byok: {
     enabled: boolean;
-    unlimitedTestRuns: boolean;
   };
   credits: {
-    enabled: boolean;
-    minimumPurchase: number;
-    pricePerCredit: number;
+    included: number;
   };
-};
+}
 
 export const PLANS: Record<PlanType, Plan> = {
   [PlanType.FREE]: {
     id: PlanType.FREE,
     name: 'Free',
-    description: 'Perfect for individuals getting started with prompt engineering',
+    description: 'Perfect for getting started',
     price: {
       monthly: 0,
-      annual: 0,
+      annual: 0
     },
     features: [
-      {
-        name: 'Basic Prompt Management',
-        description: 'Create and manage up to 5 prompts',
-      },
-      {
-        name: 'Community Access',
-        description: 'Access to public prompts and community features',
-      },
-      {
-        name: 'Basic Analytics',
-        description: 'View basic usage statistics',
-      },
+      { name: 'Private Prompts', description: 'Create up to 3 private prompts per month' },
+      { name: 'Prompt Runs', description: 'Run up to 100 prompts per month' },
+      { name: 'Basic Support', description: 'Email support' }
     ],
     limits: {
       promptRuns: 100,
-      testRuns: 50,
-      tokens: 10000,
+      testRuns: 0,
+      tokens: 100000
     },
     models: {
-      deepseek: false,
       gpt35: true,
-      premium: false,
+      gpt4: false
     },
     byok: {
-      enabled: false,
-      unlimitedTestRuns: false,
+      enabled: false
     },
     credits: {
-      enabled: true,
-      minimumPurchase: 10,
-      pricePerCredit: 0.01,
-    },
+      included: 0
+    }
   },
   [PlanType.PRO]: {
     id: PlanType.PRO,
     name: 'Pro',
-    description: 'For professionals who need more power and flexibility',
+    description: 'For professionals and small teams',
     price: {
-      monthly: 19,
-      annual: 180, // $15/month when paid annually
+      monthly: 29,
+      annual: 290
     },
     features: [
-      {
-        name: 'Advanced Prompt Management',
-        description: 'Unlimited prompts and advanced organization features',
-      },
-      {
-        name: 'Team Collaboration',
-        description: 'Up to 5 team members',
-      },
-      {
-        name: 'Advanced Analytics',
-        description: 'Detailed usage statistics and insights',
-      },
-      {
-        name: 'Custom Models',
-        description: 'Support for up to 3 custom models',
-        isPostMVP: true,
-      },
+      { name: 'Private Prompts', description: 'Create up to 50 private prompts per month' },
+      { name: 'Prompt Runs', description: 'Run up to 1000 prompts per month' },
+      { name: 'Version Control', description: 'Create up to 5 versions per prompt' },
+      { name: 'Test Runs', description: 'Run up to 500 test runs per month' },
+      { name: 'Priority Support', description: '24/7 email support' }
     ],
     limits: {
       promptRuns: 1000,
       testRuns: 500,
-      teamMembers: 5,
-      customModels: 3,
-      tokens: 100000,
+      tokens: 1000000
     },
     models: {
-      deepseek: true,
       gpt35: true,
-      premium: true,
+      gpt4: true
     },
     byok: {
-      enabled: true,
-      unlimitedTestRuns: false,
+      enabled: false
     },
     credits: {
-      enabled: true,
-      minimumPurchase: 50,
-      pricePerCredit: 0.008,
-    },
+      included: 100
+    }
   },
   [PlanType.ELITE]: {
     id: PlanType.ELITE,
     name: 'Elite',
-    description: 'For teams that need enterprise-grade features and support',
+    description: 'For growing businesses',
     price: {
-      monthly: 49,
-      annual: 468, // $39/month when paid annually
+      monthly: 99,
+      annual: 990
     },
     features: [
-      {
-        name: 'Enterprise Features',
-        description: 'All Pro features plus advanced security and compliance',
-      },
-      {
-        name: 'Unlimited Team Members',
-        description: 'Add as many team members as you need',
-      },
-      {
-        name: 'Priority Support',
-        description: '24/7 priority support and dedicated account manager',
-      },
-      {
-        name: 'Custom Integrations',
-        description: 'API access and custom integration support',
-        isPostMVP: true,
-      },
+      { name: 'Unlimited Private Prompts', description: 'Create unlimited private prompts' },
+      { name: 'Unlimited Prompt Runs', description: 'Run unlimited prompts' },
+      { name: 'Unlimited Version Control', description: 'Create unlimited versions' },
+      { name: 'Unlimited Test Runs', description: 'Run unlimited test runs' },
+      { name: 'Priority Support', description: '24/7 priority support' }
     ],
     limits: {
-      promptRuns: 10000,
-      testRuns: 5000,
-      teamMembers: -1, // Unlimited
-      customModels: 10,
-      tokens: 500000,
+      promptRuns: -1,
+      testRuns: -1,
+      tokens: -1
     },
     models: {
-      deepseek: true,
       gpt35: true,
-      premium: true,
+      gpt4: true
     },
     byok: {
-      enabled: true,
-      unlimitedTestRuns: true,
+      enabled: true
     },
     credits: {
-      enabled: false,
-      minimumPurchase: 0,
-      pricePerCredit: 0,
-    },
+      included: 500
+    }
   },
   [PlanType.ENTERPRISE]: {
     id: PlanType.ENTERPRISE,
     name: 'Enterprise',
-    description: 'Custom solutions for large organizations',
+    description: 'For large organizations',
     price: {
-      monthly: -1, // Custom pricing
-      annual: -1, // Custom pricing
+      monthly: 499,
+      annual: 4990
     },
     features: [
-      {
-        name: 'Custom Solutions',
-        description: 'Tailored features and integrations for your organization',
-      },
-      {
-        name: 'Dedicated Support',
-        description: '24/7 dedicated support team and account management',
-      },
-      {
-        name: 'SLA Guarantee',
-        description: 'Service level agreement with guaranteed uptime',
-      },
-      {
-        name: 'Custom Development',
-        description: 'Custom feature development and integration support',
-        isPostMVP: true,
-      },
+      { name: 'Unlimited Everything', description: 'Unlimited access to all features' },
+      { name: 'Custom Integration', description: 'Custom API integration' },
+      { name: 'Dedicated Support', description: '24/7 dedicated support' },
+      { name: 'SLA Guarantee', description: '99.9% uptime guarantee' }
     ],
     limits: {
-      promptRuns: -1, // Unlimited
-      testRuns: -1, // Unlimited
-      teamMembers: -1, // Unlimited
-      customModels: -1, // Unlimited
-      tokens: -1, // Unlimited
+      promptRuns: -1,
+      testRuns: -1,
+      tokens: -1
     },
     models: {
-      deepseek: true,
       gpt35: true,
-      premium: true,
+      gpt4: true
     },
     byok: {
-      enabled: true,
-      unlimitedTestRuns: true,
+      enabled: true
     },
     credits: {
-      enabled: false,
-      minimumPurchase: 0,
-      pricePerCredit: 0,
-    },
-  },
+      included: 2000
+    }
+  }
+};
+
+export const getPlanById = (planId: PlanType): Plan | undefined => {
+  return PLANS[planId];
 };
 
 // Helper functions to check plan features and limits
@@ -240,11 +167,41 @@ export const hasFeature = (plan: Plan, featureName: string): boolean => {
   return plan.features.some(feature => feature.name === featureName);
 };
 
-export const isPostMVPFeature = (plan: Plan, featureName: string): boolean => {
-  const feature = plan.features.find(f => f.name === featureName);
-  return feature?.isPostMVP || false;
-};
-
-export const getPlanById = (planId: PlanType): Plan | undefined => {
-  return PLANS[planId];
-}; 
+export const PLANS_CONSTANTS = {
+  [PlanType.FREE]: {
+    name: 'Free',
+    features: {
+      private_prompts: 3,
+      prompt_runs: 100,
+      version_control: 0,
+      test_runs: 0
+    }
+  },
+  [PlanType.PRO]: {
+    name: 'Pro',
+    features: {
+      private_prompts: 50,
+      prompt_runs: 1000,
+      version_control: 5,
+      test_runs: 500
+    }
+  },
+  [PlanType.ELITE]: {
+    name: 'Elite',
+    features: {
+      private_prompts: -1, // unlimited
+      prompt_runs: -1, // unlimited
+      version_control: -1, // unlimited
+      test_runs: -1 // unlimited
+    }
+  },
+  [PlanType.ENTERPRISE]: {
+    name: 'Enterprise',
+    features: {
+      private_prompts: -1, // unlimited
+      prompt_runs: -1, // unlimited
+      version_control: -1, // unlimited
+      test_runs: -1 // unlimited
+    }
+  }
+} as const; 

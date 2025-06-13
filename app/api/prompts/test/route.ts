@@ -40,7 +40,9 @@ export async function POST(req: Request) {
     if (user.planType === PlanType.PRO) {
       const testRunCount = await prisma.promptTest.count({
         where: {
-          userId,
+          promptVersion: {
+            userId
+          },
           createdAt: {
             gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1) // First day of current month
           }

@@ -85,7 +85,7 @@ Please generate a complete, well-structured prompt that follows best practices f
       });
       
       const plan = PLANS[user?.planType.toUpperCase() as PlanType];
-      const errorMessage = plan?.credits.enabled 
+      const errorMessage = plan?.credits.included !== -1 
         ? `Insufficient credits. You need ${creditCost} credits for this operation. Please purchase more credits to continue.`
         : 'This operation is not available in your current plan. Please upgrade to continue.';
 

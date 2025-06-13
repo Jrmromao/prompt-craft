@@ -93,14 +93,15 @@ export class StripeService {
   async getSubscription(subscriptionId: string): Promise<StripeSubscription> {
     try {
       const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+      const rawSubscription = subscription as any;
 
       return {
         id: subscription.id,
         customerId: subscription.customer as string,
         status: subscription.status,
-        currentPeriodStart: new Date(subscription.current_period_start * 1000),
-        currentPeriodEnd: new Date(subscription.current_period_end * 1000),
-        cancelAtPeriodEnd: subscription.cancel_at_period_end,
+        currentPeriodStart: new Date(rawSubscription.current_period_start * 1000),
+        currentPeriodEnd: new Date(rawSubscription.current_period_end * 1000),
+        cancelAtPeriodEnd: rawSubscription.cancel_at_period_end,
         planId: subscription.items.data[0].price.id,
       };
     } catch (error) {
@@ -119,14 +120,15 @@ export class StripeService {
         cancel_at_period_end: cancelAtPeriodEnd,
         proration_behavior: prorationBehavior,
       });
+      const rawSubscription = subscription as any;
 
       return {
         id: subscription.id,
         customerId: subscription.customer as string,
         status: subscription.status,
-        currentPeriodStart: new Date(subscription.current_period_start * 1000),
-        currentPeriodEnd: new Date(subscription.current_period_end * 1000),
-        cancelAtPeriodEnd: subscription.cancel_at_period_end,
+        currentPeriodStart: new Date(rawSubscription.current_period_start * 1000),
+        currentPeriodEnd: new Date(rawSubscription.current_period_end * 1000),
+        cancelAtPeriodEnd: rawSubscription.cancel_at_period_end,
         planId: subscription.items.data[0].price.id,
       };
     } catch (error) {

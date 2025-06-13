@@ -1,4 +1,4 @@
-import { PLANS, Plan, hasFeature, isPostMVPFeature } from '@/app/constants/plans';
+import { PLANS, Plan, hasFeature, PlanType } from '@/app/constants/plans';
 import { PrismaClient } from '@prisma/client';
 import { logAudit } from '../auditLogger';
 import { AuditAction } from '@/app/constants/audit';
@@ -19,33 +19,12 @@ export class PlanService {
       throw new Error('User not found');
     }
 
-    const plan = PLANS[user.planType.toUpperCase()];
+    const plan = PLANS[user.planType.toUpperCase() as PlanType];
     if (!plan) {
       throw new Error('Invalid plan');
     }
 
     return hasFeature(plan, featureName);
-  }
-
-  /**
-   * Check if a feature is post-MVP for a user's plan
-   */
-  static async isPostMVPFeature(userId: string, featureName: string): Promise<boolean> {
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      select: { planType: true }
-    });
-
-    if (!user) {
-      throw new Error('User not found');
-    }
-
-    const plan = PLANS[user.planType.toUpperCase()];
-    if (!plan) {
-      throw new Error('Invalid plan');
-    }
-
-    return isPostMVPFeature(plan, featureName);
   }
 
   /**
@@ -64,13 +43,13 @@ export class PlanService {
       throw new Error('User not found');
     }
 
-    const plan = PLANS[user.planType.toUpperCase()];
+    const plan = PLANS[user.planType.toUpperCase() as PlanType];
     if (!plan) {
       throw new Error('Invalid plan');
     }
 
-    // Elite and Enterprise plans don't use credits
-    if (!plan.credits.enabled) {
+    // Elite and Enterprise plans have unlimited credits
+    if (plan.credits.included === -1) {
       return true;
     }
 
@@ -93,13 +72,13 @@ export class PlanService {
       throw new Error('User not found');
     }
 
-    const plan = PLANS[user.planType.toUpperCase()];
+    const plan = PLANS[user.planType.toUpperCase() as PlanType];
     if (!plan) {
       throw new Error('Invalid plan');
     }
 
-    // Elite and Enterprise plans don't use credits
-    if (!plan.credits.enabled) {
+    // Elite and Enterprise plans have unlimited credits
+    if (plan.credits.included === -1) {
       return;
     }
 
@@ -144,19 +123,14 @@ export class PlanService {
       throw new Error('User not found');
     }
 
-    const plan = PLANS[user.planType.toUpperCase()];
+    const plan = PLANS[user.planType.toUpperCase() as PlanType];
     if (!plan) {
       throw new Error('Invalid plan');
     }
 
-    // Elite and Enterprise plans don't use credits
-    if (!plan.credits.enabled) {
+    // Elite and Enterprise plans have unlimited credits
+    if (plan.credits.included === -1) {
       return;
-    }
-
-    // Check minimum purchase amount
-    if (amount < plan.credits.minimumPurchase) {
-      throw new Error(`Minimum purchase amount is ${plan.credits.minimumPurchase} credits`);
     }
 
     await prisma.user.update({
@@ -183,7 +157,7 @@ export class PlanService {
   /**
    * Check if a user can use a specific model based on their plan
    */
-  static async canUseModel(userId: string, modelName: 'deepseek' | 'gpt35' | 'premium'): Promise<boolean> {
+  static async canUseModel(userId: string, modelName: 'gpt35' | 'gpt4'): Promise<boolean> {
     const user = await prisma.user.findUnique({
       where: { id: userId },
       select: { planType: true }
@@ -193,7 +167,7 @@ export class PlanService {
       throw new Error('User not found');
     }
 
-    const plan = PLANS[user.planType.toUpperCase()];
+    const plan = PLANS[user.planType.toUpperCase() as PlanType];
     if (!plan) {
       throw new Error('Invalid plan');
     }
@@ -202,9 +176,9 @@ export class PlanService {
   }
 
   /**
-   * Check if a user has BYOK enabled and if it provides unlimited test runs
+   * Check if a user has BYOK enabled
    */
-  static async hasBYOKUnlimitedTestRuns(userId: string): Promise<boolean> {
+  static async hasBYOKEnabled(userId: string): Promise<boolean> {
     const user = await prisma.user.findUnique({
       where: { id: userId },
       select: { planType: true }
@@ -214,12 +188,12 @@ export class PlanService {
       throw new Error('User not found');
     }
 
-    const plan = PLANS[user.planType.toUpperCase()];
+    const plan = PLANS[user.planType.toUpperCase() as PlanType];
     if (!plan) {
       throw new Error('Invalid plan');
     }
 
-    return plan.byok.enabled && plan.byok.unlimitedTestRuns;
+    return plan.byok.enabled;
   }
 
   /**
@@ -235,7 +209,7 @@ export class PlanService {
       throw new Error('User not found');
     }
 
-    const plan = PLANS[user.planType.toUpperCase()];
+    const plan = PLANS[user.planType.toUpperCase() as PlanType];
     if (!plan) {
       throw new Error('Invalid plan');
     }

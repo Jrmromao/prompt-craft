@@ -58,7 +58,7 @@ import { useTheme } from '@/components/ThemeProvider';
 import { UsageTab } from '@/components/profile/UsageTab';
 import BillingInvoicesSection from '@/components/profile/BillingInvoicesSection';
 import PrivacySettingsPage from '@/app/profile/privacy/page';
-import CreditPurchaseSection from '@/app/components/profile/CreditPurchaseSection';
+import { CreditPurchaseSection } from '@/app/components/profile/CreditPurchaseSection';
 
 const Sheet = dynamic(() => import('@/components/ui/sheet').then(mod => mod.Sheet), {
   ssr: false,

@@ -39,7 +39,7 @@ export class CreditService {
     if (!plan) return false;
 
     // Elite and Enterprise plans have unlimited credits
-    if (!plan.credits.enabled) {
+    if (plan.credits.included === -1) {
       return true;
     }
 
@@ -61,7 +61,7 @@ export class CreditService {
     if (!plan) return true;
 
     // Elite and Enterprise plans have no credit cap
-    if (!plan.credits.enabled) {
+    if (plan.credits.included === -1) {
       return false;
     }
 
@@ -88,7 +88,7 @@ export class CreditService {
     if (!plan) return false;
 
     // Elite and Enterprise plans have unlimited credits
-    if (!plan.credits.enabled) {
+    if (plan.credits.included === -1) {
       return true;
     }
 
@@ -142,13 +142,8 @@ export class CreditService {
       throw new Error('Invalid plan');
     }
 
-    // Check minimum purchase amount for credit-enabled plans
-    if (plan.credits.enabled && amount < plan.credits.minimumPurchase) {
-      throw new Error(`Minimum purchase amount is ${plan.credits.minimumPurchase} credits`);
-    }
-
     // Check if adding credits would exceed the plan's credit cap
-    if (plan.credits.enabled && await this.wouldExceedCreditCap(userId, amount)) {
+    if (plan.credits.included !== -1 && await this.wouldExceedCreditCap(userId, amount)) {
       throw new Error(`Adding ${amount} credits would exceed your plan's credit cap of ${plan.limits.tokens}`);
     }
 
@@ -190,7 +185,7 @@ export class CreditService {
     if (!plan) return;
 
     // Only reset credits for plans that use the credit system
-    if (!plan.credits.enabled) return;
+    if (plan.credits.included === -1) return;
 
     const newCredits = plan.limits.tokens;
     const currentCredits = (await prisma.user.findUnique({
@@ -245,7 +240,7 @@ export class CreditService {
     if (!plan) return 0;
 
     // Elite and Enterprise plans have unlimited credits
-    if (!plan.credits.enabled) {
+    if (plan.credits.included === -1) {
       return Infinity;
     }
 
