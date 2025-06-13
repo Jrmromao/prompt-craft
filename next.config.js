@@ -31,39 +31,46 @@ const nextConfig = {
   experimental: {
     optimizeCss: false, // Temporarily disable CSS optimization
     optimizePackageImports: ['@clerk/nextjs', 'lucide-react'],
-    serverActions: {},
+    serverComponentsExternalPackages: ['@prisma/client', 'bcryptjs'],
+    serverActions: true,
   },
-  serverExternalPackages: ['@prisma/client', 'bcryptjs'],
   typescript: {
     ignoreBuildErrors: true,
   },
   output: 'standalone',
   poweredByHeader: false,
+  swcMinify: true,
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production',
   },
-  async headers() {
+  headers: async () => {
     return [
       {
         source: '/:path*',
         headers: [
           {
+            key: 'X-Frame-Options',
+            value: 'DENY',
+          },
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff',
+          },
+          {
+            key: 'X-XSS-Protection',
+            value: '1; mode=block',
+          },
+          {
+            key: 'Referrer-Policy',
+            value: 'strict-origin-when-cross-origin',
+          },
+          {
+            key: 'Permissions-Policy',
+            value: 'camera=(), microphone=(), geolocation=(), interest-cohort=()',
+          },
+          {
             key: 'Content-Security-Policy',
-            value: `
-              default-src 'self';
-              script-src 'self' 'unsafe-eval' 'unsafe-inline' https://*.sentry.io;
-              style-src 'self' 'unsafe-inline';
-              img-src 'self' blob: data: https://*.clerk.accounts.dev https://clerk.prompthive.co https://*.ingest.sentry.io https://*.sentry.io;
-              font-src 'self';
-              object-src 'none';
-              base-uri 'self';
-              form-action 'self';
-              frame-ancestors 'none';
-              block-all-mixed-content;
-              upgrade-insecure-requests;
-              connect-src 'self' https://*.clerk.accounts.dev https://clerk.prompthive.co https://*.ingest.sentry.io https://*.sentry.io https://*.sentry-cdn.com;
-              worker-src 'self' blob:;
-            `.replace(/\s{2,}/g, ' ').trim(),
+            value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.clerk.accounts.dev https://clerk.prompthive.co https://www.googletagmanager.com https://challenges.cloudflare.com; connect-src 'self' https://*.clerk.accounts.dev https://clerk.prompthive.co; img-src 'self' data: https: https://img.clerk.com; worker-src 'self' blob:; style-src 'self' 'unsafe-inline'; frame-src 'self' https://*.clerk.accounts.dev https://clerk.prompthive.co https://challenges.cloudflare.com; form-action 'self'; frame-ancestors 'self'",
           },
         ],
       },
@@ -112,7 +119,7 @@ const sentryWebpackPluginOptions = {
   // https://www.npmjs.com/package/@sentry/webpack-plugin#options
 
   org: "prompthiveco",
-  project: "promptcraft",
+  project: "prompthive",
 
   // Only print logs for uploading source maps in CI
   silent: !process.env.CI,
