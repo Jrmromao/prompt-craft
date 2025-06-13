@@ -86,10 +86,11 @@ interface Plan {
   popular: boolean;
 }
 
-const FeatureItem = ({ feature, isComingSoon = false }: { feature: string, isComingSoon?: boolean }) => {
-  if (isComingSoon) {
+// Helper to render features, underlining post-MVP ones
+function renderFeature(feature: string, isPostMVP: boolean, index: number) {
+  if (isPostMVP) {
     return (
-      <li className="flex items-center gap-3">
+      <li key={index} className="flex items-center gap-3">
         <Check className="h-5 w-5 text-green-500 flex-shrink-0" />
         <span
           className="underline decoration-dashed decoration-2 underline-offset-2 text-gray-500 cursor-help"
@@ -100,14 +101,29 @@ const FeatureItem = ({ feature, isComingSoon = false }: { feature: string, isCom
       </li>
     );
   }
-
   return (
-    <li className="flex items-center gap-3">
+    <li key={index} className="flex items-center gap-3">
       <Check className="h-5 w-5 text-green-500 flex-shrink-0" />
       <span>{feature}</span>
     </li>
   );
-};
+}
+
+// Define which features are post-MVP for each plan
+const postMVPFeatures = [
+  'Team Collaboration (up to 3 users)',
+  'Team Collaboration (up to 10 users)',
+  'Custom Integrations',
+  'Custom Model Fine-tuning',
+  'White-label Solutions',
+  'Custom AI Model Fine-tuning',
+  'Dedicated Account Manager',
+  'Custom API Integration',
+  'Advanced Security',
+  'Compliance Features',
+  'Custom Training',
+  'Custom Development',
+];
 
 const PricingSection = ({ 
   plans, 
@@ -184,7 +200,8 @@ const PricingSection = ({
         'Basic Analytics',
         'Community Support',
         'Basic Prompt Templates',
-        'Pay-as-you-go Credits (min. 100 credits)'
+        'Pay-as-you-go Credits: $0.08/credit (min. 100 credits)',
+        'Uses DeepSeek & GPT-3.5 AI Models'
       ],
       popular: false,
       isEnterprise: false
@@ -199,11 +216,13 @@ const PricingSection = ({
         'Advanced Analytics',
         'Priority Support',
         'Custom Templates',
-        { text: 'Team Collaboration (up to 3 users)', comingSoon: true },
-        { text: 'API Access', comingSoon: true },
+        'Team Collaboration (up to 3 users)',
+        'API Access',
         'Version Control',
         'Performance Metrics',
-        'Pay-as-you-go Credits ($0.008/credit)'
+        'Pay-as-you-go Credits: $0.06/credit (min. 500 credits)',
+        'Uses DeepSeek & GPT-3.5 AI Models',
+        'BYOK (Bring Your Own Key): Unlimited test runs with your own key'
       ],
       popular: true,
       isEnterprise: false
@@ -216,14 +235,16 @@ const PricingSection = ({
         'Unlimited Private Prompts',
         'Unlimited Testing Runs',
         'Advanced AI Parameters',
-        { text: 'Team Collaboration (up to 10 users)', comingSoon: true },
-        { text: 'Custom Integrations', comingSoon: true },
+        'Team Collaboration (up to 10 users)',
+        'Custom Integrations',
         'Advanced Analytics',
         'Priority Support',
-        { text: 'Custom Model Fine-tuning', comingSoon: true },
-        { text: 'White-label Solutions', comingSoon: true },
+        'Custom Model Fine-tuning',
+        'White-label Solutions',
         'SLA Guarantee',
-        'Pay-as-you-go Credits ($0.005/credit)'
+        'Unlimited credits included',
+        'Uses Premium AI Model',
+        'BYOK (Bring Your Own Key)'
       ],
       popular: false,
       isEnterprise: false
@@ -234,16 +255,18 @@ const PricingSection = ({
       description: 'Custom solutions for large organizations',
       features: [
         'Everything in Elite',
-        { text: 'Unlimited Team Members', comingSoon: true },
-        { text: 'Custom AI Model Fine-tuning', comingSoon: true },
+        'Unlimited Team Members',
+        'Custom AI Model Fine-tuning',
         'Dedicated Account Manager',
-        { text: 'Custom API Integration', comingSoon: true },
+        'Custom API Integration',
         'Advanced Security',
         'Compliance Features',
-        { text: 'Custom Training', comingSoon: true },
-        { text: 'Custom Development', comingSoon: true },
+        'Custom Training',
+        'Custom Development',
         'SLA Guarantee',
-        'Custom Credit Pricing'
+        'Unlimited credits included',
+        'Uses Premium AI Model (custom options available)',
+        'BYOK (Bring Your Own Key',
       ],
       popular: false,
       isEnterprise: true
@@ -277,7 +300,7 @@ const PricingSection = ({
             <div
               key={plan.name}
               className={cn(
-                "rounded-2xl p-8 border transition-all duration-300 h-full flex flex-col",
+                "relative rounded-2xl p-8 border transition-all duration-300 h-full flex flex-col",
                 plan.isEnterprise
                   ? "border-purple-500 bg-purple-50 dark:bg-purple-950/20"
                   : "border-gray-200 dark:border-gray-800 hover:border-purple-500 dark:hover:border-purple-500",
@@ -285,41 +308,43 @@ const PricingSection = ({
               )}
             >
               {plan.popular && (
-                <div className="mb-4">
-                  <span className="inline-block rounded-full bg-purple-100 px-3 py-1 text-sm font-semibold text-purple-700 dark:bg-purple-900/50 dark:text-purple-300">
+                <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-10">
+                  <span className="inline-block rounded-full bg-purple-100 px-3 py-1 text-sm font-semibold text-purple-700 dark:bg-purple-900/50 dark:text-purple-300 shadow-md border border-purple-200 dark:border-purple-800">
                     Most Popular
                   </span>
                 </div>
               )}
               <div className="mb-8">
-                <h3 className="text-2xl font-bold mb-2">{plan.name}</h3>
-                <p className="text-gray-600 dark:text-gray-400 mb-4">{plan.description}</p>
-                <div className="flex items-baseline gap-2">
+                <h3 className="text-2xl font-bold mb-2 text-center">{plan.name}</h3>
+                <p className="text-gray-600 dark:text-gray-400 mb-4 text-center">{plan.description}</p>
+                <div className="flex flex-col items-center justify-center gap-1">
                   {plan.price === null ? (
-                    <span className="text-2xl font-bold">Custom</span>
+                    <>
+                      <span className="text-4xl font-bold">Custom</span>
+                    </>
+                  ) : plan.name === 'FREE' ? (
+                    <>
+                      <span className="text-4xl font-bold">$0.00</span>
+                      <span className="text-sm text-gray-500 dark:text-gray-400">/{isAnnual ? 'year' : 'month'}</span>
+                    </>
+                  ) : isAnnual ? (
+                    <>
+                      <span className="text-4xl font-bold">${((plan.price * 12 * 0.8) / 12).toFixed(2)}/mo</span>
+                      <span className="text-xs text-gray-500 dark:text-gray-400">Billed ${(plan.price * 12 * 0.8).toFixed(2)}/year (save 20%)</span>
+                      <span className="text-xs text-gray-400">Original: ${(plan.price).toFixed(2)}/mo</span>
+                    </>
                   ) : (
                     <>
-                      <span className="text-4xl font-bold">
-                        ${isAnnual ? (plan.price * 12 * 0.8).toFixed(2) : plan.price}
-                      </span>
-                      <span className="text-gray-600 dark:text-gray-400">
-                        /{isAnnual ? 'year' : 'month'}
-                      </span>
+                      <span className="text-4xl font-bold">${plan.price.toFixed(2)}/mo</span>
                     </>
                   )}
                 </div>
               </div>
-
               <ul className="space-y-4 mb-8 flex-grow">
-                {plan.features.map((feature, index) => (
-                  <FeatureItem 
-                    key={index} 
-                    feature={typeof feature === 'string' ? feature : feature.text}
-                    isComingSoon={typeof feature === 'object' && feature.comingSoon}
-                  />
-                ))}
+                {plan.features.map((feature, index) =>
+                  renderFeature(feature, postMVPFeatures.includes(feature), index)
+                )}
               </ul>
-
               <button
                 onClick={() => handleSubscribe({ 
                   ...plans[0], 
@@ -348,126 +373,6 @@ const PricingSection = ({
               </button>
             </div>
           ))}
-        </div>
-
-        {/* Pay-as-you-go Section */}
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-12">
-            <h3 className="text-3xl font-bold mb-4">Pay-as-you-go Credits</h3>
-            <p className="text-xl text-gray-600 dark:text-gray-400">
-              Need more flexibility? Purchase credits as you go.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {[
-              {
-                name: 'Free Tier',
-                price: '$0.015',
-                perCredit: true,
-                features: [
-                  'Minimum purchase: 100 credits',
-                  'Credits never expire',
-                  'Use for prompt generation and playground',
-                  'Standard processing speed',
-                  'Basic support',
-                  'Community access'
-                ],
-              },
-              {
-                name: 'Pro Tier',
-                price: '$0.012',
-                perCredit: true,
-                features: [
-                  '20% discount on credits',
-                  'Minimum purchase: 500 credits',
-                  'Credits never expire',
-                  'Priority processing',
-                  'Priority support',
-                  'Advanced analytics'
-                ],
-              },
-              {
-                name: 'Elite Tier',
-                price: '$0.009',
-                perCredit: true,
-                features: [
-                  '40% discount on credits',
-                  'Minimum purchase: 1000 credits',
-                  'Credits never expire',
-                  'Priority processing',
-                  'Priority support',
-                  'Advanced analytics',
-                  'Bulk credit purchases available',
-                  'Custom integrations'
-                ],
-              },
-              {
-                name: 'Enterprise',
-                price: 'Custom',
-                perCredit: false,
-                features: [
-                  'Custom credit pricing',
-                  'Volume discounts',
-                  'Dedicated account management',
-                  'Custom billing options',
-                  'SLA guarantees',
-                  'Custom integrations',
-                  'White-label solutions',
-                  'Custom development'
-                ],
-              },
-            ].map((tier, index) => (
-              <div
-                key={index}
-                className="rounded-2xl border border-gray-200 p-6 transition-all duration-300 hover:border-purple-500 dark:border-gray-800 h-full flex flex-col"
-              >
-                <div className="mb-6">
-                  <h4 className="text-xl font-bold mb-2">{tier.name}</h4>
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-3xl font-bold">{tier.price}</span>
-                    {tier.perCredit && (
-                      <span className="text-gray-600 dark:text-gray-400">/credit</span>
-                    )}
-                  </div>
-                </div>
-
-                <ul className="space-y-3 mb-6 flex-grow">
-                  {tier.features.map((feature, idx) => (
-                    <li key={idx} className="flex items-center gap-2">
-                      <Check className="h-4 w-4 text-green-500 flex-shrink-0" />
-                      <span className="text-sm">{feature}</span>
-                    </li>
-                  ))}
-                </ul>
-
-                <button
-                  onClick={() => handleSubscribe({ 
-                    ...plans[0], 
-                    name: tier.name,
-                    price: 0,
-                    stripePriceId: tier.name === 'Enterprise' ? 'enterprise' : plans[0].stripePriceId,
-                    stripeAnnualPriceId: tier.name === 'Enterprise' ? 'enterprise' : plans[0].stripeAnnualPriceId,
-                    popular: false,
-                    isEnterprise: tier.name === 'Enterprise'
-                  })}
-                  className={cn(
-                    "w-full py-2 px-4 rounded-lg font-semibold transition-all duration-300 mt-auto",
-                    tier.name === 'Enterprise'
-                      ? "bg-purple-600 text-white hover:bg-purple-700"
-                      : "bg-white text-purple-600 border-2 border-purple-600 hover:bg-purple-50 dark:bg-black dark:hover:bg-purple-950/20"
-                  )}
-                >
-                  {tier.name === 'Enterprise' 
-                    ? "Contact Sales" 
-                    : tier.name === 'Free Tier'
-                    ? "Buy Credits"
-                    : "Buy Credits Now"
-                  }
-                </button>
-              </div>
-            ))}
-          </div>
         </div>
       </div>
     </section>
