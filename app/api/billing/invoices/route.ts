@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { BillingService } from '@/lib/services/billingService';
 import { trackUserFlowError, trackUserFlowEvent } from '@/lib/error-tracking';
+import { logAudit } from '@/app/lib/auditLogger';
+import { AuditAction } from '@/app/constants/audit';
 
 // Configure route
 export const dynamic = 'force-dynamic';
@@ -22,6 +24,14 @@ export async function GET() {
     trackUserFlowEvent('payment_processing', 'invoices_fetched', { 
       userId,
       invoiceCount: billingData.invoices.length 
+    });
+
+    // Audit log for invoice view
+    await logAudit({
+      action: AuditAction.INVOICE_VIEWED,
+      userId,
+      resource: 'invoice',
+      details: { invoiceCount: billingData.invoices.length },
     });
 
     return NextResponse.json({ invoices: billingData.invoices });

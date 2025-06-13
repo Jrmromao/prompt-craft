@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { BillingService } from '@/lib/services/billingService';
+import { logAudit } from '@/app/lib/auditLogger';
+import { AuditAction } from '@/app/constants/audit';
 
 // Security headers for the response
 const securityHeaders = {
@@ -24,6 +26,14 @@ export async function GET(request: Request) {
 
     const billingService = BillingService.getInstance();
     const portalUrl = await billingService.getPortalUrl(userId);
+
+    // Audit log for billing portal access
+    await logAudit({
+      action: AuditAction.BILLING_PORTAL_ACCESSED,
+      userId,
+      resource: 'billing',
+      details: { portalUrl },
+    });
 
     // Create response with security headers
     const response = NextResponse.json({ url: portalUrl });

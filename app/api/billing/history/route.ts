@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { prisma } from '@/lib/prisma';
 import Stripe from 'stripe';
+import { logAudit } from '@/app/lib/auditLogger';
+import { AuditAction } from '@/app/constants/audit';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2025-02-24.acacia',
@@ -54,6 +56,14 @@ export async function GET(req: NextRequest) {
       pdf: invoice.invoice_pdf,
       hostedUrl: invoice.hosted_invoice_url,
     }));
+
+    // Audit log for billing history view
+    await logAudit({
+      action: AuditAction.BILLING_HISTORY_VIEWED,
+      userId,
+      resource: 'billing',
+      details: { invoiceCount: billingHistory.length },
+    });
 
     return NextResponse.json({
       billingHistory,

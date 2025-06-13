@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { requireRole } from '@/utils/roles.server';
 import { Role } from '@/utils/roles';
+import { AuditAction } from '@/app/constants/audit';
+import { logAudit } from '@/app/lib/auditLogger';
 
 
 export async function GET() {
@@ -17,6 +19,13 @@ export async function GET() {
       take: 100, // Limit to last 100 changes
     });
 
+    await logAudit({
+      action: AuditAction.GET_ROLE_HISTORY,
+      userId,
+      resource: 'role-history',
+      status: 'success',
+      details: { roleChanges },
+    });
     return NextResponse.json(roleChanges);
   } catch (error) {
     console.error('Error fetching role changes:', error);

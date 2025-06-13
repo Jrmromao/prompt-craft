@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { SettingsService } from '@/lib/services/settingsService';
 import { z } from 'zod';
+import { logAudit } from '@/app/lib/auditLogger';
+import { AuditAction } from '@/app/constants/audit';
 
 const settingsSchema = z.object({
   theme: z.enum(['light', 'dark', 'system']).optional(),
@@ -25,6 +27,15 @@ export async function GET(
       settings = await SettingsService.createDefaultSettings(userId);
     }
 
+    await logAudit({
+      action: AuditAction.USER_GET_SETTINGS,
+      userId,
+      resource: 'settings',
+      status: 'success',
+      details: { settings },
+    });
+
+    
     return NextResponse.json(settings);
   } catch (error) {
     console.error('Error fetching settings:', error);
@@ -52,6 +63,14 @@ export async function PATCH(
     }
 
     const updatedSettings = await SettingsService.updateUserSettings(userId, validatedData);
+
+    await logAudit({
+      action: AuditAction.USER_UPDATE_SETTINGS,
+      userId,
+      resource: 'settings',
+      status: 'success',
+      details: { settings: updatedSettings },
+    });
     return NextResponse.json(updatedSettings);
   } catch (error) {
     console.error('Error updating settings:', error);

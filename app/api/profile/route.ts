@@ -5,6 +5,8 @@ import { userProfileSchema } from '@/lib/validations/user';
 import { z } from 'zod';
 import { dynamicRouteConfig, withDynamicRoute } from '@/lib/utils/dynamicRoute';
 import { trackUserFlowError, trackUserFlowEvent } from '@/lib/error-tracking';
+import { AuditAction } from '@/app/constants/audit';
+import { logAudit } from '@/app/lib/auditLogger';
 
 // Export dynamic configuration
 export const { dynamic, revalidate, runtime } = dynamicRouteConfig;
@@ -35,6 +37,14 @@ export async function GET() {
       trackUserFlowError('profile_update', new Error('Profile not found'), { userId });
       return NextResponse.json({ error: 'Profile not found' }, { status: 404 });
     }
+
+    await logAudit({
+      action: AuditAction.USER_GET_PROFILE,
+      userId,
+      resource: 'profile',
+      status: 'success',
+      details: { profile },
+    });
 
     return NextResponse.json(profile);
   } catch (error) {
@@ -70,6 +80,14 @@ export async function PATCH(req: Request) {
         twitter: validatedData.twitter,
         linkedin: validatedData.linkedin,
       },
+    });
+
+    await logAudit({
+      action: AuditAction.USER_UPDATE_PROFILE,
+      userId,
+      resource: 'profile',
+      status: 'success',
+      details: { profile: updatedUser },
     });
 
     trackUserFlowEvent('profile_update', 'update_success', { userId });

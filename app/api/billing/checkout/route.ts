@@ -3,6 +3,8 @@ import { auth } from '@clerk/nextjs/server';
 import { stripe } from '@/lib/stripe';
 import { prisma } from '@/lib/prisma';
 import { SubscriptionStatus } from '@prisma/client';
+import { logAudit } from '@/app/lib/auditLogger';
+import { AuditAction } from '@/app/constants/audit';
 
 export async function POST(req: NextRequest) {
   try {
@@ -93,6 +95,14 @@ export async function POST(req: NextRequest) {
         userId,
         priceId,
       },
+    });
+
+    // Audit log for subscription checkout creation
+    await logAudit({
+      action: AuditAction.SUBSCRIPTION_CHECKOUT_CREATED,
+      userId,
+      resource: 'subscription',
+      details: { priceId, customerId, sessionId: session.id },
     });
 
     console.log('Created checkout session:', session.id);

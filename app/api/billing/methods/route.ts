@@ -2,9 +2,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { prisma } from '@/lib/prisma';
 import Stripe from 'stripe';
+import { logAudit } from '@/app/lib/auditLogger';
+import { AuditAction } from '@/app/constants/audit';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2025-02-24.acacia',
+  apiVersion: '2025-05-28.basil',
 });
 
 export async function GET(req: NextRequest) {
@@ -111,6 +113,13 @@ export async function POST(req: NextRequest) {
       },
     });
 
+    await logAudit({
+      action: AuditAction.PAYMENT_METHOD_ADDED,
+      userId,
+      resource: 'billing',
+      details: { paymentMethodId },
+    });
+
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Error adding payment method:', error);
@@ -164,6 +173,13 @@ export async function DELETE(req: NextRequest) {
         },
       });
     }
+
+    await logAudit({
+      action: AuditAction.PAYMENT_METHOD_REMOVED,
+      userId,
+      resource: 'billing',
+      details: { paymentMethodId },
+    });
 
     return NextResponse.json({ success: true });
   } catch (error) {

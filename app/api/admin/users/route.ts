@@ -3,6 +3,8 @@ import { auth } from '@clerk/nextjs/server';
 import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
 import { Prisma, UserStatus } from '@prisma/client';
+import { AuditAction } from '@/app/constants/audit';
+import { logAudit } from '@/app/lib/auditLogger';
 
 const userQuerySchema = z.object({
   page: z.string().optional(),
@@ -83,6 +85,15 @@ export async function GET(request: Request, context: any) {
       }),
       prisma.user.count({ where }),
     ]);
+
+
+    await logAudit({
+      action: AuditAction.ADMIN_GET_USERS,
+      userId,
+      resource: 'users',
+      status: 'success',
+      details: { users },
+    });
 
     return NextResponse.json({
       users,

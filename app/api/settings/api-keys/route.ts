@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { z } from 'zod';
 import { generateApiKey, rotateApiKey, listApiKeys, deleteApiKey } from '@/utils/api-keys';
+import { logAudit } from '@/app/lib/auditLogger';
+import { AuditAction } from '@/app/constants/audit';
 
 // Export dynamic configuration
 export const dynamic = 'force-dynamic';
@@ -47,6 +49,14 @@ export async function POST(request: Request, context: any) {
       scopes: data.scopes,
     });
 
+    // Audit log for API key creation
+    await logAudit({
+      action: AuditAction.API_KEY_CREATED,
+      userId,
+      resource: 'apiKey',
+      details: { name: data.name, expiresAt, scopes: data.scopes },
+    });
+
     return NextResponse.json(apiKey);
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -79,6 +89,15 @@ export async function DELETE(req: Request) {
     }
 
     await deleteApiKey(userId, keyId);
+
+    // Audit log for API key deletion
+    await logAudit({
+      action: AuditAction.API_KEY_REVOKED,
+      userId,
+      resource: 'apiKey',
+      details: { keyId },
+    });
+
     return new NextResponse(null, { status: 204 });
   } catch (error) {
     console.error('Error deleting API key:', error);

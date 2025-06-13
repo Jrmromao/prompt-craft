@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 import { auth, clerkClient } from '@clerk/nextjs/server';
+import { AuditAction } from '@/app/constants/audit';
+import { logAudit } from '@/app/lib/auditLogger';
 
 // Prevent static generation of this route
 export const dynamic = 'force-dynamic';
@@ -13,6 +15,14 @@ export async function GET() {
 
   try {
     const sessions = await (clerkClient as any).users.getSessions(userId);
+
+    await logAudit({
+      action: AuditAction.GET_SESSIONS,
+      userId,
+      resource: 'sessions',
+      status: 'success',
+      details: { sessions },
+    });
     return NextResponse.json(sessions);
   } catch (error) {
     console.error('Session fetch error:', error);
@@ -34,6 +44,13 @@ export async function DELETE(request: Request) {
       return new NextResponse('Session ID is required', { status: 400 });
     }
 
+    await logAudit({
+      action: AuditAction.DELETE_SESSION,
+      userId,
+      resource: 'sessions',
+      status: 'success',
+      details: { sessionId },
+    });
     // Revoke the session
     await (clerkClient as any).users.revokeSession(sessionId);
 

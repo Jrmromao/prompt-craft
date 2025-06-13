@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 import { auth, clerkClient } from '@clerk/nextjs/server';
+import { AuditAction } from '@/app/constants/audit';
+import { logAudit } from '@/app/lib/auditLogger';
 
 // Prevent static generation of this route
 export const dynamic = 'force-dynamic';
@@ -56,6 +58,14 @@ export async function GET(request: Request) {
       lastActive: session.lastActiveAt,
       createdAt: session.createdAt,
     }));
+    
+    await logAudit({
+      action: AuditAction.GET_LOGIN_HISTORY,
+      userId,
+      resource: 'login-history',
+      status: 'success',
+      details: { loginHistory },
+    });
     return NextResponse.json(loginHistory);
   } catch (error) {
     // If Clerk fails, fallback to mock data in development

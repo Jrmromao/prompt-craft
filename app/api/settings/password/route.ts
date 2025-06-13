@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { clerkClient } from '@clerk/nextjs/server';
+import { AuditAction } from '@/app/constants/audit';
+import { logAudit } from '@/app/lib/auditLogger';
 
 // Prevent static generation of this route
 export const dynamic = 'force-dynamic';
@@ -15,6 +17,7 @@ export async function POST(request: Request) {
 
     const { currentPassword, newPassword } = await request.json();
 
+   
     if (!currentPassword || !newPassword) {
       return new NextResponse('Missing required fields', { status: 400 });
     }
@@ -33,6 +36,14 @@ export async function POST(request: Request) {
     await (clerkClient as any).users.updateUserPassword({
       userId,
       newPassword: newPassword,
+    });
+
+    await logAudit({
+      action: AuditAction.UPDATE_PASSWORD,
+      userId,
+      resource: 'password',
+      status: 'success',
+      details: { currentPassword, newPassword },
     });
 
     return new NextResponse('Password updated successfully', { status: 200 });
