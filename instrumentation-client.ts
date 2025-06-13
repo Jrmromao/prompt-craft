@@ -3,15 +3,22 @@
 // https://docs.sentry.io/platforms/javascript/guides/nextjs/
 
 import * as Sentry from "@sentry/nextjs";
+import { browserTracingIntegration } from "@sentry/nextjs";
 
 Sentry.init({
   dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
 
   // Add optional integrations for additional features
   integrations: [
-    Sentry.replayIntegration(),
+    Sentry.replayIntegration({
+      // Session Replay
+      maskAllText: true,
+      blockAllMedia: true,
+    }),
     // send console.log, console.error, and console.warn calls as logs to Sentry
-    Sentry.consoleLoggingIntegration({ levels: ["log", "error", "warn"] }),
+    Sentry.consoleLoggingIntegration({ levels: ["error", "warn"] }),
+    // Performance monitoring
+    browserTracingIntegration(),
   ],
 
   // Enable logs
@@ -19,19 +26,41 @@ Sentry.init({
     enableLogs: true,
   },
 
-  // Define how likely traces are sampled. Adjust this value in production, or use tracesSampler for greater control.
-  tracesSampleRate: 1,
+  // Define how likely traces are sampled. Adjust this value in production
+  tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.2 : 1.0,
 
   // Define how likely Replay events are sampled.
-  // This sets the sample rate to be 10%. You may want this to be 100% while
-  // in development and sample at a lower rate in production
-  replaysSessionSampleRate: 0.1,
+  // In production, we want to sample at a lower rate to reduce costs
+  replaysSessionSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 1.0,
 
-  // Define how likely Replay events are sampled when an error occurs.
+  // Always capture replays when an error occurs
   replaysOnErrorSampleRate: 1.0,
 
   // Setting this option to true will print useful information to the console while you're setting up Sentry.
-  debug: false,
+  debug: process.env.NODE_ENV === 'development',
+
+  // Set the environment
+  environment: process.env.NODE_ENV,
+
+  // Set the release version
+  release: process.env.NEXT_PUBLIC_APP_VERSION || '1.0.0',
+
+  // Configure error sampling
+  beforeSend(event) {
+    // Don't send events in development
+    if (process.env.NODE_ENV === 'development') {
+      return null;
+    }
+    return event;
+  },
+
+  // Configure error tracking
+  ignoreErrors: [
+    // Ignore specific errors that are not relevant
+    "Network request failed",
+    "Failed to fetch",
+    "NetworkError when attempting to fetch resource",
+  ],
 });
 
 export const onRouterTransitionStart = Sentry.captureRouterTransitionStart;
