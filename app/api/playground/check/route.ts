@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { prisma } from '@/lib/prisma';
-import { PlanType } from '@prisma/client';
-import { dynamicRouteConfig, withDynamicRoute } from '@/lib/utils/dynamicRoute';
+import { PlanLimitsService } from '@/lib/services/planLimitsService';
+import { dynamicRouteConfig } from '@/lib/utils/dynamicRoute';
 
 // Export dynamic configuration
 export const { dynamic, revalidate, runtime } = dynamicRouteConfig;
@@ -26,6 +26,17 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
+    const planLimitsService = PlanLimitsService.getInstance();
+    const isTestRunsAvailable = await planLimitsService.isFeatureAvailable(user.planType, 'test_runs');
+    
+    if (!isTestRunsAvailable) {
+      const description = await planLimitsService.getFeatureDescription(user.planType, 'test_runs');
+      return NextResponse.json(
+        { error: description || 'Test runs are not available in your current plan. Please upgrade to continue.' },
+        { status: 403 }
+      );
+    }
+
     // Get user's playground runs this month
     const startOfMonth = new Date();
     startOfMonth.setDate(1);
@@ -40,16 +51,21 @@ export async function POST(req: Request) {
       },
     });
 
-    // Check if user has exceeded their limit
-    const TIER_LIMITS: Record<PlanType, number | null> = {
-      FREE: 20,
-      LITE: 300,
-      PRO: null, // unlimited
-    };
+    const { allowed, limit, remaining } = await planLimitsService.checkLimit(
+      user.planType,
+      'test_runs',
+      runsThisMonth
+    );
 
-    const limit = TIER_LIMITS[user.planType];
-    if (limit !== null && runsThisMonth >= limit) {
-      return NextResponse.json({ error: 'Playground run limit exceeded' }, { status: 429 });
+    if (!allowed) {
+      return NextResponse.json(
+        { 
+          error: `You have reached your monthly limit of ${limit} test runs. Please upgrade to continue.`,
+          limit,
+          remaining
+        },
+        { status: 403 }
+      );
     }
 
     // If promptId is provided, check if user has access to this prompt
@@ -69,7 +85,11 @@ export async function POST(req: Request) {
       }
     }
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ 
+      success: true,
+      limit,
+      remaining
+    });
   } catch (error: any) {
     console.error('Error in /api/playground/check:', error);
     return NextResponse.json({ error: error.message || 'Internal server error' }, { status: 500 });

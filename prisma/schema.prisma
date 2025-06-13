@@ -773,6 +773,21 @@ model CreditPurchase {
   @@index([stripeSessionId])
 }
 
+model PlanLimits {
+  id                String   @id @default(cuid())
+  planType          PlanType
+  feature           String
+  limit             Int
+  period            String   @default("monthly") // monthly, daily, yearly
+  description       String
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@unique([planType, feature])
+  @@index([planType])
+  @@index([feature])
+}
+
 enum Role {
   USER
   ADMIN

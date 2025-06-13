@@ -38,5 +38,6 @@ export enum AuditAction {
   // Credit-related actions
   CREDITS_DEDUCTED = 'CREDITS_DEDUCTED',
   CREDITS_ADDED = 'CREDITS_ADDED',
+  SUBSCRIPTION_RENEWED = "SUBSCRIPTION_RENEWED",
 }
 

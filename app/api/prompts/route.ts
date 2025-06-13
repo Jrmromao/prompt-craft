@@ -84,8 +84,8 @@ export const POST = withPlanLimitsMiddleware(
         return NextResponse.json({ error: 'User not found' }, { status: 404 });
       }
 
-      // If creating a private prompt, check the limit for free users
-      if (!isPublic && user.planType === PlanType.FREE) {
+      // If creating a private prompt, check the limit based on plan
+      if (!isPublic) {
         const privatePromptCount = await prisma.prompt.count({
           where: {
             userId,
@@ -96,14 +96,21 @@ export const POST = withPlanLimitsMiddleware(
           }
         });
 
-        if (privatePromptCount >= 3) {
+        // Check limits based on plan type
+        if (user.planType === PlanType.FREE && privatePromptCount >= 3) {
           return NextResponse.json(
             { error: 'Free users can only create 3 private prompts per month. Please upgrade your plan to create more private prompts.' },
+            { status: 403 }
+          );
+        } else if (user.planType === PlanType.PRO && privatePromptCount >= 50) {
+          return NextResponse.json(
+            { error: 'Pro users can only create 50 private prompts per month. Please upgrade to Elite plan for unlimited private prompts.' },
             { status: 403 }
           );
         }
       }
 
+      // Create the prompt
       const promptService = PromptService.getInstance();
       const prompt = await promptService.savePrompt(userId, {
         name,
@@ -129,7 +136,7 @@ export const POST = withPlanLimitsMiddleware(
     } catch (error) {
       console.error('Error creating prompt:', error);
       return NextResponse.json(
-        { error: error instanceof Error ? error.message : 'Failed to create prompt' },
+        { error: 'Failed to create prompt' },
         { status: 500 }
       );
     }

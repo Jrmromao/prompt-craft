@@ -5,6 +5,7 @@ import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { PLANS } from '@/app/constants/plans';
 import { PlanType } from '@prisma/client';
+import { PlanLimitsService } from '@/lib/services/planLimitsService';
 
 const createVersionSchema = z.object({
   content: z.string().min(1),
@@ -53,20 +54,16 @@ export async function GET(
 }
 
 export async function POST(
-  request: Request,
-  context: any
+  req: Request,
+  { params }: { params: { id: string } }
 ) {
   try {
-    console.log('Received POST request for versions');
-    console.log('Params:', context.params);
-    
     const { userId } = await auth();
     if (!userId) {
-      console.log('Unauthorized: No userId');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Check user's plan
+    // Get user's plan
     const user = await prisma.user.findUnique({
       where: { id: userId },
       select: { planType: true }
@@ -76,54 +73,71 @@ export async function POST(
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    // Check if user's plan allows version creation
-    const plan = PLANS[user.planType.toUpperCase() as PlanType];
-    if (!plan?.features.versionControl) {
+    const planLimitsService = PlanLimitsService.getInstance();
+    const isVersionControlAvailable = await planLimitsService.isFeatureAvailable(user.planType, 'version_control');
+    
+    if (!isVersionControlAvailable) {
+      const description = await planLimitsService.getFeatureDescription(user.planType, 'version_control');
       return NextResponse.json(
-        { error: 'Version control is not available in your current plan. Please upgrade to continue.' },
+        { error: description || 'Version control is not available in your current plan. Please upgrade to continue.' },
         { status: 403 }
       );
     }
 
-    const promptId = context.params.id;
-    if (!promptId) {
-      console.log('Bad request: No promptId');
-      return NextResponse.json({ error: 'Prompt ID is required' }, { status: 400 });
-    }
+    // Check version limit
+    const versionCount = await prisma.version.count({
+      where: {
+        promptId: params.id,
+        userId,
+        createdAt: {
+          gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1) // First day of current month
+        }
+      }
+    });
 
-    const body = await request.json();
-    console.log('Request body:', body);
-    
-    const validationResult = createVersionSchema.safeParse(body);
-    
-    if (!validationResult.success) {
-      console.log('Validation failed:', validationResult.error.format());
+    const { allowed, limit, remaining } = await planLimitsService.checkLimit(
+      user.planType,
+      'version_control',
+      versionCount
+    );
+
+    if (!allowed) {
       return NextResponse.json(
-        { error: 'Invalid request body', details: validationResult.error.format() },
-        { status: 400 }
+        { 
+          error: `You have reached your monthly limit of ${limit} versions per prompt. Please upgrade to Elite plan for unlimited versions.`,
+          limit,
+          remaining
+        },
+        { status: 403 }
       );
     }
 
-    const { content, description, commitMessage, tags, baseVersionId, tests } = validationResult.data;
-    console.log('Creating version with:', { content, description, commitMessage, tags, baseVersionId, tests });
-    
-    const versionControlService = VersionControlService.getInstance();
-    const newVersion = await versionControlService.createVersion(
-      promptId,
-      content,
-      description || null,
-      commitMessage,
-      tags || [],
-      baseVersionId,
-      tests || []
-    );
+    const body = await req.json();
+    const validatedData = createVersionSchema.parse(body);
 
-    console.log('Version created successfully:', newVersion);
-    return NextResponse.json(newVersion);
+    // Create the version
+    const version = await prisma.version.create({
+      data: {
+        content: validatedData.content,
+        userId,
+        promptId: params.id,
+      },
+    });
+
+    return NextResponse.json({
+      ...version,
+      remainingVersions: remaining - 1
+    });
   } catch (error) {
     console.error('Error creating version:', error);
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { error: 'Invalid request data', details: error.errors },
+        { status: 400 }
+      );
+    }
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Failed to create version' },
+      { error: 'Failed to create version' },
       { status: 500 }
     );
   }

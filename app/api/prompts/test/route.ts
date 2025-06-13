@@ -29,11 +29,30 @@ export async function POST(req: Request) {
     }
 
     const plan = PLANS[user.planType.toUpperCase() as PlanType];
-    if (!plan?.features.promptTesting) {
+    if (!plan?.features.some(f => f.name === 'Prompt Testing')) {
       return NextResponse.json(
         { error: 'Prompt testing is not available in your current plan. Please upgrade to continue.' },
         { status: 403 }
       );
+    }
+
+    // Check test run limit for Pro users
+    if (user.planType === PlanType.PRO) {
+      const testRunCount = await prisma.promptTest.count({
+        where: {
+          userId,
+          createdAt: {
+            gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1) // First day of current month
+          }
+        }
+      });
+
+      if (testRunCount >= 500) { // Pro users get 500 test runs per month
+        return NextResponse.json(
+          { error: 'You have reached your monthly limit of 500 test runs. Please upgrade to Elite plan for unlimited test runs.' },
+          { status: 403 }
+        );
+      }
     }
 
     const body = await req.json();
@@ -74,19 +93,11 @@ export async function POST(req: Request) {
       },
     });
 
-    return NextResponse.json({
-      result: result.text,
-      metadata: {
-        temperature,
-        maxTokens,
-        tokenCount: result.tokenCount,
-        model: result.model,
-      },
-    });
+    return NextResponse.json({ result: result.text });
   } catch (error) {
-    console.error('Error testing prompt:', error);
+    console.error('Error in test route:', error);
     return NextResponse.json(
-      { error: 'Failed to test prompt' },
+      { error: error instanceof Error ? error.message : 'Failed to test prompt' },
       { status: 500 }
     );
   }
