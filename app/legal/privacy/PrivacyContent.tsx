@@ -62,7 +62,7 @@ export function PrivacyContent({ user }: PrivacyContentProps) {
               <section id="introduction">
                 <h2>1. Introduction</h2>
                 <p>
-                  Welcome to <strong>PromptHive.co</strong>'s Privacy Policy. This document explains how we collect, use, 
+                  Welcome to <strong>prompthive.co</strong>'s Privacy Policy. This document explains how we collect, use, 
                   disclose, and safeguard your information when you use our service. We respect your privacy and are 
                   committed to protecting your personal data.
                 </p>
@@ -73,13 +73,13 @@ export function PrivacyContent({ user }: PrivacyContentProps) {
                 <div className="rounded-lg bg-red-50 p-4 dark:bg-red-900/20">
                   <h3 className="text-lg font-semibold text-red-800 dark:text-red-200">Important Legal Notice</h3>
                   <p className="mt-2 text-red-700 dark:text-red-300">
-                    By using PromptHive.co, you acknowledge and agree to the following terms:
+                    By using prompthive.co, you acknowledge and agree to the following terms:
                   </p>
                 </div>
 
                 <h3>2.1 No Legal Advice</h3>
                 <p>
-                  PromptHive.co is not a law firm and does not provide legal advice. Any content generated 
+                  prompthive.co is not a law firm and does not provide legal advice. Any content generated 
                   through our service:
                 </p>
                 <ul>
@@ -102,7 +102,7 @@ export function PrivacyContent({ user }: PrivacyContentProps) {
 
                 <h3>2.3 Indemnification</h3>
                 <p>
-                  You agree to indemnify and hold harmless PromptHive.co, its officers, directors, employees, 
+                  You agree to indemnify and hold harmless prompthive.co, its officers, directors, employees, 
                   and agents from any claims, damages, losses, liabilities, costs, and expenses (including 
                   legal fees) arising from:
                 </p>
@@ -256,7 +256,7 @@ export function PrivacyContent({ user }: PrivacyContentProps) {
 
                 <div className="mt-4 rounded-lg bg-red-50 p-4 dark:bg-red-900/20">
                   <p className="text-sm text-red-700 dark:text-red-300">
-                    By using PromptHive.co, you explicitly acknowledge that you have read, understood, and agree 
+                    By using prompthive.co, you explicitly acknowledge that you have read, understood, and agree 
                     to all terms and conditions, including these additional protections. If you do not agree with 
                     any part of these terms, you must immediately cease using our service.
                   </p>
@@ -266,7 +266,7 @@ export function PrivacyContent({ user }: PrivacyContentProps) {
               <section id="gdpr-compliance">
                 <h2>3. GDPR Compliance</h2>
                 <p>
-                  PromptHive.co is committed to complying with the General Data Protection Regulation (GDPR) 
+                  prompthive.co is committed to complying with the General Data Protection Regulation (GDPR) 
                   and other applicable data protection laws. This section outlines our specific GDPR compliance measures.
                 </p>
 
@@ -390,7 +390,7 @@ export function PrivacyContent({ user }: PrivacyContentProps) {
                 <div className="rounded-lg bg-amber-50 p-4 dark:bg-amber-900/20">
                   <h3 className="text-lg font-semibold text-amber-800 dark:text-amber-200">Important Notice</h3>
                   <p className="mt-2 text-amber-700 dark:text-amber-300">
-                    PromptHive.co is not a medical service provider and does not provide medical advice, 
+                    prompthive.co is not a medical service provider and does not provide medical advice, 
                     diagnosis, or treatment. Any prompts or content related to medical information should 
                     be used with extreme caution and under the following conditions:
                   </p>
@@ -448,7 +448,7 @@ export function PrivacyContent({ user }: PrivacyContentProps) {
                 <h2>12. Changes to This Policy</h2>
                 <p>
                   We may update this Privacy Policy periodically. We will notify you of any material 
-                  changes through our website or via email. Your continued use of PromptHive.co after 
+                  changes through our website or via email. Your continued use of prompthive.co after 
                   such changes constitutes acceptance of the updated policy.
                 </p>
               </section>
@@ -524,7 +524,7 @@ export function PrivacyContent({ user }: PrivacyContentProps) {
 
               <div className="mt-8 rounded-lg bg-gray-50 p-4 dark:bg-gray-900">
                 <p className="text-sm text-gray-600 dark:text-gray-400">
-                  By using PromptHive.co, you acknowledge that you have read and understood this Privacy Policy, 
+                  By using prompthive.co, you acknowledge that you have read and understood this Privacy Policy, 
                   including the GDPR compliance measures and medical information disclaimer. You agree to use 
                   our service in accordance with these terms and applicable laws.
                 </p>

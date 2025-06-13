@@ -62,7 +62,7 @@ const structuredData = {
   },
 };
 
-interface PromptCraftLandingClientProps {
+interface PromptHiveLandingClientProps {
   user?: {
     id: string;
     name: string;
@@ -218,7 +218,7 @@ const PricingSection = ({
   );
 };
 
-const PromptCraftLandingClient = ({ user }: PromptCraftLandingClientProps) => {
+const PromptHiveLandingClient = ({ user }: PromptHiveLandingClientProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
@@ -1244,4 +1244,4 @@ const PromptCraftLandingClient = ({ user }: PromptCraftLandingClientProps) => {
   );
 };
 
-export default PromptCraftLandingClient;
+export default PromptHiveLandingClient;

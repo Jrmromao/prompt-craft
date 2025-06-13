@@ -20,7 +20,7 @@ export async function POST() {
   } catch (error) {
     console.error('Error exporting user data:', error);
     return NextResponse.json(
-      { error: 'Failed to export user data' },
+      { error: 'Failed to export user data. Please try again later.' },
       { status: 500 }
     );
   }

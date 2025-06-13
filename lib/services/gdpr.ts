@@ -1,8 +1,15 @@
 import { prisma } from '@/lib/prisma';
 import { User, DataExportRequest, DataRectificationRequest } from '@prisma/client';
 import { Prisma } from '@prisma/client';
+import { EmailService } from './emailService';
 
 export class GDPRService {
+  private emailService: EmailService;
+
+  constructor() {
+    this.emailService = EmailService.getInstance();
+  }
+
   async exportUserData(clerkId: string): Promise<UserDataExport> {
     const user = await prisma.user.findUnique({
       where: { clerkId },
@@ -37,6 +44,9 @@ export class GDPRService {
       },
     });
 
+    // Send notification
+    await this.emailService.sendGDPRDataExportNotification(user.email, user.name || 'User');
+
     // Process and return user data
     return this.formatUserData(user);
   }
@@ -58,6 +68,9 @@ export class GDPRService {
       },
     });
 
+    // Send notification
+    await this.emailService.sendGDPRAccountDeletionNotification(user.email, user.name || 'User');
+
     // Implement deletion logic
     await this.anonymizeUserData(clerkId);
   }
@@ -66,20 +79,37 @@ export class GDPRService {
     userId: string,
     data: Partial<User>
   ): Promise<void> {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new Error('User not found');
+    }
+
     // Create rectification request record
-    const rectificationRequest = {
-      userId,
-      status: 'PENDING',
-      changes: data as unknown as Prisma.InputJsonValue,
-    };
     await prisma.dataRectificationRequest.create({
-      data: rectificationRequest,
+      data: {
+        userId,
+        status: 'PENDING',
+        changes: data,
+      },
+    });
+
+    // Get the list of changed fields
+    const changes = Object.keys(data).map(field => `${field} updated`);
+
+    // Send notification
+    await this.emailService.sendGDPRDataRectificationNotification({
+      email: user.email,
+      name: user.name || 'User',
+      changes,
     });
 
     // Implement rectification logic
     await prisma.user.update({
       where: { id: userId },
-      data: data as unknown as Prisma.UserUpdateInput,
+      data: data as Prisma.UserUpdateInput,
     });
   }
 
@@ -92,6 +122,14 @@ export class GDPRService {
       userAgent?: string;
     }
   ): Promise<void> {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new Error('User not found');
+    }
+
     await prisma.consentRecord.create({
       data: {
         userId,
@@ -100,6 +138,13 @@ export class GDPRService {
         ipAddress: metadata.ipAddress,
         userAgent: metadata.userAgent,
       },
+    });
+
+    // Send notification
+    await this.emailService.sendGDPRConsentChangeNotification({
+      email: user.email,
+      name: user.name || 'User',
+      changes: [{ purpose, granted }],
     });
   }
 

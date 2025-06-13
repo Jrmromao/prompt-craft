@@ -31,15 +31,14 @@ const nextConfig = {
   experimental: {
     optimizeCss: false, // Temporarily disable CSS optimization
     optimizePackageImports: ['@clerk/nextjs', 'lucide-react'],
-    serverComponentsExternalPackages: ['@prisma/client', 'bcryptjs'],
-    serverActions: true,
+    serverActions: {},
   },
+  serverExternalPackages: ['@prisma/client', 'bcryptjs'],
   typescript: {
     ignoreBuildErrors: true,
   },
   output: 'standalone',
   poweredByHeader: false,
-  swcMinify: true,
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production',
   },

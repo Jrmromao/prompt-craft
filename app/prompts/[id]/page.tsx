@@ -59,7 +59,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   if (!prompt) return { title: 'Prompt Not Found | PromptHive' };
 
   const title = `${prompt.name} | PromptHive`;
-  const description = prompt.description || 'View this prompt on PromptCraft.';
+  const description = prompt.description || 'View this prompt on PromptHive.';
 
   return {
     title,
@@ -68,8 +68,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       title,
       description,
       type: 'article',
-      url: `http://PromptCraft.co/prompts/${prompt.id}`,
-      images: [{ url: 'http://PromptCraft.co/og-image.jpg' }],
+      url: `http://prompthive.co/prompts/${prompt.id}`,
+      images: [{ url: 'http://prompthive.co/og-image.jpg' }],
       publishedTime: prompt.createdAt.toISOString(),
       modifiedTime: prompt.updatedAt.toISOString(),
     },
@@ -77,10 +77,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       card: 'summary_large_image',
       title,
       description,
-      images: ['http://PromptCraft.co/og-image.jpg'],
+      images: ['http://prompthive.co/og-image.jpg'],
     },
     alternates: {
-      canonical: `http://PromptCraft.co/prompts/${prompt.id}`,
+      canonical: `http://prompthive.co/prompts/${prompt.id}`,
     },
   };
 }

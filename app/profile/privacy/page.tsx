@@ -49,7 +49,10 @@ export default function PrivacySettingsPage() {
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
       
-      toast.success('Your data has been exported successfully');
+      // Show more detailed success message
+      toast.success(
+        'Your data has been exported successfully. You will receive an email confirmation shortly.'
+      );
     } catch (error) {
       console.error('Error exporting data:', error);
       toast.error('Failed to export your data. Please try again.');
@@ -67,10 +70,14 @@ export default function PrivacySettingsPage() {
       setIsLoading(true);
       const response = await fetch('/api/gdpr/delete', { method: 'POST' });
       if (!response.ok) throw new Error('Failed to delete account');
-      toast.success('Account deletion request received');
+      
+      // Show more detailed success message
+      toast.success(
+        'Account deletion request received. You will receive an email confirmation shortly. Your account will be permanently deleted within 30 days.'
+      );
       window.location.href = '/';
     } catch (error) {
-      toast.error('Failed to delete account');
+      toast.error('Failed to delete account. Please try again.');
     } finally {
       setIsLoading(false);
       setShowDeleteModal(false);
@@ -91,11 +98,16 @@ export default function PrivacySettingsPage() {
       
       if (purpose === 'marketing') setMarketingConsent(granted);
       if (purpose === 'analytics') setAnalyticsConsent(granted);
-      toast.success('Preferences updated');
+      
+      // Show success message with more details
+      toast.success(
+        `Your ${purpose} preferences have been updated. You will receive an email confirmation shortly.`
+      );
     } catch (error) {
+      // Revert UI state on error
       if (purpose === 'marketing') setMarketingConsent(previousValue);
       if (purpose === 'analytics') setAnalyticsConsent(previousValue);
-      toast.error('Failed to update preferences');
+      toast.error('Failed to update preferences. Please try again.');
     }
   };
 

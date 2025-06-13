@@ -38,7 +38,7 @@ export function PromptsClient({ prompts }: PromptsClientProps) {
           <EmptyState
             icon={PlusCircle}
             title="No prompts yet"
-            description="Create your first prompt to get started with PromptCraft."
+            description="Create your first prompt to get started with PromptHive."
             action={
               <Button onClick={() => (window.location.href = '/prompts/new')}>
                 <PlusCircle className="mr-2 h-4 w-4" />

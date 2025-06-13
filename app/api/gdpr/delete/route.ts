@@ -16,11 +16,13 @@ export async function POST() {
 
     await gdprService.handleDeletionRequest(session.userId);
     
-    return NextResponse.json({ message: 'Deletion request received' });
+    return NextResponse.json({ 
+      message: 'Deletion request received. You will receive an email confirmation shortly.' 
+    });
   } catch (error) {
     console.error('Error processing deletion request:', error);
     return NextResponse.json(
-      { error: 'Failed to process deletion request' },
+      { error: 'Failed to process deletion request. Please try again later.' },
       { status: 500 }
     );
   }

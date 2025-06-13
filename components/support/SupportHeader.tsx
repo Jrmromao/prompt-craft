@@ -8,7 +8,7 @@ export function SupportHeader() {
     <div className="mb-8 flex flex-col items-center text-center">
       <div
         className="mb-2 flex h-14 w-14 items-center justify-center rounded-xl bg-gray-100 dark:bg-gray-800"
-        aria-label="PromptCraft Logo"
+        aria-label="PromptHive Logo"
       >
         <Sparkles className="h-8 w-8 text-gray-700 dark:text-gray-200" aria-hidden="true" />
       </div>

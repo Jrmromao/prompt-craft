@@ -1,6 +1,6 @@
-# PromptHiveCO
+# PromptHive
 
-PromptCraft is a modern, feature-rich platform for managing, comparing, and optimizing AI prompts. Built with Next.js 14, it provides a robust solution for prompt engineering and version control.
+PromptHive is a modern, feature-rich platform for managing, comparing, and optimizing AI prompts. Built with Next.js 14, it provides a robust solution for prompt engineering and version control.
 
 ## 🚀 Features
 
@@ -36,8 +36,8 @@ PromptCraft is a modern, feature-rich platform for managing, comparing, and opti
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/yourusername/PromptCraft.git
-   cd PromptCraft
+   git clone https://github.com/yourusername/PromptHive.git
+   cd PromptHive
    ```
 
 2. **Install dependencies**
