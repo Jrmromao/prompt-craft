@@ -10,9 +10,9 @@ import { UsageTab } from '@/components/profile/UsageTab';
 
 export default async function ProfilePage() {
   const { userId } = await auth();
-  const user = await currentUser();
+  const clerkUser = await currentUser();
 
-  if (!userId || !user) {
+  if (!userId || !clerkUser) {
     redirect('/sign-in');
   }
 
@@ -22,25 +22,27 @@ export default async function ProfilePage() {
     redirect('/sign-in');
   }
 
-  // For active state (simple match for now)
+  // Prefer Clerk's imageUrl if available
+  const user = {
+    ...dbUser,
+    imageUrl: clerkUser.imageUrl ?? dbUser.imageUrl ?? undefined,
+    name: dbUser.name ?? '',
+    bio: dbUser.bio ?? undefined,
+    jobTitle: dbUser.jobTitle ?? undefined,
+    location: dbUser.location ?? undefined,
+    company: dbUser.company ?? undefined,
+    website: dbUser.website ?? undefined,
+    twitter: dbUser.twitter ?? undefined,
+    linkedin: dbUser.linkedin ?? undefined
+  };
+
   const currentPath = '/profile';
 
   return (
     <Suspense
       fallback={<div className="flex min-h-screen items-center justify-center">Loading...</div>}
     >
-      <ProfileClient user={{
-        ...dbUser,
-        name: dbUser.name ?? '',
-        imageUrl: dbUser.imageUrl ?? undefined,
-        bio: dbUser.bio ?? undefined,
-        jobTitle: dbUser.jobTitle ?? undefined,
-        location: dbUser.location ?? undefined,
-        company: dbUser.company ?? undefined,
-        website: dbUser.website ?? undefined,
-        twitter: dbUser.twitter ?? undefined,
-        linkedin: dbUser.linkedin ?? undefined
-      }} currentPath={currentPath} />
+      <ProfileClient user={user} currentPath={currentPath} />
     </Suspense>
   );
 }

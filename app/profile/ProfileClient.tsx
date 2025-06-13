@@ -824,14 +824,7 @@ function ProfileContent({ user, currentPath }: ProfileClientProps) {
                         </div>
                       </div>
                       <div className="flex gap-3 mt-2">
-                        <Button
-                          size="sm"
-                          className="bg-gradient-to-r from-purple-600 to-pink-600 px-4 py-1 text-sm font-semibold text-white shadow transition hover:from-purple-700 hover:to-pink-700"
-                          onClick={() => router.push('/profile?tab=settings')}
-                          aria-label="Edit Profile"
-                        >
-                          Edit Profile
-                        </Button>
+                       
                         {user.planType === 'FREE' && (
                           <Button
                             size="sm"
