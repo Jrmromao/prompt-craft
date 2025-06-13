@@ -1,5 +1,6 @@
 import { auth } from '@clerk/nextjs/server';
 import { prisma } from '@/lib/prisma';
+import { Role } from '@prisma/client';
 
 interface AnalyticsOptions {
   period?: 'daily' | 'weekly' | 'monthly' | 'yearly';
@@ -94,7 +95,7 @@ export class AnalyticsService {
       select: { role: true },
     });
 
-    if (!user || user.role !== 'ADMIN') {
+    if (!user || user.role !== Role.SUPER_ADMIN) {
       throw new Error('Unauthorized to access analytics');
     }
   }

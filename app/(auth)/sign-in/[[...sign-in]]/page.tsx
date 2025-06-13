@@ -56,7 +56,7 @@ export default function SignInPage() {
           Welcome
           <br />
           <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-purple-400 bg-clip-text text-transparent">
-            to PromptCraft
+            to PromptHiveCO
           </span>
         </h1>
         <p className="mb-8 text-center text-base font-normal text-gray-600 dark:text-gray-300">
@@ -84,7 +84,6 @@ export default function SignInPage() {
           signUpUrl="/sign-up"
           fallbackRedirectUrl="/profile"
           afterSignInUrl="/profile"
-          onError={handleError}
         />
 
         <div className="mt-2 text-center">

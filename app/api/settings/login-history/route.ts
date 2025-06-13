@@ -44,14 +44,15 @@ export async function GET(request: Request) {
     }
     // Get user's sessions
     const client = await clerkClient();
-    const { data: sessions } = await (client.users as any).getSessions(userId);
+    const sessionsResponse = await client.sessions.getSessionList({ userId });
+    const sessions = sessionsResponse.data;
     // Format session data
-    const loginHistory = sessions.map((session: Session) => ({
+    const loginHistory = sessions.map((session: any) => ({
       id: session.id,
       device: session.deviceType || 'Unknown',
       browser: session.browserName || 'Unknown',
-      location: session.location || 'Unknown',
-      ipAddress: session.ipAddress || 'Unknown',
+      location: session.lastActiveAt ? session.lastActiveAt.location : 'Unknown',
+      ipAddress: session.lastActiveAt ? session.lastActiveAt.ipAddress : 'Unknown',
       lastActive: session.lastActiveAt,
       createdAt: session.createdAt,
     }));

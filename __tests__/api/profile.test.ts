@@ -41,6 +41,11 @@ jest.mock('@/lib/validations/user', () => ({
   },
 }));
 
+jest.mock('@/lib/error-tracking', () => ({
+  trackUserFlowError: jest.fn(),
+  trackUserFlowEvent: jest.fn(),
+}));
+
 import { GET, PATCH } from '@/app/api/profile/route';
 import { auth } from '@clerk/nextjs/server';
 import { prisma } from '@/lib/prisma';

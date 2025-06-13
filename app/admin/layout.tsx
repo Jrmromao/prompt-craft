@@ -1,5 +1,12 @@
 import AdminSidebar from './components/AdminSidebar';
 
+const adminLinks = [
+  { href: '/admin', label: 'Dashboard' },
+  { href: '/admin/users', label: 'Users' },
+  { href: '/admin/roles', label: 'Roles' },
+  { href: '/admin/support', label: 'Support' },
+];
+
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex h-screen bg-gray-100">

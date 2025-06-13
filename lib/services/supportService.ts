@@ -56,8 +56,8 @@ export class SupportService {
     // If user doesn't exist, create them
     if (!user) {
       // Get user data from Clerk
-      const clerk = await clerkClient();
-      const clerkUser = await clerk.users.getUser(clerkId);
+      const client = await clerkClient();
+      const clerkUser = await client.users.getUser(clerkId);
 
       // Create the user in our database
       user = await prisma.user.create({

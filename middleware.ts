@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { quotaMiddleware } from './middleware/quota';
 import { rateLimitMiddleware } from './middleware/rate-limit';
-import { auth } from '@clerk/nextjs/server';
+import type { ClerkMiddlewareSessionAuthObject } from '@clerk/nextjs/server';
 
 // Define routes that don't require authentication
 const PUBLIC_ROUTES = [
@@ -18,9 +18,9 @@ const PUBLIC_ROUTES = [
   '/api/upload(.*)',
   '/api/ai/generate',
   '/api/ai/run',
-  '/api/prompts/(.*)/comments',  // Allow GET requests to comments
-  '/api/prompts/(.*)/comments/(.*)',  // Allow GET requests to specific comments
-  '/api/prompts/(.*)/vote',  // Allow vote requests
+  '/api/prompts/(.*)/comments',
+  '/api/prompts/(.*)/comments/(.*)',
+  '/api/prompts/(.*)/vote',
   '/api/billing(.*)',
   '/api/subscription(.*)',
   '/api/credits(.*)',
@@ -163,119 +163,39 @@ async function securityMiddleware(request: NextRequest) {
   return response;
 }
 
-// Configure which routes to run middleware on
-export const config = {
-  matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - public folder
-     */
-    '/((?!_next/static|_next/image|favicon.ico|public/).*)',
-  ],
+const isAdminRoute = createRouteMatcher(['/admin', '/admin/users', '/admin/analytics', '/admin/settings']);
+
+const roleBasedRoutes = {
+  '/admin': ['ADMIN', 'SUPER_ADMIN'],
+  '/admin/users': ['ADMIN', 'SUPER_ADMIN'],
+  '/admin/analytics': ['ADMIN', 'SUPER_ADMIN'],
+  '/admin/settings': ['SUPER_ADMIN'],
 };
-// Create the middleware chain
+
 export default clerkMiddleware(async (auth, req) => {
-  // Handle CORS for API routes
-  if (isApiRoute(req)) {
-    const response = NextResponse.next();
-
-    // Add CORS headers
-    response.headers.set('Access-Control-Allow-Origin', req.headers.get('origin') || '*');
-    response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-    response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Date, X-Api-Version, X-Clerk-Token');
-    response.headers.set('Access-Control-Allow-Credentials', 'true');
-
-    // Handle preflight requests
-    if (req.method === 'OPTIONS') {
-      return new NextResponse(null, {
-        status: 204,
-        headers: response.headers,
-      });
-    }
-
-    // Special handling for Stripe routes
-    if (isStripeRoute(req)) {
-      const { userId } = await auth();
-      if (!userId) {
-        console.error('Unauthorized access to Stripe endpoint');
-        return new NextResponse(JSON.stringify({ error: 'Unauthorized' }), {
-          status: 401,
-          headers: response.headers,
-        });
-      }
-      return response;
-    }
-
-    // Special handling for vote routes
-    if (isVoteRoute(req)) {
-      // For GET requests, allow public access
-      if (req.method === 'GET') {
-        return response;
-      }
-      
-      // For POST requests, require authentication
-      const { userId } = await auth();
-      if (!userId) {
-        return new NextResponse(JSON.stringify({ error: 'Unauthorized' }), {
-          status: 401,
-          headers: response.headers,
-        });
-      }
-      return response;
-    }
-
-    // Special handling for comment routes
-    if (isCommentRoute(req)) {
-      // For GET requests, allow public access
-      if (req.method === 'GET') {
-        return response;
-      }
-      
-      // For POST requests, require authentication
-      const { userId } = await auth();
-      if (!userId) {
-        return new NextResponse(JSON.stringify({ error: 'Unauthorized' }), {
-          status: 401,
-          headers: response.headers,
-        });
-      }
-      return response;
-    }
-
-    // Skip middleware for public routes
-    if (isPublicRoute(req)) {
-      return response;
-    }
-
-    // For all other API routes, require authentication
-    const { userId } = await auth();
-    if (!userId) {
-      return new NextResponse(JSON.stringify({ error: 'Unauthorized' }), {
-        status: 401,
-        headers: response.headers,
-      });
-    }
-
-    return response;
-  }
-
-  // For non-API routes, check if it's a public route
-  if (isPublicRoute(req)) {
+  const session = await auth();
+  if (!session.userId) {
     return NextResponse.next();
   }
 
-  // For all other routes, require authentication
-  const { userId } = await auth();
-  if (!userId) {
-    // Redirect to sign-in page if not authenticated
-    const signInUrl = new URL('/sign-in', req.url);
-    signInUrl.searchParams.set('redirect_url', req.url);
-    return NextResponse.redirect(signInUrl);
+  const path = req.nextUrl.pathname;
+  for (const [route, allowedRoles] of Object.entries(roleBasedRoutes)) {
+    if (path.startsWith(route)) {
+      const userRole = (session.sessionClaims?.publicMetadata as { role?: string } | undefined)?.role || 'USER';
+      if (!allowedRoles.includes(userRole)) {
+        return NextResponse.redirect(new URL('/unauthorized', req.url));
+      }
+      break;
+    }
   }
 
   return NextResponse.next();
 });
+
+export const config = {
+  matcher: [
+    '/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)',
+    '/(api|trpc)(.*)',
+  ],
+};
 

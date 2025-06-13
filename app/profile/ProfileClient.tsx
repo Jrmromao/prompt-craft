@@ -13,6 +13,7 @@ import {
   Sparkles,
   Circle,
   Lock,
+  Shield,
 } from 'lucide-react';
 import { NavBar } from '@/components/layout/NavBar';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -56,6 +57,7 @@ import { useSidebarStore } from '@/components/layout/NavBarWrapper';
 import { useTheme } from '@/components/ThemeProvider';
 import { UsageTab } from '@/components/profile/UsageTab';
 import BillingInvoicesSection from '../../components/profile/BillingInvoicesSection';
+import PrivacySettingsPage from './privacy/page';
 
 const Sheet = dynamic(() => import('@/components/ui/sheet').then(mod => mod.Sheet), {
   ssr: false,
@@ -70,6 +72,7 @@ const accountOptions = [
   { label: 'Billing', icon: BillingIcon, href: 'billing' },
   { label: 'Settings', icon: Settings, href: 'settings' },
   { label: 'Security', icon: Lock, href: 'security' },
+  { label: 'Privacy', icon: Shield, href: 'privacy' },
 ];
 const workspaceOptions = [{ label: 'My Prompts', icon: FileText, href: 'prompts' }];
 
@@ -485,7 +488,10 @@ function ProfileContent({ user, currentPath }: ProfileClientProps) {
   const router = useRouter();
   const { isOpen: sidebarOpen, close: closeSidebar } = useSidebarStore();
   const { signOut } = useClerk();
-  const [activeTab, setActiveTab] = useState(currentPath || 'overview');
+  const validTabs = ['overview', 'usage', 'billing', 'settings', 'security', 'privacy', 'prompts'];
+  const [activeTab, setActiveTab] = useState(
+    currentPath && validTabs.includes(currentPath) ? currentPath : 'overview'
+  );
 
   function handleSidebarClick(tabValue: string) {
     setActiveTab(tabValue);
@@ -770,14 +776,14 @@ function ProfileContent({ user, currentPath }: ProfileClientProps) {
       <div className="mx-auto flex w-full max-w-7xl gap-8 px-4 pt-8">
         {/* Desktop Sidebar */}
         <ErrorBoundary fallback={<div>Error</div>}>
-          <aside className="mt-4 hidden h-fit w-72 shrink-0 flex-col rounded-2xl border border-border bg-card px-6 py-8 md:flex">
+          <aside className="mt-4 hidden h-fit w-72 shrink-0 flex-col rounded-2xl border border-border bg-card px-6 py-8 md:flex sticky top-16">
             {SidebarContent}
           </aside>
         </ErrorBoundary>
         {/* Main Content */}
         <main className="mx-auto flex w-full max-w-[1180px] flex-1 flex-col gap-8">
           {/* Profile Header Card */}
-          <ErrorBoundary fallback={<div>Error</div>}>
+          {/* <ErrorBoundary fallback={<div>Error</div>}>
             <ProfileHeader
               user={user}
               status={status}
@@ -788,13 +794,72 @@ function ProfileContent({ user, currentPath }: ProfileClientProps) {
               creditPercentage={creditPercentage}
               router={router}
             />
-          </ErrorBoundary>
+          </ErrorBoundary> */}
           {/* Tabs for profile sections */}
           <ErrorBoundary fallback={<div>Error</div>}>
             <Tabs value={activeTab} onValueChange={handleTabChange} defaultValue="overview" className="w-full">
               <TabsContent value="overview">
-                <Card className="rounded-2xl border border-border bg-card p-8 shadow-lg">
-                  <div className="space-y-8">
+                <div className="flex flex-col gap-8">
+                  {/* Profile Summary Card */}
+                  <Card className="rounded-2xl border border-border bg-card p-6 shadow-lg flex flex-col md:flex-row items-center md:items-start gap-6">
+                    <div className="flex flex-col items-center md:items-start gap-4 w-full md:w-auto">
+                      <Avatar className="h-20 w-20">
+                        <AvatarImage src={user.imageUrl} alt={user.name || user.email} />
+                        <AvatarFallback>{user.name?.[0] || user.email?.[0]}</AvatarFallback>
+                      </Avatar>
+                      <div className="flex flex-col items-center md:items-start">
+                        <span className="text-2xl font-bold text-foreground">{user.name || 'Unnamed User'}</span>
+                        <span className="text-sm text-muted-foreground">{user.email}</span>
+                        <span className="text-xs capitalize text-muted-foreground">{user.role}</span>
+                        <Badge className="mt-2 bg-gradient-to-r from-purple-500 to-pink-500 px-2 py-0.5 text-xs font-semibold text-white">
+                          {user.planType}
+                        </Badge>
+                      </div>
+                    </div>
+                    <div className="flex-1 flex flex-col gap-4 w-full">
+                      <div className="flex flex-col md:flex-row gap-4 w-full">
+                        <div className="flex-1 flex flex-col items-center md:items-start">
+                          <span className="text-xs font-medium text-muted-foreground">Credits</span>
+                          <div className="flex items-center gap-2 w-full">
+                            <Progress
+                              value={(user.credits / user.creditCap) * 100}
+                              className="h-2 flex-1 bg-muted [&>div]:bg-gradient-to-r [&>div]:from-purple-500 [&>div]:to-pink-500"
+                              aria-label="Credits Progress"
+                            />
+                            <span className="ml-2 whitespace-nowrap text-xs font-semibold text-muted-foreground">
+                              {user.credits} / {user.creditCap}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="flex-1 flex flex-col items-center md:items-start">
+                          <span className="text-xs font-medium text-muted-foreground">Last Activity</span>
+                          <span className="text-sm text-foreground">{user.lastActivity ? new Date(user.lastActivity).toLocaleString() : 'N/A'}</span>
+                        </div>
+                      </div>
+                      <div className="flex gap-3 mt-2">
+                        <Button
+                          size="sm"
+                          className="bg-gradient-to-r from-purple-600 to-pink-600 px-4 py-1 text-sm font-semibold text-white shadow transition hover:from-purple-700 hover:to-pink-700"
+                          onClick={() => router.push('/profile?tab=settings')}
+                          aria-label="Edit Profile"
+                        >
+                          Edit Profile
+                        </Button>
+                        {user.planType === 'FREE' && (
+                          <Button
+                            size="sm"
+                            className="bg-gradient-to-r from-purple-600 to-pink-600 px-4 py-1 text-sm font-semibold text-white shadow transition hover:from-purple-700 hover:to-pink-700"
+                            onClick={() => router.push('/pricing')}
+                            aria-label="Upgrade Plan"
+                          >
+                            Upgrade Plan
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  </Card>
+                  {/* Profile Edit Form */}
+                  <Card className="rounded-2xl border border-border bg-card p-8 shadow-lg">
                     <ProfileForm
                       user={{
                         ...user,
@@ -802,8 +867,8 @@ function ProfileContent({ user, currentPath }: ProfileClientProps) {
                         planType: user.planType as PlanType,
                       }}
                     />
-                  </div>
-                </Card>
+                  </Card>
+                </div>
               </TabsContent>
               <TabsContent value="usage">
                 <Card className="rounded-2xl border border-border bg-card p-8 shadow-lg">
@@ -840,6 +905,11 @@ function ProfileContent({ user, currentPath }: ProfileClientProps) {
                     loginHistoryLoading={loginHistoryLoading}
                     mutateLoginHistory={mutateLoginHistory}
                   />
+                </Card>
+              </TabsContent>
+              <TabsContent value="privacy">
+                <Card className="rounded-2xl border border-border bg-card p-8 shadow-lg">
+                  <PrivacySettingsPage />
                 </Card>
               </TabsContent>
             </Tabs>

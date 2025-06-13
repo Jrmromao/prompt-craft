@@ -299,6 +299,18 @@ async function processWebhook(req: Request): Promise<NextResponse> {
         }
 
         try {
+          // Set default publicMetadata.role to 'USER' in Clerk
+        
+          // const clerk = await clerkClient();
+          // await clerk.users.updateUser(id, {
+          //   publicMetadata: { role: 'USER' },
+            // });
+
+          const client = await clerkClient();
+          await client.users.updateUser(id, {
+            publicMetadata: { role: 'USER' },
+          });
+       
           // Create user in database
           await createOrUpdateUser(id, primaryEmail, first_name, last_name);
 

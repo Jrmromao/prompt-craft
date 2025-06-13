@@ -66,6 +66,15 @@ model User {
   versions             Version[]
   lastActiveAt         DateTime?
 
+  // GDPR Compliance Fields
+  dataRetentionPeriod DateTime?
+  lastDataAccess      DateTime?
+  dataDeletionRequest DateTime?
+  consentHistory      ConsentRecord[]
+  dataProcessingRecords DataProcessingRecord[]
+  dataExportRequests  DataExportRequest[]
+  dataRectificationRequests DataRectificationRequest[]
+
   @@index([clerkId])
   @@index([email])
 }
@@ -681,9 +690,76 @@ model Version {
   @@index([promptId])
 }
 
+model RoleChangeLog {
+  id        String   @id @default(cuid())
+  userId    String
+  oldRole   Role
+  newRole   Role
+  changedBy String
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([changedBy])
+}
+
+model ConsentRecord {
+  id          String   @id @default(cuid())
+  userId      String
+  purpose     String
+  granted     Boolean
+  timestamp   DateTime @default(now())
+  ipAddress   String?
+  userAgent   String?
+  user        User     @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([timestamp])
+}
+
+model DataProcessingRecord {
+  id          String   @id @default(cuid())
+  userId      String
+  purpose     String
+  legalBasis  String
+  startDate   DateTime
+  endDate     DateTime?
+  status      String
+  user        User     @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([startDate])
+}
+
+model DataExportRequest {
+  id          String   @id @default(cuid())
+  userId      String
+  status      String
+  requestedAt DateTime @default(now())
+  completedAt DateTime?
+  format      String
+  user        User     @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([requestedAt])
+}
+
+model DataRectificationRequest {
+  id          String   @id @default(cuid())
+  userId      String
+  status      String
+  requestedAt DateTime @default(now())
+  completedAt DateTime?
+  changes     Json
+  user        User     @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([requestedAt])
+}
+
 enum Role {
   USER
   ADMIN
+  SUPER_ADMIN
 }
 
 enum PlanType {

@@ -1,4 +1,4 @@
-# PromptCraft
+# PromptHiveCO
 
 PromptCraft is a modern, feature-rich platform for managing, comparing, and optimizing AI prompts. Built with Next.js 14, it provides a robust solution for prompt engineering and version control.
 
