@@ -1,0 +1,8 @@
+{
+  "contextFiles": [
+    "docs/Context.md",
+    "docs/APP_DESIGN_PRINCIPLES.md"
+  ],
+  "defaultContext": "docs/Context.md",
+  "customInstructions": "Please refer to docs/Context.md for our application's architecture, business rules, and development practices. This includes our pricing tiers (Free, Pro, Elite, Enterprise), tech stack, and coding standards."
+} 
