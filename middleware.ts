@@ -3,7 +3,17 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { quotaMiddleware } from './middleware/quota';
 import { rateLimitMiddleware } from './middleware/rate-limit';
-import type { ClerkMiddlewareSessionAuthObject } from '@clerk/nextjs/server';
+import type { ClerkMiddlewareAuth } from '@clerk/nextjs/server';
+import { clerkClient } from '@clerk/nextjs/server'; 
+
+// Define types for session claims
+type PrivateMetadata = {
+  databaseId?: string;
+};
+
+type PublicMetadata = {
+  role?: string;
+};
 
 // Define routes that don't require authentication
 const PUBLIC_ROUTES = [
@@ -172,16 +182,40 @@ const roleBasedRoutes = {
   '/admin/settings': ['SUPER_ADMIN'],
 };
 
-export default clerkMiddleware(async (auth, req) => {
+export default clerkMiddleware(async (auth: ClerkMiddlewareAuth, req: NextRequest) => {
   const session = await auth();
-  if (!session.userId) {
-    return NextResponse.next();
+  
+  // If the user is authenticated, add their database ID to the request
+  if (session.userId) {
+    try {
+      const client = await clerkClient();
+      const user = await client.users.getUser(session.userId);
+      const databaseId = user.privateMetadata.databaseId as string;
+
+      if (databaseId) {
+        // Add the database ID to the request headers
+        const requestHeaders = new Headers(req.headers);
+        requestHeaders.set('x-database-user-id', databaseId);
+        
+        return NextResponse.next({
+          request: {
+            headers: requestHeaders,
+          },
+        });
+      } else {
+        console.warn('No database ID found in user metadata for user:', session.userId);
+      }
+    } catch (error) {
+      console.error('Error accessing user metadata:', error);
+    }
   }
 
+  // Handle role-based access
   const path = req.nextUrl.pathname;
   for (const [route, allowedRoles] of Object.entries(roleBasedRoutes)) {
     if (path.startsWith(route)) {
-      const userRole = (session.sessionClaims?.publicMetadata as { role?: string } | undefined)?.role || 'USER';
+      const publicMetadata = session.sessionClaims?.publicMetadata as PublicMetadata;
+      const userRole = publicMetadata?.role || 'USER';
       if (!allowedRoles.includes(userRole)) {
         return NextResponse.redirect(new URL('/unauthorized', req.url));
       }
