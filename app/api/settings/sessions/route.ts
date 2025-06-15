@@ -1,7 +1,9 @@
 import { NextResponse } from 'next/server';
 import { auth, clerkClient } from '@clerk/nextjs/server';
 import { AuditAction } from '@/app/constants/audit';
-import { logAudit } from '@/app/lib/auditLogger';
+import { AuditService } from '@/lib/services/auditService';
+import { UserService } from '@/lib/services/userService';
+import { getDatabaseIdFromClerk } from '@/lib/utils/auth';
 
 // Prevent static generation of this route
 export const dynamic = 'force-dynamic';
@@ -16,9 +18,17 @@ export async function GET() {
   try {
     const sessions = await (clerkClient as any).users.getSessions(userId);
 
-    await logAudit({
+    // get user databaseId from userService 
+   
+
+    const { userDatabaseId, error } = await getDatabaseIdFromClerk(userId);
+    if (error) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+
+    await AuditService.getInstance().logAudit({
       action: AuditAction.GET_SESSIONS,
-      userId,
+      userId: userDatabaseId,
       resource: 'sessions',
       status: 'success',
       details: { sessions },
@@ -44,9 +54,14 @@ export async function DELETE(request: Request) {
       return new NextResponse('Session ID is required', { status: 400 });
     }
 
-    await logAudit({
+    const { userDatabaseId, error } = await getDatabaseIdFromClerk(userId);
+    if (error) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+
+    await AuditService.getInstance().logAudit({
       action: AuditAction.DELETE_SESSION,
-      userId,
+      userId: userDatabaseId,
       resource: 'sessions',
       status: 'success',
       details: { sessionId },

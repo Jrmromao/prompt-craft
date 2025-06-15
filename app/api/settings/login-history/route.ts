@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { auth, clerkClient } from '@clerk/nextjs/server';
 import { AuditAction } from '@/app/constants/audit';
-import { logAudit } from '@/app/lib/auditLogger';
+import { AuditService } from '@/lib/services/auditService';
 import { Redis } from '@upstash/redis';
 
 // Prevent static generation of this route
@@ -62,13 +62,10 @@ export async function GET(request: Request) {
 
     let user: CachedUser | null = null
 
-    console.log('userId from Clerk:', userId);
-    console.log('userCacheKey:', userCacheKey);
     user = await redis.get(userCacheKey);
-    console.log('User from Redis:', user);
+
     if (!user) {
       const dbUser = await import('@/lib/prisma').then(m => m.prisma.user.findUnique({ where: { clerkId: userId }, select: { id: true, name: true, email: true, imageUrl: true, role: true, planType: true } }));
-      console.log('User from DB:', dbUser);
       if (!dbUser) {
         console.log('User not found in database for clerkId:', userId);
         return new NextResponse('User not found in database', { status: 404 });
@@ -104,7 +101,8 @@ export async function GET(request: Request) {
       createdAt: session.createdAt,
     }));
     
-    await logAudit({
+    
+    await AuditService.getInstance().logAudit({
       action: AuditAction.GET_LOGIN_HISTORY,
       userId: user.id, // Use DB id for audit log
       resource: 'login-history',

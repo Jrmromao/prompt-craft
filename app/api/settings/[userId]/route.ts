@@ -2,8 +2,9 @@ import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { SettingsService } from '@/lib/services/settingsService';
 import { z } from 'zod';
-import { logAudit } from '@/app/lib/auditLogger';
+import { AuditService } from '@/lib/services/auditService';
 import { AuditAction } from '@/app/constants/audit';
+import { getDatabaseIdFromClerk } from '@/lib/utils/auth';
 
 const settingsSchema = z.object({
   theme: z.enum(['light', 'dark', 'system']).optional(),
@@ -21,13 +22,9 @@ export async function GET(
       return new NextResponse('Unauthorized', { status: 401 });
     }
 
-    let settings = await SettingsService.getUserSettings(userId);
+    let settings = await SettingsService.getInstance().getUserSettings(userId);
     
-    if (!settings) {
-      settings = await SettingsService.createDefaultSettings(userId);
-    }
-
-    await logAudit({
+    await AuditService.getInstance().logAudit({
       action: AuditAction.USER_GET_SETTINGS,
       userId,
       resource: 'settings',
@@ -56,17 +53,29 @@ export async function PATCH(
     const body = await request.json();
     const validatedData = settingsSchema.parse(body);
 
-    let settings = await SettingsService.getUserSettings(userId);
-    
-    if (!settings) {
-      settings = await SettingsService.createDefaultSettings(userId);
+    // Update settings based on validated data
+    if (validatedData.theme) {
+      await SettingsService.getInstance().updateThemeSettings(userId, { theme: validatedData.theme });
+    }
+    if (validatedData.notifications !== undefined) {
+      await SettingsService.getInstance().updateNotificationSettings(userId, {
+        emailNotifications: validatedData.notifications,
+        pushNotifications: validatedData.notifications,
+        browserNotifications: validatedData.notifications,
+      });
     }
 
-    const updatedSettings = await SettingsService.updateUserSettings(userId, validatedData);
+    // Get updated settings
+    const updatedSettings = await SettingsService.getInstance().getUserSettings(userId);
 
-    await logAudit({
+    const { userDatabaseId, error } = await getDatabaseIdFromClerk(userId);
+    if (error) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+
+    await AuditService.getInstance().logAudit({
       action: AuditAction.USER_UPDATE_SETTINGS,
-      userId,
+      userId: userDatabaseId,
       resource: 'settings',
       status: 'success',
       details: { settings: updatedSettings },

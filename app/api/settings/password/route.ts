@@ -2,7 +2,8 @@ import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { clerkClient } from '@clerk/nextjs/server';
 import { AuditAction } from '@/app/constants/audit';
-import { logAudit } from '@/app/lib/auditLogger';
+import { AuditService } from '@/lib/services/auditService';
+import { UserService } from '@/lib/services/userService';
 
 // Prevent static generation of this route
 export const dynamic = 'force-dynamic';
@@ -38,9 +39,15 @@ export async function POST(request: Request) {
       newPassword: newPassword,
     });
 
-    await logAudit({
+    // get user databaseId from userService 
+    const userDatabaseId = await UserService.getInstance().getDatabaseIdFromClerk(userId);
+    if (!userDatabaseId) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+
+    await AuditService.getInstance().logAudit({
       action: AuditAction.UPDATE_PASSWORD,
-      userId,
+      userId: userDatabaseId,
       resource: 'password',
       status: 'success',
       details: { currentPassword, newPassword },

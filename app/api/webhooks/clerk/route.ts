@@ -5,6 +5,7 @@ import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import S3Service from '@/lib/services/S3Service';
 import { EmailService } from '@/lib/services/emailService';
+import Stripe from 'stripe';
 
 // Prevent static generation of this route
 export const dynamic = 'force-dynamic';
@@ -50,6 +51,12 @@ async function createOrUpdateUser(
   firstName: string | null,
   lastName: string | null
 ): Promise<boolean> {
+  
+  console.log("clerkUserId", clerkUserId);
+  console.log("email", email);
+  console.log("firstName", firstName);
+  console.log("lastName", lastName);
+  
   // Validate inputs
   if (!isValidUserId(clerkUserId)) {
     console.error(`Invalid Clerk user ID format: ${clerkUserId}`);
@@ -69,19 +76,49 @@ async function createOrUpdateUser(
   const fullName = `${sanitizedFirstName} ${sanitizedLastName}`.trim() || 'User';
 
   try {
-    await prisma.user.upsert({
+    // Create Stripe customer first
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+      apiVersion: '2023-10-16',
+    });
+
+    const customer = await stripe.customers.create({
+      email,
+      name: fullName,
+      metadata: {
+        clerkId: clerkUserId,
+      },
+    });
+
+    // Create or update user with Stripe customer ID
+    const user = await prisma.user.upsert({
       where: { clerkId: clerkUserId },
       update: {
         email,
         name: fullName,
         updatedAt: new Date(),
+        stripeCustomerId: customer.id,
       },
       create: {
         clerkId: clerkUserId,
         email,
         name: fullName,
+        stripeCustomerId: customer.id,
+        planType: 'FREE',
+        monthlyCredits: 10,
+        purchasedCredits: 0,
+        creditCap: 10,
+        lastCreditReset: new Date(),
       },
     });
+
+    // Set the database ID in Clerk's private metadata
+    const client = await clerkClient();
+    await client.users.updateUserMetadata(clerkUserId, {
+      privateMetadata: {
+        databaseId: user.id
+      }
+    });
+
     console.log(`User upserted for clerk ID: ${clerkUserId.substring(0, 8)}...`);
     return true;
   } catch (error) {

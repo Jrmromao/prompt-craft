@@ -21,7 +21,7 @@ export async function POST(req: Request) {
     // Check user's plan
     const user = await prisma.user.findUnique({
       where: { id: userId },
-      select: { planType: true }
+      select: { id: true, planType: true }
     });
 
     if (!user) {
@@ -84,7 +84,7 @@ export async function POST(req: Request) {
     // Track usage using metrics service
     const metricsService = MetricsService.getInstance();
     await metricsService.trackUsage({
-      userId,
+      userId: user.id,
       type: 'PROMPT_TEST',
       tokenCount: result.tokenCount,
       metadata: {
