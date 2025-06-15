@@ -13,7 +13,9 @@ model User {
   createdAt            DateTime            @default(now())
   updatedAt            DateTime            @updatedAt
   clerkId              String              @unique
-  credits              Int                 @default(0)
+  monthlyCredits       Int                 @default(0)
+  purchasedCredits     Int                 @default(0)
+  lastMonthlyReset     DateTime?
   name                 String?
   password             String?
   role                 Role                @default(USER)
@@ -786,6 +788,23 @@ model PlanLimits {
   @@unique([planType, feature])
   @@index([planType])
   @@index([feature])
+}
+
+model CreditPackage {
+  id          String   @id @default(cuid())
+  name        String
+  amount      Int
+  price       Float
+  stripePriceId String @unique
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  description String?
+  isPopular   Boolean  @default(false)
+  bonusCredits Int     @default(0)
+
+  @@index([isActive])
+  @@index([stripePriceId])
 }
 
 enum Role {

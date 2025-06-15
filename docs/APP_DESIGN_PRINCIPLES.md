@@ -12,11 +12,24 @@ This document outlines the core design principles and best practices that guide 
 - Semantic HTML for structure and navigation.
 
 ## 2. Color Scheme
-- Use a consistent, brand-aligned color palette throughout the app.
-- Primary actions use the brand's main color (e.g., purple #a855f7).
-- Destructive actions (e.g., delete) use red for clarity and safety.
-- Muted backgrounds and subtle borders for a calm, modern feel.
-- Ensure all color choices meet WCAG AA contrast standards.
+- Primary brand colors:
+  - Purple: #9333ea (purple-600)
+  - Pink: #db2777 (pink-600)
+  - Gradient: from-purple-600 to-pink-600
+- Use cases:
+  - Primary actions: Purple to pink gradient
+  - Secondary actions: Purple outline with white background
+  - Destructive actions: Red (#ef4444)
+  - Success states: Green (#22c55e)
+  - Warning states: Yellow (#eab308)
+- Background colors:
+  - Light mode: purple-50/40 to pink-50/80 for gradients
+  - Dark mode: purple-950/20 to pink-950/20 for gradients
+- Text colors:
+  - Primary: gray-900 (light) / white (dark)
+  - Secondary: gray-600 (light) / gray-400 (dark)
+  - Accent: purple-600 to pink-600 gradient
+- Ensure all color combinations meet WCAG AA contrast standards.
 
 ## 2a. Typography & Font Choice
 - The app uses the Inter font family globally for all headings, UI, and body text.

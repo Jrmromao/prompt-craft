@@ -1,6 +1,7 @@
 import * as Sentry from '@sentry/nextjs';
-import { getProfileByClerkId } from '@/app/services/profileService';
+import { ProfileService } from '@/lib/services/profileService';
 import { stripe } from '@/lib/stripe';
+import { prisma } from '@/lib/prisma';
 
 export class BillingService {
   private static instance: BillingService;
@@ -18,10 +19,37 @@ export class BillingService {
   public async getBillingOverview(userId: string) {
     this.logger.info('Fetching billing overview', { userId });
     try {
-      const user = await getProfileByClerkId(userId);
-      if (!user || !user.stripeCustomerId) {
-        throw new Error('No Stripe customer');
+      const user = await ProfileService.getInstance().getProfileByClerkId(userId);
+      if (!user) {
+        this.logger.error('User not found', { userId });
+        throw new Error('User not found');
       }
+      
+      // Create Stripe customer if one doesn't exist
+      if (!user.stripeCustomerId) {
+        this.logger.info('No Stripe customer ID found, creating one', { userId });
+        const customer = await stripe.customers.create({
+          email: user.email || undefined,
+          name: user.name || undefined,
+          metadata: {
+            userId: user.id,
+            clerkId: userId,
+          },
+        });
+
+        // Update user with Stripe customer ID
+        await prisma.user.update({
+          where: { id: user.id },
+          data: { stripeCustomerId: customer.id },
+        });
+
+        user.stripeCustomerId = customer.id;
+      }
+
+      this.logger.info('Found Stripe customer ID', { 
+        userId, 
+        stripeCustomerId: user.stripeCustomerId 
+      });
 
       // Fetch subscription
       const subscriptions = await stripe.subscriptions.list({
@@ -30,10 +58,65 @@ export class BillingService {
       });
       const subscription = subscriptions.data[0] || null;
 
-      // Fetch invoices
-      const invoices = await stripe.invoices.list({
+      this.logger.info('Fetched subscriptions', { 
+        userId,
+        hasSubscription: !!subscription,
+        subscriptionId: subscription?.id
+      });
+
+      // Fetch invoices from Stripe
+      const stripeInvoices = await stripe.invoices.list({
         customer: user.stripeCustomerId,
         limit: 10,
+      });
+
+      this.logger.info('Fetched Stripe invoices', { 
+        userId,
+        invoiceCount: stripeInvoices.data.length,
+        invoiceIds: stripeInvoices.data.map(inv => inv.id)
+      });
+
+      // Format Stripe invoices
+      const formattedInvoices = stripeInvoices.data.map(invoice => ({
+        id: invoice.id,
+        amount: (invoice.amount_paid / 100).toFixed(2),
+        date: new Date(invoice.created * 1000).toISOString(),
+        url: invoice.hosted_invoice_url,
+        status: invoice.status,
+        type: 'subscription',
+      }));
+
+      // Fetch credit purchases
+      const creditPurchases = await prisma.creditPurchase.findMany({
+        where: { userId: user.id },
+        orderBy: { createdAt: 'desc' },
+        take: 10,
+      });
+
+      this.logger.info('Fetched credit purchases', { 
+        userId,
+        purchaseCount: creditPurchases.length,
+        purchaseIds: creditPurchases.map(p => p.id)
+      });
+
+      // Format credit purchases
+      const formattedCreditPurchases = creditPurchases.map(purchase => ({
+        id: purchase.id,
+        amount: purchase.price.toFixed(2),
+        date: purchase.createdAt.toISOString(),
+        url: null,
+        status: 'paid',
+        type: 'credit_purchase',
+      }));
+
+      // Combine and sort all transactions
+      const allTransactions = [...formattedInvoices, ...formattedCreditPurchases]
+        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+      this.logger.info('Combined transactions', { 
+        userId,
+        totalTransactions: allTransactions.length,
+        transactionTypes: allTransactions.map(t => t.type)
       });
 
       // Fetch payment methods
@@ -42,16 +125,17 @@ export class BillingService {
         type: 'card',
       });
 
-      this.logger.debug(this.logger.fmt`Retrieved ${invoices.data.length} invoices for user: ${userId}`);
+      this.logger.debug(this.logger.fmt`Retrieved ${allTransactions.length} transactions for user: ${userId}`);
       return {
         subscription,
-        invoices: invoices.data,
+        invoices: allTransactions,
         paymentMethods: paymentMethods.data,
       };
     } catch (error) {
       this.logger.error('Failed to fetch billing overview', {
         userId,
         error: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined
       });
       throw error;
     }

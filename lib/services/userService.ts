@@ -2,6 +2,7 @@ import { prisma } from '@/lib/prisma';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { PlanType } from '@prisma/client';
 import { currentUser } from '@clerk/nextjs/server';
+import { clerkClient } from "@clerk/nextjs/server";
 
 // Types for serializable props
 interface SerializableUserWithPlan {
@@ -136,7 +137,8 @@ export class UserService {
             email: clerkUser.emailAddresses[0].emailAddress,
             name: clerkUser.firstName || 'User',
             planType: PlanType.PRO,
-            credits: 10,
+            monthlyCredits: 10,
+            purchasedCredits: 0,
             creditCap: 10,
             lastCreditReset: new Date(),
           },
@@ -148,6 +150,10 @@ export class UserService {
             },
           },
         });
+
+        // Set the database ID in Clerk's private metadata
+        await this.setUserDatabaseIdInClerk(clerkId, newUser.id);
+
         this.userCache.set(clerkId, { user: newUser, timestamp: now });
         return newUser;
       }
@@ -283,6 +289,31 @@ export class UserService {
         );
       }
       return false;
+    }
+  }
+
+  public async setUserDatabaseIdInClerk(clerkId: string, databaseId: string) {
+    try {
+      const client = await clerkClient();
+      await client.users.updateUserMetadata(clerkId, {
+        privateMetadata: {
+          databaseId
+        }
+      });
+    } catch (error) {
+      console.error('Error setting database ID in Clerk metadata:', error);
+      throw error;
+    }
+  }
+
+  public async getDatabaseIdFromClerk(clerkId: string): Promise<string | null> {
+    try {
+      const client = await clerkClient();
+      const user = await client.users.getUser(clerkId);
+      return user.privateMetadata.databaseId as string || null;
+    } catch (error) {
+      console.error('Error getting database ID from Clerk metadata:', error);
+      return null;
     }
   }
 }

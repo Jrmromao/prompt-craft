@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client';
-import { seedPlanLimits } from './seeders/planLimitsSeeder';
+import { seedCreditPackages } from './seeders/creditPackagesSeeder';
 
 const prisma = new PrismaClient();
 
@@ -7,8 +7,8 @@ async function main() {
   console.log('🌱 Starting database seeding...');
 
   try {
-    // Run all seeders
-    await seedPlanLimits();
+    // Seed credit packages
+    await seedCreditPackages();
 
     console.log('✅ Database seeding completed successfully');
   } catch (error) {
@@ -18,8 +18,8 @@ async function main() {
 }
 
 main()
-  .catch((error) => {
-    console.error('❌ Error running seeders:', error);
+  .catch((e) => {
+    console.error(e);
     process.exit(1);
   })
   .finally(async () => {

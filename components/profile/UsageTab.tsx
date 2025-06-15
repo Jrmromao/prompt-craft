@@ -17,7 +17,8 @@ import { RealtimeUsageDisplay } from '@/components/usage/RealtimeUsageDisplay';
 
 interface UsageTabProps {
   user: {
-    credits: number;
+    monthlyCredits: number;
+    purchasedCredits: number;
     creditCap: number;
     planType: string;
     lastActivity?: string;
@@ -35,16 +36,18 @@ interface UsageTabProps {
 }
 
 export function UsageTab({ user, usageData, recentPrompts }: UsageTabProps) {
+  const totalCredits = user.monthlyCredits + user.purchasedCredits;
+  
   return (
     <div className="space-y-8">
       {/* Credits Overview */}
       <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
         <Card className="p-6">
           <h3 className="text-sm font-medium text-gray-500 mb-2">Available Credits</h3>
-          <div className="text-3xl font-bold">{user.credits}</div>
-          <Progress value={(user.credits / user.creditCap) * 100} className="mt-2" />
+          <div className="text-3xl font-bold">{totalCredits}</div>
+          <Progress value={(totalCredits / user.creditCap) * 100} className="mt-2" />
           <p className="mt-2 text-sm text-gray-500">
-            {user.credits} of {user.creditCap} credits used
+            {totalCredits} of {user.creditCap} credits used
           </p>
         </Card>
         <Card className="p-6">

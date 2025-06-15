@@ -8,6 +8,8 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { PlanType, Period } from '@/utils/constants';
+import { useToast } from '@/components/ui/use-toast';
+import { Check } from 'lucide-react';
 
 interface UpgradeModalProps {
   isOpen: boolean;
@@ -17,37 +19,44 @@ interface UpgradeModalProps {
   missingCredits?: number;
 }
 
-const PLANS = [
-  {
-    type: PlanType.LITE,
-    name: 'Lite Plan',
-    description: 'Perfect for casual users',
-    features: [
-      '250 credits per week',
-      'Save up to 50 prompts',
-      'Access to prompt templates',
-      'DeepSeek API access',
-    ],
-    pricing: {
-      [Period.WEEKLY]: 3,
-      [Period.MONTHLY]: 12,
-    },
-  },
+const plans = [
   {
     type: PlanType.PRO,
     name: 'Pro Plan',
-    description: 'For power users and professionals',
+    price: 19,
     features: [
-      '1,500 credits per month',
-      'Unlimited saved prompts',
-      'Access to all AI models',
-      'Priority support',
-      'Community prompt library',
-    ],
-    pricing: {
-      [Period.MONTHLY]: 12,
-    },
+      '20 Private Prompts',
+      '500 Testing Runs/month',
+      'Advanced Analytics',
+      'Priority Support',
+      'Custom Templates',
+      'Team Collaboration (up to 3 users)',
+      'API Access',
+      'Version Control',
+      'Performance Metrics',
+      'Pay-as-you-go Credits: $0.06/credit',
+      'BYOK (Bring Your Own Key)'
+    ]
   },
+  {
+    type: PlanType.ELITE,
+    name: 'Elite Plan',
+    price: 49,
+    features: [
+      'Unlimited Private Prompts',
+      'Unlimited Testing Runs',
+      'Advanced AI Parameters',
+      'Team Collaboration (up to 10 users)',
+      'Custom Integrations',
+      'Advanced Analytics',
+      'Priority Support',
+      'Custom Model Fine-tuning',
+      'White-label Solutions',
+      'SLA Guarantee',
+      'Unlimited credits included',
+      'BYOK (Bring Your Own Key)'
+    ]
+  }
 ];
 
 export function UpgradeModal({
@@ -57,103 +66,85 @@ export function UpgradeModal({
   currentPlan,
   missingCredits,
 }: UpgradeModalProps) {
-  const [selectedPlan, setSelectedPlan] = React.useState<PlanType>(PlanType.LITE);
-  const [selectedPeriod, setSelectedPeriod] = React.useState<Period>(Period.WEEKLY);
+  const [selectedPlan, setSelectedPlan] = React.useState<PlanType>(PlanType.PRO);
+  const [isLoading, setIsLoading] = React.useState(false);
+  const { toast } = useToast();
 
-  const handleUpgrade = () => {
-    onUpgrade(selectedPlan, selectedPeriod);
+  const handleUpgrade = async (planType: PlanType) => {
+    setIsLoading(true);
+    try {
+      const response = await fetch('/api/subscriptions/create-checkout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          planType,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        throw new Error('No checkout URL returned');
+      }
+    } catch (error) {
+      console.error('Error creating checkout session:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to create checkout session. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
-          <DialogTitle>
-            {missingCredits ? `Need ${missingCredits} more credits?` : 'Upgrade Your Plan'}
-          </DialogTitle>
+          <DialogTitle>Upgrade Your Plan</DialogTitle>
           <DialogDescription>
-            {missingCredits
-              ? 'Upgrade your plan to get more credits and access to advanced features.'
-              : 'Choose the plan that best fits your needs.'}
+            Choose the plan that best fits your needs
           </DialogDescription>
         </DialogHeader>
 
         <div className="grid gap-4 py-4">
-          {PLANS.map(plan => (
+          {plans.map(plan => (
             <div
               key={plan.type}
-              className={`rounded-lg border p-4 ${
-                selectedPlan === plan.type ? 'border-primary bg-primary/5' : 'border-border'
+              className={`relative rounded-lg border p-4 ${
+                selectedPlan === plan.type ? 'border-primary' : 'border-border'
               }`}
             >
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="font-semibold">{plan.name}</h3>
-                  <p className="text-sm text-muted-foreground">{plan.description}</p>
+                  <h3 className="font-medium">{plan.name}</h3>
+                  <p className="text-sm text-muted-foreground">
+                    ${plan.price}/month
+                  </p>
                 </div>
                 <Button
+                  onClick={() => handleUpgrade(plan.type)}
+                  disabled={isLoading}
                   variant={selectedPlan === plan.type ? 'default' : 'outline'}
-                  onClick={() => setSelectedPlan(plan.type)}
                 >
-                  Select
+                  {isLoading ? 'Processing...' : 'Upgrade'}
                 </Button>
               </div>
-
               <ul className="mt-4 space-y-2">
                 {plan.features.map((feature, index) => (
                   <li key={index} className="flex items-center text-sm">
-                    <svg
-                      className="mr-2 h-4 w-4 text-primary"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M5 13l4 4L19 7"
-                      />
-                    </svg>
+                    <Check className="mr-2 h-4 w-4 text-primary" />
                     {feature}
                   </li>
                 ))}
               </ul>
-
-              {selectedPlan === plan.type && (
-                <div className="mt-4">
-                  {plan.type === PlanType.LITE && (
-                    <div className="flex gap-2">
-                      <Button
-                        variant={selectedPeriod === Period.WEEKLY ? 'default' : 'outline'}
-                        onClick={() => setSelectedPeriod(Period.WEEKLY)}
-                      >
-                        Weekly (${plan.pricing[Period.WEEKLY]})
-                      </Button>
-                      <Button
-                        variant={selectedPeriod === Period.MONTHLY ? 'default' : 'outline'}
-                        onClick={() => setSelectedPeriod(Period.MONTHLY)}
-                      >
-                        Monthly (${plan.pricing[Period.MONTHLY]})
-                      </Button>
-                    </div>
-                  )}
-                  {plan.type === PlanType.PRO && (
-                    <Button className="w-full" variant="default">
-                      Monthly (${plan.pricing[Period.MONTHLY]})
-                    </Button>
-                  )}
-                </div>
-              )}
             </div>
           ))}
-        </div>
-
-        <div className="flex justify-end gap-2">
-          <Button variant="outline" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button onClick={handleUpgrade}>Upgrade Now</Button>
         </div>
       </DialogContent>
     </Dialog>

@@ -1,32 +1,25 @@
-import { prisma } from '@/lib/prisma';
-import { getRequestId } from '@/middleware/request-id';
-import type { NextRequest } from 'next/server';
+import { PrismaClient, Prisma } from '@prisma/client';
+import { AuditAction } from '@/app/constants/audit';
+import { ServiceError } from './types';
 
-export type AuditLogAction =
-  | 'USER_LOGIN'
-  | 'USER_LOGOUT'
-  | 'USER_CREATE'
-  | 'USER_UPDATE'
-  | 'USER_DELETE'
-  | 'API_CALL'
-  | 'SECURITY_EVENT'
-  | 'DATA_ACCESS'
-  | 'CONFIGURATION_CHANGE'
-  | 'QUOTA_CHECK';
+const prisma = new PrismaClient();
 
 export interface AuditLogEntry {
-  action: AuditLogAction;
-  userId?: string;
-  ipAddress?: string;
-  userAgent?: string;
+  id?: string;
+  userId: string | null;
+  action: AuditAction;
   resource: string;
-  details: Record<string, any>;
+  details: Prisma.InputJsonValue;
   status?: string;
+  ipAddress?: string | null;
+  timestamp?: Date;
+  user?: {
+    name: string | null;
+  } | null;
 }
 
 export class AuditService {
   private static instance: AuditService;
-  private request?: NextRequest;
 
   private constructor() {}
 
@@ -37,185 +30,65 @@ export class AuditService {
     return AuditService.instance;
   }
 
-  public setRequest(request: NextRequest) {
-    this.request = request;
-  }
-
-  public async log(entry: AuditLogEntry): Promise<void> {
+  public async logAudit(entry: AuditLogEntry): Promise<void> {
     try {
-      const requestId = this.request ? getRequestId(this.request) : undefined;
-      const ipAddress = this.request?.headers.get('x-forwarded-for') || entry.ipAddress || '';
-      const userAgent = this.request?.headers.get('user-agent') || entry.userAgent || '';
-
-      await AuditService.logAction({
-        action: entry.action,
-        userId: entry.userId || null,
-        ipAddress: ipAddress || null,
-        resource: entry.resource,
-        status: entry.status || 'SUCCESS',
-        details: {
-          ...entry.details,
-          requestId,
-          userAgent,
+      await prisma.auditLog.create({
+        data: {
+          userId: entry.userId,
+          action: entry.action,
+          resource: entry.resource,
+          details: entry.details,
+          timestamp: new Date(),
         },
       });
     } catch (error) {
-      console.error('Failed to create audit log:', error);
-      // Don't throw the error to prevent disrupting the main application flow
+      console.error('Failed to log audit entry:', error);
+      // Don't throw - audit logging should not break the main flow
     }
   }
 
-  public async logSecurityEvent(
-    action: AuditLogAction,
-    resource: string,
-    details: Record<string, any>,
-    status?: string
-  ): Promise<void> {
-    await this.log({
-      action,
-      resource,
-      details,
-      status,
-    });
-  }
-
-  public async logUserAction(
-    userId: string,
-    action: AuditLogAction,
-    resource: string,
-    details: Record<string, any>,
-    status?: string
-  ): Promise<void> {
-    await this.log({
-      action,
-      userId,
-      resource,
-      details,
-      status,
-    });
-  }
-
-  public async logApiCall(
-    userId: string,
-    resource: string,
-    details: Record<string, any>,
-    status?: string
-  ): Promise<void> {
-    await this.log({
-      action: 'API_CALL',
-      userId,
-      resource,
-      details,
-      status,
-    });
-  }
-
-  public static async logAction({
-    action,
-    resource,
-    userId,
-    ipAddress,
-    details,
-    status = 'success',
-  }: {
-    action: string;
-    resource: string;
-    userId: string | null;
-    ipAddress: string | null;
-    details: any;
-    status?: string;
-  }) {
-    return prisma.auditLog.create({
-      data: {
-        action,
-        resource,
-        userId,
-        ipAddress,
-        details,
-        status,
-      },
-    });
-  }
-
-  public static async getRecentLogs(limit = 50) {
-    return prisma.auditLog.findMany({
-      take: limit,
-      orderBy: {
-        timestamp: 'desc',
-      },
-      include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
+  public async getAuditLogs(userId: string, options?: {
+    limit?: number;
+    offset?: number;
+    action?: AuditAction;
+    resource?: string;
+    startDate?: Date;
+    endDate?: Date;
+  }): Promise<AuditLogEntry[]> {
+    try {
+      const logs = await prisma.auditLog.findMany({
+        where: {
+          userId,
+          ...(options?.action && { action: options.action }),
+          ...(options?.resource && { resource: options.resource }),
+          ...(options?.startDate && { timestamp: { gte: options.startDate } }),
+          ...(options?.endDate && { timestamp: { lte: options.endDate } }),
+        },
+        orderBy: { timestamp: 'desc' },
+        take: options?.limit || 50,
+        skip: options?.offset || 0,
+        include: {
+          user: {
+            select: {
+              name: true,
+            },
           },
         },
-      },
-    });
-  }
+      });
 
-  public static async getLogsByAction(action: string) {
-    return prisma.auditLog.findMany({
-      where: {
-        action,
-      },
-      orderBy: {
-        timestamp: 'desc',
-      },
-      include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        },
-      },
-    });
-  }
-
-  public static async getLogsByStatus(status: string) {
-    return prisma.auditLog.findMany({
-      where: {
-        status,
-      },
-      orderBy: {
-        timestamp: 'desc',
-      },
-      include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        },
-      },
-    });
-  }
-
-  public static async searchLogs(query: string) {
-    return prisma.auditLog.findMany({
-      where: {
-        OR: [
-          { action: { contains: query, mode: 'insensitive' } },
-          { resource: { contains: query, mode: 'insensitive' } },
-          { details: { path: ['$'], string_contains: query } },
-        ],
-      },
-      orderBy: {
-        timestamp: 'desc',
-      },
-      include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        },
-      },
-    });
+      return logs.map(log => ({
+        id: log.id,
+        userId: log.userId,
+        action: log.action as AuditAction,
+        resource: log.resource,
+        details: log.details as Prisma.InputJsonValue,
+        status: log.status,
+        ipAddress: log.ipAddress,
+        timestamp: log.timestamp,
+        user: log.user,
+      }));
+    } catch (error) {
+      throw new ServiceError('Failed to fetch audit logs', 'AUDIT_LOG_FETCH_ERROR');
+    }
   }
 }

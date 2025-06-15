@@ -5,8 +5,9 @@ export enum Role {
 
 export enum PlanType {
   FREE = 'FREE',
-  LITE = 'LITE',
   PRO = 'PRO',
+  ELITE = 'ELITE',
+  ENTERPRISE = 'ENTERPRISE'
 }
 
 export enum Period {
@@ -20,6 +21,8 @@ export enum CreditType {
   USAGE = 'USAGE',
   TOP_UP = 'TOP_UP',
   REFUND = 'REFUND',
+  MONTHLY_RESET = "MONTHLY_RESET",
+  PURCHASE = "PURCHASE",
 }
 
 export enum SubscriptionStatus {
