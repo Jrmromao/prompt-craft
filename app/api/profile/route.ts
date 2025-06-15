@@ -3,10 +3,11 @@ import { auth } from '@clerk/nextjs/server';
 import { prisma } from '@/lib/prisma';
 import { userProfileSchema } from '@/lib/validations/user';
 import { z } from 'zod';
-import { dynamicRouteConfig, withDynamicRoute } from '@/lib/utils/dynamicRoute';
+import { dynamicRouteConfig } from '@/lib/utils/dynamicRoute';
 import { trackUserFlowError, trackUserFlowEvent } from '@/lib/error-tracking';
 import { AuditAction } from '@/app/constants/audit';
-import { logAudit } from '@/app/lib/auditLogger';
+import { AuditService } from '@/lib/services/auditService';
+import { UserService } from '@/lib/services/userService';
 
 // Export dynamic configuration
 export const { dynamic, revalidate, runtime } = dynamicRouteConfig;
@@ -38,7 +39,7 @@ export async function GET() {
       return NextResponse.json({ error: 'Profile not found' }, { status: 404 });
     }
 
-    await logAudit({
+    await AuditService.getInstance().logAudit({
       action: AuditAction.USER_GET_PROFILE,
       userId,
       resource: 'profile',
@@ -82,9 +83,17 @@ export async function PATCH(req: Request) {
       },
     });
 
-    await logAudit({
+    // read the databaseid from the userService 
+    const userService = UserService.getInstance();
+    const databaseId = await userService.getDatabaseIdFromClerk(userId);
+
+    if (!databaseId) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+
+    await AuditService.getInstance().logAudit({
       action: AuditAction.USER_UPDATE_PROFILE,
-      userId,
+      userId: databaseId,
       resource: 'profile',
       status: 'success',
       details: { profile: updatedUser },

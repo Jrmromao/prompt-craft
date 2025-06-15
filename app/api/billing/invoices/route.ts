@@ -2,8 +2,10 @@ import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { BillingService } from '@/lib/services/billingService';
 import { trackUserFlowError, trackUserFlowEvent } from '@/lib/error-tracking';
-import { logAudit } from '@/app/lib/auditLogger';
+import { AuditService } from '@/lib/services/auditService';
 import { AuditAction } from '@/app/constants/audit';
+import { Redis } from '@upstash/redis';
+import { prisma } from '@/lib/prisma';
 
 // Configure route
 export const dynamic = 'force-dynamic';
@@ -21,20 +23,33 @@ export async function GET() {
     const billingService = BillingService.getInstance();
     const billingData = await billingService.getBillingOverview(userId);
 
+    if (!billingData) {
+      return NextResponse.json({ error: 'Failed to fetch billing data' }, { status: 500 });
+    }
+
     trackUserFlowEvent('payment_processing', 'invoices_fetched', { 
       userId,
-      invoiceCount: billingData.invoices.length 
+      invoiceCount: billingData.invoices?.length || 0 
     });
+
+    const user = await prisma.user.findUnique({
+      where: { clerkId: userId },
+      select: { id: true },
+    });
+
+    if (!user) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
 
     // Audit log for invoice view
-    await logAudit({
+    await AuditService.getInstance().logAudit({
       action: AuditAction.INVOICE_VIEWED,
-      userId,
+      userId: user.id,
       resource: 'invoice',
-      details: { invoiceCount: billingData.invoices.length },
+      details: { invoiceCount: billingData.invoices?.length || 0 },
     });
 
-    return NextResponse.json({ invoices: billingData.invoices });
+    return NextResponse.json({ invoices: billingData.invoices || [] });
   } catch (error) {
     trackUserFlowError('payment_processing', error as Error, { 
       action: 'fetch_invoices',
@@ -42,7 +57,7 @@ export async function GET() {
     });
     console.error('Error fetching invoices:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch invoices' },
+      { error: error instanceof Error ? error.message : 'Failed to fetch invoices' },
       { status: 500 }
     );
   }

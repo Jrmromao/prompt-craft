@@ -4,7 +4,8 @@ import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
 import { Prisma, UserStatus } from '@prisma/client';
 import { AuditAction } from '@/app/constants/audit';
-import { logAudit } from '@/app/lib/auditLogger';
+import { AuditService } from '@/lib/services/auditService';
+import { UserService } from '@/lib/services/userService';
 
 const userQuerySchema = z.object({
   page: z.string().optional(),
@@ -86,10 +87,15 @@ export async function GET(request: Request, context: any) {
       prisma.user.count({ where }),
     ]);
 
+    // get user databaseId from userService 
+    const userDatabaseId = await UserService.getInstance().getDatabaseIdFromClerk(userId);
+    if (!userDatabaseId) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
 
-    await logAudit({
+    await AuditService.getInstance().logAudit({
       action: AuditAction.ADMIN_GET_USERS,
-      userId,
+      userId: userDatabaseId,
       resource: 'users',
       status: 'success',
       details: { users },

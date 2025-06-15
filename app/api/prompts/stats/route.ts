@@ -28,11 +28,11 @@ export async function GET() {
     // Get prompt statistics
     const [totalPrompts, privatePrompts] = await Promise.all([
       prisma.prompt.count({
-        where: { userId: dbUser.id },
+        where: { id: dbUser.id },
       }),
       prisma.prompt.count({
         where: {
-          userId: dbUser.id,
+          id: dbUser.id,
           isPublic: false,
         },
       }),

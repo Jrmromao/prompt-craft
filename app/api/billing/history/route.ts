@@ -2,11 +2,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { prisma } from '@/lib/prisma';
 import Stripe from 'stripe';
-import { logAudit } from '@/app/lib/auditLogger';
+import { AuditService } from '@/lib/services/auditService';
 import { AuditAction } from '@/app/constants/audit';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2025-02-24.acacia',
+  apiVersion: '2025-05-28.basil',
 });
 
 export async function GET(req: NextRequest) {
@@ -18,7 +18,7 @@ export async function GET(req: NextRequest) {
 
     // Get user's subscription
     const user = await prisma.user.findUnique({
-      where: { id: userId },
+      where: { clerkId: userId },
       include: {
         subscription: true,
       },
@@ -58,7 +58,7 @@ export async function GET(req: NextRequest) {
     }));
 
     // Audit log for billing history view
-    await logAudit({
+    await AuditService.getInstance().logAudit({
       action: AuditAction.BILLING_HISTORY_VIEWED,
       userId,
       resource: 'billing',

@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { BillingService } from '@/lib/services/billingService';
-import { logAudit } from '@/app/lib/auditLogger';
+import { AuditService } from '@/lib/services/auditService';
 import { AuditAction } from '@/app/constants/audit';
+import { UserService } from '@/lib/services/userService';
 
 // Security headers for the response
 const securityHeaders = {
@@ -27,10 +28,19 @@ export async function GET(request: Request) {
     const billingService = BillingService.getInstance();
     const portalUrl = await billingService.getPortalUrl(userId);
 
+
+    // read the databaseid from the userService 
+    const userService = UserService.getInstance();
+    const databaseId = await userService.getDatabaseIdFromClerk(userId);
+
+    if (!databaseId) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+
     // Audit log for billing portal access
-    await logAudit({
+    await AuditService.getInstance().logAudit({
       action: AuditAction.BILLING_PORTAL_ACCESSED,
-      userId,
+      userId: databaseId,
       resource: 'billing',
       details: { portalUrl },
     });

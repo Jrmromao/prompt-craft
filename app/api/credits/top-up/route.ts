@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
-import { CreditService } from '@/app/lib/services/creditService';
-import { logAudit } from '@/app/lib/auditLogger';
+import { CreditService } from '@/lib/services/creditService';
+import { AuditService } from '@/lib/services/auditService';
 import { AuditAction } from '@/app/constants/audit';
+import { CreditType } from '@prisma/client';
 
 export const dynamic = 'force-dynamic';
 
@@ -21,19 +22,19 @@ export async function POST(req: Request) {
     }
 
     try {
-      await CreditService.addCredits(
+      await CreditService.getInstance().addCredits(
         userId,
         amount,
-        'Manual credit top-up',
-        { source: 'manual' }
+        CreditType.TOP_UP,
+        'Manual credit top-up'
       );
 
       // Get updated balance
-      const newBalance = await CreditService.getCreditBalance(userId);
+      const creditCheck = await CreditService.getInstance().checkCreditBalance(userId, 0);
 
       return NextResponse.json({
         success: true,
-        newBalance,
+        newBalance: creditCheck.monthlyCredits + creditCheck.purchasedCredits,
         message: 'Credits added successfully'
       });
     } catch (error) {

@@ -46,7 +46,7 @@ export async function GET() {
     // Get current credit balance and cap
     const user = await prisma.user.findUnique({
       where: { id: userId },
-      select: { credits: true, creditCap: true, planType: true }
+      select: { monthlyCredits: true, purchasedCredits: true, creditCap: true, planType: true }
     });
 
     if (!user) {
@@ -54,7 +54,7 @@ export async function GET() {
     }
 
     return NextResponse.json({
-      currentBalance: user.credits,
+      currentBalance: (user.monthlyCredits + user.purchasedCredits),
       creditCap: user.creditCap,
       planType: user.planType,
       dailyUsage,

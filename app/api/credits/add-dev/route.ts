@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { prisma } from '@/lib/prisma';
-import { logAudit } from '@/app/lib/auditLogger';
+import { AuditService } from '@/lib/services/auditService';
 import { AuditAction } from '@/app/constants/audit';
 
 // Configure route as dynamic
@@ -33,28 +33,28 @@ export async function POST(req: Request) {
         clerkId: userId,
       },
       data: {
-        credits: {
-          increment: amount,
-        },
+        monthlyCredits: amount,
+        purchasedCredits: amount,
+        lastMonthlyReset: new Date(),
       },
     });
 
     // Log the development credit addition
-    await logAudit({
+    await AuditService.getInstance().logAudit({
       userId,
       action: AuditAction.CREDITS_ADDED,
       resource: 'credits',
       details: {
         amount,
         type: 'development_addition',
-        newBalance: updatedUser.credits,
+        newBalance: (updatedUser.monthlyCredits + updatedUser.purchasedCredits),
         environment: 'development'
       }
     });
 
     return NextResponse.json({
       success: true,
-      newBalance: updatedUser.credits,
+      newBalance: (updatedUser.monthlyCredits + updatedUser.purchasedCredits),
     });
   } catch (error) {
     console.error('Error adding credits:', error);

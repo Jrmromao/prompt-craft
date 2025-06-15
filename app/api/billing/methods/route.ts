@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { prisma } from '@/lib/prisma';
 import Stripe from 'stripe';
-import { logAudit } from '@/app/lib/auditLogger';
+import { AuditService } from '@/lib/services/auditService';
 import { AuditAction } from '@/app/constants/audit';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
@@ -113,7 +113,7 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    await logAudit({
+    await AuditService.getInstance().logAudit({
       action: AuditAction.PAYMENT_METHOD_ADDED,
       userId,
       resource: 'billing',
@@ -174,7 +174,7 @@ export async function DELETE(req: NextRequest) {
       });
     }
 
-    await logAudit({
+    await AuditService.getInstance().logAudit({
       action: AuditAction.PAYMENT_METHOD_REMOVED,
       userId,
       resource: 'billing',

@@ -3,7 +3,7 @@ import { auth } from '@clerk/nextjs/server';
 import { stripe } from '@/lib/stripe';
 import { prisma } from '@/lib/prisma';
 import { SubscriptionStatus } from '@prisma/client';
-import { logAudit } from '@/app/lib/auditLogger';
+import { AuditService } from '@/lib/services/auditService';
 import { AuditAction } from '@/app/constants/audit';
 
 export async function POST(req: NextRequest) {
@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
 
     // Get user's profile
     const user = await prisma.user.findUnique({
-      where: { id: userId },
+      where: { clerkId: userId },
       include: {
         subscription: true,
       },
@@ -98,7 +98,7 @@ export async function POST(req: NextRequest) {
     });
 
     // Audit log for subscription checkout creation
-    await logAudit({
+    await AuditService.getInstance().logAudit({
       action: AuditAction.SUBSCRIPTION_CHECKOUT_CREATED,
       userId,
       resource: 'subscription',

@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { AIService } from '@/lib/services/aiService';
-import { CreditService } from '@/app/lib/services/creditService';
+import { CreditService } from '@/lib/services/creditService';
 import { prisma } from '@/lib/prisma';
 import { PLANS } from '@/app/constants/plans';
-import { PlanType } from '@prisma/client';
+import { PlanType, CreditType } from '@prisma/client';
 
 // Export dynamic configuration
 export const dynamic = 'force-dynamic';
@@ -74,10 +74,10 @@ Please generate a complete, well-structured prompt that follows best practices f
 
     // Calculate credit cost
     const estimatedTokens = Math.ceil(generationPrompt.length / 4); // Rough estimate
-    const creditCost = CreditService.calculateTokenCost(estimatedTokens, maxTokens || 2000, 'gpt-4');
+    const creditCost = CreditService.getInstance().calculateTokenCost(estimatedTokens, maxTokens || 2000, 'gpt-4');
 
     // Check if user has enough credits
-    const hasEnoughCredits = await CreditService.hasEnoughCredits(userId, creditCost);
+    const hasEnoughCredits = await CreditService.getInstance().hasEnoughCredits(userId, creditCost);
     if (!hasEnoughCredits) {
       const user = await prisma.user.findUnique({
         where: { id: userId },
@@ -104,22 +104,17 @@ Please generate a complete, well-structured prompt that follows best practices f
     console.log('Prompt generated');
 
     // Deduct credits
-    const actualCreditCost = CreditService.calculateTokenCost(
+    const actualCreditCost = CreditService.getInstance().calculateTokenCost(
       generatedPrompt.tokenCount,
       generatedPrompt.tokenCount,
-      generatedPrompt.model
+      'gpt-4'
     );
 
-    const creditsDeducted = await CreditService.deductCredits(
+    const creditsDeducted = await CreditService.getInstance().deductCredits(
       userId,
       actualCreditCost,
-      `Generated prompt: ${name}`,
-      {
-        promptType,
-        model: generatedPrompt.model,
-        inputTokens: generatedPrompt.tokenCount,
-        outputTokens: generatedPrompt.tokenCount
-      }
+      CreditType.USAGE,
+      `Generated prompt: ${name}`
     );
 
     if (!creditsDeducted) {

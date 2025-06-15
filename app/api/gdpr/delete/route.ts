@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { GDPRService } from '@/lib/services/gdpr';
-import { logAudit } from '@/app/lib/auditLogger';
+import { AuditService } from '@/lib/services/auditService';
 import { AuditAction } from '@/app/constants/audit';
 
 const gdprService = new GDPRService();
@@ -19,7 +19,7 @@ export async function POST() {
     await gdprService.handleDeletionRequest(session.userId);
 
     // Audit log for GDPR deletion request
-    await logAudit({
+    await AuditService.getInstance().logAudit({
       action: AuditAction.USER_DELETED,
       userId: session.userId,
       resource: 'user',

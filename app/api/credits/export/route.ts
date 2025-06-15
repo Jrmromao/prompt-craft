@@ -3,7 +3,7 @@ import { auth } from '@clerk/nextjs/server';
 import { prisma } from '@/lib/prisma';
 import { format } from 'date-fns';
 import { toCsvRow } from '@/lib/utils/csv';
-import { logAudit } from '@/app/lib/auditLogger';
+import { AuditService } from '@/lib/services/auditService';
 import { AuditAction } from '@/app/constants/audit';
 
 export const dynamic = 'force-dynamic';
@@ -32,7 +32,7 @@ export async function GET(req: Request) {
     }
 
     // Log the export action
-    await logAudit({
+    await AuditService.getInstance().logAudit({
       userId,
       action: AuditAction.USER_GET_USAGE,
       resource: 'credits',

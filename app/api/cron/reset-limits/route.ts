@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { PlanType } from '@prisma/client';
-import { logAudit } from '@/app/lib/auditLogger';
+import { AuditService } from '@/lib/services/auditService';
 import { AuditAction } from '@/app/constants/audit';
+import { MonthlyCreditResetService } from '@/lib/services/monthlyCreditResetService';
 
 // This route should be called by a cron job at the beginning of each month
 export async function POST(req: Request) {
@@ -13,41 +14,66 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Get all free users
+    // Get all free users who need a reset
     const freeUsers = await prisma.user.findMany({
       where: {
-        planType: PlanType.FREE
+        planType: PlanType.FREE,
+        OR: [
+          { lastMonthlyReset: { lt: new Date(new Date().setDate(1)) } }, // Before this month
+          { lastMonthlyReset: null }
+        ]
       },
       select: {
         id: true
       }
     });
 
-    // Log the reset for each user
-    const auditLogs = freeUsers.map(user => 
-      logAudit({
-        userId: user.id,
-        action: AuditAction.MONTHLY_LIMIT_RESET,
-        resource: 'prompts',
-        details: {
-          type: 'private_prompt_limit',
-          oldValue: 3, // Previous month's limit
-          newValue: 0  // Reset to 0 for the new month
-        }
-      })
-    );
+    // Get the MonthlyCreditResetService instance
+    const monthlyResetService = MonthlyCreditResetService.getInstance();
 
-    await Promise.all(auditLogs);
+    let success = 0;
+    let failed = 0;
+    const errors = [];
+
+    // Reset credits for each free user
+    for (const user of freeUsers) {
+      try {
+        await monthlyResetService.resetMonthlyCredits(user.id);
+        success++;
+      } catch (error) {
+        failed++;
+        errors.push({ userId: user.id, error });
+      }
+    }
+
+    // Log the results
+    await AuditService.getInstance().logAudit({
+      userId: 'system',
+      action: AuditAction.MONTHLY_CREDIT_RESET,
+      resource: 'credits',
+      details: {
+        type: 'monthly_credit_reset',
+        userType: 'free',
+        successCount: success,
+        failedCount: failed,
+        errors: JSON.stringify(errors)
+      }
+    });
 
     return NextResponse.json({
       success: true,
-      message: `Reset monthly limits for ${freeUsers.length} free users`,
-      timestamp: new Date().toISOString()
+      message: `Reset monthly credits for ${success} free users (${failed} failed)`,
+      timestamp: new Date().toISOString(),
+      details: {
+        success,
+        failed,
+        errors
+      }
     });
   } catch (error) {
-    console.error('Error resetting monthly limits:', error);
+    console.error('Error resetting monthly credits for free users:', error);
     return NextResponse.json(
-      { error: 'Failed to reset monthly limits' },
+      { error: 'Failed to reset monthly credits for free users' },
       { status: 500 }
     );
   }
