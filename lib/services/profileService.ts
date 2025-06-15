@@ -5,6 +5,7 @@ import { userUpdateSchema } from '@/lib/validations/user';
 import { ServiceError } from './types';
 import { AuditService } from './auditService';
 import { AuditAction } from '@/app/constants/audit';
+import { Redis } from '@upstash/redis';
 
 export type UsageStats = {
   totalCreditsUsed: number;
@@ -18,16 +19,25 @@ export type UsageStats = {
 
 export class ProfileService {
   private static instance: ProfileService;
-  private readonly CACHE_TTL = 5 * 60 * 1000; // 5 minutes
-  private userCache: Map<string, { user: User; timestamp: number }> = new Map();
+  private readonly CACHE_TTL = 300; // 5 minutes in seconds
+  private redis: Redis;
 
-  private constructor() {}
+  private constructor() {
+    this.redis = Redis.fromEnv();
+  }
 
   public static getInstance(): ProfileService {
     if (!ProfileService.instance) {
       ProfileService.instance = new ProfileService();
     }
     return ProfileService.instance;
+  }
+
+  /**
+   * Gets the Redis cache key for a user
+   */
+  private getUserCacheKey(clerkId: string): string {
+    return `user:profile:${clerkId}`;
   }
 
   /**
@@ -40,57 +50,64 @@ export class ProfileService {
       throw new ServiceError('Clerk ID is required', 'INVALID_INPUT');
     }
 
-    // Check cache first
-    const cached = this.userCache.get(clerkId);
-    const now = Date.now();
-    if (cached && now - cached.timestamp < this.CACHE_TTL) {
-      return cached.user;
+    try {
+      // Check Redis cache first
+      const cacheKey = this.getUserCacheKey(clerkId);
+      const cachedUser = await this.redis.get<User>(cacheKey);
+
+      if (cachedUser) {
+        return cachedUser;
+      }
+
+      const user = await prisma.user.findUnique({
+        where: {  clerkId: clerkId },
+        select: {
+          id: true,
+          email: true,
+          name: true,
+          role: true,
+          planType: true,
+          monthlyCredits: true,
+          purchasedCredits: true,
+          creditCap: true,
+          lastCreditReset: true,
+          imageUrl: true,
+          bio: true,
+          jobTitle: true,
+          location: true,
+          company: true,
+          website: true,
+          twitter: true,
+          linkedin: true,
+          lastActiveAt: true,
+          createdAt: true,
+          updatedAt: true,
+          clerkId: true,
+          stripeCustomerId: true,
+          password: true,
+          emailPreferences: true,
+          languagePreferences: true,
+          notificationSettings: true,
+          securitySettings: true,
+          themeSettings: true,
+          status: true,
+          dataRetentionPeriod: true,
+          lastDataAccess: true,
+          dataDeletionRequest: true,
+          dataRetentionPolicy: true,
+          dataProcessingConsent: true
+        },
+      });
+
+      if (user) {
+        // Cache the user in Redis
+        await this.redis.set(cacheKey, user, { ex: this.CACHE_TTL });
+      }
+      return user;
+    } catch (error) {
+      console.error(`Error fetching profile for user ${clerkId}:`, error);
+      throw new ServiceError('Failed to fetch user profile', 'DATABASE_ERROR');
     }
-
-    const user = await prisma.user.findUnique({
-      where: { clerkId },
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        role: true,
-        planType: true,
-        monthlyCredits: true,
-        purchasedCredits: true,
-        creditCap: true,
-        lastCreditReset: true,
-        imageUrl: true,
-        bio: true,
-        jobTitle: true,
-        location: true,
-        company: true,
-        website: true,
-        twitter: true,
-        linkedin: true,
-        lastActiveAt: true,
-        createdAt: true,
-        updatedAt: true,
-        clerkId: true,
-        lastMonthlyReset: true,
-        stripeCustomerId: true,
-        password: true,
-        emailPreferences: true,
-        languagePreferences: true,
-        notificationSettings: true,
-        securitySettings: true,
-        themeSettings: true,
-        status: true,
-        dataRetentionPeriod: true,
-        lastDataAccess: true,
-        dataDeletionRequest: true
-      },
-    });
-
-    if (user) {
-      this.userCache.set(clerkId, { user, timestamp: now });
-    }
-
-    return user;
   }
 
   /**
@@ -158,6 +175,18 @@ export class ProfileService {
   }
 
   /**
+   * Invalidates the cache for a specific user
+   */
+  private async invalidateCache(clerkId: string): Promise<void> {
+    try {
+      const cacheKey = this.getUserCacheKey(clerkId);
+      await this.redis.del(cacheKey);
+    } catch (error) {
+      console.error(`Error invalidating cache for user ${clerkId}:`, error);
+    }
+  }
+
+  /**
    * Updates a user's profile information
    */
   public async updateProfile(clerkId: string, data: Partial<User>): Promise<User> {
@@ -165,27 +194,32 @@ export class ProfileService {
       throw new ServiceError('Clerk ID is required', 'INVALID_INPUT');
     }
 
-    const validatedData = userUpdateSchema.parse(data);
-    const updateData: Prisma.UserUpdateInput = {
-      ...validatedData,
-    };
+    try {
+      const validatedData = userUpdateSchema.parse(data);
+      const updateData: Prisma.UserUpdateInput = {
+        ...validatedData,
+      };
 
-    const updatedUser = await prisma.user.update({
-      where: { clerkId },
-      data: updateData,
-    });
+      const updatedUser = await prisma.user.update({
+        where: { clerkId },
+        data: updateData,
+      });
 
-    // Update cache
-    this.userCache.set(clerkId, { user: updatedUser, timestamp: Date.now() });
+      // Invalidate cache
+      await this.invalidateCache(clerkId);
 
-    // Log the profile update
-    await AuditService.getInstance().logAudit({
-      userId: updatedUser.id,
-      action: AuditAction.USER_UPDATE_PROFILE,
-      resource: 'profile',
-      details: { updatedFields: Object.keys(validatedData) },
-    });
+      // Log the profile update
+      await AuditService.getInstance().logAudit({
+        userId: updatedUser.id,
+        action: AuditAction.USER_UPDATE_PROFILE,
+        resource: 'profile',
+        details: { updatedFields: Object.keys(validatedData) },
+      });
 
-    return updatedUser;
+      return updatedUser;
+    } catch (error) {
+      console.error(`Error updating profile for user ${clerkId}:`, error);
+      throw new ServiceError('Failed to update user profile', 'DATABASE_ERROR');
+    }
   }
 } 

@@ -181,7 +181,7 @@ export class WebhookService {
         subscription: {
           update: {
             status: subscription.status.toUpperCase() as SubscriptionStatus,
-            currentPeriodEnd: new Date(subscription.current_period_end * 1000),
+            currentPeriodEnd: new Date((subscription as any).current_period_end * 1000),
           },
         },
       },

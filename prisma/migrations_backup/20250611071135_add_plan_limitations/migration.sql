@@ -1,0 +1,7 @@
+-- AlterTable
+ALTER TABLE "Plan" ADD COLUMN     "customLimits" JSONB,
+ADD COLUMN     "features" TEXT[] DEFAULT ARRAY[]::TEXT[],
+ADD COLUMN     "isEnterprise" BOOLEAN NOT NULL DEFAULT false,
+ADD COLUMN     "maxPrompts" INTEGER NOT NULL DEFAULT 10,
+ADD COLUMN     "maxTeamMembers" INTEGER NOT NULL DEFAULT 1,
+ADD COLUMN     "maxTokens" INTEGER NOT NULL DEFAULT 1000;

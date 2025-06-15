@@ -17,7 +17,11 @@ type Prompt = Omit<PrismaPrompt, 'createdAt' | 'updatedAt' | 'lastUsedAt' | 'las
   upvotes: number;
   _count: {
     votes: number;
+    comments?: number;
   };
+  dataRetentionPolicy: Prisma.JsonValue;
+  isArchived: boolean;
+  archivedAt: Date | null;
 };
 
 type PrismaPromptWithRelations = {
@@ -72,14 +76,16 @@ export class PromptService {
   private static instance: PromptService;
   private readonly PROMPT_LIMITS: Record<PlanType, number> = {
     [PlanType.FREE]: 10,
-    [PlanType.LITE]: 50,
-    [PlanType.PRO]: Infinity,
+    [PlanType.PRO]: 50,
+    [PlanType.ENTERPRISE]: Infinity,
+    [PlanType.ELITE]: Infinity,
   };
 
   private readonly PRIVATE_PROMPT_LIMITS: Record<PlanType, number> = {
     [PlanType.FREE]: 5,
-    [PlanType.LITE]: 200,
-    [PlanType.PRO]: Infinity,
+    [PlanType.PRO]: 50,
+    [PlanType.ENTERPRISE]: Infinity,
+    [PlanType.ELITE]: Infinity,
   };
 
   private constructor() {}
@@ -111,7 +117,15 @@ export class PromptService {
         upvotes: prompt._count.votes,
         _count: {
           votes: prompt._count.votes,
+          comments: (prompt._count as any).comments ?? 0,
         },
+        model: (prompt as any).model ?? 'gpt-3.5-turbo',
+        metadata: (prompt as any).metadata ?? {},
+        promptType: (prompt as any).promptType ?? 'default',
+        responseTime: (prompt as any).responseTime ?? null,
+        dataRetentionPolicy: (prompt as any).dataRetentionPolicy ?? {},
+        isArchived: (prompt as any).isArchived ?? false,
+        archivedAt: (prompt as any).archivedAt?.toISOString() ?? null,
       };
     } catch (error) {
       console.error('Error converting dates to strings:', error);

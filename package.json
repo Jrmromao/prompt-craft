@@ -35,7 +35,9 @@
     "sentry:release": "yarn sentry-cli releases new $(git rev-parse HEAD)",
     "sentry:finalize": "yarn sentry-cli releases finalize $(git rev-parse HEAD)",
     "app:clean": "rm -rf .next node_modules yarn.lock package-lock.json && yarn install",
-    "db:seed": "ts-node prisma/seed.ts"
+    "db:seed": "ts-node prisma/seed.ts",
+    "seed-templates": "ts-node prisma/seed-templates.ts",
+    "seed:templates": "ts-node prisma/seed-templates.ts"
   },
   "prisma": {
     "seed": "ts-node prisma/seed.ts"
@@ -91,6 +93,7 @@
     "clsx": "^2.1.0",
     "cmdk": "^1.1.1",
     "cors": "^2.8.5",
+    "country-flag-icons": "^1.5.19",
     "critters": "^0.0.25",
     "crypto-browserify": "^3.12.1",
     "date-fns": "^4.1.0",
@@ -110,7 +113,6 @@
     "openai": "^5.1.1",
     "pdf-lib": "^1.17.1",
     "postcss": "8.4.35",
-    "prisma": "^6.8.2",
     "react": "^18",
     "react-beautiful-dnd": "^13.1.1",
     "react-day-picker": "^9.7.0",
@@ -164,6 +166,7 @@
     "lint-staged": "^16.1.0",
     "node-mocks-http": "^1.17.2",
     "prettier": "^3.5.3",
+    "prisma": "^6.9.0",
     "ts-jest": "^29.3.2",
     "ts-node": "^10.9.2",
     "typescript": "^5.3.3"

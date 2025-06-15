@@ -25,24 +25,33 @@ export function useTokenUsage(userId: string) {
   const { toast } = useToast();
 
   const fetchTokenUsage = useCallback(async () => {
+    // Don't fetch if userId is empty
+    if (!userId) {
+      setIsLoading(false);
+      return;
+    }
+
     try {
       const response = await fetch('/api/credits/usage');
       if (!response.ok) {
-        throw new Error('Failed to fetch token usage');
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Failed to fetch token usage');
       }
       const data = await response.json();
       setTokenUsage(data);
+      setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err : new Error('Unknown error occurred'));
+      const error = err instanceof Error ? err : new Error('Unknown error occurred');
+      setError(error);
       toast({
         title: 'Error',
-        description: 'Failed to fetch token usage data',
+        description: error.message,
         variant: 'destructive',
       });
     } finally {
       setIsLoading(false);
     }
-  }, [toast]);
+  }, [userId, toast]);
 
   const updateTokenUsage = useCallback((newTokens: number, model: string) => {
     setTokenUsage((prev) => {
@@ -67,11 +76,12 @@ export function useTokenUsage(userId: string) {
   useEffect(() => {
     fetchTokenUsage();
     
-    // Set up polling for real-time updates
-    const interval = setInterval(fetchTokenUsage, 30000); // Poll every 30 seconds
-    
-    return () => clearInterval(interval);
-  }, [fetchTokenUsage]);
+    // Only set up polling if we have a userId
+    if (userId) {
+      const interval = setInterval(fetchTokenUsage, 30000); // Poll every 30 seconds
+      return () => clearInterval(interval);
+    }
+  }, [fetchTokenUsage, userId]);
 
   return {
     tokenUsage,

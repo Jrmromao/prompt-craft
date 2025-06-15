@@ -185,31 +185,6 @@ const roleBasedRoutes = {
 export default clerkMiddleware(async (auth: ClerkMiddlewareAuth, req: NextRequest) => {
   const session = await auth();
   
-  // If the user is authenticated, add their database ID to the request
-  if (session.userId) {
-    try {
-      const client = await clerkClient();
-      const user = await client.users.getUser(session.userId);
-      const databaseId = user.privateMetadata.databaseId as string;
-
-      if (databaseId) {
-        // Add the database ID to the request headers
-        const requestHeaders = new Headers(req.headers);
-        requestHeaders.set('x-database-user-id', databaseId);
-        
-        return NextResponse.next({
-          request: {
-            headers: requestHeaders,
-          },
-        });
-      } else {
-        console.warn('No database ID found in user metadata for user:', session.userId);
-      }
-    } catch (error) {
-      console.error('Error accessing user metadata:', error);
-    }
-  }
-
   // Handle role-based access
   const path = req.nextUrl.pathname;
   for (const [route, allowedRoles] of Object.entries(roleBasedRoutes)) {

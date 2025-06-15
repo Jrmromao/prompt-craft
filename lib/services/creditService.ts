@@ -12,10 +12,9 @@ interface CreditCheck {
   hasEnoughCredits: boolean;
   monthlyCredits: number;
   purchasedCredits: number;
-  requiredCredits: number;
   missingCredits: number;
   creditCap: number;
-  periodEnd?: Date;
+  planType: PlanType;
 }
 
 interface CreditReset {
@@ -29,18 +28,18 @@ export class CreditService {
   private readonly CACHE_TTL = 5 * 60 * 1000; // 5 minutes
   private userCache: Map<string, { user: any; timestamp: number }> = new Map();
 
-  private readonly CREDIT_CAPS = {
-    [PlanType.FREE]: 10,
-    [PlanType.PRO]: 5000,
-    [PlanType.ELITE]: Infinity,
-    [PlanType.ENTERPRISE]: Infinity,
+  private static readonly CREDIT_CAPS = {
+    FREE: 100,
+    PRO: 1000,
+    ELITE: 5000,
+    ENTERPRISE: 10000
   };
 
-  private readonly MONTHLY_CREDIT_ALLOCATIONS = {
-    [PlanType.FREE]: 10,
-    [PlanType.PRO]: 1500,
-    [PlanType.ELITE]: Infinity,
-    [PlanType.ENTERPRISE]: Infinity,
+  private static readonly MONTHLY_CREDIT_ALLOCATIONS = {
+    FREE: 50,
+    PRO: 500,
+    ELITE: 2500,
+    ENTERPRISE: 5000
   };
 
   private readonly TOKEN_COST_RATES = {
@@ -63,309 +62,227 @@ export class CreditService {
       select: {
         monthlyCredits: true,
         purchasedCredits: true,
-        role: true,
-        subscription: {
-          select: {
-            cancelAtPeriodEnd: true,
-            currentPeriodStart: true,
-          },
-        },
-      },
+        creditCap: true,
+        planType: true
+      }
     });
 
     if (!user) {
-      throw new ServiceError('User not found', 'USER_NOT_FOUND');
+      throw new Error('User not found');
     }
 
-    const hasUnlimitedCredits = await PlanService.hasUnlimitedCredits(userId);
-    if (hasUnlimitedCredits) {
-      return {
-        hasEnoughCredits: true,
-        monthlyCredits: Infinity,
-        purchasedCredits: Infinity,
-        requiredCredits,
-        missingCredits: 0,
-        creditCap: Infinity,
-        periodEnd: user.subscription?.currentPeriodStart || undefined,
-      };
-    }
-
-    const creditCap = this.CREDIT_CAPS[user.role as PlanType];
     const totalCredits = user.monthlyCredits + user.purchasedCredits;
-    const missingCredits = Math.max(0, requiredCredits - totalCredits);
+    const hasEnoughCredits = totalCredits >= requiredCredits;
+    const missingCredits = hasEnoughCredits ? 0 : requiredCredits - totalCredits;
 
     return {
-      hasEnoughCredits: totalCredits >= requiredCredits,
+      hasEnoughCredits,
       monthlyCredits: user.monthlyCredits,
       purchasedCredits: user.purchasedCredits,
-      requiredCredits,
       missingCredits,
-      creditCap,
-      periodEnd: user.subscription?.currentPeriodStart || undefined,
+      creditCap: user.creditCap,
+      planType: user.planType as PlanType
     };
   }
 
   public async resetMonthlyCredits(userId: string): Promise<CreditReset> {
     const user = await prisma.user.findUnique({
       where: { id: userId },
-      select: {
-        role: true,
-        email: true,
-        name: true,
-        emailPreferences: true,
-        lastMonthlyReset: true,
-      },
+      select: { planType: true }
     });
 
     if (!user) {
-      throw new ServiceError('User not found', 'USER_NOT_FOUND');
+      throw new Error('User not found');
     }
 
-    const hasUnlimitedCredits = await PlanService.hasUnlimitedCredits(userId);
-    if (hasUnlimitedCredits) {
-      return {
-        newBalance: Infinity,
-        resetDate: addMonths(new Date(), 1),
-        periodType: Period.MONTHLY,
-      };
-    }
+    const monthlyAllocation = CreditService.MONTHLY_CREDIT_ALLOCATIONS[user.planType];
 
-    const role = user.role as PlanType;
-    const now = new Date();
-    const nextMonth = addMonths(now, 1);
-    const nextMonthStart = startOfMonth(nextMonth);
-
-    // Calculate new credit balance
-    const newBalance = this.MONTHLY_CREDIT_ALLOCATIONS[role];
-
-    // Update user monthly credits and reset date
     await prisma.user.update({
       where: { id: userId },
       data: {
-        monthlyCredits: newBalance,
-        lastMonthlyReset: now,
-      },
+        monthlyCredits: monthlyAllocation,
+        lastCreditReset: new Date()
+      }
     });
 
-    // Record credit reset transaction
+    // Log the credit reset
     await prisma.creditHistory.create({
       data: {
         userId,
-        amount: newBalance,
-        type: CreditType.SUBSCRIPTION,
-        description: 'Monthly credit reset',
-      },
+        amount: monthlyAllocation,
+        type: 'SUBSCRIPTION',
+        description: 'Monthly credit reset'
+      }
     });
 
-    // Send credit update email if user has product updates enabled
-    const emailPreferences =
-      typeof user.emailPreferences === 'string'
-        ? JSON.parse(user.emailPreferences)
-        : user.emailPreferences;
-
-    if (emailPreferences?.productUpdates) {
-      const emailService = EmailService.getInstance();
-      await emailService.sendCreditUpdate(
-        user.email,
-        user.name || 'there',
-        newBalance,
-        'Monthly credit reset'
-      );
-    }
-
     return {
-      newBalance,
-      resetDate: nextMonthStart,
-      periodType: Period.MONTHLY,
+      newBalance: monthlyAllocation,
+      resetDate: new Date(),
+      periodType: Period.MONTHLY
     };
   }
 
-  public async deductCredits(
-    userId: string,
-    amount: number,
-    type: CreditType = CreditType.USAGE,
-    description?: string
-  ): Promise<number> {
-    const hasUnlimitedCredits = await PlanService.hasUnlimitedCredits(userId);
-    if (hasUnlimitedCredits) {
-      return Infinity;
+  public async deductCredits(userId: string, amount: number, type: CreditType = 'USAGE', description?: string): Promise<boolean> {
+    try {
+      return await prisma.$transaction(async (tx) => {
+        const user = await tx.user.findUnique({
+          where: { id: userId },
+          select: {
+            monthlyCredits: true,
+            purchasedCredits: true,
+            creditCap: true
+          }
+        });
+
+        if (!user) {
+          throw new Error('User not found');
+        }
+
+        let remainingToDeduct = amount;
+        let monthlyCreditsDeducted = 0;
+        let purchasedCreditsDeducted = 0;
+
+        // First deduct from monthly credits
+        if (user.monthlyCredits > 0) {
+          monthlyCreditsDeducted = Math.min(user.monthlyCredits, remainingToDeduct);
+          remainingToDeduct -= monthlyCreditsDeducted;
+        }
+
+        // Then deduct from purchased credits if needed
+        if (remainingToDeduct > 0 && user.purchasedCredits > 0) {
+          purchasedCreditsDeducted = Math.min(user.purchasedCredits, remainingToDeduct);
+          remainingToDeduct -= purchasedCreditsDeducted;
+        }
+
+        if (remainingToDeduct > 0) {
+          throw new Error('Insufficient credits');
+        }
+
+        // Update user credits
+        await tx.user.update({
+          where: { id: userId },
+          data: {
+            monthlyCredits: user.monthlyCredits - monthlyCreditsDeducted,
+            purchasedCredits: user.purchasedCredits - purchasedCreditsDeducted
+          }
+        });
+
+        // Log the credit deduction
+        if (monthlyCreditsDeducted > 0) {
+          await tx.creditHistory.create({
+            data: {
+              userId,
+              amount: -monthlyCreditsDeducted,
+              type: 'USAGE',
+              description: description || 'Monthly credits used'
+            }
+          });
+        }
+
+        if (purchasedCreditsDeducted > 0) {
+          await tx.creditHistory.create({
+            data: {
+              userId,
+              amount: -purchasedCreditsDeducted,
+              type: 'USAGE',
+              description: description || 'Purchased credits used'
+            }
+          });
+        }
+
+        return true;
+      });
+    } catch (error) {
+      console.error('Error deducting credits:', error);
+      return false;
     }
-
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      select: {
-        monthlyCredits: true,
-        purchasedCredits: true,
-      },
-    });
-
-    if (!user) {
-      throw new ServiceError('User not found', 'USER_NOT_FOUND');
-    }
-
-    // First try to deduct from monthly credits, then from purchased credits
-    let remainingAmount = amount;
-    let newMonthlyCredits = user.monthlyCredits;
-    let newPurchasedCredits = user.purchasedCredits;
-
-    if (user.monthlyCredits > 0) {
-      const monthlyDeduction = Math.min(user.monthlyCredits, remainingAmount);
-      newMonthlyCredits -= monthlyDeduction;
-      remainingAmount -= monthlyDeduction;
-    }
-
-    if (remainingAmount > 0 && user.purchasedCredits > 0) {
-      const purchasedDeduction = Math.min(user.purchasedCredits, remainingAmount);
-      newPurchasedCredits -= purchasedDeduction;
-      remainingAmount -= purchasedDeduction;
-    }
-
-    if (remainingAmount > 0) {
-      throw new ServiceError('Insufficient credits', 'INSUFFICIENT_CREDITS');
-    }
-
-    // Update user credits
-    await prisma.user.update({
-      where: { id: userId },
-      data: {
-        monthlyCredits: newMonthlyCredits,
-        purchasedCredits: newPurchasedCredits,
-      },
-    });
-
-    // Record credit transaction
-    await prisma.creditHistory.create({
-      data: {
-        userId,
-        amount: -amount,
-        type,
-        description: description || `${type} credit deduction`,
-      },
-    });
-
-    // Log the credit deduction
-    await AuditService.getInstance().logAudit({
-      userId,
-      action: AuditAction.CREDITS_DEDUCTED,
-      resource: 'credits',
-      details: {
-        amount,
-        description,
-        remainingBalance: newMonthlyCredits + newPurchasedCredits,
-      },
-    });
-
-    return newMonthlyCredits + newPurchasedCredits;
   }
 
-  public async addCredits(
-    userId: string,
-    amount: number,
-    type: CreditType = CreditType.TOP_UP,
-    description?: string
-  ): Promise<number> {
-    const hasUnlimitedCredits = await PlanService.hasUnlimitedCredits(userId);
-    if (hasUnlimitedCredits) {
-      return Infinity;
-    }
-
+  public async addCredits(userId: string, amount: number, type: CreditType): Promise<void> {
     const user = await prisma.user.findUnique({
       where: { id: userId },
       select: {
         monthlyCredits: true,
         purchasedCredits: true,
-      },
+        creditCap: true
+      }
     });
 
     if (!user) {
-      throw new ServiceError('User not found', 'USER_NOT_FOUND');
+      throw new Error('User not found');
     }
 
-    const newMonthlyCredits = user.monthlyCredits;
-    const newPurchasedCredits = user.purchasedCredits + amount;
+    const currentTotal = user.monthlyCredits + user.purchasedCredits;
+    const newTotal = currentTotal + amount;
 
-    // Update user credits
-    await prisma.user.update({
-      where: { id: userId },
-      data: {
-        monthlyCredits: newMonthlyCredits,
-        purchasedCredits: newPurchasedCredits,
-      },
-    });
+    if (newTotal > user.creditCap) {
+      throw new Error('Credit cap exceeded');
+    }
 
-    // Record credit transaction
+    // Add credits based on type
+    if (type === 'SUBSCRIPTION') {
+      await prisma.user.update({
+        where: { id: userId },
+        data: {
+          monthlyCredits: user.monthlyCredits + amount
+        }
+      });
+    } else {
+      await prisma.user.update({
+        where: { id: userId },
+        data: {
+          purchasedCredits: user.purchasedCredits + amount
+        }
+      });
+    }
+
+    // Log the credit addition
     await prisma.creditHistory.create({
       data: {
         userId,
         amount,
         type,
-        description: description || `${type} credit addition`,
-      },
+        description: `${type.toLowerCase()} credits added`
+      }
     });
-
-    // Log the credit addition
-    await AuditService.getInstance().logAudit({
-      userId,
-      action: AuditAction.CREDITS_ADDED,
-      resource: 'credits',
-      details: {
-        amount,
-        description,
-        newBalance: newMonthlyCredits + newPurchasedCredits,
-      },
-    });
-
-    return newMonthlyCredits + newPurchasedCredits;
   }
 
   public async getCreditUsage(userId: string): Promise<{
-    monthlyUsed: number;
-    purchasedUsed: number;
-    monthlyTotal: number;
-    purchasedTotal: number;
-    monthlyPercentage: number;
-    purchasedPercentage: number;
-    periodEnd: Date;
+    used: number;
+    total: number;
+    percentage: number;
+    nextResetDate: Date;
   }> {
-    const hasUnlimitedCredits = await PlanService.hasUnlimitedCredits(userId);
-    if (hasUnlimitedCredits) {
-      return {
-        monthlyUsed: 0,
-        purchasedUsed: 0,
-        monthlyTotal: Infinity,
-        purchasedTotal: Infinity,
-        monthlyPercentage: 0,
-        purchasedPercentage: 0,
-        periodEnd: addMonths(new Date(), 1),
-      };
-    }
-
     const user = await prisma.user.findUnique({
       where: { id: userId },
       select: {
         monthlyCredits: true,
         purchasedCredits: true,
-        role: true,
-        lastMonthlyReset: true,
-      },
+        lastCreditReset: true,
+        planType: true
+      }
     });
 
     if (!user) {
-      throw new ServiceError('User not found', 'USER_NOT_FOUND');
+      throw new Error('User not found');
     }
 
-    const monthlyAllocation = this.MONTHLY_CREDIT_ALLOCATIONS[user.role as PlanType];
-    const monthlyUsed = monthlyAllocation - user.monthlyCredits;
-    const purchasedUsed = user.purchasedCredits;
+    const monthlyAllocation = CreditService.MONTHLY_CREDIT_ALLOCATIONS[user.planType];
+    const used = monthlyAllocation - user.monthlyCredits;
+    const total = monthlyAllocation;
+    const percentage = (used / total) * 100;
+
+    // Calculate next reset date (first day of next month)
+    const nextResetDate = new Date();
+    nextResetDate.setMonth(nextResetDate.getMonth() + 1);
+    nextResetDate.setDate(1);
+    nextResetDate.setHours(0, 0, 0, 0);
 
     return {
-      monthlyUsed,
-      purchasedUsed,
-      monthlyTotal: monthlyAllocation,
-      purchasedTotal: user.purchasedCredits,
-      monthlyPercentage: (monthlyUsed / monthlyAllocation) * 100,
-      purchasedPercentage: 0, // Purchased credits don't have a percentage since they're cumulative
-      periodEnd: user.lastMonthlyReset ? addMonths(user.lastMonthlyReset, 1) : new Date(),
+      used,
+      total,
+      percentage,
+      nextResetDate
     };
   }
 

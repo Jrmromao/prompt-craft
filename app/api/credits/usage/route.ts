@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
-import { CreditService } from '@/app/lib/services/creditService';
 import { prisma } from '@/lib/prisma';
 import { subDays, format } from 'date-fns';
 

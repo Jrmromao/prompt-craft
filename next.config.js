@@ -19,7 +19,9 @@ const nextConfig = {
     serverActions: {}, // or remove if not needed
   },
   serverExternalPackages: ['@prisma/client', 'bcryptjs'],
-  typescript: { ignoreBuildErrors: true },
+  typescript: {
+    // Remove ignoreBuildErrors to catch type errors
+  },
   output: 'standalone',
   poweredByHeader: false,
   compiler: { removeConsole: process.env.NODE_ENV === 'production' },

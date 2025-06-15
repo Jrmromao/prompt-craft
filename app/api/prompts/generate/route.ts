@@ -5,10 +5,18 @@ import { CreditService } from '@/lib/services/creditService';
 import { prisma } from '@/lib/prisma';
 import { PLANS } from '@/app/constants/plans';
 import { PlanType, CreditType } from '@prisma/client';
+import { UserService } from '@/lib/services/userService';
+import { Redis } from '@upstash/redis';
 
 // Export dynamic configuration
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
+
+// Initialize Redis client
+const redis = Redis.fromEnv();
+
+// Cache TTL in seconds (5 minutes)
+const USER_CACHE_TTL = 300;
 
 export async function POST(req: Request) {
   try {
@@ -17,6 +25,36 @@ export async function POST(req: Request) {
     if (!userId) {
       console.log('No userId found');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const userDatabaseId = await UserService.getInstance().getDatabaseIdFromClerk(userId);
+
+    if (!userDatabaseId) {
+      return NextResponse.json({ error: 'User database ID not found' }, { status: 404 });
+    }
+
+
+    // Try to get user from Redis cache first
+    const userCacheKey = `user:${userDatabaseId}`;
+    let user = await redis.get<{ planType: string }>(userCacheKey);
+
+    if (!user) {
+      console.log('User not found in Redis cache, querying database...');
+      // If not in cache, get from database
+      user = await prisma.user.findUnique({
+        where: { id: userDatabaseId },
+        select: { planType: true }
+      });
+
+      if (!user) {
+        return NextResponse.json({ error: 'User not found' }, { status: 404 });
+      }
+
+      // Store in Redis cache
+      await redis.set(userCacheKey, user, { ex: USER_CACHE_TTL });
+      console.log('User cached in Redis');
+    } else {
+      console.log('User found in Redis cache');
     }
 
     const body = await req.json();
@@ -32,6 +70,20 @@ export async function POST(req: Request) {
       outputFormat,
       temperature,
       maxTokens,
+      tone,
+      format,
+      wordCount,
+      targetAudience,
+      includeExamples,
+      includeKeywords,
+      language,
+      persona,
+      includeImageDescription,
+      topP,
+      frequencyPenalty,
+      presencePenalty,
+      validationRules,
+      fallbackStrategy
     } = body;
 
     if (!name || !promptType) {
@@ -43,11 +95,6 @@ export async function POST(req: Request) {
     }
 
     // Check if user has enough credits
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      select: { planType: true }
-    });
-
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
@@ -58,11 +105,22 @@ export async function POST(req: Request) {
 Name: ${name}
 Purpose: ${promptType}
 ${description ? `Description: ${description}` : ''}
+${persona ? `AI Persona: ${persona}` : ''}
+${tone ? `Tone: ${tone}` : ''}
+${format ? `Format: ${format}` : ''}
+${wordCount ? `Word Count: ${wordCount}` : ''}
+${targetAudience ? `Target Audience: ${targetAudience}` : ''}
+${language ? `Language: ${language}` : ''}
 ${systemPrompt ? `System Context: ${systemPrompt}` : ''}
 ${context ? `Additional Context: ${context}` : ''}
 ${examples?.length ? `Example Use Cases:\n${examples.join('\n')}` : ''}
 ${constraints?.length ? `Constraints:\n${constraints.join('\n')}` : ''}
 ${outputFormat ? `Required Output Format: ${outputFormat}` : ''}
+${validationRules?.length ? `Validation Rules:\n${validationRules.join('\n')}` : ''}
+${fallbackStrategy ? `Fallback Strategy: ${fallbackStrategy}` : ''}
+${includeExamples ? 'Include relevant examples in the prompt' : ''}
+${includeKeywords ? 'Include key terms and phrases' : ''}
+${includeImageDescription ? 'Include detailed image descriptions' : ''}
 
 Please generate a complete, well-structured prompt that follows best practices for ${promptType} generation. Include any necessary instructions, context, and formatting requirements. Start your response directly with the prompt content, without any introductory text.`;
 
@@ -77,13 +135,8 @@ Please generate a complete, well-structured prompt that follows best practices f
     const creditCost = CreditService.getInstance().calculateTokenCost(estimatedTokens, maxTokens || 2000, 'gpt-4');
 
     // Check if user has enough credits
-    const hasEnoughCredits = await CreditService.getInstance().hasEnoughCredits(userId, creditCost);
+    const hasEnoughCredits = await CreditService.getInstance().hasEnoughCredits(userDatabaseId, creditCost);
     if (!hasEnoughCredits) {
-      const user = await prisma.user.findUnique({
-        where: { id: userId },
-        select: { planType: true }
-      });
-      
       const plan = PLANS[user?.planType.toUpperCase() as PlanType];
       const errorMessage = plan?.credits.included !== -1 
         ? `Insufficient credits. You need ${creditCost} credits for this operation. Please purchase more credits to continue.`
@@ -100,6 +153,9 @@ Please generate a complete, well-structured prompt that follows best practices f
     const generatedPrompt = await aiService.generateText(generationPrompt, {
       temperature: temperature || 0.7,
       maxTokens: maxTokens || 2000,
+      topP: topP || 1,
+      frequencyPenalty: frequencyPenalty,
+      presencePenalty: presencePenalty,
     });
     console.log('Prompt generated');
 
@@ -111,13 +167,14 @@ Please generate a complete, well-structured prompt that follows best practices f
     );
 
     const creditsDeducted = await CreditService.getInstance().deductCredits(
-      userId,
+      userDatabaseId,
       actualCreditCost,
       CreditType.USAGE,
       `Generated prompt: ${name}`
     );
 
     if (!creditsDeducted) {
+      console.error('Failed to deduct credits for user:', userDatabaseId);
       return NextResponse.json(
         { error: 'Failed to deduct credits. Please try again.' },
         { status: 500 }

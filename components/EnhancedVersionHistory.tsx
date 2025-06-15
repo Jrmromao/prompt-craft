@@ -72,21 +72,17 @@ export function EnhancedVersionHistory({ id, onVersionSelect }: EnhancedVersionH
     const fetchVersions = async () => {
       try {
         const response = await fetch(`/api/prompts/${id}/versions`);
-        if (response.ok) {
-          const data = await response.json();
-          setVersions(data);
-        } else {
-          toast({
-            title: 'Error',
-            description: 'Failed to load version history. Please try again later.',
-            variant: 'destructive',
-          });
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.error || 'Failed to load version history');
         }
+        const data = await response.json();
+        setVersions(data);
       } catch (error) {
         console.error('Error fetching versions:', error);
         toast({
           title: 'Error',
-          description: 'An unexpected error occurred. Please try again later.',
+          description: error instanceof Error ? error.message : 'Failed to load version history',
           variant: 'destructive',
         });
       } finally {
@@ -95,30 +91,26 @@ export function EnhancedVersionHistory({ id, onVersionSelect }: EnhancedVersionH
     };
 
     fetchVersions();
-  }, [id]);
+  }, [id, toast]);
 
   useEffect(() => {
     const fetchCurrentPrompt = async () => {
       try {
         setIsLoadingPrompt(true);
         const response = await fetch(`/api/prompts/${id}`);
-        if (response.ok) {
-          const data = await response.json();
-          setCurrentPromptData(data);
-          setNewVersionContent(data.content);
-          setNewVersionDescription(data.description || '');
-        } else {
-          toast({
-            title: 'Error',
-            description: 'Failed to load current prompt data',
-            variant: 'destructive',
-          });
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.error || 'Failed to load current prompt data');
         }
+        const data = await response.json();
+        setCurrentPromptData(data);
+        setNewVersionContent(data.content);
+        setNewVersionDescription(data.description || '');
       } catch (error) {
         console.error('Error fetching current prompt:', error);
         toast({
           title: 'Error',
-          description: 'Failed to load current prompt data',
+          description: error instanceof Error ? error.message : 'Failed to load current prompt data',
           variant: 'destructive',
         });
       } finally {
@@ -127,7 +119,7 @@ export function EnhancedVersionHistory({ id, onVersionSelect }: EnhancedVersionH
     };
 
     fetchCurrentPrompt();
-  }, [id]);
+  }, [id, toast]);
 
   const handleVersionSelect = (version: Version) => {
     setSelectedVersion(version.id);

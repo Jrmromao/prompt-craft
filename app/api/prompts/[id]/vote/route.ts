@@ -7,7 +7,13 @@ import { prisma } from '@/lib/prisma';
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
-export async function GET(request: Request, context: any) {
+interface RouteContext {
+  params: Promise<{
+    id: string;
+  }>;
+}
+
+export async function GET(request: Request, context: RouteContext) {
   try {
     const { userId: clerkUserId } = await auth();
     if (!clerkUserId) {
@@ -23,13 +29,15 @@ export async function GET(request: Request, context: any) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    const promptId = context?.params?.id;
+    const params = await context.params;
+    const promptId = params.id;
     if (!promptId) {
       return NextResponse.json({ error: 'Prompt ID is required' }, { status: 400 });
     }
 
     const communityService = CommunityService.getInstance();
     const vote = await communityService.getUserVote(user.id, promptId);
+
     return NextResponse.json({ vote });
   } catch (error) {
     console.error('Error fetching user vote:', error);
@@ -37,7 +45,7 @@ export async function GET(request: Request, context: any) {
   }
 }
 
-export async function POST(request: Request, context: any) {
+export async function POST(request: Request, context: RouteContext) {
   try {
     const { userId: clerkUserId } = await auth();
     if (!clerkUserId) {
@@ -53,7 +61,8 @@ export async function POST(request: Request, context: any) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    const promptId = context?.params?.id;
+    const params = await context.params;
+    const promptId = params.id;
     if (!promptId) {
       return NextResponse.json({ error: 'Prompt ID is required' }, { status: 400 });
     }
@@ -65,6 +74,7 @@ export async function POST(request: Request, context: any) {
 
     const communityService = CommunityService.getInstance();
     const result = await communityService.votePrompt(user.id, promptId, value);
+
     return NextResponse.json(result);
   } catch (error) {
     console.error('Error voting:', error);

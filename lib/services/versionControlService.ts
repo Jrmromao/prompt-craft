@@ -4,12 +4,10 @@ import crypto from 'crypto';
 
 interface Version {
   id: string;
-  promptId: string;
   content: string;
-  description: string | null;
-  commitMessage: string | null;
-  version: string;
-  tags: string[];
+  convertedToPrompt: boolean;
+  userId: string;
+  promptId: string | null;
   createdAt: Date;
   updatedAt: Date;
   prompt: {
@@ -18,7 +16,7 @@ interface Version {
       email: string | null;
       imageUrl: string | null;
     } | null;
-  };
+  } | null;
 }
 
 export class VersionControlService {
@@ -57,14 +55,18 @@ export class VersionControlService {
 
     // If this is the first version, create v1 with the original prompt content
     if (prompt.versions.length === 0) {
-      await prisma.promptVersion.create({
+      await prisma.version.create({
         data: {
-          promptId,
           content: prompt.content,
-          description: 'Initial version',
-          commitMessage: 'Initial version',
-          tags: prompt.tags.map(tag => tag.name),
-          version: '1',
+          userId: prompt.userId,
+          promptId,
+          tests: {
+            create: {
+              id: crypto.randomUUID(),
+              output: 'Initial version',
+              updatedAt: new Date(),
+            }
+          }
         },
         include: {
           prompt: {
@@ -84,7 +86,7 @@ export class VersionControlService {
 
     // If baseVersionId is provided, verify it exists
     if (baseVersionId) {
-      const baseVersion = await prisma.promptVersion.findUnique({
+      const baseVersion = await prisma.version.findUnique({
         where: { id: baseVersionId },
       });
       if (!baseVersion) {
@@ -93,15 +95,12 @@ export class VersionControlService {
     }
 
     // Create the new version
-    const version = await prisma.promptVersion.create({
+    const version = await prisma.version.create({
       data: {
-        promptId,
         content,
-        description,
-        commitMessage,
-        tags,
-        version: (prompt.versions.length + 1).toString(),
-        PromptTest: tests ? {
+        userId: prompt.userId,
+        promptId,
+        tests: tests ? {
           create: tests.map(test => ({
             id: crypto.randomUUID(),
             input: test.input,
@@ -168,14 +167,18 @@ export class VersionControlService {
 
     // If there are no versions yet, create v1 with the original prompt content
     if (prompt.versions.length === 0) {
-      const v1 = await prisma.promptVersion.create({
+      const v1 = await prisma.version.create({
         data: {
-          promptId,
           content: prompt.content,
-          description: 'Initial version',
-          commitMessage: 'Initial version',
-          tags: prompt.tags.map(tag => tag.name),
-          version: '1',
+          userId: prompt.userId,
+          promptId,
+          tests: {
+            create: {
+              id: crypto.randomUUID(),
+              output: 'Initial version',
+              updatedAt: new Date(),
+            }
+          }
         },
         include: {
           prompt: {
@@ -199,7 +202,7 @@ export class VersionControlService {
 
   // Get a specific version by ID
   public async getVersionById(versionId: string): Promise<Version | null> {
-    return prisma.promptVersion.findUnique({
+    return prisma.version.findUnique({
       where: { id: versionId },
       include: {
         prompt: {
@@ -228,64 +231,41 @@ export class VersionControlService {
 
     // Content diff
     const contentDiff = diffWords(v1.content, v2.content);
-    // Description diff
-    const descriptionDiff = diffWords(v1.description || '', v2.description || '');
-    // Tags diff
-    const oldTags = new Set(v1.tags);
-    const newTags = new Set(v2.tags);
-    const addedTags = [...newTags].filter(tag => !oldTags.has(tag));
-    const removedTags = [...oldTags].filter(tag => !newTags.has(tag));
-
-    // Metadata diff (commit message)
-    const metadataDiff = [
-      {
-        key: 'commitMessage',
-        oldVal: v1.commitMessage,
-        newVal: v2.commitMessage,
-      },
-    ].filter(diff => diff.oldVal !== diff.newVal);
 
     return {
       version1: v1,
       version2: v2,
       contentDiff,
-      descriptionDiff,
-      tagsDiff: { added: addedTags, removed: removedTags },
-      metadataDiff,
     };
   }
 
   // Rollback to a specific version
   public async rollbackToVersion(promptId: string, versionId: string) {
-    const targetVersion = await this.getVersionById(versionId);
-    if (!targetVersion) {
+    const version = await this.getVersionById(versionId);
+    if (!version) {
       throw new Error('Version not found');
     }
 
-    // Create a new version with the old content
+    const prompt = await prisma.prompt.findUnique({
+      where: { id: promptId },
+    });
+
+    if (!prompt) {
+      throw new Error('Prompt not found');
+    }
+
+    // Create a new version with the content from the target version
     return this.createVersion(
       promptId,
-      targetVersion.content,
-      targetVersion.description,
-      `Rollback to version ${targetVersion.version}`,
-      targetVersion.tags
+      version.content,
+      'Rollback to version ' + versionId,
+      'Rollback to version ' + versionId,
+      [],
+      versionId
     );
   }
 
-  // Private helper to detect changes between versions
   private detectChanges(oldContent: string, newContent: string) {
-    const differences = diffWords(oldContent, newContent);
-    const added = differences.filter(d => d.added).length;
-    const removed = differences.filter(d => d.removed).length;
-    const total = differences.length;
-
-    return {
-      diff: differences,
-      isMajor: added > 100 || removed > 100, // Major changes if more than 100 words changed
-      isMinor: (added > 20 || removed > 20) && added <= 100 && removed <= 100, // Minor changes if 20-100 words changed
-      added,
-      removed,
-      total,
-    };
+    return diffWords(oldContent, newContent);
   }
 }

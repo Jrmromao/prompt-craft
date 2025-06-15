@@ -9,6 +9,7 @@ import { TooltipProvider } from '@/components/ui/tooltip';
 import { Toaster } from 'sonner';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { ClerkProvider } from '@clerk/nextjs';
+import { CookieConsent } from '@/app/components/CookieConsent';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -37,6 +38,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           </ClerkProvider>
         </ErrorBoundary>
         <Toaster />
+        <CookieConsent />
       </body>
     </html>
   );

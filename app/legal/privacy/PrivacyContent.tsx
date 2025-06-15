@@ -265,38 +265,60 @@ export function PrivacyContent({ user }: PrivacyContentProps) {
 
               <section id="gdpr-compliance">
                 <h2>3. GDPR Compliance</h2>
-                <p>
-                  prompthive.co is committed to complying with the General Data Protection Regulation (GDPR) 
-                  and other applicable data protection laws. This section outlines our specific GDPR compliance measures.
-                </p>
+                <div className="space-y-6">
+                  <div>
+                    <h3>3.1 Your Data Rights</h3>
+                    <p>Under GDPR, you have the following rights:</p>
+                    <ul>
+                      <li><strong>Right to Access:</strong> You can request a copy of your personal data</li>
+                      <li><strong>Right to Deletion:</strong> You can request deletion of your account and data</li>
+                      <li><strong>Right to Rectification:</strong> You can update your personal information</li>
+                      <li><strong>Right to Withdraw Consent:</strong> You can change your preferences at any time</li>
+                    </ul>
+                  </div>
 
-                <h3>3.1 Legal Basis for Processing</h3>
-                <p>We process your personal data on the following legal bases:</p>
-                <ul>
-                  <li>Contract: To provide our services and fulfill our obligations to you</li>
-                  <li>Consent: When you explicitly agree to specific data processing activities</li>
-                  <li>Legitimate Interest: For improving our services and preventing fraud</li>
-                  <li>Legal Obligation: To comply with applicable laws and regulations</li>
-                </ul>
+                  <div>
+                    <h3>3.2 How to Exercise Your Rights</h3>
+                    <p>To exercise any of these rights, you can:</p>
+                    <ul>
+                      <li>Use the privacy settings in your account</li>
+                      <li>Contact us at privacy@prompthive.co</li>
+                      <li>Use the data export/delete features in your profile</li>
+                    </ul>
+                    <p className="mt-2">We will respond to all requests within 30 days.</p>
+                  </div>
 
-                <h3>3.2 Data Protection Officer</h3>
-                <p>
-                  We have appointed a Data Protection Officer (DPO) who can be contacted at{' '}
-                  <a
-                    href="mailto:dpo@prompthive.co"
-                    className="text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300"
-                  >
-                    dpo@prompthive.co
-                  </a>
-                  .
-                </p>
+                  <div>
+                    <h3>3.3 Data Processing</h3>
+                    <p>We process your data for the following purposes:</p>
+                    <ul>
+                      <li>To provide and maintain our service</li>
+                      <li>To manage your account and preferences</li>
+                      <li>To communicate with you about our service</li>
+                      <li>To improve our service and user experience</li>
+                    </ul>
+                  </div>
 
-                <h3>3.3 Data Retention</h3>
-                <p>
-                  We retain your personal data only for as long as necessary to fulfill the purposes 
-                  for which it was collected, including legal, accounting, or reporting requirements. 
-                  When we no longer need your data, we will securely delete or anonymize it.
-                </p>
+                  <div>
+                    <h3>3.4 Data Retention</h3>
+                    <p>We retain your data for as long as:</p>
+                    <ul>
+                      <li>Your account is active</li>
+                      <li>Needed to provide our services</li>
+                      <li>Required by law</li>
+                    </ul>
+                    <p className="mt-2">You can request data deletion at any time through your account settings.</p>
+                  </div>
+
+                  <div>
+                    <h3>3.5 Contact Information</h3>
+                    <p>For any data protection inquiries, please contact:</p>
+                    <p className="mt-2">
+                      Email: privacy@prompthive.co<br />
+                      Response Time: Within 30 days
+                    </p>
+                  </div>
+                </div>
               </section>
 
               <section id="information-collection">

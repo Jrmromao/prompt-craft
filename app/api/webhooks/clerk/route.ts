@@ -6,6 +6,7 @@ import { prisma } from '@/lib/prisma';
 import S3Service from '@/lib/services/S3Service';
 import { EmailService } from '@/lib/services/emailService';
 import Stripe from 'stripe';
+import { PlanType } from '@/app/constants/plans';
 
 // Prevent static generation of this route
 export const dynamic = 'force-dynamic';
@@ -78,7 +79,7 @@ async function createOrUpdateUser(
   try {
     // Create Stripe customer first
     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-      apiVersion: '2023-10-16',
+      apiVersion: '2025-05-28.basil',
     });
 
     const customer = await stripe.customers.create({
@@ -103,7 +104,7 @@ async function createOrUpdateUser(
         email,
         name: fullName,
         stripeCustomerId: customer.id,
-        planType: 'FREE',
+        planType: PlanType.FREE, 
         monthlyCredits: 10,
         purchasedCredits: 0,
         creditCap: 10,
@@ -115,7 +116,8 @@ async function createOrUpdateUser(
     const client = await clerkClient();
     await client.users.updateUserMetadata(clerkUserId, {
       privateMetadata: {
-        databaseId: user.id
+        databaseId: user.id,
+        planType: user.planType,
       }
     });
 

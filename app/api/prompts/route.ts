@@ -76,8 +76,8 @@ export const POST = withPlanLimitsMiddleware(
 
       // Check user's plan and private prompt limit
       const user = await prisma.user.findUnique({
-        where: { id: userId },
-        select: { planType: true }
+        where: { clerkId: userId },
+        select: { id: true, planType: true }
       });
 
       if (!user) {
@@ -88,7 +88,7 @@ export const POST = withPlanLimitsMiddleware(
       if (!isPublic) {
         const privatePromptCount = await prisma.prompt.count({
           where: {
-            userId,
+            userId: user.id,
             isPublic: false,
             createdAt: {
               gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1) // First day of current month
@@ -112,7 +112,7 @@ export const POST = withPlanLimitsMiddleware(
 
       // Create the prompt
       const promptService = PromptService.getInstance();
-      const prompt = await promptService.savePrompt(userId, {
+      const prompt = await promptService.savePrompt(user.id, {
         name,
         description,
         content,

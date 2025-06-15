@@ -18,9 +18,15 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    //   const userDatabaseId = await UserService.getInstance().getDatabaseIdFromClerk(userId);
+
+    //   if (!userDatabaseId) {
+    //     return NextResponse.json({ error: 'User database ID not found' }, { status: 404 });
+    // }
+
     // Check user's plan
     const user = await prisma.user.findUnique({
-      where: { id: userId },
+      where: { clerkId: userId },
       select: { id: true, planType: true }
     });
 
@@ -41,7 +47,7 @@ export async function POST(req: Request) {
       const testRunCount = await prisma.promptTest.count({
         where: {
           promptVersion: {
-            userId
+            userId: user.id
           },
           createdAt: {
             gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1) // First day of current month

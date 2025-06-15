@@ -21,29 +21,10 @@ import { AlertCircle } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { NavBar } from '@/components/layout/NavBar';
 import { useUser } from '@clerk/nextjs';
-
-interface Prompt {
-  id: string;
-  name: string;
-  description: string | null;
-  content: string;
-  isPublic: boolean;
-  createdAt: string;
-  updatedAt: string;
-  lastUsedAt: string | null;
-  lastViewedAt: string | null;
-  user: {
-    id: string;
-    name: string | null;
-    imageUrl: string | null;
-  };
-  upvotes: number;
-  _count: {
-    votes: number;
-  };
-  tags: { id: string; name: string }[];
-  slug: string;
-}
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { PromptSearchBar } from './PromptSearchBar';
+import { Prompt } from '@/types/prompt';
 
 interface CommunityPromptsClientProps {
   initialPrompts: Prompt[];
@@ -60,6 +41,11 @@ export function CommunityPromptsClient({ initialPrompts, totalPrompts }: Communi
   const [sortBy, setSortBy] = useState<'recent' | 'popular'>('popular');
   const { ref, inView } = useInView();
   const { isSignedIn, user } = useUser();
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [tagSelectorOpen, setTagSelectorOpen] = useState(false);
+
+  // Get unique tags from all prompts
+  const allTags = Array.from(new Set(prompts.flatMap(p => p.tags.map(t => t.name))));
 
   const loadMorePrompts = async () => {
     if (loading || !hasMore) return;
@@ -96,15 +82,18 @@ export function CommunityPromptsClient({ initialPrompts, totalPrompts }: Communi
     }
   }, [inView]);
 
+  // Filter prompts based on search, tags, and sort
   const filteredPrompts = prompts
     .filter(prompt => {
       if (!prompt) return false;
       const searchLower = searchQuery.toLowerCase();
-      return (
+      const matchesSearch =
         prompt.name.toLowerCase().includes(searchLower) ||
         (prompt.description?.toLowerCase() || '').includes(searchLower) ||
-        prompt.tags.some(tag => tag.name.toLowerCase().includes(searchLower))
-      );
+        prompt.tags.some(tag => tag.name.toLowerCase().includes(searchLower));
+      const matchesTags = selectedTags.length === 0 ||
+        selectedTags.every(tag => prompt.tags.some(t => t.name === tag));
+      return matchesSearch && matchesTags;
     })
     .sort((a, b) => {
       if (sortBy === 'recent') {
@@ -205,16 +194,82 @@ export function CommunityPromptsClient({ initialPrompts, totalPrompts }: Communi
         </div>
 
         <div className="container mx-auto max-w-6xl space-y-8 px-4 py-8">
-          {/* Search and Filter */}
+          {/* Search and Filter with Tag Selector */}
           <div className="flex flex-col gap-4 md:flex-row md:items-center">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-purple-400" />
-              <Input
-                placeholder="Search prompts..."
-                value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
-                className="border-purple-200 pl-9 focus:border-purple-500 focus:ring-purple-500/20 dark:border-purple-500/20"
-              />
+              <PromptSearchBar value={searchQuery} onChange={setSearchQuery} />
+            </div>
+            <Popover open={tagSelectorOpen} onOpenChange={setTagSelectorOpen}>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className="flex items-center gap-2">
+                  <Filter className="h-4 w-4" />
+                  Filter by Tag
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-56 p-2">
+                <div className="max-h-48 overflow-y-auto">
+                  {allTags.map(tag => (
+                    <div
+                      key={tag}
+                      className={`flex items-center gap-2 px-2 py-1 rounded cursor-pointer hover:bg-muted ${selectedTags.includes(tag) ? 'bg-purple-100 text-purple-700 dark:bg-purple-500/10 dark:text-purple-300' : ''}`}
+                      onClick={() => {
+                        if (!selectedTags.includes(tag)) {
+                          setSelectedTags(prev => [...prev, tag]);
+                          setTagSelectorOpen(false);
+                        }
+                      }}
+                    >
+                      <Filter className="h-3 w-3" />
+                      <span>{tag}</span>
+                      {selectedTags.includes(tag) && <span className="ml-auto text-xs">✓</span>}
+                    </div>
+                  ))}
+                  {allTags.length === 0 && (
+                    <div className="text-muted-foreground text-sm px-2 py-1">No tags available</div>
+                  )}
+                </div>
+              </PopoverContent>
+            </Popover>
+            <div className="flex items-center gap-2">
+              {selectedTags.slice(0, 3).map(tag => (
+                <Badge
+                  key={tag}
+                  variant="secondary"
+                  className="flex items-center gap-1 bg-purple-100 text-purple-700 hover:bg-purple-200 dark:bg-purple-500/10 dark:text-purple-300"
+                >
+                  <Filter className="h-3 w-3" />
+                  {tag}
+                  <span
+                    className="ml-1 cursor-pointer"
+                    onClick={() => setSelectedTags(prev => prev.filter(t => t !== tag))}
+                  >×</span>
+                </Badge>
+              ))}
+              {selectedTags.length > 3 && (
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Badge variant="outline" className="cursor-pointer">
+                      +{selectedTags.length - 3} more
+                    </Badge>
+                  </PopoverTrigger>
+                  <PopoverContent className="flex flex-wrap gap-2 max-w-xs">
+                    {selectedTags.slice(3).map(tag => (
+                      <Badge
+                        key={tag}
+                        variant="secondary"
+                        className="flex items-center gap-1 bg-purple-100 text-purple-700 hover:bg-purple-200 dark:bg-purple-500/10 dark:text-purple-300"
+                      >
+                        <Filter className="h-3 w-3" />
+                        {tag}
+                        <span
+                          className="ml-1 cursor-pointer"
+                          onClick={() => setSelectedTags(prev => prev.filter(t => t !== tag))}
+                        >×</span>
+                      </Badge>
+                    ))}
+                  </PopoverContent>
+                </Popover>
+              )}
             </div>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -244,6 +299,7 @@ export function CommunityPromptsClient({ initialPrompts, totalPrompts }: Communi
           </div>
 
           {/* Featured Prompts */}
+          <TooltipProvider>
           {featuredPrompts.length > 0 && (
             <div className="space-y-4">
               <h2 className="flex items-center text-2xl font-semibold text-purple-700 dark:text-purple-300">
@@ -290,12 +346,23 @@ export function CommunityPromptsClient({ initialPrompts, totalPrompts }: Communi
                             </Badge>
                           ))}
                           {prompt.tags.length > 2 && (
-                            <Badge
-                              variant="outline"
-                              className="border-purple-200 bg-purple-100/40 text-purple-700 dark:border-purple-500/20 dark:bg-purple-500/10 dark:text-purple-300"
-                            >
-                              +{prompt.tags.length - 2}
-                            </Badge>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Badge
+                                  variant="outline"
+                                  className="border-purple-200 bg-purple-100/40 text-purple-700 cursor-pointer dark:border-purple-500/20 dark:bg-purple-500/10 dark:text-purple-300"
+                                >
+                                  +{prompt.tags.length - 2}
+                                </Badge>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <div className="flex flex-wrap gap-1 max-w-xs">
+                                  {prompt.tags.slice(2).map(tag => (
+                                    <Badge key={tag.id} variant="outline">{tag.name}</Badge>
+                                  ))}
+                                </div>
+                              </TooltipContent>
+                            </Tooltip>
                           )}
                         </div>
                         <div className="mt-4 flex items-center justify-between">
@@ -350,12 +417,23 @@ export function CommunityPromptsClient({ initialPrompts, totalPrompts }: Communi
                         </Badge>
                       ))}
                       {prompt.tags.length > 2 && (
-                        <Badge
-                          variant="outline"
-                          className="border-purple-200 bg-purple-100/40 text-purple-700 dark:border-purple-500/20 dark:bg-purple-500/10 dark:text-purple-300"
-                        >
-                          +{prompt.tags.length - 2}
-                        </Badge>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Badge
+                              variant="outline"
+                              className="border-purple-200 bg-purple-100/40 text-purple-700 cursor-pointer dark:border-purple-500/20 dark:bg-purple-500/10 dark:text-purple-300"
+                            >
+                              +{prompt.tags.length - 2}
+                            </Badge>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <div className="flex flex-wrap gap-1 max-w-xs">
+                              {prompt.tags.slice(2).map(tag => (
+                                <Badge key={tag.id} variant="outline">{tag.name}</Badge>
+                              ))}
+                            </div>
+                          </TooltipContent>
+                        </Tooltip>
                       )}
                     </div>
                     <div className="mt-4 flex items-center justify-between">
@@ -375,6 +453,7 @@ export function CommunityPromptsClient({ initialPrompts, totalPrompts }: Communi
               </Link>
             ))}
           </div>
+          </TooltipProvider>
 
           {filteredPrompts.length === 0 && (
             <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-purple-200 p-8 text-center dark:border-purple-500/20">

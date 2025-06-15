@@ -3,6 +3,7 @@ import { auth, clerkClient } from '@clerk/nextjs/server';
 import { AuditAction } from '@/app/constants/audit';
 import { AuditService } from '@/lib/services/auditService';
 import { Redis } from '@upstash/redis';
+import { UserService } from '@/lib/services/userService';
 
 // Prevent static generation of this route
 export const dynamic = 'force-dynamic';
@@ -100,11 +101,16 @@ export async function GET(request: Request) {
       lastActive: session.lastActiveAt,
       createdAt: session.createdAt,
     }));
+
+    const userDatabaseId = await UserService.getInstance().getDatabaseIdFromClerk(userId);
+    if (!userDatabaseId) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
     
     
     await AuditService.getInstance().logAudit({
       action: AuditAction.GET_LOGIN_HISTORY,
-      userId: user.id, // Use DB id for audit log
+      userId: userDatabaseId, // Use DB id for audit log
       resource: 'login-history',
       status: 'success',
       details: { loginHistory },

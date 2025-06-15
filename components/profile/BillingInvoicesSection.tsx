@@ -87,14 +87,14 @@ export default function BillingInvoicesSection() {
     }
   };
 
-  // const planType = billingData.subscription?.items?.data?.[0]?.price?.nickname?.toLowerCase() || 'free';
+  const planType = billingData.subscription?.items?.data?.[0]?.price?.nickname?.toLowerCase() || 'free';
 
-  const planType = 'elite'
+
   switch (planType) {
-    // case 'pro':
-    //   return <ProBillingSection billingData={billingDataWithCredits} />;
-    // case 'enterprise':
-    //   return <EnterpriseBillingSection billingData={billingDataWithCredits} />;
+    case 'pro':
+      return <ProBillingSection billingData={billingDataWithCredits} />;    
+    case 'enterprise':  
+      return <EnterpriseBillingSection billingData={billingDataWithCredits} />;
     case 'elite':
       return <EliteBillingSection billingData={billingDataWithCredits} />;
     default:

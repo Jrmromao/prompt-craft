@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/prisma';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
-import { PlanType } from '@prisma/client';
+import { PlanType as PrismaPlanType } from '@prisma/client';
+import { PlanType } from '@/utils/constants';
 import { currentUser } from '@clerk/nextjs/server';
 import { clerkClient } from "@clerk/nextjs/server";
 
@@ -57,6 +58,38 @@ interface SerializableCreditHistory {
 interface UsageData {
   date: string;
   credits: number;
+}
+
+// Helper function to convert Prisma PlanType to our PlanType
+function convertPlanType(prismaPlanType: string): PlanType {
+  switch (prismaPlanType) {
+    case 'FREE':
+      return PlanType.FREE;
+    case 'PRO':
+      return PlanType.PRO;
+    case 'ELITE':
+      return PlanType.ELITE;
+    case 'ENTERPRISE':
+      return PlanType.ENTERPRISE;
+    default:
+      return PlanType.FREE;
+  }
+}
+
+// Helper function to convert our PlanType to Prisma PlanType
+function convertToPrismaPlanType(planType: PlanType): PrismaPlanType {
+  switch (planType) {
+    case PlanType.FREE:
+      return PrismaPlanType.FREE;
+    case PlanType.PRO:
+      return PrismaPlanType.PRO;
+    case PlanType.ELITE:
+      return PrismaPlanType.ELITE;
+    case PlanType.ENTERPRISE:
+      return PrismaPlanType.ENTERPRISE;
+    default:
+      return PrismaPlanType.FREE;
+  }
 }
 
 export class UserService {
@@ -130,13 +163,18 @@ export class UserService {
           throw new Error('Could not fetch user email from Clerk');
         }
 
+        // Get the user's plan type from Clerk metadata
+        const client = await clerkClient();
+        const clerkUserData = await client.users.getUser(clerkId);
+        const planType = convertPlanType(clerkUserData.privateMetadata.planType as string || 'FREE');
+
         // Create new user with email from Clerk
         const newUser = await prisma.user.create({
           data: {
             clerkId,
             email: clerkUser.emailAddresses[0].emailAddress,
             name: clerkUser.firstName || 'User',
-            planType: PlanType.PRO,
+            planType: convertToPrismaPlanType(planType),
             monthlyCredits: 10,
             purchasedCredits: 0,
             creditCap: 10,
@@ -152,7 +190,7 @@ export class UserService {
         });
 
         // Set the database ID in Clerk's private metadata
-        await this.setUserDatabaseIdInClerk(clerkId, newUser.id);
+        await this.setUserDatabaseIdInClerk(clerkId, newUser.id, newUser.planType);
 
         this.userCache.set(clerkId, { user: newUser, timestamp: now });
         return newUser;
@@ -292,12 +330,13 @@ export class UserService {
     }
   }
 
-  public async setUserDatabaseIdInClerk(clerkId: string, databaseId: string) {
+  public async setUserDatabaseIdInClerk(clerkId: string, databaseId: string, planType: string) {
     try {
       const client = await clerkClient();
       await client.users.updateUserMetadata(clerkId, {
         privateMetadata: {
-          databaseId
+          databaseId,
+          planType: convertToPrismaPlanType(convertPlanType(planType))
         }
       });
     } catch (error) {
@@ -313,6 +352,18 @@ export class UserService {
       return user.privateMetadata.databaseId as string || null;
     } catch (error) {
       console.error('Error getting database ID from Clerk metadata:', error);
+      return null;
+    }
+  }
+
+  public async getPlanTypeFromClerk(clerkId: string): Promise<PlanType | null> {
+    try {
+      const client = await clerkClient();
+      const user = await client.users.getUser(clerkId);
+      const planType = user.privateMetadata.planType as string;
+      return planType ? convertPlanType(planType) : null;
+    } catch (error) {
+      console.error('Error getting plan type from Clerk metadata:', error);
       return null;
     }
   }

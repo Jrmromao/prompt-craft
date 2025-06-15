@@ -19,9 +19,15 @@ export async function GET() {
 
     const settings = await SettingsService.getInstance().getUserSettings(userId);
 
+    // Get user databaseId from userService
+    const userDatabaseId = await UserService.getInstance().getDatabaseIdFromClerk(userId);
+    if (!userDatabaseId) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+
     await AuditService.getInstance().logAudit({
       action: AuditAction.USER_GET_SETTINGS,
-      userId,
+      userId: userDatabaseId,
       resource: 'settings',
       status: 'success',
       details: { settings },

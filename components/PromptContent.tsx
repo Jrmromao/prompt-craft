@@ -37,6 +37,7 @@ import Playground from '@/components/Playground';
 import { PromptAnalyticsProvider, usePromptAnalytics } from '@/components/PromptAnalyticsContext';
 import { BasicComments } from '@/components/BasicComments';
 import { TestPromptModal } from './TestPromptModal';
+import { PlanType } from '@/utils/constants';
 
 interface Tag {
   id: string;
@@ -77,7 +78,7 @@ export interface PromptContentProps {
     id: string;
     name: string;
     email: string;
-    planType: string;
+    planType: PlanType;
   };
   prompt: {
     id: string;
@@ -313,48 +314,38 @@ export function PromptContent({ user, prompt }: PromptContentProps) {
                                   : 'border-gray-200 hover:border-purple-200 hover:bg-purple-50/50 dark:border-gray-800 dark:hover:border-purple-800 dark:hover:bg-purple-900/20'
                               }`}
                             >
-                              <Button
-                                variant="ghost"
-                                className={`w-full justify-start p-4 h-auto ${
+                              <div
+                                className={`w-full p-4 h-auto cursor-pointer ${
                                   selectedVersion?.id === version.id
-                                    ? 'border-purple-200 bg-purple-50 dark:border-purple-800 dark:bg-purple-900/30'
-                                    : 'border-gray-200 hover:border-purple-200 hover:bg-purple-50/50 dark:border-gray-800 dark:hover:border-purple-800 dark:hover:bg-purple-900/20'
+                                    ? 'text-purple-700 dark:text-purple-300'
+                                    : 'text-gray-700 dark:text-gray-300'
                                 }`}
+                                onClick={() => {
+                                  setSelectedVersion(version);
+                                  setIsVersionSelectOpen(false);
+                                }}
                               >
-                                <Button
-                                  variant="ghost"
-                                  className={`w-full justify-start p-4 h-auto ${
-                                    selectedVersion?.id === version.id
-                                      ? 'text-purple-700 dark:text-purple-300'
-                                      : 'text-gray-700 dark:text-gray-300'
-                                  }`}
-                                  onClick={() => {
-                                    setSelectedVersion(version);
-                                    setIsVersionSelectOpen(false);
-                                  }}
-                                >
-                                  <div className="flex flex-col items-start gap-1">
-                                    <div className="flex items-center gap-2">
-                                      <span className="font-semibold">Version {version.version}</span>
-                                      {selectedVersion?.id === version.id && (
-                                        <Badge 
-                                          variant="secondary" 
-                                          className="bg-purple-100 text-purple-700 dark:bg-purple-900/50 dark:text-purple-300"
-                                        >
-                                          Current
-                                        </Badge>
-                                      )}
-                                    </div>
-                                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                                      <Clock className="h-3 w-3" />
-                                      {new Date(version.createdAt).toLocaleDateString()}
-                                    </div>
-                                    <div className="mt-2 text-sm line-clamp-2 text-muted-foreground">
-                                      {version.content.substring(0, 100)}...
-                                    </div>
+                                <div className="flex flex-col items-start gap-1">
+                                  <div className="flex items-center gap-2">
+                                    <span className="font-semibold">Version {version.version}</span>
+                                    {selectedVersion?.id === version.id && (
+                                      <Badge 
+                                        variant="secondary" 
+                                        className="bg-purple-100 text-purple-700 dark:bg-purple-900/50 dark:text-purple-300"
+                                      >
+                                        Current
+                                      </Badge>
+                                    )}
                                   </div>
-                                </Button>
-                              </Button>
+                                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                    <Clock className="h-3 w-3" />
+                                    {new Date(version.createdAt).toLocaleDateString()}
+                                  </div>
+                                  <div className="mt-2 text-sm line-clamp-2 text-muted-foreground">
+                                    {version.content.substring(0, 100)}...
+                                  </div>
+                                </div>
+                              </div>
                             </div>
                           ))}
                         </div>

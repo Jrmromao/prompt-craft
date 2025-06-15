@@ -1,18 +1,66 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-
-// Common error types
-export type ApiError = {
-  message: string;
-  status: number;
-  code?: string;
-};
+import { ApiError, AppError, isAppError } from '@/types/errors';
 
 // Base response type
-export type ApiResponse<T = any> = {
+export type ApiResponse<T = unknown> = {
   data?: T;
   error?: ApiError;
 };
+
+export type ApiHandler<T = unknown> = (
+  req: NextRequest,
+  context?: { params: Record<string, string> }
+) => Promise<ApiResponse<T>>;
+
+export function createApiHandler<T = unknown>(
+  handler: ApiHandler<T>,
+  schema?: z.ZodType<T>
+): ApiHandler<T> {
+  return async (req: NextRequest, context?: { params: Record<string, string> }) => {
+    try {
+      let data: T | undefined;
+
+      if (schema) {
+        const body = await req.json();
+        data = schema.parse(body);
+      }
+
+      return await handler(req, context);
+    } catch (error: unknown) {
+      if (error instanceof z.ZodError) {
+        return {
+          error: {
+            type: 'API_ERROR',
+            message: 'Validation error',
+            status: 400,
+            code: 'VALIDATION_ERROR',
+            details: error.errors,
+          },
+        };
+      }
+
+      if (isAppError(error)) {
+        return {
+          error: {
+            type: 'API_ERROR',
+            message: error.message,
+            status: error.statusCode || 500,
+            code: error.code,
+          },
+        };
+      }
+
+      return {
+        error: {
+          type: 'API_ERROR',
+          message: 'Internal server error',
+          status: 500,
+        },
+      };
+    }
+  };
+}
 
 // Base handler configuration
 export type BaseHandlerConfig = {

@@ -14,17 +14,21 @@ const getCacheControl = (duration: number) => {
   return `public, s-maxage=${duration}, stale-while-revalidate=${duration * 2}`;
 };
 
-export async function GET(
-  request: NextRequest,
-  context: any
-) {
+interface RouteContext {
+  params: Promise<{
+    id: string;
+  }>;
+}
+
+export async function GET(request: Request, context: RouteContext) {
   try {
     const { userId } = await auth();
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const promptId = context.params.id;
+    const params = await context.params;
+    const promptId = params.id;
     if (!promptId) {
       return NextResponse.json({ error: 'Prompt ID is required' }, { status: 400 });
     }
@@ -63,5 +67,52 @@ export async function GET(
         },
       }
     );
+  }
+}
+
+export async function PUT(request: Request, context: RouteContext) {
+  try {
+    const { userId } = await auth();
+    if (!userId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const params = await context.params;
+    const promptId = params.id;
+    if (!promptId) {
+      return NextResponse.json({ error: 'Prompt ID is required' }, { status: 400 });
+    }
+
+    const body = await request.json();
+    const promptService = PromptService.getInstance();
+    const updatedPrompt = await promptService.updatePrompt(promptId, userId, body);
+
+    return NextResponse.json(updatedPrompt);
+  } catch (error) {
+    console.error('Error updating prompt:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
+}
+
+export async function DELETE(request: Request, context: RouteContext) {
+  try {
+    const { userId } = await auth();
+    if (!userId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const params = await context.params;
+    const promptId = params.id;
+    if (!promptId) {
+      return NextResponse.json({ error: 'Prompt ID is required' }, { status: 400 });
+    }
+
+    const promptService = PromptService.getInstance();
+    await promptService.deletePrompt(promptId, userId);
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error('Error deleting prompt:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

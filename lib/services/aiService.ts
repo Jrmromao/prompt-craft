@@ -74,8 +74,9 @@ export class AIService {
 
     const modelAccess: Record<PlanType, AIModel[]> = {
       [PlanType.FREE]: ['deepseek'],
-      [PlanType.LITE]: ['deepseek', 'gpt4'],
       [PlanType.PRO]: ['deepseek', 'gpt4', 'claude'],
+      [PlanType.ELITE]: ['deepseek', 'gpt4', 'claude'],
+      [PlanType.ENTERPRISE]: ['deepseek', 'gpt4', 'claude'],
     };
 
     return modelAccess[user.planType as PlanType].includes(model);
@@ -87,19 +88,25 @@ export class AIService {
       model?: 'deepseek' | 'gpt4' | 'claude';
       temperature?: number;
       maxTokens?: number;
+      topP?: number;
+      frequencyPenalty?: number;
+      presencePenalty?: number;
     } = {}
   ): Promise<GenerationResult> {
     const model = options.model || 'deepseek';
     const temperature = options.temperature || 0.7;
     const maxTokens = options.maxTokens || 2000;
+    const topP = options.topP || 1;
+    const frequencyPenalty = options.frequencyPenalty || 0;
+    const presencePenalty = options.presencePenalty || 0;
 
     switch (model) {
       case 'deepseek':
-        return this.generateWithDeepseek(prompt, temperature, maxTokens);
+        return this.generateWithDeepseek(prompt, temperature, maxTokens, topP, frequencyPenalty, presencePenalty);
       case 'gpt4':
-        return this.generateWithGPT4(prompt, temperature, maxTokens);
+        return this.generateWithGPT4(prompt, temperature, maxTokens, topP, frequencyPenalty, presencePenalty);
       case 'claude':
-        return this.generateWithClaude(prompt, temperature, maxTokens);
+        return this.generateWithClaude(prompt, temperature, maxTokens, topP, frequencyPenalty, presencePenalty);
       default:
         throw new Error(`Unsupported model: ${model}`);
     }
@@ -120,19 +127,21 @@ export class AIService {
     const fullPrompt = prompt.content.replace('{input}', options.input);
 
     // Generate the response
-    const text = await this.generateText(fullPrompt, {
+    const result = await this.generateText(fullPrompt, {
       model: options.model,
       temperature: options.temperature,
-      userId: options.userId,
     });
 
-    return { text: text.text };
+    return { text: result.text };
   }
 
   private async generateWithDeepseek(
     prompt: string,
     temperature: number,
-    maxTokens: number
+    maxTokens: number,
+    topP: number,
+    frequencyPenalty: number,
+    presencePenalty: number
   ): Promise<GenerationResult> {
     if (!this.DEEPSEEK_API_KEY) {
       throw new Error('Deepseek API key not configured');
@@ -149,6 +158,9 @@ export class AIService {
         messages: [{ role: 'user', content: prompt }],
         temperature,
         max_tokens: maxTokens,
+        top_p: topP,
+        frequency_penalty: frequencyPenalty,
+        presence_penalty: presencePenalty,
       }),
     });
 
@@ -167,7 +179,10 @@ export class AIService {
   private async generateWithGPT4(
     prompt: string,
     temperature: number,
-    maxTokens: number
+    maxTokens: number,
+    topP: number,
+    frequencyPenalty: number,
+    presencePenalty: number
   ): Promise<GenerationResult> {
     if (!this.OPENAI_API_KEY) {
       throw new Error('OpenAI API key not configured');
@@ -184,6 +199,9 @@ export class AIService {
         messages: [{ role: 'user', content: prompt }],
         temperature,
         max_tokens: maxTokens,
+        top_p: topP,
+        frequency_penalty: frequencyPenalty,
+        presence_penalty: presencePenalty,
       }),
     });
 
@@ -202,7 +220,10 @@ export class AIService {
   private async generateWithClaude(
     prompt: string,
     temperature: number,
-    maxTokens: number
+    maxTokens: number,
+    topP: number,
+    frequencyPenalty: number,
+    presencePenalty: number
   ): Promise<GenerationResult> {
     if (!this.ANTHROPIC_API_KEY) {
       throw new Error('Anthropic API key not configured');
@@ -220,6 +241,9 @@ export class AIService {
         messages: [{ role: 'user', content: prompt }],
         temperature,
         max_tokens: maxTokens,
+        top_p: topP,
+        frequency_penalty: frequencyPenalty,
+        presence_penalty: presencePenalty,
       }),
     });
 

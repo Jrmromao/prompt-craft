@@ -3,54 +3,47 @@ import { prisma } from '@/lib/prisma';
 import { auth } from '@clerk/nextjs/server';
 import { CreditService } from '@/lib/services/creditService';
 
-export async function GET(req: Request) {
+export async function GET() {
   try {
     const { userId } = await auth();
     if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return new NextResponse('Unauthorized', { status: 401 });
     }
 
-    // Get user with credit information
     const user = await prisma.user.findUnique({
       where: { clerkId: userId },
       select: {
         id: true,
         monthlyCredits: true,
         purchasedCredits: true,
-        lastMonthlyReset: true,
+        lastCreditReset: true,
         planType: true,
         role: true
       }
     });
 
     if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+      return new NextResponse('User not found', { status: 404 });
     }
 
-    // Get credit usage information
-    const creditService = CreditService.getInstance();
-    const usage = await creditService.getCreditUsage(user.id);
+    const usage = await CreditService.getInstance().getCreditUsage(user.id);
 
     return NextResponse.json({
       monthlyCredits: user.monthlyCredits,
       purchasedCredits: user.purchasedCredits,
       totalCredits: user.monthlyCredits + user.purchasedCredits,
-      lastMonthlyReset: user.lastMonthlyReset,
-      planType: user.planType,
-      role: user.role,
+      lastReset: user.lastCreditReset,
       usage: {
-        monthlyUsed: usage.monthlyUsed,
-        monthlyTotal: usage.monthlyTotal,
-        monthlyPercentage: usage.monthlyPercentage,
-        purchasedTotal: usage.purchasedTotal,
-        nextResetDate: usage.periodEnd
-      }
+        used: usage.used,
+        total: usage.total,
+        percentage: usage.percentage,
+        nextResetDate: usage.nextResetDate
+      },
+      planType: user.planType,
+      role: user.role
     });
   } catch (error) {
     console.error('Error fetching credit balance:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch credit balance' },
-      { status: 500 }
-    );
+    return new NextResponse('Internal Server Error', { status: 500 });
   }
 } 

@@ -1,0 +1,939 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                   String              @id @default(cuid())
+  email                String              @unique
+  createdAt            DateTime            @default(now())
+  updatedAt            DateTime            @updatedAt
+  clerkId              String              @unique
+  monthlyCredits       Int                 @default(0)
+  purchasedCredits     Int                 @default(0)
+  lastMonthlyReset     DateTime?
+  name                 String?
+  password             String?
+  role                 Role                @default(USER)
+  creditCap            Int                 @default(100)
+  lastCreditReset      DateTime?
+  stripeCustomerId     String?
+  planType             PlanType            @default(FREE)
+  imageUrl             String?
+  bio                  String?
+  company              String?
+  jobTitle             String?
+  linkedin             String?
+  location             String?
+  twitter              String?
+  website              String?
+  emailPreferences     Json?               @default("{\"productUpdates\": true, \"securityAlerts\": true, \"marketingEmails\": true}")
+  languagePreferences  Json?               @default("{\"language\": \"en\", \"dateFormat\": \"MM/DD/YYYY\", \"timeFormat\": \"12h\"}")
+  notificationSettings Json?               @default("{\"pushNotifications\": true, \"emailNotifications\": true, \"browserNotifications\": true}")
+  securitySettings     Json?               @default("{\"sessionTimeout\": 30, \"twoFactorEnabled\": false}")
+  themeSettings        Json?               @default("{\"theme\": \"system\", \"accentColor\": \"purple\"}")
+  status               UserStatus          @default(ACTIVE)
+  apiKeys              ApiKey[]
+  apiUsage             ApiUsage[]
+  auditLogs            AuditLog[]
+  comments             Comment[]
+  commentLikes         CommentLike[]
+  creditHistory        CreditHistory[]
+  createdTemplates     EmailTemplate[]     @relation("CreatedTemplates")
+  updatedTemplates     EmailTemplate[]     @relation("UpdatedTemplates")
+  featureUsage         FeatureUsage[]
+  messages             Message[]
+  notifications        Notification[]
+  playgroundRuns       PlaygroundRun[]
+  prompts              Prompt[]
+  promptCopies         PromptCopy[]
+  promptGenerations    PromptGeneration[]
+  promptTemplates      PromptTemplate[]
+  testHistory          PromptTestHistory[]
+  promptUsages         PromptUsage[]
+  reports              Report[]
+  subscription         Subscription?
+  assignedTickets      SupportTicket[]     @relation("AssignedTickets")
+  supportTickets       SupportTicket[]
+  ownedTeams           Team[]              @relation("TeamOwner")
+  teamMembers          TeamMember[]
+  usages               Usage[]
+  votes                Vote[]
+  settings             UserSettings?
+  errors               Error[]
+  versions             Version[]
+  creditPurchases      CreditPurchase[]
+  consentHistory       ConsentRecord[]
+  dataProcessingRecords DataProcessingRecord[]
+  dataExportRequests   DataExportRequest[]
+  dataRectificationRequests DataRectificationRequest[]
+  deletionAuditLog     DeletionAuditLog[]
+  lastActiveAt         DateTime?
+
+  // GDPR Compliance Fields
+  dataRetentionPeriod DateTime?
+  lastDataAccess      DateTime?
+  dataDeletionRequest DateTime?
+
+  // Enhanced GDPR Deletion Fields
+  deletionRequestedAt DateTime?
+  deletionReason      String?
+  deletionNotes       String?
+  deletionRequestedBy String?  // ID of admin who approved deletion
+  deletionApprovedAt  DateTime?
+  isAnonymized        Boolean  @default(false)
+  anonymizedAt        DateTime?
+
+  @@index([clerkId])
+  @@index([email])
+  @@index([planType])
+  @@index([deletionRequestedAt])
+  @@index([isAnonymized])
+}
+
+model Plan {
+  id                  String         @id @default(cuid())
+  name                String         @unique
+  price               Float          @default(0)
+  createdAt           DateTime       @default(now())
+  updatedAt           DateTime       @updatedAt
+  isActive            Boolean        @default(true)
+  description         String
+  stripeProductId     String         @default("")
+  features            String[]       @default([])
+  isEnterprise        Boolean        @default(false)
+  stripePriceId       String         @default("")
+  stripeAnnualPriceId String?
+  period              String         @default("month")
+  currency            String         @default("USD")
+  subscriptions       Subscription[]
+
+  @@index([isActive])
+  @@index([stripeProductId])
+}
+
+model Subscription {
+  id                           String             @id @default(cuid())
+  userId                       String             @unique
+  stripeCustomerId             String             @unique
+  stripeSubscriptionId         String             @unique
+  status                       SubscriptionStatus
+  currentPeriodStart           DateTime
+  currentPeriodEnd             DateTime
+  cancelAtPeriodEnd            Boolean            @default(false)
+  createdAt                    DateTime           @default(now())
+  updatedAt                    DateTime           @updatedAt
+  planId                       String
+  stripeDefaultPaymentMethodId String?
+  plan                         Plan               @relation(fields: [planId], references: [id])
+  user                         User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([planId])
+  @@index([stripeCustomerId])
+  @@index([stripeSubscriptionId])
+  @@index([status])
+  @@index([currentPeriodEnd])
+  @@index([createdAt])
+}
+
+model Usage {
+  id        String   @id @default(cuid())
+  userId    String
+  feature   String
+  count     Int      @default(1)
+  timestamp DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([feature])
+  @@index([timestamp])
+}
+
+model Prompt {
+  id             String              @id @default(cuid())
+  userId         String
+  createdAt      DateTime            @default(now())
+  content        String
+  description    String?
+  isPublic       Boolean             @default(false)
+  name           String
+  updatedAt      DateTime            @updatedAt
+  upvotes        Int                 @default(0)
+  slug           String              @unique
+  lastUsedAt     DateTime?
+  lastViewedAt   DateTime?
+  usageCount     Int                 @default(0)
+  viewCount      Int                 @default(0)
+  copyCount      Int                 @default(0)
+  promptType     String              @default("text")
+  metadata       Json?
+  apiUsage       ApiUsage[]
+  comments       Comment[]
+  likes          CommentLike[]
+  playgroundRuns PlaygroundRun[]
+  user           User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  analytics      PromptAnalytics?
+  branches       PromptBranch[]
+  copies         PromptCopy[]
+  testHistory    PromptTestHistory[]
+  usages         PromptUsage[]
+  versions       Version[]
+  views          PromptView[]
+  reports        Report[]
+  votes          Vote[]
+  tags           Tag[]               @relation("PromptToTag")
+  responseTime   Int?                // Response time in milliseconds
+  model          String              @default("gpt-4")
+
+  @@index([userId])
+  @@index([slug])
+}
+
+model Tag {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  slug      String   @unique
+  prompts   Prompt[] @relation("PromptToTag")
+
+  @@index([slug])
+}
+
+model CreditHistory {
+  id          String     @id @default(cuid())
+  userId      String
+  amount      Int
+  type        CreditType
+  description String?
+  createdAt   DateTime   @default(now())
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model PromptTemplate {
+  id          String   @id @default(cuid())
+  userId      String
+  name        String
+  description String?
+  content     String
+  isPublic    Boolean  @default(false)
+  tags        String[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model PromptGeneration {
+  id          String   @id @default(cuid())
+  userId      String
+  promptType  String
+  input       String
+  output      String
+  creditsUsed Int
+  createdAt   DateTime @default(now())
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([promptType])
+  @@index([createdAt])
+}
+
+model ApiKey {
+  id            String    @id @default(cuid())
+  userId        String
+  name          String
+  createdAt     DateTime  @default(now())
+  expiresAt     DateTime?
+  hashedKey     String    @unique
+  lastRotatedAt DateTime
+  scopes        String[]
+  updatedAt     DateTime  @updatedAt
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([hashedKey])
+}
+
+model Vote {
+  id        String   @id @default(cuid())
+  userId    String
+  promptId  String
+  value     Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  prompt    Prompt   @relation(fields: [promptId], references: [id], onDelete: Cascade)
+  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, promptId])
+  @@index([userId])
+  @@index([promptId])
+}
+
+model Comment {
+  id        String        @id @default(cuid())
+  userId    String
+  promptId  String
+  content   String
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  parentId  String?
+  hidden    Boolean       @default(false)
+  parent    Comment?      @relation("CommentToComment", fields: [parentId], references: [id])
+  replies   Comment[]     @relation("CommentToComment")
+  prompt    Prompt        @relation(fields: [promptId], references: [id], onDelete: Cascade)
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  likes     CommentLike[]
+  reports   Report[]
+
+  @@index([userId])
+  @@index([promptId])
+  @@index([parentId])
+  @@index([hidden])
+}
+
+model CommentLike {
+  id        String   @id @default(cuid())
+  userId    String
+  commentId String
+  createdAt DateTime @default(now())
+  promptId  String
+  comment   Comment  @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  prompt    Prompt   @relation(fields: [promptId], references: [id], onDelete: Cascade)
+  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, commentId])
+  @@index([userId])
+  @@index([commentId])
+  @@index([promptId])
+}
+
+model PromptAnalytics {
+  id        String   @id @default(cuid())
+  promptId  String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  prompt    Prompt   @relation(fields: [promptId], references: [id], onDelete: Cascade)
+}
+
+model PromptView {
+  id        String   @id @default(cuid())
+  promptId  String
+  userId    String?
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+  prompt    Prompt   @relation(fields: [promptId], references: [id], onDelete: Cascade)
+
+  @@index([promptId])
+  @@index([userId])
+}
+
+model PromptUsage {
+  id         String   @id @default(cuid())
+  promptId   String
+  userId     String
+  createdAt  DateTime @default(now())
+  result     Json?
+  tokenCount Int      @default(0)
+  prompt     Prompt   @relation(fields: [promptId], references: [id], onDelete: Cascade)
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([promptId])
+  @@index([userId])
+}
+
+model PromptBranch {
+  id        String   @id @default(cuid())
+  promptId  String
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  content   String
+  prompt    Prompt   @relation(fields: [promptId], references: [id], onDelete: Cascade)
+
+  @@unique([promptId, name])
+  @@index([promptId])
+}
+
+model PromptCopy {
+  id        String   @id @default(cuid())
+  promptId  String
+  userId    String?
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+  prompt    Prompt   @relation(fields: [promptId], references: [id], onDelete: Cascade)
+  user      User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([promptId])
+  @@index([userId])
+}
+
+model SupportTicket {
+  id          String       @id @default(cuid())
+  title       String
+  description String
+  status      TicketStatus @default(OPEN)
+  priority    Priority     @default(MEDIUM)
+  category    Category
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  userId      String
+  assigneeId  String?
+  attachments Attachment[]
+  messages    Message[]
+  assignee    User?        @relation("AssignedTickets", fields: [assigneeId], references: [id], onDelete: SetNull)
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([assigneeId])
+  @@index([status])
+  @@index([priority])
+  @@index([category])
+}
+
+model Message {
+  id              String        @id @default(cuid())
+  content         String
+  createdAt       DateTime      @default(now())
+  ticketId        String
+  userId          String
+  isSystemMessage Boolean       @default(false)
+  updatedAt       DateTime      @updatedAt
+  ticket          SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([ticketId])
+  @@index([userId])
+}
+
+model Attachment {
+  id        String        @id @default(cuid())
+  filename  String
+  url       String
+  type      String
+  size      Int
+  createdAt DateTime      @default(now())
+  ticketId  String
+  ticket    SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+
+  @@index([ticketId])
+}
+
+model PlaygroundRun {
+  id        String   @id @default(cuid())
+  userId    String
+  createdAt DateTime @default(now())
+  error     String?
+  input     String
+  output    String?
+  promptId  String?
+  prompt    Prompt?  @relation(fields: [promptId], references: [id])
+  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([promptId])
+  @@index([createdAt])
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  action    String
+  resource  String
+  status    String   @default("success")
+  details   Json
+  ipAddress String?
+  timestamp DateTime @default(now())
+  user      User?       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([action])
+  @@index([resource])
+  @@index([timestamp])
+}
+
+model Report {
+  id        String   @id @default(cuid())
+  reason    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  userId    String
+  promptId  String?
+  commentId String?
+  comment   Comment? @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  prompt    Prompt?  @relation(fields: [promptId], references: [id], onDelete: Cascade)
+  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([promptId])
+  @@index([commentId])
+  @@index([createdAt])
+}
+
+model ApiUsage {
+  id           String   @id @default(cuid())
+  createdAt    DateTime @default(now())
+  inputTokens  Int
+  outputTokens Int
+  isCacheHit   Boolean  @default(false)
+  userId       String
+  promptId     String?
+  prompt       Prompt?  @relation(fields: [promptId], references: [id])
+  user         User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([createdAt])
+  @@index([userId])
+  @@index([promptId])
+}
+
+model Moderation {
+  id          String   @id @default(cuid())
+  contentId   String
+  contentType String
+  severity    String
+  category    String
+  status      String
+  reason      String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model EmailSignup {
+  id        String            @id @default(cuid())
+  email     String            @unique
+  status    EmailSignupStatus @default(PENDING)
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+
+  @@index([email])
+  @@index([status])
+}
+
+model EmailTemplate {
+  id          String   @id @default(cuid())
+  name        String
+  subject     String
+  body        String
+  variables   String[]
+  type        String
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now())
+  createdById String
+  updatedById String
+  createdBy   User        @relation("CreatedTemplates", fields: [createdById], references: [id], onDelete: Cascade)
+  updatedBy   User        @relation("UpdatedTemplates", fields: [updatedById], references: [id], onDelete: Cascade)
+
+  @@index([createdById])
+  @@index([updatedById])
+  @@index([type])
+  @@index([isActive])
+}
+
+model PromptRating {
+  id            String             @id @default(cuid())
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+  clarity       Float
+  specificity   Float
+  context       Float
+  overall       Float
+  feedback      String
+  promptTestId  String             @unique
+  testHistoryId String?            @unique
+  PromptTest    PromptTest         @relation(fields: [promptTestId], references: [id], onDelete: Cascade)
+  testHistory   PromptTestHistory? @relation(fields: [testHistoryId], references: [id], onDelete: Cascade)
+}
+
+model PromptTestHistory {
+  id              String        @id @default(cuid())
+  promptId        String
+  userId          String
+  createdAt       DateTime      @default(now())
+  tokensUsed      Int?
+  duration        Int?
+  input           String?
+  output          String
+  promptVersionId String
+  status          TestStatus    @default(SUCCESS)
+  updatedAt       DateTime      @updatedAt
+  rating          PromptRating?
+  prompt          Prompt        @relation(fields: [promptId], references: [id], onDelete: Cascade)
+  promptVersion   Version       @relation(fields: [promptVersionId], references: [id], onDelete: Cascade)
+  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([promptId])
+  @@index([userId])
+  @@index([promptVersionId])
+  @@index([status])
+}
+
+model PromptTest {
+  id              String        @id
+  promptVersionId String
+  input           String?
+  output          String
+  tokensUsed      Int?
+  duration        Int?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime
+  PromptRating    PromptRating?
+  promptVersion   Version       @relation(fields: [promptVersionId], references: [id], onDelete: Cascade)
+
+  @@index([promptVersionId])
+}
+
+model FeatureUsage {
+  id        String   @id @default(cuid())
+  userId    String
+  feature   String
+  createdAt DateTime @default(now())
+  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([feature])
+}
+
+model TeamMember {
+  id       String   @id @default(cuid())
+  teamId   String
+  userId   String
+  role     TeamRole @default(MEMBER)
+  joinedAt DateTime @default(now())
+  team     Team        @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  user     User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([teamId, userId])
+  @@index([teamId])
+  @@index([userId])
+}
+
+model Team {
+  id        String       @id @default(cuid())
+  name      String
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+  ownerId   String
+  settings  Json?        @default("{\"maxMembers\": 5, \"allowedFeatures\": []}")
+  owner     User          @relation("TeamOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  members   TeamMember[]
+
+  @@index([ownerId])
+}
+
+model UsageMetrics {
+  id         String   @id @default(cuid())
+  userId     String
+  type       String
+  tokenCount Int
+  metadata   Json
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([userId])
+  @@index([type])
+  @@index([createdAt])
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  type      String
+  title     String
+  message   String
+  metadata  Json?
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([type])
+  @@index([createdAt])
+  @@index([read])
+}
+
+model UserSettings {
+  id            String   @id @default(cuid())
+  userId        String   @unique
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  theme         String   @default("light")
+  notifications Boolean  @default(true)
+  language      String   @default("en")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([userId])
+}
+
+model Error {
+  id        String   @id @default(cuid())
+  type      String
+  message   String
+  stack     String?
+  metadata  Json?
+  createdAt DateTime @default(now())
+  userId    String?
+  user      User?       @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Version {
+  id                String   @id @default(cuid())
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  content           String
+  convertedToPrompt Boolean  @default(false)
+  userId            String
+  user              User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  prompt            Prompt?     @relation(fields: [promptId], references: [id], onDelete: Cascade)
+  promptId          String?
+  tests             PromptTest[]
+  testHistory       PromptTestHistory[]
+
+  @@index([userId])
+  @@index([promptId])
+}
+
+model RoleChangeLog {
+  id        String   @id @default(cuid())
+  userId    String
+  oldRole   Role
+  newRole   Role
+  changedBy String
+  createdAt DateTime @default(now())
+  action    String 
+
+  @@index([userId])
+  @@index([changedBy])
+}
+
+model ConsentRecord {
+  id          String   @id @default(cuid())
+  userId      String
+  purpose     String
+  granted     Boolean
+  timestamp   DateTime @default(now())
+  ipAddress   String?
+  userAgent   String?
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([timestamp])
+}
+
+model DataProcessingRecord {
+  id          String   @id @default(cuid())
+  userId      String
+  purpose     String
+  legalBasis  String
+  startDate   DateTime
+  endDate     DateTime?
+  status      String
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([startDate])
+}
+
+model DataExportRequest {
+  id          String   @id @default(cuid())
+  userId      String
+  status      String
+  requestedAt DateTime @default(now())
+  completedAt DateTime?
+  format      String
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([requestedAt])
+}
+
+model DataRectificationRequest {
+  id          String   @id @default(cuid())
+  userId      String
+  status      String
+  requestedAt DateTime @default(now())
+  completedAt DateTime?
+  changes     Json
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([requestedAt])
+}
+
+model CreditPurchase {
+  id              String   @id @default(cuid())
+  userId          String
+  amount          Int
+  price           Float
+  stripeSessionId String   @unique
+  createdAt       DateTime @default(now())
+  user            User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([createdAt])
+  @@index([stripeSessionId])
+}
+
+model PlanLimits {
+  id                String   @id @default(cuid())
+  planType          PlanType
+  feature           String
+  limit             Int
+  period            String   @default("monthly") // monthly, daily, yearly
+  description       String
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@unique([planType, feature])
+  @@index([planType])
+  @@index([feature])
+}
+
+model CreditPackage {
+  id          String   @id @default(cuid())
+  name        String
+  amount      Int
+  price       Float
+  stripePriceId String @unique
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  description String?
+  isPopular   Boolean  @default(false)
+  bonusCredits Int     @default(0)
+
+  @@index([isActive])
+  @@index([stripePriceId])
+}
+
+enum Role {
+  USER
+  ADMIN
+  SUPER_ADMIN
+}
+
+enum PlanType {
+  FREE
+  PRO
+  ELITE
+  ENTERPRISE
+}
+
+enum Period {
+  WEEKLY
+  MONTHLY
+}
+
+enum CreditType {
+  INITIAL
+  SUBSCRIPTION
+  USAGE
+  TOP_UP
+  REFUND
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  PAST_DUE
+  CANCELED
+  UNPAID
+  TRIALING
+  INCOMPLETE
+  INCOMPLETE_EXPIRED
+}
+
+enum TicketStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum Category {
+  BUG
+  FEATURE_REQUEST
+  GENERAL_INQUIRY
+  TECHNICAL_SUPPORT
+  BILLING
+}
+
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+  BANNED
+}
+
+enum EmailSignupStatus {
+  PENDING
+  CONFIRMED
+  UNSUBSCRIBED
+}
+
+enum TestStatus {
+  SUCCESS
+  FAILURE
+  ERROR
+  PENDING
+}
+
+enum TeamRole {
+  OWNER
+  ADMIN
+  MEMBER
+}
+
+// New model for tracking deleted users
+model DeletedUser {
+  id                String   @id @default(cuid())
+  originalUserId    String   @unique
+  email             String
+  deletionDate      DateTime @default(now())
+  deletionReason    String?
+  deletionNotes     String?
+  deletedBy         String?  // ID of admin who performed deletion
+  retentionPeriod   Int      @default(30) // Days to retain data before permanent deletion
+  dataRetained      Json?    // Snapshot of retained data
+  auditLogs         DeletionAuditLog[]
+
+  @@index([originalUserId])
+  @@index([deletionDate])
+  @@index([deletedBy])
+}
+
+// New model for tracking deletion process
+model DeletionAuditLog {
+  id          String   @id @default(cuid())
+  userId      String
+  action      String   // e.g., "DELETION_REQUESTED", "ANONYMIZED", "PERMANENTLY_DELETED"
+  details     Json
+  timestamp   DateTime @default(now())
+  performedBy String?  // ID of admin who performed the action
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  deletedUser DeletedUser? @relation(fields: [deletedUserId], references: [id], onDelete: Cascade)
+  deletedUserId String?
+
+  @@index([userId])
+  @@index([timestamp])
+  @@index([action])
+  @@index([performedBy])
+}

@@ -25,22 +25,7 @@ import {
   DialogDescription as CompareDialogDescription,
 } from '@/components/ui/dialog';
 import { VersionTimeline } from './VersionTimeline';
-
-
-
-
-
-interface Version {
-  id: string;
-  version: string;
-  content: string;
-  description?: string;
-  createdAt: string;
-  user: {
-    name: string | null;
-    imageUrl: string | null;
-  };
-}
+import { Version } from '@/types/version';
 
 interface VersionHistoryProps {
   id: string;
@@ -50,7 +35,7 @@ interface VersionHistoryProps {
 export function VersionHistory({ id, onVersionSelect }: VersionHistoryProps) {
   const [versions, setVersions] = useState<Version[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedVersion, setSelectedVersion] = useState<string | null>(null);
+  const [selectedVersion, setSelectedVersion] = useState<string | undefined>(undefined);
   const [comparison, setComparison] = useState<any>(null);
   const [isComparisonOpen, setIsComparisonOpen] = useState(false);
   const [isCreateVersionOpen, setIsCreateVersionOpen] = useState(false);
@@ -58,6 +43,7 @@ export function VersionHistory({ id, onVersionSelect }: VersionHistoryProps) {
   const [newVersionDescription, setNewVersionDescription] = useState('');
   const [currentPromptData, setCurrentPromptData] = useState<any>(null);
   const [isLoadingPrompt, setIsLoadingPrompt] = useState(true);
+  const [userPlan, setUserPlan] = useState<string>('FREE');
   const { toast } = useToast();
   const [currentPage, setCurrentPage] = useState(1);
   const VERSIONS_PER_PAGE = 4;
@@ -74,21 +60,17 @@ export function VersionHistory({ id, onVersionSelect }: VersionHistoryProps) {
     const fetchVersions = async () => {
       try {
         const response = await fetch(`/api/prompts/${id}/versions`);
-        if (response.ok) {
-          const data = await response.json();
-          setVersions(data);
-        } else {
-          toast({
-            title: 'Error',
-            description: 'Failed to load version history. Please try again later.',
-            variant: 'destructive',
-          });
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.error || 'Failed to load version history');
         }
+        const data = await response.json();
+        setVersions(data);
       } catch (error) {
         console.error('Error fetching versions:', error);
         toast({
           title: 'Error',
-          description: 'An unexpected error occurred. Please try again later.',
+          description: error instanceof Error ? error.message : 'Failed to load version history',
           variant: 'destructive',
         });
       } finally {
@@ -97,30 +79,26 @@ export function VersionHistory({ id, onVersionSelect }: VersionHistoryProps) {
     };
 
     fetchVersions();
-  }, [id]);
+  }, [id, toast]);
 
   useEffect(() => {
     const fetchCurrentPrompt = async () => {
       try {
         setIsLoadingPrompt(true);
         const response = await fetch(`/api/prompts/${id}`);
-        if (response.ok) {
-          const data = await response.json();
-          setCurrentPromptData(data);
-          setNewVersionContent(data.content);
-          setNewVersionDescription(data.description || '');
-        } else {
-          toast({
-            title: 'Error',
-            description: 'Failed to load current prompt data',
-            variant: 'destructive',
-          });
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.error || 'Failed to load current prompt data');
         }
+        const data = await response.json();
+        setCurrentPromptData(data);
+        setNewVersionContent(data.content);
+        setNewVersionDescription(data.description || '');
       } catch (error) {
         console.error('Error fetching current prompt:', error);
         toast({
           title: 'Error',
-          description: 'Failed to load current prompt data',
+          description: error instanceof Error ? error.message : 'Failed to load current prompt data',
           variant: 'destructive',
         });
       } finally {
@@ -129,7 +107,25 @@ export function VersionHistory({ id, onVersionSelect }: VersionHistoryProps) {
     };
 
     fetchCurrentPrompt();
-  }, [id]);
+  }, [id, toast]);
+
+  useEffect(() => {
+    const fetchUserPlan = async () => {
+      try {
+        const response = await fetch('/api/user/plan');
+        if (!response.ok) {
+          throw new Error('Failed to fetch user plan');
+        }
+        const data = await response.json();
+        setUserPlan(data.planType || 'FREE');
+      } catch (error) {
+        console.error('Error fetching user plan:', error);
+        setUserPlan('FREE');
+      }
+    };
+
+    fetchUserPlan();
+  }, []);
 
   const handleVersionSelect = (version: Version) => {
     setSelectedVersion(version.id);
@@ -258,8 +254,44 @@ export function VersionHistory({ id, onVersionSelect }: VersionHistoryProps) {
   }
 
   return (
-    <div className="space-y-2">
-      <VersionTimeline promptId={id} />
+    <div className="space-y-4">
+      <VersionTimeline
+        promptId={id}
+        onVersionSelect={handleVersionSelect}
+        selectedVersionId={selectedVersion}
+        userPlan={userPlan}
+      />
+      {isComparisonOpen && comparison && (
+        <VersionComparisonDialog
+          isOpen={isComparisonOpen}
+          onClose={() => setIsComparisonOpen(false)}
+          comparison={comparison}
+        />
+      )}
+      {isCreateVersionOpen && (
+        <UpdatePromptDialog
+          open={isCreateVersionOpen}
+          onOpenChange={setIsCreateVersionOpen}
+          content={newVersionContent}
+          setContent={setNewVersionContent}
+          description={newVersionDescription}
+          setDescription={setNewVersionDescription}
+          id={id}
+          currentPrompt={currentPromptData}
+          onSuccess={() => {
+            setIsCreateVersionOpen(false);
+            // Refresh versions
+            const fetchVersions = async () => {
+              const response = await fetch(`/api/prompts/${id}/versions`);
+              if (response.ok) {
+                const data = await response.json();
+                setVersions(data);
+              }
+            };
+            fetchVersions();
+          }}
+        />
+      )}
     </div>
   );
 }

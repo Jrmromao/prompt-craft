@@ -6,10 +6,10 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useUser } from '@clerk/nextjs';
 
 export function TokenUsageDashboard() {
-  const { user } = useUser();
+  const { user, isLoaded } = useUser();
   const { tokenUsage, isLoading, error } = useTokenUsage(user?.id || '');
 
-  if (isLoading) {
+  if (!isLoaded || isLoading) {
     return (
       <div className="space-y-4">
         <Skeleton className="h-[200px] w-full" />
@@ -18,7 +18,7 @@ export function TokenUsageDashboard() {
     );
   }
 
-  if (error || !tokenUsage) {
+  if (!user || error || !tokenUsage) {
     return (
       <div className="rounded-lg border border-destructive p-4 text-destructive">
         <p>Failed to load credit usage data. Please try again later.</p>

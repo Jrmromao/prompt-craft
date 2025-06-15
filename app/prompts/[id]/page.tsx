@@ -5,6 +5,8 @@ import { Suspense } from 'react';
 import { PromptContent } from '@/components/PromptContent';
 import { currentUser } from '@clerk/nextjs/server';
 import { TestPromptModal } from '@/components/TestPromptModal';
+import { PlanType } from '@/utils/constants';
+import { UserService } from '@/lib/services/userService';
 
 // Mark page as dynamic since it uses headers() through AnalyticsTrackingService
 export const dynamic = 'force-dynamic';
@@ -92,23 +94,37 @@ export default async function PromptDetailPage({ params }: PageProps) {
 
   const promptWithVersion = {
     ...prompt,
-    currentVersionId: prompt.versions[0]?.id || prompt.id
+    currentVersionId: prompt.versions[0]?.id || prompt.id,
+    metadata: prompt.metadata as { copyCount?: number; viewCount?: number; usageCount?: number } | undefined,
   };
 
   const clerkUser = await currentUser();
-  const user = clerkUser ? {
-    name: clerkUser.fullName || '',
-    email: clerkUser.primaryEmailAddress?.emailAddress || '',
-    imageUrl: clerkUser.imageUrl
-  } : undefined;
+  const userService = UserService.getInstance();
+  const planType = clerkUser ? await userService.getPlanTypeFromClerk(clerkUser.id) : null;
+
+  const userObj = clerkUser
+    ? {
+        id: clerkUser.id,
+        name: clerkUser.fullName || '',
+        email: clerkUser.primaryEmailAddress?.emailAddress || '',
+        imageUrl: clerkUser.imageUrl,
+        planType: planType || PlanType.FREE,
+      }
+    : {
+        id: 'anonymous',
+        name: 'Anonymous',
+        email: '',
+        imageUrl: '',
+        planType: PlanType.FREE,
+      };
 
   return (
     <Suspense fallback={<div>Loading...</div>}>
-      <PromptContent prompt={promptWithVersion} user={user} />
+      <PromptContent prompt={promptWithVersion} user={userObj} />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(getPromptJsonLd(prompt)) }}
-      />
+      />x
     </Suspense>
   );
 } 
