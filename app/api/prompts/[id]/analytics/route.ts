@@ -3,6 +3,8 @@ import { auth } from '@clerk/nextjs/server';
 import { AnalyticsService } from '@/lib/services/analyticsService';
 import { AnalyticsTrackingService } from '@/lib/services/analyticsTrackingService';
 import { PromptService } from '@/lib/services/promptService';
+import { prisma } from '@/lib/prisma';
+import { UserService } from '@/lib/services/userService';
 
 // Use environment variable for API base URL, fallback to localhost
 const API_BASE_URL = process.env.API_BASE_URL || 'http://localhost:3000';
@@ -35,28 +37,83 @@ export async function POST(request: NextRequest, context: any) {
   }
 }
 
-export async function GET(request: Request, context: any) {
+interface RouteContext {
+  params: Promise<{
+    id: string;
+  }>;
+}
+
+export async function GET(
+  request: Request,
+  context: RouteContext
+) {
   try {
     const { userId } = await auth();
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const promptId = context.params.id;
+    const params = await context.params;
+    const promptId = params.id;
+    
     if (!promptId) {
       return NextResponse.json({ error: 'Prompt ID is required' }, { status: 400 });
     }
 
-    // Use AnalyticsService for prompt analytics
-    const analyticsService = AnalyticsService.getInstance();
-    const analytics = await analyticsService.getAnalytics({ 
-      type: 'prompts', 
-      userId,
-      promptId 
+    // Get the user's database ID
+    const userDatabaseId = await UserService.getInstance().getDatabaseIdFromClerk(userId);
+    if (!userDatabaseId) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+
+    // Get analytics data
+    const analytics = await prisma.prompt.findUnique({
+      where: { id: promptId },
+      select: {
+        copyCount: true,
+        viewCount: true,
+        usageCount: true,
+        upvotes: true,
+        createdAt: true,
+        updatedAt: true,
+        _count: {
+          select: {
+            comments: true,
+            versions: true
+          }
+        }
+      }
     });
-    return NextResponse.json(analytics);
+
+    if (!analytics) {
+      return NextResponse.json({ error: 'Prompt not found' }, { status: 404 });
+    }
+
+    // Get daily stats for the last 30 days
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+    const dailyStats = await prisma.promptAnalytics.findMany({
+      where: {
+        promptId: promptId,
+        date: {
+          gte: thirtyDaysAgo
+        }
+      },
+      orderBy: {
+        date: 'asc'
+      }
+    });
+
+    return NextResponse.json({
+      ...analytics,
+      dailyStats
+    });
   } catch (error) {
-    console.error('Error fetching prompt analytics:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    console.error('Error fetching analytics:', error);
+    return NextResponse.json(
+      { error: 'Failed to fetch analytics' },
+      { status: 500 }
+    );
   }
 }

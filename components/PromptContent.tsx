@@ -136,18 +136,26 @@ export function PromptContent({ user, prompt }: PromptContentProps) {
       const contentToCopy = selectedVersion?.content || prompt.content;
       await navigator.clipboard.writeText(contentToCopy);
       setCopied(true);
-      toast.success('Prompt copied to clipboard!');
       
       // Track copy event and update count
-      const response = await fetch(`/api/prompts/${prompt.id}/copy`, { method: 'POST' });
+      const response = await fetch(`/api/prompts/${prompt.id}/copy`, { 
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      
       if (!response.ok) {
-        throw new Error('Failed to track copy');
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to track copy');
       }
       
-      setTimeout(() => setCopied(false), 1000);
+      toast.success('Prompt copied to clipboard!');
+      setTimeout(() => setCopied(false), 2000);
     } catch (error) {
       console.error('Error copying prompt:', error);
-      toast.error('Failed to copy prompt');
+      toast.error(error instanceof Error ? error.message : 'Failed to copy prompt');
+      setCopied(false);
     }
   };
 
@@ -237,7 +245,6 @@ export function PromptContent({ user, prompt }: PromptContentProps) {
                 <p className="mt-2 text-lg text-gray-600 dark:text-gray-400 leading-relaxed">
                   {prompt.description}
                 </p>
-                <span className="ml-auto text-xs text-gray-500 dark:text-gray-400 hidden sm:inline">Prompt ID: {prompt.id}</span>
 
                 <div className="mt-4 flex flex-wrap items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
                   <div className="flex items-center gap-1">
@@ -369,7 +376,27 @@ export function PromptContent({ user, prompt }: PromptContentProps) {
                   </div>
                 )}
                 {/* Content */}
-                <div className="prose dark:prose-invert max-w-none p-0 overflow-x-auto">
+                <div className="prose dark:prose-invert max-w-none p-0 overflow-x-auto relative">
+                  <div className="absolute top-2 right-2 z-10">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={copyToClipboard}
+                      className="bg-white/80 backdrop-blur-sm hover:bg-white dark:bg-gray-900/80 dark:hover:bg-gray-900"
+                    >
+                      {copied ? (
+                        <>
+                          <Check className="mr-2 h-4 w-4 text-green-500" />
+                          Copied!
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="mr-2 h-4 w-4" />
+                          Copy
+                        </>
+                      )}
+                    </Button>
+                  </div>
                   <ReactMarkdown
                     remarkPlugins={[remarkGfm]}
                     components={{

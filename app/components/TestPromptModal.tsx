@@ -1,27 +1,12 @@
-'use client';
-
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Loader2, Play, Copy, Star, Lock, AlertCircle } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Loader2, Play, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
-import ReactMarkdown from 'react-markdown';
-import Link from 'next/link';
 import { useCreditBalance } from '@/hooks/useCreditBalance';
 import { InsufficientCreditsDialog } from '@/app/components/InsufficientCreditsDialog';
-
-interface TestResult {
-  result: string;
-  rating: {
-    clarity: number;
-    specificity: number;
-    context: number;
-    overall: number;
-    feedback: string;
-  };
-}
 
 interface TestPromptModalProps {
   isOpen: boolean;
@@ -30,7 +15,6 @@ interface TestPromptModalProps {
   promptContent: string;
   promptVersionId?: string;
   onTestPrompt: (content: string, testInput: string, promptVersionId?: string) => Promise<any>;
-  onTestHistorySaved?: () => void;
   userPlan: string;
 }
 
@@ -41,7 +25,6 @@ export function TestPromptModal({
   promptContent,
   promptVersionId,
   onTestPrompt,
-  onTestHistorySaved,
   userPlan
 }: TestPromptModalProps) {
   const [testInput, setTestInput] = useState('');
@@ -74,20 +57,6 @@ export function TestPromptModal({
       const result = await onTestPrompt(promptContent, testInput, promptVersionId);
       setTestResult(result.response);
       toast.success('Prompt tested successfully!');
-      // Save test history after test run
-      await fetch(`/api/prompts/${promptId}/test-history`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          promptVersionId,
-          input: testInput,
-          output: result.response,
-          // Optionally add tokensUsed/duration if available in result
-        }),
-      });
-      if (typeof onTestHistorySaved === 'function') {
-        onTestHistorySaved();
-      }
     } catch (error) {
       console.error('Error testing prompt:', error);
       toast.error(error instanceof Error ? error.message : 'Failed to test prompt');
@@ -95,8 +64,6 @@ export function TestPromptModal({
       setIsTesting(false);
     }
   };
-
-  const isFreeUser = userPlan === 'FREE';
 
   return (
     <>
@@ -158,4 +125,4 @@ export function TestPromptModal({
       />
     </>
   );
-}
+} 

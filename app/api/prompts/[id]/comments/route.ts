@@ -14,44 +14,76 @@ const commentSchema = z.object({
   parentId: z.string().optional(),
 });
 
+interface RouteContext {
+  params: Promise<{
+    id: string;
+  }>;
+}
+
 export async function GET(
-  request: NextRequest,
-  context: any
+  request: Request,
+  context: RouteContext
 ) {
   try {
-    const promptId = context.params.id;
+    const params = await context.params;
+    const promptId = params.id;
+    
     if (!promptId) {
       return NextResponse.json({ error: 'Prompt ID is required' }, { status: 400 });
     }
 
-    // Get pagination parameters from URL
-    const url = new URL(request.url);
-    const page = parseInt(url.searchParams.get('page') || '1');
-    const limit = parseInt(url.searchParams.get('limit') || '10');
-    const orderBy = url.searchParams.get('orderBy') || 'createdAt';
-    const order = (url.searchParams.get('order') || 'desc') as 'asc' | 'desc';
+    const { searchParams } = new URL(request.url);
+    const page = parseInt(searchParams.get('page') || '1');
+    const limit = parseInt(searchParams.get('limit') || '10');
+    const skip = (page - 1) * limit;
 
-    const commentService = CommentService.getInstance();
-    const comments = await commentService.getComments(promptId, page, limit, orderBy, order);
-    
-    const response = NextResponse.json(comments);
-    
-    // Add cache control headers
-    response.headers.set('Cache-Control', 'public, s-maxage=10, stale-while-revalidate=59');
-    
-    return response;
+    const comments = await prisma.comment.findMany({
+      where: {
+        promptId: promptId,
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+      skip,
+      take: limit,
+    });
+
+    const total = await prisma.comment.count({
+      where: {
+        promptId: promptId,
+      },
+    });
+
+    return NextResponse.json({
+      comments,
+      pagination: {
+        total,
+        pages: Math.ceil(total / limit),
+        currentPage: page,
+        limit,
+      },
+    });
   } catch (error) {
     console.error('Error fetching comments:', error);
-    if (error instanceof Error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json(
+      { error: 'Failed to fetch comments' },
+      { status: 500 }
+    );
   }
 }
 
 export async function POST(
-  request: NextRequest,
-  context: any
+  request: Request,
+  context: RouteContext
 ) {
   try {
     const { userId } = await auth();
@@ -59,36 +91,54 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const promptId = context.params.id;
+    const params = await context.params;
+    const promptId = params.id;
+    
     if (!promptId) {
       return NextResponse.json({ error: 'Prompt ID is required' }, { status: 400 });
     }
 
     const body = await request.json();
-    const validationResult = commentSchema.safeParse(body);
-    
-    if (!validationResult.success) {
+    const { content } = body;
+
+    if (!content) {
       return NextResponse.json(
-        { error: 'Invalid request body', details: validationResult.error.format() },
+        { error: 'Comment content is required' },
         { status: 400 }
       );
     }
 
-    const { content, parentId } = validationResult.data;
-    const commentService = CommentService.getInstance();
-    const comment = await commentService.createComment(promptId, userId, content, parentId);
-    
-    const response = NextResponse.json(comment);
-    
-    // Add cache control headers to prevent caching of POST requests
-    response.headers.set('Cache-Control', 'no-store');
-    
-    return response;
+    const user = await prisma.user.findUnique({
+      where: { clerkId: userId },
+    });
+
+    if (!user) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+
+    const comment = await prisma.comment.create({
+      data: {
+        content,
+        promptId,
+        userId: user.id,
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+      },
+    });
+
+    return NextResponse.json(comment);
   } catch (error) {
     console.error('Error creating comment:', error);
-    if (error instanceof Error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json(
+      { error: 'Failed to create comment' },
+      { status: 500 }
+    );
   }
 }
