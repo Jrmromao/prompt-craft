@@ -59,6 +59,7 @@ import { UsageTab } from '@/components/profile/UsageTab';
 import BillingInvoicesSection from '@/components/profile/BillingInvoicesSection';
 import PrivacySettingsPage from '@/app/profile/privacy/page';
 import { CreditPurchaseSection } from '@/app/components/profile/CreditPurchaseSection';
+import { CreditPurchaseDialog } from '@/app/components/profile/CreditPurchaseDialog';
 
 const Sheet = dynamic(() => import('@/components/ui/sheet').then(mod => mod.Sheet), {
   ssr: false,
@@ -92,7 +93,8 @@ export interface ProfileClientProps {
     id: string;
     role: string;
     planType: string;
-    credits: number;
+    monthlyCredits: number;
+    purchasedCredits: number;
     creditCap: number;
     bio?: string;
     jobTitle?: string;
@@ -419,6 +421,7 @@ function ProfileHeader({
   creditPercentage: number;
   router: ReturnType<typeof useRouter>;
 }) {
+  const totalCredits = user.monthlyCredits + user.purchasedCredits;
   return (
     <Card className="relative flex flex-col items-stretch gap-0 overflow-hidden rounded-2xl border border-border bg-card p-8 shadow-lg md:flex-row">
       {/* Gradient background */}
@@ -433,7 +436,7 @@ function ProfileHeader({
             {user.name || 'Unnamed User'}
             <span className="ml-1 inline-flex items-center">
               <Circle className={`mr-1 h-3 w-3 ${statusColor}`} />
-              <span className="text-xs text-muted-foreground">{statusLabel}</span>
+              <span className="text-xs text-muted-foreground">{statusLabel} joao</span>
             </span>
           </span>
           <Badge
@@ -453,6 +456,14 @@ function ProfileHeader({
               Upgrade Plan
             </Button>
           )}
+          <Button
+            size="sm"
+            variant="outline"
+            className="border-purple-200 bg-white px-4 py-1 text-sm font-semibold text-purple-600 shadow-sm transition hover:bg-purple-50"
+            onClick={() => router.push('/billing')}
+          >
+            Buy Credits
+          </Button>
         </div>
         <div className="mt-2 text-sm text-muted-foreground">{user.email}</div>
         <div className="text-xs capitalize text-muted-foreground">{user.role}</div>
@@ -469,7 +480,7 @@ function ProfileHeader({
             className="h-2 flex-1 bg-muted [&>div]:bg-gradient-to-r [&>div]:from-purple-500 [&>div]:to-pink-500"
           />
           <span className="ml-2 whitespace-nowrap text-xs font-semibold text-muted-foreground">
-            {user.credits} / {user.creditCap}
+            {totalCredits} / {user.creditCap}
           </span>
           {canUpgrade && (
             <Button
@@ -494,6 +505,7 @@ function ProfileContent({ user, currentPath }: ProfileClientProps) {
   const [activeTab, setActiveTab] = useState(
     currentPath && validTabs.includes(currentPath) ? currentPath : 'overview'
   );
+  const [isCreditModalOpen, setIsCreditModalOpen] = useState(false);
 
   function handleSidebarClick(tabValue: string) {
     setActiveTab(tabValue);
@@ -511,7 +523,8 @@ function ProfileContent({ user, currentPath }: ProfileClientProps) {
   const statusLabel = status.charAt(0).toUpperCase() + status.slice(1);
   const isPro = user.planType === 'PRO';
   const canUpgrade = !isPro;
-  const creditPercentage = (user.credits / user.creditCap) * 100;
+  const totalCredits = user.monthlyCredits + user.purchasedCredits;
+  const creditPercentage = Math.min((totalCredits / user.creditCap) * 100, 100);
 
   const SidebarContent = (
     <div className="flex h-full flex-col">
@@ -811,12 +824,12 @@ function ProfileContent({ user, currentPath }: ProfileClientProps) {
                           <span className="text-xs font-medium text-muted-foreground">Credits</span>
                           <div className="flex items-center gap-2 w-full">
                             <Progress
-                              value={(user.credits / user.creditCap) * 100}
+                              value={(totalCredits / user.creditCap) * 100}
                               className="h-2 flex-1 bg-muted [&>div]:bg-gradient-to-r [&>div]:from-purple-500 [&>div]:to-pink-500"
                               aria-label="Credits Progress"
                             />
                             <span className="ml-2 whitespace-nowrap text-xs font-semibold text-muted-foreground">
-                              {user.credits} / {user.creditCap}
+                              {totalCredits} / {user.creditCap}
                             </span>
                           </div>
                         </div>
@@ -825,9 +838,8 @@ function ProfileContent({ user, currentPath }: ProfileClientProps) {
                           <span className="text-sm text-foreground">{user.lastActivity ? new Date(user.lastActivity).toLocaleString() : 'N/A'}</span>
                         </div>
                       </div>
-                      <div className="flex gap-3 mt-2">
-                       
-                        {user.planType === 'FREE' && (
+                      <div className="flex flex-wrap items-center justify-start gap-3 mt-4 w-full">
+                        {user.planType === PlanType.FREE && (
                           <Button
                             size="sm"
                             className="bg-gradient-to-r from-purple-600 to-pink-600 px-4 py-1 text-sm font-semibold text-white shadow transition hover:from-purple-700 hover:to-pink-700"
@@ -837,9 +849,27 @@ function ProfileContent({ user, currentPath }: ProfileClientProps) {
                             Upgrade Plan
                           </Button>
                         )}
+                        {(user.planType === PlanType.FREE || user.planType === PlanType.PRO) && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="bg-gradient-to-r from-purple-500/10 to-pink-500/10 text-purple-600 hover:from-purple-500/20 hover:to-pink-500/20 border-purple-200 hover:border-purple-300 shadow-sm hover:shadow-md transition-all duration-300"
+                            onClick={() => setIsCreditModalOpen(true)}
+                          >
+                            Buy Credits
+                          </Button>
+                        )}
                       </div>
                     </div>
                   </Card>
+
+                  {/* Credit Purchase Dialog */}
+                  <CreditPurchaseDialog 
+                    isOpen={isCreditModalOpen}
+                    onClose={() => setIsCreditModalOpen(false)}
+                    isFreePlan={user.planType === PlanType.FREE}
+                  />
+
                   {/* Profile Edit Form */}
                   <Card className="rounded-2xl border border-border bg-card p-8 shadow-lg">
                     <ProfileForm
@@ -857,10 +887,11 @@ function ProfileContent({ user, currentPath }: ProfileClientProps) {
                   <UsageStatsSection />
                 </Card>
               </TabsContent>
-              <TabsContent value="billing" className="pt-4">
+              <TabsContent value="billing">
+              <Card className="rounded-2xl border border-border bg-card p-8 shadow-lg">
+              <BillingInvoicesSection />
+                </Card>
                 <div className="grid gap-8 md:grid-cols-2">
-                  <BillingInvoicesSection />
-                  <CreditPurchaseSection />
                 </div>
               </TabsContent>
               <TabsContent value="prompts">

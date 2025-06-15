@@ -3,9 +3,9 @@ import { NextResponse } from "next/server";
 import { stripe } from "@/lib/stripe";
 import { prisma } from "@/lib/prisma";
 import Stripe from "stripe";
-import { SubscriptionStatus } from "@prisma/client";
-import { CreditService } from '@/app/lib/services/creditService';
-import { logAudit } from '@/app/lib/auditLogger';
+import { SubscriptionStatus, CreditType } from "@prisma/client";
+import { CreditService } from '@/lib/services/creditService';
+import { AuditService } from '@/lib/services/auditService';
 import { AuditAction } from '@/app/constants/audit';
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
@@ -18,7 +18,7 @@ export async function POST(req: Request) {
   try {
     const body = await req.text();
     const headersList = await headers();
-    const signature = headersList.get("stripe-signature")!;
+    const signature = headersList.get('stripe-signature')!;
 
     console.log("Received webhook request");
 
@@ -47,111 +47,80 @@ export async function POST(req: Request) {
           return NextResponse.json({ error: "No userId in session metadata" }, { status: 400 });
         }
 
+        // Verify this is a credit purchase
+        if (session.metadata.type !== 'credit_purchase') {
+          return NextResponse.json({ error: 'Invalid purchase type' }, { status: 400 });
+        }
+
+        const userId = session.metadata.userId;
+        const amount = parseInt(session.metadata.amount);
+
+        if (!userId || !amount) {
+          return NextResponse.json(
+            { error: 'Missing user ID or amount' },
+            { status: 400 }
+          );
+        }
+
         // Get the user from the session metadata
         const user = await prisma.user.findUnique({
           where: {
-            id: session.metadata.userId,
+            id: userId,
           },
         });
 
         if (!user) {
-          console.error("No user found for ID:", session.metadata.userId);
+          console.error("No user found for ID:", userId);
           return NextResponse.json({ error: "User not found" }, { status: 404 });
         }
 
         // Handle credit purchase
-        if (session.metadata.type === 'credit_purchase') {
-          try {
-            const amount = parseInt(session.metadata.amount);
-            
-            // Add credits to user's account
-            await CreditService.addCredits(
-              user.id,
+        try {
+          // Add credits to user's account
+          await CreditService.getInstance().addCredits(
+            userId,
+            amount,
+            CreditType.TOP_UP,
+         
+            'Credit purchase'
+          );
+
+          // Create a record of the purchase
+          await prisma.creditPurchase.create({
+            data: {
+              userId: userId,
               amount,
-              'Credit purchase',
-              { sessionId: session.id }
-            );
+              price: session.amount_total! / 100, // Convert from cents
+              stripeSessionId: session.id,
+            },
+          });
 
-            // Create a record of the purchase
-            await prisma.creditPurchase.create({
-              data: {
-                userId: user.id,
-                amount,
-                price: session.amount_total! / 100, // Convert from cents
-                stripeSessionId: session.id,
-              },
-            });
+          console.log("Credit purchase processed:", {
+            userId,
+            amount,
+            sessionId: session.id,
+          });
 
-            console.log("Credit purchase processed:", {
-              userId: user.id,
-              amount,
-              sessionId: session.id,
-            });
+          // Log the successful purchase
+          await AuditService.getInstance().logAudit({
+            userId,
+            action: AuditAction.CREDIT_PURCHASE_COMPLETED,
+            resource: 'credits',
+            details: {
+              amount: amount.toString(),
+              stripeSessionId: session.id,
+              stripePaymentIntentId: session.payment_intent as string,
+            },
+          });
 
-            return NextResponse.json({ received: true });
-          } catch (error) {
-            console.error("Error processing credit purchase:", error);
-            return NextResponse.json(
-              { error: "Error processing credit purchase" },
-              { status: 500 }
-            );
-          }
+          return NextResponse.json({ success: true });
+        } catch (error) {
+          console.error("Error processing credit purchase:", error);
+          return NextResponse.json(
+            { error: "Error processing credit purchase" },
+            { status: 500 }
+          );
         }
-
-        // Handle subscription purchase
-        if (session.metadata.priceId) {
-          // Find the plan by stripePriceId
-          console.log("Looking for plan with price ID:", session.metadata.priceId);
-          const plan = await prisma.plan.findFirst({
-            where: {
-              stripePriceId: session.metadata.priceId,
-            },
-          });
-
-          if (!plan) {
-            console.error("No plan found for price ID:", session.metadata.priceId);
-            // Log all available plans for debugging
-            const allPlans = await prisma.plan.findMany();
-            console.log("Available plans:", allPlans.map(p => ({ id: p.id, name: p.name, stripePriceId: p.stripePriceId })));
-            return NextResponse.json({ error: "Plan not found" }, { status: 404 });
-          }
-
-          console.log("Found plan:", plan);
-
-          console.log("Creating subscription for user:", {
-            userId: user.id,
-            planId: plan.id,
-            customerId: session.customer,
-            subscriptionId: session.subscription,
-          });
-
-          // Create or update subscription
-          const subscription = await prisma.subscription.upsert({
-            where: {
-              userId: user.id,
-            },
-            create: {
-              userId: user.id,
-              stripeCustomerId: session.customer as string,
-              stripeSubscriptionId: session.subscription as string,
-              status: SubscriptionStatus.ACTIVE,
-              currentPeriodStart: new Date(),
-              currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-              planId: plan.id,
-            },
-            update: {
-              stripeCustomerId: session.customer as string,
-              stripeSubscriptionId: session.subscription as string,
-              status: SubscriptionStatus.ACTIVE,
-              currentPeriodStart: new Date(),
-              currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-              planId: plan.id,
-            },
-          });
-
-          console.log("Subscription created/updated:", subscription);
-        }
-        break;
       }
 
       case "customer.subscription.updated": {
@@ -184,7 +153,7 @@ export async function POST(req: Request) {
 
         if (isRenewal) {
           // Log the renewal and reset of limits
-          await logAudit({
+          await AuditService.getInstance().logAudit({
             userId: userSubscription.userId,
             action: AuditAction.SUBSCRIPTION_RENEWED,
             resource: 'subscription',

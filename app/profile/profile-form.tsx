@@ -42,7 +42,8 @@ interface ProfileFormProps {
     email: string;
     role: Role;
     planType: PlanType;
-    credits: number;
+    monthlyCredits: number;
+    purchasedCredits: number;
     creditCap: number;
     bio?: string;
     jobTitle?: string;

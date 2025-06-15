@@ -22,7 +22,7 @@ export function UserSummaryCard({ user }: UserSummaryCardProps) {
         <div className="space-y-4">
           <div className="flex items-center gap-2">
             <CreditCard className="h-5 w-5 text-muted-foreground" />
-            <span className="text-2xl font-bold">{user.credits}</span>
+            <span className="text-2xl font-bold">{user.monthlyCredits + user.purchasedCredits}</span>
             <span className="text-muted-foreground">credits available</span>
           </div>
 
@@ -43,7 +43,7 @@ export function UserSummaryCard({ user }: UserSummaryCardProps) {
           <Button asChild>
             <Link href="/prompt">Use Prompt</Link>
           </Button>
-          {(user.plan?.name === 'FREE' || user.credits < 10) && (
+          {(user.plan?.name === 'FREE' || (user.monthlyCredits + user.purchasedCredits) < 10) && (
             <Button variant="outline" asChild>
               <Link href="/billing">Upgrade Plan</Link>
             </Button>

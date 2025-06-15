@@ -1,6 +1,5 @@
 import { Suspense } from 'react';
-import PricingContent from './PricingContent';
-
+import PricingSection from '@/components/PricingSection';
 
 
 console.log('PricingPage');
@@ -10,7 +9,7 @@ export default function PricingPage() {
     <Suspense
       fallback={<div className="flex min-h-screen items-center justify-center">Loading...</div>}
     >
-      <PricingContent />
+      <PricingSection />
     </Suspense>
   );
 }

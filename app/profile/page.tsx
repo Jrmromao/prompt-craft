@@ -1,7 +1,7 @@
 import { auth } from '@clerk/nextjs/server';
 import { currentUser } from '@clerk/nextjs/server';
 import { redirect } from 'next/navigation';
-import { getProfileByClerkId } from '@/app/services/profileService';
+import { ProfileService } from '@/lib/services/profileService';
 import { ProfileClient } from './ProfileClient';
 import { Suspense } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -16,7 +16,7 @@ export default async function ProfilePage() {
     redirect('/sign-in');
   }
 
-  const dbUser = await getProfileByClerkId(userId);
+  const dbUser = await ProfileService.getInstance().getProfileByClerkId(userId);
 
   if (!dbUser) {
     redirect('/sign-in');
