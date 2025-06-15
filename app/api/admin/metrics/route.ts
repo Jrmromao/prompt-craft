@@ -12,7 +12,7 @@ export async function GET(request: Request) {
 
     // Verify admin status
     const user = await prisma.user.findUnique({
-      where: { id: userId },
+      where: { clerkId: userId },
       select: { role: true }
     });
 

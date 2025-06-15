@@ -25,7 +25,7 @@ export async function GET(request: Request, context: any) {
 
   // Check if user is admin
   const adminUser = await prisma.user.findUnique({
-    where: { id: userId },
+    where: { clerkId: userId },
     select: { role: true },
   });
 

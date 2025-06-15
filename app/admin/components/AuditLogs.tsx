@@ -32,7 +32,7 @@ import {
 } from '@tanstack/react-table';
 import { useState } from 'react';
 
-interface AuditLog {
+export interface AuditLog {
   id: string;
   action: string;
   resource: string;

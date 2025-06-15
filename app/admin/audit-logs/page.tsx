@@ -1,8 +1,28 @@
 import { AuditService } from '@/lib/services/auditService';
 import { AuditLogs } from '../components/AuditLogs';
+import { auth } from '@clerk/nextjs/server';
+import type { AuditLogEntry } from '@/lib/services/auditService';
+
 
 export default async function AuditLogsPage() {
-  const logs = await AuditService.getRecentLogs(100);
+  const { userId } = await auth();
+  if (!userId) {
+    throw new Error('Unauthorized');
+  }
+
+  const logs = (await AuditService.getInstance().getAuditLogs(userId, {
+    limit: 100,
+  })).filter(log => log.id !== undefined).map(log => ({
+    id: log.id!,
+    action: log.action,
+    resource: log.resource,
+    userId: log.userId,
+    ipAddress: log.ipAddress || null,
+    status: log.status || 'success',
+    details: log.details,
+    timestamp: log.timestamp || new Date(),
+    user: log.user
+  }));
 
   return (
     <div className="space-y-6">
