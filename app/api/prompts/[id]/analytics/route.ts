@@ -96,12 +96,12 @@ export async function GET(
     const dailyStats = await prisma.promptAnalytics.findMany({
       where: {
         promptId: promptId,
-        date: {
+        createdAt: {
           gte: thirtyDaysAgo
         }
       },
       orderBy: {
-        date: 'asc'
+        createdAt: 'asc'
       }
     });
 

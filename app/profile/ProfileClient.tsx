@@ -14,6 +14,7 @@ import {
   Circle,
   Lock,
   Shield,
+  Activity as ActivityIcon,
 } from 'lucide-react';
 import { NavBar } from '@/components/layout/NavBar';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -60,6 +61,9 @@ import BillingInvoicesSection from '@/components/profile/BillingInvoicesSection'
 import PrivacySettingsPage from '@/app/profile/privacy/page';
 import { CreditPurchaseSection } from '@/app/components/profile/CreditPurchaseSection';
 import { CreditPurchaseDialog } from '@/app/components/profile/CreditPurchaseDialog';
+import { ActivityList } from '@/components/settings/activity-list';
+import { AuditService, AuditLogEntry } from '@/lib/services/auditService';
+import { AuditAction } from '@/app/constants/audit';
 
 const Sheet = dynamic(() => import('@/components/ui/sheet').then(mod => mod.Sheet), {
   ssr: false,
@@ -71,6 +75,7 @@ const SheetContent = dynamic(() => import('@/components/ui/sheet').then(mod => m
 const accountOptions = [
   { label: 'Overview', icon: User, href: 'overview' },
   { label: 'Usage & Activity', icon: BarChart2, href: 'usage' },
+  { label: 'Activity Log', icon: ActivityIcon, href: 'activity' },
   { label: 'Billing', icon: BillingIcon, href: 'billing' },
   { label: 'Settings', icon: Settings, href: 'settings' },
   { label: 'Security', icon: Lock, href: 'security' },
@@ -164,7 +169,6 @@ interface UsageData {
   }>;
 }
 
-type Theme = 'light' | 'dark' | 'system';
 
 function SettingsSection(props: SettingsSectionProps) {
   const { data, error, isLoading, mutate } = props;
@@ -402,100 +406,6 @@ function SecuritySection({ data, error, isLoading, mutate }: SecuritySectionProp
   );
 }
 
-function ProfileHeader({
-  user,
-  status,
-  statusColor,
-  statusLabel,
-  isPro,
-  canUpgrade,
-  creditPercentage,
-  router,
-}: {
-  user: ProfileClientProps['user'];
-  status: 'active' | 'trial' | 'suspended';
-  statusColor: string;
-  statusLabel: string;
-  isPro: boolean;
-  canUpgrade: boolean;
-  creditPercentage: number;
-  router: ReturnType<typeof useRouter>;
-}) {
-  const totalCredits = user.monthlyCredits + user.purchasedCredits;
-  return (
-    <Card className="relative flex flex-col items-stretch gap-0 overflow-hidden rounded-2xl border border-border bg-card p-8 shadow-lg md:flex-row">
-      {/* Gradient background */}
-      <div className="pointer-events-none absolute inset-0">
-        <div className="absolute -left-10 -top-10 h-40 w-40 animate-pulse rounded-full bg-gradient-to-br from-purple-500/20 to-pink-500/10 blur-2xl" />
-        <div className="animate-pulse-slow absolute bottom-0 right-0 h-32 w-32 rounded-full bg-gradient-to-tr from-pink-500/10 to-purple-500/20 blur-2xl" />
-      </div>
-      {/* 2-column layout */}
-      <div className="z-10 flex flex-1 flex-col justify-center gap-2 md:gap-3">
-        <div className="flex flex-wrap items-center gap-3">
-          <span className="flex items-center gap-2 text-2xl font-bold text-foreground">
-            {user.name || 'Unnamed User'}
-            <span className="ml-1 inline-flex items-center">
-              <Circle className={`mr-1 h-3 w-3 ${statusColor}`} />
-              <span className="text-xs text-muted-foreground">{statusLabel} joao</span>
-            </span>
-          </span>
-          <Badge
-            className={`bg-gradient-to-r from-purple-500 to-pink-500 px-2 py-0.5 text-xs font-semibold text-white ${isPro ? 'shadow-[0_0_8px_2px_rgba(168,85,247,0.4)]' : ''}`}
-          >
-            {isPro && <Sparkles className="animate-spin-slow mr-1 h-3 w-3" />}
-            {user.planType}
-          </Badge>
-        </div>
-        <div className="mt-1 flex items-center gap-2">
-          {user.planType === 'FREE' && (
-            <Button
-              size="sm"
-              className="bg-gradient-to-r from-purple-600 to-pink-600 px-4 py-1 text-sm font-semibold text-white shadow transition hover:from-purple-700 hover:to-pink-700"
-              onClick={() => router.push('/pricing')}
-            >
-              Upgrade Plan
-            </Button>
-          )}
-          <Button
-            size="sm"
-            variant="outline"
-            className="border-purple-200 bg-white px-4 py-1 text-sm font-semibold text-purple-600 shadow-sm transition hover:bg-purple-50"
-            onClick={() => router.push('/billing')}
-          >
-            Buy Credits
-          </Button>
-        </div>
-        <div className="mt-2 text-sm text-muted-foreground">{user.email}</div>
-        <div className="text-xs capitalize text-muted-foreground">{user.role}</div>
-      </div>
-      {/* Credits Widget (right column) */}
-      <div className="z-10 mt-8 flex min-w-[260px] flex-col items-end justify-center md:mt-0 md:pl-12">
-        <div className="mb-1 flex items-center gap-2">
-          <span className="text-xs font-medium text-muted-foreground">Credits</span>
-          <Sparkles className="h-4 w-4 animate-pulse text-purple-400" />
-        </div>
-        <div className="flex w-full items-center gap-2">
-          <Progress
-            value={creditPercentage}
-            className="h-2 flex-1 bg-muted [&>div]:bg-gradient-to-r [&>div]:from-purple-500 [&>div]:to-pink-500"
-          />
-          <span className="ml-2 whitespace-nowrap text-xs font-semibold text-muted-foreground">
-            {totalCredits} / {user.creditCap}
-          </span>
-          {canUpgrade && (
-            <Button
-              size="sm"
-              className="ml-2 rounded bg-gradient-to-r from-purple-600 to-pink-600 px-3 py-0.5 text-xs font-semibold text-white shadow transition hover:from-purple-700 hover:to-pink-700"
-              onClick={() => router.push('/billing')}
-            >
-              Upgrade
-            </Button>
-          )}
-        </div>
-      </div>
-    </Card>
-  );
-}
 
 function ProfileContent({ user, currentPath }: ProfileClientProps) {
   const router = useRouter();
@@ -506,6 +416,8 @@ function ProfileContent({ user, currentPath }: ProfileClientProps) {
     currentPath && validTabs.includes(currentPath) ? currentPath : 'overview'
   );
   const [isCreditModalOpen, setIsCreditModalOpen] = useState(false);
+  const [activities, setActivities] = useState<AuditLogEntry[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   function handleSidebarClick(tabValue: string) {
     setActiveTab(tabValue);
@@ -779,6 +691,41 @@ function ProfileContent({ user, currentPath }: ProfileClientProps) {
   const privatePromptPercentage =
     privatePromptLimit === Infinity ? 0 : (privatePromptCount / privatePromptLimit) * 100;
 
+  useEffect(() => {
+    async function fetchActivities() {
+      try {
+        console.log('Fetching activities for user:', user.id);
+        const auditService = AuditService.getInstance();
+
+          
+        // Create a test audit log
+        const testLog = {
+          userId: user.id,
+          action: AuditAction.USER_GET_PROFILE,
+          resource: 'profile',
+          details: { message: 'Test audit log' },
+          status: 'success',
+        };
+        console.log('Creating test audit log:', testLog);
+        await auditService.logAudit(testLog);
+
+        console.log('Fetching audit logs...');
+        const logs = await auditService.getAuditLogs(user.id, { limit: 50 });
+        console.log('Fetched activities:', logs);
+        setActivities(logs);
+      } catch (error) {
+        console.error('Failed to fetch activities:', error);
+        if (error instanceof Error) {
+          console.error('Error details:', error.message, error.stack);
+        }
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    fetchActivities();
+  }, [user.id]);
+
   return (
     <div className="min-h-screen bg-background">
       <NavBar user={user} />
@@ -926,6 +873,26 @@ function ProfileContent({ user, currentPath }: ProfileClientProps) {
               <TabsContent value="privacy">
                 <Card className="rounded-2xl border border-border bg-card p-8 shadow-lg">
                   <PrivacySettingsPage />
+                </Card>
+              </TabsContent>
+              <TabsContent value="activity">
+                <Card className="rounded-2xl border border-border bg-card p-8 shadow-lg">
+                  <div className="space-y-6">
+                    <div className="flex items-center gap-2">
+                      <ActivityIcon className="h-5 w-5" />
+                      <h1 className="text-2xl font-bold">Activity History</h1>
+                    </div>
+                    <p className="text-muted-foreground">
+                      View your recent account activity and actions
+                    </p>
+                    {isLoading ? (
+                      <div className="text-center text-muted-foreground py-8">
+                        Loading activities...
+                      </div>
+                    ) : (
+                      <ActivityList activities={activities} />
+                    )}
+                  </div>
                 </Card>
               </TabsContent>
             </Tabs>

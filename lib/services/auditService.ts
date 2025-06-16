@@ -1,8 +1,7 @@
-import { PrismaClient, Prisma } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 import { AuditAction } from '@/app/constants/audit';
 import { ServiceError } from './types';
-
-const prisma = new PrismaClient();
+import { prisma } from '@/lib/prisma';
 
 export interface AuditLogEntry {
   id?: string;
@@ -32,17 +31,24 @@ export class AuditService {
 
   public async logAudit(entry: AuditLogEntry): Promise<void> {
     try {
-      await prisma.auditLog.create({
+      console.log('Creating audit log entry:', entry);
+      const result = await prisma.auditLog.create({
         data: {
           userId: entry.userId,
           action: entry.action,
           resource: entry.resource,
           details: entry.details,
+          status: entry.status || 'success',
+          ipAddress: entry.ipAddress,
           timestamp: new Date(),
         },
       });
+      console.log('Successfully created audit log:', result);
     } catch (error) {
       console.error('Failed to log audit entry:', error);
+      if (error instanceof Error) {
+        console.error('Error details:', error.message, error.stack);
+      }
       // Don't throw - audit logging should not break the main flow
     }
   }
@@ -56,6 +62,7 @@ export class AuditService {
     endDate?: Date;
   }): Promise<AuditLogEntry[]> {
     try {
+      console.log('Fetching audit logs for user:', userId, 'with options:', options);
       const logs = await prisma.auditLog.findMany({
         where: {
           userId,
@@ -76,6 +83,7 @@ export class AuditService {
         },
       });
 
+      console.log('Found audit logs:', logs);
       return logs.map(log => ({
         id: log.id,
         userId: log.userId,
@@ -88,6 +96,10 @@ export class AuditService {
         user: log.user,
       }));
     } catch (error) {
+      console.error('Failed to fetch audit logs:', error);
+      if (error instanceof Error) {
+        console.error('Error details:', error.message, error.stack);
+      }
       throw new ServiceError('Failed to fetch audit logs', 'AUDIT_LOG_FETCH_ERROR');
     }
   }

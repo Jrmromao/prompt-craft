@@ -1,7 +1,7 @@
-import { getAuth } from '@clerk/nextjs/server';
+import { NextRequest, NextResponse } from 'next/server';
+import { auth } from '@clerk/nextjs/server';
 import { prisma } from '@/lib/prisma';
-import { NextResponse } from 'next/server';
-import { NextRequest } from 'next/server';
+import { headers } from 'next/headers';
 
 // Constants for view tracking
 const VIEW_TRACKING_WINDOW_DAYS = 7;
@@ -13,58 +13,55 @@ export const revalidate = 0;
 
 export async function POST(
   request: NextRequest,
-  context: any
+  { params }: { params: { id: string } }
 ) {
   try {
-    const { userId } = getAuth(request);
-    const ipAddress = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip');
-    const userAgent = request.headers.get('user-agent');
+    const { userId } = await auth();
+    const headersList = await headers();
+    const ipAddress = headersList.get('x-forwarded-for') || undefined;
 
-    // Check if this is a unique view
     const existingView = await prisma.promptView.findFirst({
       where: {
-        promptId: context.params.id,
+        promptId: params.id,
         OR: [
           { userId: userId || undefined },
           { ipAddress: ipAddress || undefined }
         ],
         createdAt: {
-          gte: new Date(Date.now() - VIEW_TRACKING_WINDOW_DAYS * MILLISECONDS_PER_DAY)
+          gte: new Date(Date.now() - 1000 * 60 * 60) // Last hour
         }
       }
     });
 
-    // If it's not a unique view, just return success
-    if (existingView) {
-      return new NextResponse('View already tracked', { status: 200 });
+    if (!existingView) {
+      await prisma.$transaction(async (tx) => {
+        // Create new view record
+        await tx.promptView.create({
+          data: {
+            promptId: params.id,
+            userId: userId || undefined,
+            ipAddress: ipAddress || undefined,
+            userAgent: headersList.get('user-agent') || undefined
+          }
+        });
+
+        // Update prompt view count
+        await tx.prompt.update({
+          where: { id: params.id },
+          data: {
+            viewCount: { increment: 1 },
+            lastViewedAt: new Date()
+          }
+        });
+      });
     }
 
-    await prisma.$transaction(async (tx) => {
-      // Create view record
-      await tx.promptView.create({
-        data: {
-          promptId: context.params.id,
-          userId: userId || null,
-          ipAddress: ipAddress || null,
-          userAgent: userAgent || null,
-        },
-      });
-
-      // Update prompt view count
-      await tx.prompt.update({
-        where: { id: context.params.id },
-        data: {
-          viewCount: {
-            increment: 1,
-          },
-          lastViewedAt: new Date(),
-        },
-      });
-    });
-
-    return new NextResponse('View tracked', { status: 200 });
+    return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Error tracking view:', error);
-    return new NextResponse('Internal Server Error', { status: 500 });
+    return NextResponse.json(
+      { error: 'Failed to track view' },
+      { status: 500 }
+    );
   }
 } 

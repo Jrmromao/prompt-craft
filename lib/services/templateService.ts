@@ -13,13 +13,15 @@ export class TemplateService {
     if (filters.search) params.append('search', filters.search);
     if (filters.isPublic) params.append('isPublic', 'true');
 
-    const response = await fetch(`/api/templates?${params.toString()}`);
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+    const response = await fetch(`${baseUrl}/api/templates?${params.toString()}`);
     if (!response.ok) throw new Error('Failed to fetch templates');
     return response.json();
   }
 
   async getTemplateById(id: string) {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/templates/${id}`);
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+    const response = await fetch(`${baseUrl}/api/templates/${id}`);
     if (!response.ok) throw new Error('Failed to fetch template');
     return response.json();
   }
@@ -66,7 +68,8 @@ export class TemplateService {
 
   async getPopularTemplates(limit = 5) {
     try {
-      const response = await fetch(`/api/templates/popular?limit=${limit}`);
+      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+      const response = await fetch(`${baseUrl}/api/templates/popular?limit=${limit}`);
       if (!response.ok) {
         const error = await response.json();
         throw new Error(error.error || 'Failed to fetch popular templates');
