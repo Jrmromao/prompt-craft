@@ -6,8 +6,10 @@ export async function POST(
   { params }: { params: { id: string } }
 ) {
   try {
+    const templateId = params.id;
+    
     const template = await prisma.promptTemplate.update({
-      where: { id: params.id },
+      where: { id: templateId },
       data: {
         usageCount: {
           increment: 1
@@ -17,9 +19,9 @@ export async function POST(
 
     return NextResponse.json(template);
   } catch (error) {
-    console.error('Error incrementing template usage:', error);
+    console.error('Error updating template usage:', error);
     return NextResponse.json(
-      { error: 'Failed to increment template usage' },
+      { error: 'Failed to update template usage' },
       { status: 500 }
     );
   }

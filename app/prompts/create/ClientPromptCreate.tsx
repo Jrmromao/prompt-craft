@@ -51,7 +51,8 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import { AIService } from '@/lib/services/aiService';
-import type { PromptPayload, PromptType } from '@/types/ai';
+import { PromptType, LLMType } from '@/types/ai';
+import { AVAILABLE_LLMS } from '@/types/ai';
 import { useToast } from '@/components/ui/use-toast';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import type { NavBarUser } from '@/components/layout/NavBar';
@@ -75,6 +76,8 @@ import { CreditUsageIndicator } from '@/components/CreditUsageIndicator';
 import { CreditUsageNotification } from '@/components/CreditUsageNotification';
 import { useCreditBalance } from '@/hooks/useCreditBalance';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { cn } from '@/lib/utils';
 
 interface ExamplePrompt {
   id: string;
@@ -823,6 +826,7 @@ interface FormData {
   temperature: number;
   language: string;
   promptType: PromptType;
+  llm: LLMType;
   persona?: string;
   includeImageDescription?: boolean;
   systemPrompt?: string;
@@ -849,6 +853,19 @@ const LANGUAGE_OPTIONS = [
   { value: 'fr', label: 'Français', flag: '🇫🇷', description: 'French' },
 ];
 
+const getCategoryColor = (category: string) => {
+  switch (category) {
+    case 'enterprise':
+      return 'bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-400';
+    case 'standard':
+      return 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400';
+    case 'open-source':
+      return 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400';
+    default:
+      return 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400';
+  }
+};
+
 const ClientPromptCreate = memo<ClientPromptCreateProps>(function ClientPromptCreate() {
   const searchParams = useSearchParams();
   const templateId = searchParams.get('template') ?? "";
@@ -870,13 +887,14 @@ const ClientPromptCreate = memo<ClientPromptCreateProps>(function ClientPromptCr
     tags: [],
     tone: 'professional',
     format: 'article',
-    wordCount: '500',
-    targetAudience: 'general',
-    includeExamples: true,
-    includeKeywords: true,
+    wordCount: '',
+    targetAudience: '',
+    includeExamples: false,
+    includeKeywords: false,
     temperature: 0.7,
     language: 'en',
     promptType: 'content-creation',
+    llm: 'gpt-4',
     systemPrompt: '',
     context: '',
     examples: [],
@@ -887,7 +905,7 @@ const ClientPromptCreate = memo<ClientPromptCreateProps>(function ClientPromptCr
     presencePenalty: 0,
     maxTokens: 2000,
     validationRules: [],
-    fallbackStrategy: '',
+    fallbackStrategy: ''
   });
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [editableAiResponse, setEditableAiResponse] = useState<string | null>(null);
@@ -910,6 +928,8 @@ const ClientPromptCreate = memo<ClientPromptCreateProps>(function ClientPromptCr
   const { balance, isLoading: isCreditLoading } = useCreditBalance();
   const [showCreditWarning, setShowCreditWarning] = useState(false);
   const [customTone, setCustomTone] = useState('');
+  const [showAllModels, setShowAllModels] = useState(false);
+  const defaultModels: LLMType[] = ['gpt-4', 'claude-3-opus', 'deepseek-coder-33b'];
 
   useEffect(() => {
     if (templateId) {
@@ -1075,7 +1095,7 @@ const ClientPromptCreate = memo<ClientPromptCreateProps>(function ClientPromptCr
       // Check credit balance before proceeding
       if (balance) {
         const totalCredits = balance.monthlyCredits + balance.purchasedCredits;
-        
+
         if (totalCredits < estimatedCost) {
           setShowCreditsDialog(true);
           setCreditsInfo({
@@ -1085,6 +1105,15 @@ const ClientPromptCreate = memo<ClientPromptCreateProps>(function ClientPromptCr
           });
           setIsSubmitting(false);
           return;
+        }
+
+        // Show warning if usage is high
+        if (balance.usage.monthlyPercentage >= 75) {
+          toast({
+            title: 'High Credit Usage',
+            description: `You've used ${balance.usage.monthlyPercentage}% of your monthly credits. Consider upgrading your plan or purchasing additional credits.`,
+            variant: 'default',
+          });
         }
       }
 
@@ -1100,6 +1129,7 @@ const ClientPromptCreate = memo<ClientPromptCreateProps>(function ClientPromptCr
           isPublic: formData.isPublic,
           tags: formData.tags,
           promptType: formData.promptType,
+          llm: formData.llm,
           tone: formData.tone,
           format: formData.format,
           wordCount: formData.wordCount,
@@ -1152,9 +1182,11 @@ const ClientPromptCreate = memo<ClientPromptCreateProps>(function ClientPromptCr
 
       router.push(`/prompts/${prompt.id}`);
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to create prompt';
+      setError(errorMessage);
       toast({
         title: 'Error',
-        description: 'Failed to create prompt',
+        description: errorMessage,
         variant: 'destructive',
       });
     } finally {
@@ -1407,75 +1439,77 @@ const ClientPromptCreate = memo<ClientPromptCreateProps>(function ClientPromptCr
                       />
                     </div>
 
-                    <div className="space-y-2">
-                      <Label htmlFor="language">Language</Label>
-                      <Select
-                        value={formData.language}
-                        onValueChange={(value) => setFormData(prev => ({ ...prev, language: value }))}
-                      >
-                        <SelectTrigger className="w-[200px]">
-                          <SelectValue placeholder="Select language" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {LANGUAGE_OPTIONS.map((lang) => (
-                            <SelectItem key={lang.value} value={lang.value}>
-                              <div className="flex items-center gap-2">
-                                <span className="text-lg">{lang.flag}</span>
-                                <div className="flex flex-col">
-                                  <span>{lang.label}</span>
-                                  <span className="text-xs text-muted-foreground">{lang.description}</span>
-                                </div>
-                              </div>
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <p className="text-sm text-muted-foreground">
-                        Select the language for your prompt
-                      </p>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="tone">Tone</Label>
-                      <div className="flex gap-2">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-2">
+                        <Label htmlFor="language">Language</Label>
                         <Select
-                          value={formData.tone}
-                          onValueChange={(value) => {
-                            setFormData(prev => ({ ...prev, tone: value }));
-                            if (value !== 'custom') {
-                              setCustomTone('');
-                            }
-                          }}
+                          value={formData.language}
+                          onValueChange={(value) => setFormData(prev => ({ ...prev, language: value }))}
                         >
-                          <SelectTrigger className="w-[200px]">
-                            <SelectValue placeholder="Select tone" />
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Select language" />
                           </SelectTrigger>
                           <SelectContent>
-                            {TONE_OPTIONS.map((tone) => (
-                              <SelectItem key={tone.value} value={tone.value}>
-                                <div className="flex flex-col">
-                                  <span>{tone.label}</span>
-                                  <span className="text-xs text-muted-foreground">{tone.description}</span>
+                            {LANGUAGE_OPTIONS.map((lang) => (
+                              <SelectItem key={lang.value} value={lang.value}>
+                                <div className="flex items-center gap-2">
+                                  <span className="text-lg">{lang.flag}</span>
+                                  <div className="flex flex-col">
+                                    <span>{lang.label}</span>
+                                    <span className="text-xs text-muted-foreground">{lang.description}</span>
+                                  </div>
                                 </div>
                               </SelectItem>
                             ))}
                           </SelectContent>
                         </Select>
-                        {formData.tone === 'custom' && (
-                          <Input
-                            value={customTone}
-                            onChange={(e) => {
-                              setCustomTone(e.target.value);
-                              setFormData(prev => ({ ...prev, tone: e.target.value }));
-                            }}
-                            placeholder="Enter custom tone"
-                            className="flex-1"
-                          />
-                        )}
+                        <p className="text-sm text-muted-foreground">
+                          Select the language for your prompt
+                        </p>
                       </div>
-                      <p className="text-sm text-muted-foreground">
-                        The tone helps set the style and mood of the generated content
-                      </p>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="tone">Tone</Label>
+                        <div className="flex gap-2">
+                          <Select
+                            value={formData.tone}
+                            onValueChange={(value) => {
+                              setFormData(prev => ({ ...prev, tone: value }));
+                              if (value !== 'custom') {
+                                setCustomTone('');
+                              }
+                            }}
+                          >
+                            <SelectTrigger className="w-full">
+                              <SelectValue placeholder="Select tone" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {TONE_OPTIONS.map((tone) => (
+                                <SelectItem key={tone.value} value={tone.value}>
+                                  <div className="flex flex-col">
+                                    <span>{tone.label}</span>
+                                    <span className="text-xs text-muted-foreground">{tone.description}</span>
+                                  </div>
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          {formData.tone === 'custom' && (
+                            <Input
+                              value={customTone}
+                              onChange={(e) => {
+                                setCustomTone(e.target.value);
+                                setFormData(prev => ({ ...prev, tone: e.target.value }));
+                              }}
+                              placeholder="Enter custom tone"
+                              className="flex-1"
+                            />
+                          )}
+                        </div>
+                        <p className="text-sm text-muted-foreground">
+                          The tone helps set the style and mood of the generated content
+                        </p>
+                      </div>
                     </div>
 
                     <div className="space-y-2">
@@ -1587,10 +1621,182 @@ const ClientPromptCreate = memo<ClientPromptCreateProps>(function ClientPromptCr
                         )}
                       </Label>
                     </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="llm">Language Model</Label>
+                      <Alert variant="default" className="mb-4 border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-900/20">
+                        <Info className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                        <AlertTitle className="text-blue-800 dark:text-blue-300">More Models Coming Soon</AlertTitle>
+                        <AlertDescription className="text-blue-700 dark:text-blue-400">
+                          We're continuously adding new models to provide you with more options. Stay tuned for updates!
+                        </AlertDescription>
+                      </Alert>
+                      <div className="flex items-center gap-2 mb-4">
+                        <h4 className="font-medium">Credit Cost Legend</h4>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <HelpCircle className="h-4 w-4 cursor-pointer text-gray-400 hover:text-purple-500 transition-colors" />
+                          </TooltipTrigger>
+                          <TooltipContent 
+                            side="right" 
+                            className="w-96 p-4 bg-white dark:bg-gray-800 border-purple-200 dark:border-purple-800 shadow-lg"
+                          >
+                            <div className="space-y-4">
+                              <div className="flex items-center justify-between border-b border-purple-100 dark:border-purple-800 pb-2">
+                                <h5 className="font-semibold text-purple-800 dark:text-purple-300">Credit Costs</h5>
+                                <Badge variant="outline" className="bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300">
+                                  Per 1,000 tokens
+                                </Badge>
+                              </div>
+                              
+                              <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                  <div className="flex items-center gap-2">
+                                    <Badge variant="outline" className="flex items-center gap-1 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300">
+                                      <span className="text-muted-foreground">Input:</span>
+                                      <span className="font-medium">
+                                        {AVAILABLE_LLMS.find(llm => llm.value === formData.llm)?.creditCost.input ?? 0}
+                                      </span>
+                                    </Badge>
+                                  </div>
+                                  <p className="text-xs text-muted-foreground">For prompt tokens</p>
+                                </div>
+
+                                <div className="space-y-2">
+                                  <div className="flex items-center gap-2">
+                                    <Badge variant="outline" className="flex items-center gap-1 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300">
+                                      <span className="text-muted-foreground">Output:</span>
+                                      <span className="font-medium">
+                                        {AVAILABLE_LLMS.find(llm => llm.value === formData.llm)?.creditCost.output ?? 0}
+                                      </span>
+                                    </Badge>
+                                  </div>
+                                  <p className="text-xs text-muted-foreground">For response tokens</p>
+                                </div>
+                              </div>
+
+                              <div className="pt-3 border-t border-purple-100 dark:border-purple-800">
+                                <div className="flex items-center gap-2 mb-2">
+                                  <Info className="h-4 w-4 text-purple-500" />
+                                  <h6 className="font-medium text-purple-800 dark:text-purple-300">Example Calculation</h6>
+                                </div>
+                                <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-3">
+                                  <p className="text-sm text-purple-700 dark:text-purple-400">
+                                    A 500-token prompt with 200-token response would cost{' '}
+                                    <span className="font-semibold">
+                                      {(
+                                        (AVAILABLE_LLMS.find(llm => llm.value === formData.llm)?.creditCost.input ?? 0) * 0.5 +
+                                        (AVAILABLE_LLMS.find(llm => llm.value === formData.llm)?.creditCost.output ?? 0) * 0.2
+                                      ).toFixed(1)}{' '}
+                                      credits
+                                    </span>
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          </TooltipContent>
+                        </Tooltip>
+                      </div>
+                      <ScrollArea className="h-[400px] rounded-md border p-4">
+                        <RadioGroup
+                          value={formData.llm}
+                          onValueChange={(value) => setFormData(prev => ({ ...prev, llm: value as LLMType }))}
+                          className="space-y-4"
+                        >
+                          {AVAILABLE_LLMS
+                            .filter(llm => showAllModels || defaultModels.includes(llm.value))
+                            .map((llm) => (
+                            <div
+                              key={llm.value}
+                              className={cn(
+                                "flex items-start space-x-4 rounded-lg border p-4 transition-colors",
+                                formData.llm === llm.value
+                                  ? "border-primary bg-primary/5"
+                                  : "hover:bg-accent/50"
+                              )}
+                            >
+                              <RadioGroupItem
+                                value={llm.value}
+                                id={llm.value}
+                                className="mt-1"
+                              />
+                              <div className="flex-1 space-y-1">
+                                <div className="flex items-center justify-between">
+                                  <Label
+                                    htmlFor={llm.value}
+                                    className="text-base font-semibold"
+                                  >
+                                    {llm.label}
+                                  </Label>
+                                  <div className="flex items-center gap-2">
+                                    <Badge
+                                      variant="secondary"
+                                      className={getCategoryColor(llm.category)}
+                                    >
+                                      {llm.provider}
+                                    </Badge>
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <Badge
+                                          variant="outline"
+                                          className="flex items-center gap-1 text-xs"
+                                        >
+                                          <span className="text-muted-foreground">Cost:</span>
+                                          <span className="font-medium">
+                                            {llm.creditCost.input} → {llm.creditCost.output}
+                                          </span>
+                                        </Badge>
+                                      </TooltipTrigger>
+                                      <TooltipContent className="max-w-[300px]">
+                                        <div className="space-y-2">
+                                          <p className="font-medium">Credit Cost per 1,000 tokens:</p>
+                                          <div className="text-sm space-y-1">
+                                            <p>• Input: {llm.creditCost.input} credits</p>
+                                            <p>• Output: {llm.creditCost.output} credits</p>
+                                          </div>
+                                          <p className="text-xs text-muted-foreground">
+                                            Example: A 500-token prompt with 200-token response would cost {(llm.creditCost.input * 0.5 + llm.creditCost.output * 0.2).toFixed(1)} credits
+                                          </p>
+                                        </div>
+                                      </TooltipContent>
+                                    </Tooltip>
+                                  </div>
+                                </div>
+                                <p className="text-sm text-muted-foreground">
+                                  {llm.description}
+                                </p>
+                                <div className="flex flex-wrap gap-2 pt-2">
+                                  {llm.capabilities.map((capability) => (
+                                    <Badge
+                                      key={capability}
+                                      variant="outline"
+                                      className="text-xs"
+                                    >
+                                      {capability}
+                                    </Badge>
+                                  ))}
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </RadioGroup>
+                        {!showAllModels && (
+                          <div className="mt-4 flex justify-center">
+                            <Button
+                              type="button"
+                              variant="outline"
+                              onClick={() => setShowAllModels(true)}
+                              className="flex items-center gap-2"
+                            >
+                              <ChevronDown className="h-4 w-4" />
+                              Show More Models
+                            </Button>
+                          </div>
+                        )}
+                      </ScrollArea>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
-     
               {/* Action Buttons */}
               <div className="flex justify-end gap-4">
                 <Button
@@ -1609,12 +1815,12 @@ const ClientPromptCreate = memo<ClientPromptCreateProps>(function ClientPromptCr
                 >
                   {isSubmitting ? (
                     <>
-                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <Loader2 className="h-4 animate-spin" />
                       Creating...
                     </>
                   ) : (
                     <>
-                      <Sparkles className="h-4 w-4" />
+                      <Sparkles className="h-4" />
                       Create Prompt
                     </>
                   )}

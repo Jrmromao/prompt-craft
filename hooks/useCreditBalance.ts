@@ -4,6 +4,12 @@ import { useAuth } from '@clerk/nextjs';
 interface CreditBalance {
   monthlyCredits: number;
   purchasedCredits: number;
+  totalCredits: number;
+  usage: {
+    monthlyTotal: number;
+    monthlyPercentage: number;
+    nextResetDate: string;
+  };
 }
 
 export function useCreditBalance() {

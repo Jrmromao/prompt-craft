@@ -6,21 +6,25 @@ const templateService = new TemplateService();
 
 export async function GET(
   request: Request,
-  context: { params: { id: string } }
+  { params }: { params: { id: string } }
 ) {
   try {
+    const templateId = params.id;
+    
     const template = await prisma.promptTemplate.findUnique({
-      where: { id: context.params.id },
+      where: { id: templateId },
       include: {
         user: {
           select: {
+            id: true,
             name: true,
-            email: true
+            email: true,
+            imageUrl: true
           }
         }
       }
     });
-    
+
     if (!template) {
       return NextResponse.json(
         { error: 'Template not found' },
