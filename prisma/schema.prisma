@@ -9,7 +9,9 @@ datasource db {
 
 model User {
   id                        String                     @id @default(cuid())
-  email                     String                     @unique
+  email                     String                     @unique 
+  username                  String                     @unique @default(dbgenerated("'@user' || floor(random() * 1000000)::text"))
+  displayName               String?
   createdAt                 DateTime                   @default(now())
   updatedAt                 DateTime                   @updatedAt
   clerkId                   String                     @unique
@@ -29,6 +31,8 @@ model User {
   location                  String?
   twitter                   String?
   website                   String?
+  isPublic                  Boolean                    @default(true)
+  profileUrl                String?                    @unique
   emailPreferences          Json?                      @default("{\"productUpdates\": true, \"securityAlerts\": true, \"marketingEmails\": true}")
   languagePreferences       Json?                      @default("{\"language\": \"en\", \"dateFormat\": \"MM/DD/YYYY\", \"timeFormat\": \"12h\"}")
   notificationSettings      Json?                      @default("{\"pushNotifications\": true, \"emailNotifications\": true, \"browserNotifications\": true}")
@@ -76,6 +80,10 @@ model User {
   settings                  UserSettings?
   versions                  Version[]
   votes                     Vote[]
+  followers                 Follow[]                   @relation("Follower")
+  following                 Follow[]                   @relation("Following")
+  followedPrompts           PromptFollow[]
+  favoritedPrompts          PromptFavorite[]
 
   @@index([clerkId])
   @@index([email])
@@ -86,6 +94,9 @@ model User {
   @@index([lastDataAccess])
   @@index([createdAt], map: "user_created_at_idx")
   @@index([updatedAt], map: "user_updated_at_idx")
+  @@index([username])
+  @@index([profileUrl])
+  @@index([isPublic])
 }
 
 model Plan {
@@ -173,6 +184,8 @@ model Prompt {
   dataRetentionPolicy Json?               @default("{\"autoDelete\": false, \"retentionPeriod\": 365}")
   isArchived          Boolean?            @default(false)
   archivedAt          DateTime?
+  isVerified          Boolean             @default(false)
+  isFeatured          Boolean             @default(false)
   apiUsage            ApiUsage[]
   comments            Comment[]
   likes               CommentLike[]
@@ -188,6 +201,10 @@ model Prompt {
   versions            Version[]
   votes               Vote[]
   tags                Tag[]               @relation("PromptToTag")
+  followerCount       Int                 @default(0)
+  favoriteCount       Int                 @default(0)
+  followers           PromptFollow[]
+  favorites           PromptFavorite[]
 
   @@index([userId])
   @@index([slug])
@@ -195,6 +212,10 @@ model Prompt {
   @@index([promptType])
   @@index([model])
   @@index([lastUsedAt])
+  @@index([followerCount])
+  @@index([favoriteCount])
+  @@index([isVerified])
+  @@index([isFeatured])
   @@index([createdAt], map: "prompt_created_at_idx")
   @@index([updatedAt], map: "prompt_updated_at_idx")
 }
@@ -931,4 +952,46 @@ enum TeamRole {
   OWNER
   ADMIN
   MEMBER
+}
+
+model Follow {
+  id          String   @id @default(cuid())
+  followerId  String
+  followingId String
+  createdAt   DateTime @default(now())
+  follower    User     @relation("Follower", fields: [followerId], references: [id], onDelete: Cascade)
+  following   User     @relation("Following", fields: [followingId], references: [id], onDelete: Cascade)
+
+  @@unique([followerId, followingId])
+  @@index([followerId])
+  @@index([followingId])
+  @@index([createdAt])
+}
+
+model PromptFollow {
+  id        String   @id @default(cuid())
+  userId    String
+  promptId  String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  prompt    Prompt   @relation(fields: [promptId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, promptId])
+  @@index([userId])
+  @@index([promptId])
+  @@index([createdAt])
+}
+
+model PromptFavorite {
+  id        String   @id @default(cuid())
+  userId    String
+  promptId  String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  prompt    Prompt   @relation(fields: [promptId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, promptId])
+  @@index([userId])
+  @@index([promptId])
+  @@index([createdAt])
 }
