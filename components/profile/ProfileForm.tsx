@@ -12,6 +12,7 @@ import { trackUserFlowError, trackUserFlowEvent } from '@/lib/error-tracking';
 
 interface ProfileFormProps {
   user: {
+    id: string;
     name: string;
     email: string;
     imageUrl: string;

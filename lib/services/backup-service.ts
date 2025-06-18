@@ -4,6 +4,7 @@ import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { createGzip } from 'zlib';
 import { pipeline } from 'stream/promises';
 import { Readable } from 'stream';
+import { AuditAction } from '@/app/constants/audit';
 
 export class BackupService {
   private static instance: BackupService;
@@ -44,26 +45,31 @@ export class BackupService {
       await this.uploadToS3(compressedData, filename);
 
       // Log the backup
-      await this.auditLogger.logSecurityEvent(
-        'SECURITY_EVENT',
-        'BACKUP',
+      await this.auditLogger.logAudit(
         {
+          userId: 'system',
+          action: AuditAction.BACKUP,
+          resource: 'backup',
+          status: 'success',
+          details: {
           filename,
           timestamp,
           size: compressedData.length,
         },
-        'SUCCESS'
-      );
+        timestamp: new Date(),
+      });
     } catch (error) {
       console.error('Backup failed:', error);
-      await this.auditLogger.logSecurityEvent(
-        'SECURITY_EVENT',
-        'BACKUP',
+      await this.auditLogger.logAudit(
         {
+          userId: 'system',
+          action: AuditAction.BACKUP,
+          resource: 'backup',
+          status: 'failure',
+          details: {
           error: error instanceof Error ? error.message : 'Unknown error',
         },
-        'FAILED'
-      );
+      });
       throw error;
     }
   }

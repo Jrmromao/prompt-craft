@@ -1,3 +1,4 @@
+import { AuditAction } from '@/app/constants/audit';
 import { AuditService } from './auditService';
 
 export interface ContentFilterResult {
@@ -85,15 +86,17 @@ export class ContentFilter {
     } catch (error) {
       console.error('Content filtering failed:', error);
       // In case of error, allow the content but log the error
-      await this.auditLogger.logSecurityEvent(
-        'SECURITY_EVENT',
-        'CONTENT_FILTER',
-        {
+      await this.auditLogger.logAudit({
+        userId: userId ?? null,
+        action: AuditAction.CONTENT_FILTER,
+        resource: 'content_filter',
+        status: 'failure',
+        details: {
           error: error instanceof Error ? error.message : 'Unknown error',
           content: content.substring(0, 100) + '...', // Log only first 100 chars
         },
-        'ERROR'
-      );
+        timestamp: new Date(),
+      });
       return { isAllowed: true };
     }
   }
@@ -114,17 +117,19 @@ export class ContentFilter {
     originalContent: string,
     filteredContent: string
   ): Promise<void> {
-    await this.auditLogger.logSecurityEvent(
-      'SECURITY_EVENT',
-      'CONTENT_FILTER',
-      {
+    await this.auditLogger.logAudit({
+      userId: userId ?? null,
+      action: AuditAction.CONTENT_FILTER,
+      resource: 'content_filter',
+      status: 'success',
+      details: {
         userId,
         context,
         type,
         originalContent: originalContent.substring(0, 100) + '...', // Log only first 100 chars
         filteredContent: filteredContent.substring(0, 100) + '...', // Log only first 100 chars
       },
-      'FILTERED'
-    );
+      timestamp: new Date(),
+    });
   }
 }

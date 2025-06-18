@@ -95,7 +95,9 @@ const dummyTestHistory = [
   }
 ];
 
-export default function VersionPage({ params, searchParams }: { params: { id: string }; searchParams: { versionId?: string } }) {
+export default async function VersionPage(props: { params: Promise<{ id: string }>; searchParams: Promise<{ versionId?: string }> }) {
+  const params = await props.params;
+  const searchParams = await props.searchParams;
   const promptId = params.id;
   const router = useRouter();
   const [versions, setVersions] = useState<Version[]>([]);

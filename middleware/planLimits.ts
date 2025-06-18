@@ -57,15 +57,28 @@ export class PlanLimitsMiddleware {
     return this.formatPlanLimits(user.subscription.plan);
   }
 
-  private formatPlanLimits(plan: Plan): PlanLimits {
-    return {
-      maxPrompts: plan.maxPrompts,
-      maxTokens: plan.maxTokens,
-      maxTeamMembers: plan.maxTeamMembers,
+  private async formatPlanLimits(plan: Plan): Promise<PlanLimits> {
+    // Fetch all limits for this plan type from PlanLimits table
+    const planLimits = await prisma.planLimits.findMany({
+      where: { planType: plan.name as any },
+    });
+
+    // Aggregate limits by feature
+    const limits: any = {
+      maxPrompts: 0,
+      maxTokens: 0,
+      maxTeamMembers: 0,
       features: plan.features,
       isEnterprise: plan.isEnterprise,
-      customLimits: plan.customLimits
+      customLimits: undefined,
     };
+    for (const limit of planLimits) {
+      if (limit.feature === 'maxPrompts') limits.maxPrompts = limit.limit;
+      if (limit.feature === 'maxTokens') limits.maxTokens = limit.limit;
+      if (limit.feature === 'maxTeamMembers') limits.maxTeamMembers = limit.limit;
+      // You can add more features as needed
+    }
+    return limits;
   }
 
   private async getUserMetrics(userId: string): Promise<UsageMetrics> {

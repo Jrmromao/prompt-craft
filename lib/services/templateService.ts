@@ -1,3 +1,5 @@
+import { prisma } from '@/lib/prisma';
+
 export interface TemplateFilters {
   type?: 'zero-shot' | 'few-shot' | 'chain-of-thought';
   complexity?: 'beginner' | 'intermediate' | 'advanced';
@@ -35,21 +37,30 @@ export class TemplateService {
     return response.json();
   }
 
-  async updateRating(id: string, rating: number) {
-    const template = await prisma.template.findUnique({
+  async updateRating(id: string, rating: number, userId: string) {
+    const template = await prisma.prompt.findUnique({
       where: { id },
-      select: { rating: true, usageCount: true },
+      select: { ratings: true, usageCount: true },
     });``
 
     if (!template) throw new Error('Template not found');
 
     // Calculate new average rating
-    const newRating = ((template.rating * template.usageCount) + rating) / (template.usageCount + 1);
+    const newRating = ((template.ratings.reduce((acc, curr) => acc + curr.overall, 0) * template.usageCount) + rating) / (template.usageCount + 1);
 
-    return prisma.template.update({
+    return prisma.prompt.update({
       where: { id },
       data: {
-        rating: newRating,
+        ratings: {
+          create: {
+            clarity: newRating,
+            specificity: newRating,
+            context: newRating,
+            overall: newRating,
+            feedback: '',
+            userId: userId,
+          },
+        },
       },
     });
   }

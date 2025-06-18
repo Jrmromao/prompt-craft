@@ -19,8 +19,8 @@ export async function POST(req: Request) {
       where: {
         planType: PlanType.FREE,
         OR: [
-          { lastMonthlyReset: { lt: new Date(new Date().setDate(1)) } }, // Before this month
-          { lastMonthlyReset: null }
+          { lastCreditReset: { lt: new Date(new Date().setDate(1)) } }, // Before this month
+          { lastCreditReset: null }
         ]
       },
       select: {

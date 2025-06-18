@@ -1,7 +1,7 @@
 // @ts-nocheck
 const { PrismaClient, Period } = require('@prisma/client');
 
-const prisma = new PrismaClient();
+const prismaScript = new PrismaClient();
 
 /**
  * Seed plans for the application
@@ -81,7 +81,7 @@ async function seedPlans() {
     const results = await Promise.all(
       plans.map(async (plan) => {
         try {
-          const result = await prisma.plan.upsert({
+          const result = await prismaScript.plan.upsert({
             where: { name: plan.name },
             update: plan,
             create: plan,
@@ -110,6 +110,6 @@ seedPlans()
     process.exit(1);
   })
   .finally(async () => {
-    await prisma.$disconnect();
+    await prismaScript.$disconnect();
     console.log('👋 Database connection closed');
   });

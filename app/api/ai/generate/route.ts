@@ -47,12 +47,14 @@ async function generateHandler(request: NextRequest) {
     }
 
     const aiService = AIService.getInstance();
-    const result = await aiService.generateText({
+    const result = await aiService.generateText(
       prompt,
-      model: model || 'gpt-4',
-      temperature: temperature || 0.7,
-      maxTokens: maxTokens || 1000,
-    });
+      {
+        model: model || 'gpt-4',
+        temperature: temperature || 0.7,
+        maxTokens: maxTokens || 1000,
+      }
+    );
 
     // Create response with security headers
     const response = NextResponse.json(result);

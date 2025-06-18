@@ -51,7 +51,8 @@ function getPromptJsonLd(prompt: any) {
   };
 }
 
-export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
+export async function generateMetadata(props: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const params = await props.params;
   const prompt = await getPrompt(params.id);
   if (!prompt) return { title: 'Prompt Not Found | PromptHive' };
 
@@ -82,7 +83,8 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
   };
 }
 
-export default async function PromptDetailPage({ params }: { params: { id: string } }) {
+export default async function PromptDetailPage(props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const prompt = await getPrompt(params.id);
   if (!prompt) return notFound();
 

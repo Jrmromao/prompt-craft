@@ -27,15 +27,58 @@ function renderFeature(feature: string, isPostMVP: boolean, index: number) {
   );
 }
 
+// 1. Define core features for each plan (lean, conversion-focused)
+const coreFeatures = {
+  FREE: [
+    '100 credits/month (resets monthly, does not accumulate)',
+    'Buy extra credits (never expire)',
+    'Earn credits from upvotes (never expire)',
+    {
+      label: 'Up to 3 private prompts',
+      note: 'If your prompts are large, your monthly credits may not cover all 3.'
+    },
+    'Create public prompts',
+    'No version control',
+    'Run prompt tests until credits are used',
+  ],
+  PRO: [
+    '500 credits/month (resets monthly, does not accumulate)',
+    'Buy extra credits at a lower rate (never expire)',
+    'Earn bonus credits from upvotes (never expire)',
+    {
+      label: 'Up to 20 private prompts',
+      note: 'More room for your best ideas—credit usage still applies.'
+    },
+    'Unlimited public prompts',
+    'Prompt version control',
+    'Advanced analytics',
+    'Priority support',
+    'Run prompt tests until credits are used',
+  ],
+  ELITE: [
+    'Unlimited credits (no monthly cap)',
+    'Unlimited private prompts',
+    'Unlimited public prompts',
+    'Unlimited prompt tests',
+    'Access to premium AI models',
+    'Custom templates',
+    'Advanced prompt version control',
+    'Early access to new features',
+    'Priority support',
+    'Dedicated onboarding session',
+    'SLA guarantee',
+    'Max credit rewards for community engagement',
+    'Exclusive community badge',
+    'Advanced analytics & reporting',
+  ],
+};
+
+// 2. Post-MVP features (for tooltip or coming soon note)
 const postMVPFeatures = [
-  'Team Collaboration (up to 3 users)',
-  'Team Collaboration (up to 10 users)',
+  'Team collaboration (up to 10 users)',
   'Custom Integrations',
-  'Custom Model Fine-tuning',
   'White-label Solutions',
-  'Custom AI Model Fine-tuning',
   'Dedicated Account Manager',
-  'Custom API Integration',
   'Advanced Security',
   'Compliance Features',
   'Custom Training',
@@ -46,86 +89,34 @@ const subscriptionPlans = [
   {
     name: 'FREE',
     price: 0,
-    description: 'Perfect for getting started',
-    features: [
-      '3 Private Prompts',
-      '100 Testing Runs/month',
-      'Access to Public Prompts',
-      'Basic Analytics',
-      'Community Support',
-      'Basic Prompt Templates',
-      'Pay-as-you-go Credits: $0.08/credit (min. 100 credits)',
-      'Uses DeepSeek & GPT-3.5 AI Models'
-    ],
+    description: 'Get started with the basics',
+    features: coreFeatures.FREE,
     popular: false,
-    isEnterprise: false
+    isEnterprise: false,
+    cta: 'Start Free',
   },
   {
     name: 'PRO',
-    price: 19,
-    description: 'For professionals and small teams',
-    features: [
-      '20 Private Prompts',
-      '500 Testing Runs/month',
-      'Advanced Analytics',
-      'Priority Support',
-      'Custom Templates',
-      'Team Collaboration (up to 3 users)',
-      'API Access',
-      'Version Control',
-      'Performance Metrics',
-      'Pay-as-you-go Credits: $0.06/credit (min. 500 credits)',
-      'Uses DeepSeek & GPT-3.5 AI Models',
-      'BYOK (Bring Your Own Key): Unlimited test runs with your own key'
-    ],
+    price: 15.99,
+    description: 'For professionals and creators',
+    features: coreFeatures.PRO,
     popular: true,
-    isEnterprise: false
+    isEnterprise: false,
+    cta: 'Upgrade to Pro',
   },
   {
     name: 'ELITE',
     price: 49,
-    description: 'For serious professionals and teams',
-    features: [
-      'Unlimited Private Prompts',
-      'Unlimited Testing Runs',
-      'Advanced AI Parameters',
-      'Team Collaboration (up to 10 users)',
-      'Custom Integrations',
-      'Advanced Analytics',
-      'Priority Support',
-      'Custom Model Fine-tuning',
-      'White-label Solutions',
-      'SLA Guarantee',
-      'Unlimited credits included',
-      'Uses Premium AI Model',
-      'BYOK (Bring Your Own Key)'
-    ],
+    description: 'For power users and teams',
+    features: coreFeatures.ELITE,
     popular: false,
-    isEnterprise: false
+    isEnterprise: false,
+    cta: 'Go Elite',
   },
-  {
-    name: 'ENTERPRISE',
-    price: null,
-    description: 'Custom solutions for large organizations',
-    features: [
-      'Everything in Elite',
-      'Unlimited Team Members',
-      'Custom AI Model Fine-tuning',
-      'Dedicated Account Manager',
-      'Custom API Integration',
-      'Advanced Security',
-      'Compliance Features',
-      'Custom Training',
-      'Custom Development',
-      'SLA Guarantee',
-      'Unlimited credits included',
-      'Uses Premium AI Model (custom options available)',
-      'BYOK (Bring Your Own Key',
-    ],
-    popular: false,
-    isEnterprise: true
-  }
 ];
+
+// Update annual discount to 15%
+const ANNUAL_DISCOUNT = 0.15;
 
 export default function PricingSection() {
   const [isAnnual, setIsAnnual] = useState(false);
@@ -145,7 +136,7 @@ export default function PricingSection() {
               onCheckedChange={setIsAnnual}
               className="data-[state=checked]:bg-purple-600"
             />
-            <span className={cn("text-sm", isAnnual && "text-purple-600 font-semibold")}>Annual <span className="text-green-500">(Save 20%)</span></span>
+            <span className={cn("text-sm", isAnnual && "text-purple-600 font-semibold")}>Annual <span className="text-green-500">(Save 15%)</span></span>
           </div>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-7xl mx-auto mb-32">
@@ -182,8 +173,8 @@ export default function PricingSection() {
                     </>
                   ) : isAnnual ? (
                     <>
-                      <span className="text-4xl font-bold">${((plan.price * 12 * 0.8) / 12).toFixed(2)}/mo</span>
-                      <span className="text-xs text-gray-500 dark:text-gray-400">Billed ${(plan.price * 12 * 0.8).toFixed(2)}/year (save 20%)</span>
+                      <span className="text-4xl font-bold">${((plan.price * 12 * (1 - ANNUAL_DISCOUNT)) / 12).toFixed(2)}/mo</span>
+                      <span className="text-xs text-gray-500 dark:text-gray-400">Billed ${(plan.price * 12 * (1 - ANNUAL_DISCOUNT)).toFixed(2)}/year (save 15%)</span>
                       <span className="text-xs text-gray-400">Original: ${(plan.price).toFixed(2)}/mo</span>
                     </>
                   ) : (
@@ -194,29 +185,57 @@ export default function PricingSection() {
                 </div>
               </div>
               <ul className="space-y-4 mb-8 flex-grow">
-                {plan.features.map((feature, index) =>
-                  renderFeature(feature, postMVPFeatures.includes(feature), index)
+                {plan.features.map((feature, index) => {
+                  if (typeof feature === 'string') {
+                    return (
+                      <li key={index} className="flex items-center gap-3">
+                        <Check className="h-5 w-5 text-green-500 flex-shrink-0" />
+                        <span>{feature}</span>
+                      </li>
+                    );
+                  }
+                  // For features with a note (object)
+                  return (
+                    <li key={index} className="flex items-center gap-3">
+                      <Check className="h-5 w-5 text-green-500 flex-shrink-0" />
+                      <span>
+                        {feature.label}
+                        <span
+                          className="ml-2 text-gray-400 cursor-help underline decoration-dashed decoration-2 underline-offset-2"
+                          title={feature.note}
+                        >
+                          (i)
+                        </span>
+                      </span>
+                    </li>
+                  );
+                })}
+                {/* Show a tooltip or note for post-MVP features */}
+                {plan.name === 'ELITE' && (
+                  <li className="flex items-center gap-3 mt-2">
+                    <Check className="h-5 w-5 text-gray-400 flex-shrink-0" />
+                    <span className="text-gray-500 cursor-help underline decoration-dashed decoration-2 underline-offset-2" title={postMVPFeatures.join(', ')}>
+                      + More features coming soon
+                    </span>
+                  </li>
                 )}
               </ul>
               <button
                 className={cn(
                   "w-full py-3 px-6 rounded-lg font-semibold transition-all duration-300 mt-auto",
-                  plan.isEnterprise
-                    ? "bg-purple-600 text-white hover:bg-purple-700"
-                    : plan.name === 'FREE'
+                  plan.name === 'FREE'
                     ? "bg-white text-purple-600 border-2 border-purple-600 hover:bg-purple-50 dark:bg-black dark:hover:bg-purple-950/20"
                     : "bg-purple-600 text-white hover:bg-purple-700"
                 )}
               >
-                {plan.isEnterprise 
-                  ? "Contact Sales" 
-                  : plan.name === 'FREE'
-                  ? "Start Free Trial"
-                  : "Start Free Trial"
-                }
+                {plan.cta}
               </button>
             </div>
           ))}
+        </div>
+        {/* See all features link */}
+        <div className="text-center mt-8">
+          <a href="#" className="text-purple-600 underline hover:text-purple-800 text-sm">See all features</a>
         </div>
       </div>
     </section>

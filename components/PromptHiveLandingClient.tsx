@@ -125,6 +125,76 @@ const postMVPFeatures = [
   'Custom Development',
 ];
 
+const ANNUAL_DISCOUNT = 0.15;
+const subscriptionPlans = [
+  {
+    name: 'FREE',
+    price: 0,
+    description: 'Get started with the basics',
+    features: [
+      '100 credits/month (resets monthly, does not accumulate)',
+      'Buy extra credits (never expire)',
+      'Earn credits from upvotes (never expire)',
+      {
+        label: 'Up to 3 private prompts',
+        note: 'If your prompts are large, your monthly credits may not cover all 3.'
+      },
+      'Create public prompts',
+      'No version control',
+      'Run prompt tests until credits are used',
+    ],
+    popular: false,
+    isEnterprise: false,
+    cta: 'Start Free',
+  },
+  {
+    name: 'PRO',
+    price: 15.99,
+    description: 'For professionals and creators',
+    features: [
+      '500 credits/month (resets monthly, does not accumulate)',
+      'Buy extra credits at a lower rate (never expire)',
+      'Earn bonus credits from upvotes (never expire)',
+      {
+        label: 'Up to 20 private prompts',
+        note: 'More room for your best ideas—credit usage still applies.'
+      },
+      'Unlimited public prompts',
+      'Prompt version control',
+      'Advanced analytics',
+      'Priority support',
+      'Run prompt tests until credits are used',
+    ],
+    popular: true,
+    isEnterprise: false,
+    cta: 'Upgrade to Pro',
+  },
+  {
+    name: 'ELITE',
+    price: 49,
+    description: 'For power users',
+    features: [
+      'Unlimited credits (no monthly cap)',
+      'Unlimited private prompts',
+      'Unlimited public prompts',
+      'Unlimited prompt tests',
+      'Access to premium AI models',
+      'Custom templates',
+      'Advanced prompt version control',
+      'Early access to new features',
+      'Priority support',
+      'Dedicated onboarding session',
+      'SLA guarantee',
+      'Max credit rewards for community engagement',
+      'Exclusive community badge',
+      'Advanced analytics & reporting',
+    ],
+    popular: false,
+    isEnterprise: false,
+    cta: 'Go Elite',
+  },
+];
+
 const PricingSection = ({ 
   plans, 
   isAnnual, 
@@ -188,91 +258,6 @@ const PricingSection = ({
     }
   };
 
-  const subscriptionPlans = [
-    {
-      name: 'FREE',
-      price: 0,
-      description: 'Perfect for getting started',
-      features: [
-        '3 Private Prompts',
-        '100 Testing Runs/month',
-        'Access to Public Prompts',
-        'Basic Analytics',
-        'Community Support',
-        'Basic Prompt Templates',
-        'Pay-as-you-go Credits: $0.08/credit (min. 100 credits)',
-        'Uses DeepSeek & GPT-3.5 AI Models'
-      ],
-      popular: false,
-      isEnterprise: false
-    },
-    {
-      name: 'PRO',
-      price: 19,
-      description: 'For professionals and small teams',
-      features: [
-        '20 Private Prompts',
-        '500 Testing Runs/month',
-        'Advanced Analytics',
-        'Priority Support',
-        'Custom Templates',
-        'Team Collaboration (up to 3 users)',
-        'API Access',
-        'Version Control',
-        'Performance Metrics',
-        'Pay-as-you-go Credits: $0.06/credit (min. 500 credits)',
-        'Uses DeepSeek & GPT-3.5 AI Models',
-        'BYOK (Bring Your Own Key): Unlimited test runs with your own key'
-      ],
-      popular: true,
-      isEnterprise: false
-    },
-    {
-      name: 'ELITE',
-      price: 49,
-      description: 'For serious professionals and teams',
-      features: [
-        'Unlimited Private Prompts',
-        'Unlimited Testing Runs',
-        'Advanced AI Parameters',
-        'Team Collaboration (up to 10 users)',
-        'Custom Integrations',
-        'Advanced Analytics',
-        'Priority Support',
-        'Custom Model Fine-tuning',
-        'White-label Solutions',
-        'SLA Guarantee',
-        'Unlimited credits included',
-        'Uses Premium AI Model',
-        'BYOK (Bring Your Own Key)'
-      ],
-      popular: false,
-      isEnterprise: false
-    },
-    {
-      name: 'ENTERPRISE',
-      price: null,
-      description: 'Custom solutions for large organizations',
-      features: [
-        'Everything in Elite',
-        'Unlimited Team Members',
-        'Custom AI Model Fine-tuning',
-        'Dedicated Account Manager',
-        'Custom API Integration',
-        'Advanced Security',
-        'Compliance Features',
-        'Custom Training',
-        'Custom Development',
-        'SLA Guarantee',
-        'Unlimited credits included',
-        'Uses Premium AI Model (custom options available)',
-        'BYOK (Bring Your Own Key',
-      ],
-      popular: false,
-      isEnterprise: true
-    }
-  ];
-
   return (
     <section className="py-24 bg-gradient-to-b from-white to-gray-50 dark:from-black dark:to-gray-900">
       <div className="container mx-auto px-4">
@@ -288,23 +273,20 @@ const PricingSection = ({
               onCheckedChange={setIsAnnual}
               className="data-[state=checked]:bg-purple-600"
             />
-            <span className={cn("text-sm", isAnnual && "text-purple-600 font-semibold")}>
-              Annual <span className="text-green-500">(Save 20%)</span>
-            </span>
+            <span className={cn("text-sm", isAnnual && "text-purple-600 font-semibold")}>Annual <span className="text-green-500">(Save 15%)</span></span>
           </div>
         </div>
 
         {/* Subscription Plans */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-7xl mx-auto mb-32">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-5xl mx-auto mb-32">
           {subscriptionPlans.map((plan) => (
             <div
               key={plan.name}
               className={cn(
                 "relative rounded-2xl p-8 border transition-all duration-300 h-full flex flex-col",
-                plan.isEnterprise
-                  ? "border-purple-500 bg-purple-50 dark:bg-purple-950/20"
-                  : "border-gray-200 dark:border-gray-800 hover:border-purple-500 dark:hover:border-purple-500",
-                plan.popular && "ring-2 ring-purple-500"
+                plan.popular
+                  ? "ring-2 ring-purple-500 shadow-lg border-purple-400 bg-white/90"
+                  : "border-gray-200 dark:border-gray-800 hover:border-purple-500 dark:hover:border-purple-500 bg-white/80"
               )}
             >
               {plan.popular && (
@@ -329,8 +311,8 @@ const PricingSection = ({
                     </>
                   ) : isAnnual ? (
                     <>
-                      <span className="text-4xl font-bold">${((plan.price * 12 * 0.8) / 12).toFixed(2)}/mo</span>
-                      <span className="text-xs text-gray-500 dark:text-gray-400">Billed ${(plan.price * 12 * 0.8).toFixed(2)}/year (save 20%)</span>
+                      <span className="text-4xl font-bold">${((plan.price * 12 * (1 - ANNUAL_DISCOUNT)) / 12).toFixed(2)}/mo</span>
+                      <span className="text-xs text-gray-500 dark:text-gray-400">Billed ${(plan.price * 12 * (1 - ANNUAL_DISCOUNT)).toFixed(2)}/year (save 15%)</span>
                       <span className="text-xs text-gray-400">Original: ${(plan.price).toFixed(2)}/mo</span>
                     </>
                   ) : (
@@ -341,9 +323,31 @@ const PricingSection = ({
                 </div>
               </div>
               <ul className="space-y-4 mb-8 flex-grow">
-                {plan.features.map((feature, index) =>
-                  renderFeature(feature, postMVPFeatures.includes(feature), index)
-                )}
+                {plan.features.map((feature, index) => {
+                  if (typeof feature === 'string') {
+                    return (
+                      <li key={index} className="flex items-center gap-3">
+                        <Check className="h-5 w-5 text-green-500 flex-shrink-0" />
+                        <span>{feature}</span>
+                      </li>
+                    );
+                  }
+                  // For features with a note (object)
+                  return (
+                    <li key={index} className="flex items-center gap-3">
+                      <Check className="h-5 w-5 text-green-500 flex-shrink-0" />
+                      <span>
+                        {feature.label}
+                        <span
+                          className="ml-2 text-gray-400 cursor-help underline decoration-dashed decoration-2 underline-offset-2"
+                          title={feature.note}
+                        >
+                          (i)
+                        </span>
+                      </span>
+                    </li>
+                  );
+                })}
               </ul>
               <button
                 onClick={() => handleSubscribe({ 

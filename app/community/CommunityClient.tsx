@@ -59,10 +59,11 @@ export function CommunityClient({ featuredPrompts, recentPrompts }: CommunityCli
               icon={Sparkles}
               title="No public prompts yet"
               description="Be the first to share your prompts with the community."
-              action={{
-                label: 'Create Prompt',
-                onClick: () => (window.location.href = '/prompts/new'),
-              }}
+              action={
+                <Button onClick={() => (window.location.href = '/prompts/new')}>
+                  Create Prompt
+                </Button>
+              }
             />
           </div>
         </div>

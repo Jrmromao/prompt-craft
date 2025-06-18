@@ -42,7 +42,8 @@ function AnalyticsContent({ children, preferences }: AnalyticsProviderProps) {
     if (preferences.analytics) {
       // Track page view in Google Analytics
       if (typeof window !== 'undefined' && window.gtag) {
-        const url = pathname + searchParams.toString();
+        const search = searchParams.toString();
+        const url = pathname + (search ? `?${search}` : '');
         window.gtag('config', process.env.NEXT_PUBLIC_GA_ID || '', {
           page_path: url,
         });

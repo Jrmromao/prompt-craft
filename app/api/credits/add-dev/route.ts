@@ -35,7 +35,8 @@ export async function POST(req: Request) {
       data: {
         monthlyCredits: amount,
         purchasedCredits: amount,
-        lastMonthlyReset: new Date(),
+        lastCreditReset: new Date(), 
+        
       },
     });
 

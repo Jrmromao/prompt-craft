@@ -25,7 +25,6 @@ interface CreditPurchaseModalProps {
 export function CreditPurchaseModal({ isOpen, onClose }: CreditPurchaseModalProps) {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
-  const { refetch } = useCreditBalance();
 
   // Fetch credit packages
   const { data: creditPackages, isLoading: isLoadingPackages } = useQuery<CreditPackage[]>({

@@ -35,9 +35,9 @@ export async function POST(req: Request) {
   });
 
   return NextResponse.json({
-    success: true,
-    type,
-    tokenCount,
-    metadata,
+      success: true,
+      type,
+      tokenCount,
+      metadata,
   });
 } 

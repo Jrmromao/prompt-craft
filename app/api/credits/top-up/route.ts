@@ -25,8 +25,7 @@ export async function POST(req: Request) {
       await CreditService.getInstance().addCredits(
         userId,
         amount,
-        CreditType.TOP_UP,
-        'Manual credit top-up'
+        CreditType.TOP_UP
       );
 
       // Get updated balance

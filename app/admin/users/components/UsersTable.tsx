@@ -30,6 +30,7 @@ import {
   ColumnFiltersState,
   useReactTable,
 } from '@tanstack/react-table';
+import { fromPrismaRole, toPrismaRole } from '@/utils/roles';
 
 interface UsersTableProps {
   initialUsers: UserData[];
@@ -43,19 +44,26 @@ export function UsersTable({ initialUsers }: UsersTableProps) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 
+
   const getRoleColor = (role: Role) => {
     const colors: Record<Role, { bg: string; text: string }> = {
-      ADMIN: {
+      [Role.ADMIN]: {
         bg: 'bg-purple-50 dark:bg-purple-950',
         text: 'text-purple-700 dark:text-purple-300',
       },
-      USER: {
-        bg: 'bg-gray-50 dark:bg-gray-800',
-        text: 'text-gray-700 dark:text-gray-300',
+      [Role.USER]: {
+        bg: 'bg-blue-50 dark:bg-blue-950',
+        text: 'text-blue-700 dark:text-blue-300',
+      },
+      [Role.SUPER_ADMIN]: {
+        bg: 'bg-yellow-50 dark:bg-yellow-950',
+        text: 'text-yellow-700 dark:text-yellow-300',
       },
     };
-    return colors[role];
+    return colors[role] || { bg: '', text: '' };
   };
+
+
 
   const getPlanColor = (plan: string) => {
     const colors: Record<string, { bg: string; text: string }> = {
@@ -216,7 +224,10 @@ export function UsersTable({ initialUsers }: UsersTableProps) {
     if (!selectedUser) return;
 
     try {
-      await updateUser(selectedUser.id, data);
+      await updateUser(selectedUser.id, {
+        ...data,
+        role: fromPrismaRole(data.role),
+      });
       toast.success('User updated successfully');
       setShowEditDialog(false);
       router.refresh();
@@ -354,7 +365,10 @@ export function UsersTable({ initialUsers }: UsersTableProps) {
 
       {selectedUser && (
         <EditUserDialog
-          user={selectedUser}
+          user={{
+            ...selectedUser,
+            role: toPrismaRole(selectedUser.role),
+          }}
           open={showEditDialog}
           onOpenChange={setShowEditDialog}
           onSave={handleEditUser}

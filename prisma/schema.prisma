@@ -84,8 +84,8 @@ model User {
   following                 Follow[]                   @relation("Following")
   followedPrompts           PromptFollow[]
   favoritedPrompts          PromptFavorite[]
-  deletionAuditLogs DeletionAuditLog[]
-
+  deletionAuditLogs         DeletionAuditLog[]
+  promptRatings             PromptRating[]
 
   @@index([clerkId])
   @@index([email])
@@ -207,6 +207,7 @@ model Prompt {
   favoriteCount       Int                 @default(0)
   followers           PromptFollow[]
   favorites           PromptFavorite[]
+  ratings             PromptRating[]
 
   @@index([userId])
   @@index([slug])
@@ -617,18 +618,22 @@ model EmailTemplate {
 }
 
 model PromptRating {
-  id            String             @id @default(cuid())
-  createdAt     DateTime           @default(now())
-  updatedAt     DateTime           @updatedAt
+  id            String   @id @default(cuid())
+  userId        String
+  promptId      String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
   clarity       Float
   specificity   Float
   context       Float
   overall       Float
   feedback      String
-  promptTestId  String             @unique
-  testHistoryId String?            @unique
-  PromptTest    PromptTest         @relation(fields: [promptTestId], references: [id], onDelete: Cascade)
-  testHistory   PromptTestHistory? @relation(fields: [testHistoryId], references: [id], onDelete: Cascade)
+
+  // Relations
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  prompt        Prompt   @relation(fields: [promptId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, promptId])
 }
 
 model PromptTestHistory {
@@ -643,7 +648,6 @@ model PromptTestHistory {
   promptVersionId String
   status          TestStatus    @default(SUCCESS)
   updatedAt       DateTime      @updatedAt
-  rating          PromptRating?
   prompt          Prompt        @relation(fields: [promptId], references: [id], onDelete: Cascade)
   promptVersion   Version       @relation(fields: [promptVersionId], references: [id], onDelete: Cascade)
   user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -663,7 +667,6 @@ model PromptTest {
   duration        Int?
   createdAt       DateTime      @default(now())
   updatedAt       DateTime
-  PromptRating    PromptRating?
   promptVersion   Version       @relation(fields: [promptVersionId], references: [id], onDelete: Cascade)
 
   @@index([promptVersionId])

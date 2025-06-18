@@ -29,6 +29,28 @@ export class AuditService {
     return AuditService.instance;
   }
 
+  static async logAction(data: {
+    userId?: string | null;
+    action: string;
+    resource: string;
+    status: string;
+    details?: Record<string, any>;
+    ipAddress?: string | null;
+  }) {
+    // Your implementation, e.g.:
+    await prisma.auditLog.create({
+      data: {
+        userId: data.userId,
+        action: data.action,
+        resource: data.resource,
+        status: data.status,
+        details: data.details || {},
+        ipAddress: data.ipAddress,
+        timestamp: new Date(),
+      },
+    });
+  }
+
   public async logAudit(entry: AuditLogEntry): Promise<void> {
     try {
       console.log('Creating audit log entry:', entry);

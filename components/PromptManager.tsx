@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 import { Badge } from '@/components/ui/badge';
 import { CreatePromptDialog } from '@/components/prompts/CreatePromptDialog';
+import { PromptType } from '@/types/ai';
 
 interface Prompt {
   id: string;
@@ -214,8 +215,8 @@ export function PromptManager({
           setContent={setContent}
           isPublic={isPublic}
           setIsPublic={setIsPublic}
-          promptType={promptType}
-          setPromptType={setPromptType}
+          promptType={promptType as PromptType}
+          setPromptType={(type: PromptType) => setPromptType(type as 'text' | 'image' | 'video' | 'music' | 'software')}
           tags={tags}
           setTags={setTags}
           newTag={newTag}
@@ -307,8 +308,8 @@ export function PromptManager({
         setContent={setContent}
         isPublic={isPublic}
         setIsPublic={setIsPublic}
-        promptType={promptType}
-        setPromptType={setPromptType}
+        promptType={promptType as PromptType}
+        setPromptType={(type: PromptType) => setPromptType(type as 'text' | 'image' | 'video' | 'music' | 'software')}
         tags={tags}
         setTags={setTags}
         newTag={newTag}

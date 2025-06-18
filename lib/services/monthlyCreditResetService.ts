@@ -33,8 +33,8 @@ export class MonthlyCreditResetService {
     const users = await prisma.user.findMany({
       where: {
         OR: [
-          { lastMonthlyReset: { lt: thisMonthStart } },
-          { lastMonthlyReset: null },
+          { lastCreditReset: { lt: thisMonthStart } },
+          { lastCreditReset: null },
         ],
       },
       select: { id: true },

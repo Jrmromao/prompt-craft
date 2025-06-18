@@ -104,6 +104,7 @@ describe('Settings API', () => {
     });
 
     it('should create default settings if none exist', async () => {
+      
       (SettingsService.getUserSettings as jest.Mock).mockResolvedValue(null);
       (SettingsService.createDefaultSettings as jest.Mock).mockResolvedValue(mockSettings);
 

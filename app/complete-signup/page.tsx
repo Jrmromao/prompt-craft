@@ -4,11 +4,8 @@ import { auth } from "@clerk/nextjs/server";
 import { stripe } from "@/lib/stripe";
 import { prisma } from "@/lib/prisma";
 
-export default async function CompleteSignupPage({
-  searchParams,
-}: {
-  searchParams?: { [key: string]: string | string[] | undefined };
-}) {
+export default async function CompleteSignupPage(props: { searchParams?: Promise<{ [key: string]: string | string[] | undefined }> }) {
+  const searchParams = props.searchParams ? await props.searchParams : undefined;
   const { userId } = await auth();
 
   // If user is already signed in, redirect to profile
