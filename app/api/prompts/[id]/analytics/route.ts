@@ -37,16 +37,8 @@ export async function POST(request: NextRequest, context: any) {
   }
 }
 
-interface RouteContext {
-  params: {
-    id: string;
-  };
-}
 
-export async function GET(
-  request: Request,
-  context: RouteContext
-) {
+export async function GET(request: Request, context: any) {
   try {
     const { userId } = await auth();
     if (!userId) {

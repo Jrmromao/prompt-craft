@@ -35,7 +35,7 @@ export async function POST(
         updatedAt: new Date(),
       },
       include: {
-        PromptVersion: true,
+        promptVersion: true,
       },
     });
 
@@ -66,11 +66,12 @@ export async function GET(
         ...(promptVersionId ? { promptVersionId } : {}),
       },
       include: {
-        PromptVersion: {
+        promptVersion: {
           include: {
-            PromptTest: {
+          
+            promptTest: {
               include: {
-                PromptRating: true,
+                promptRating: true,
               },
             },
           },

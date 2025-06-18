@@ -11,13 +11,9 @@ import { PlanLimitsService } from '@/lib/services/planLimitsService';
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
-interface RouteContext {
-  params: {
-    id: string;
-  };
-}
 
-export async function GET(request: Request, context: RouteContext) {
+
+export async function GET(request: Request, context: any) {
   try {
     const { userId } = await auth();
     if (!userId) {
@@ -34,7 +30,7 @@ export async function GET(request: Request, context: RouteContext) {
   }
 }
 
-export async function POST(request: Request, context: RouteContext) {
+export async function POST(request: Request, context: any) {
   try {
     const { userId } = await auth();
     if (!userId) {

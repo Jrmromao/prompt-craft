@@ -14,15 +14,10 @@ const commentSchema = z.object({
   parentId: z.string().optional(),
 });
 
-interface RouteContext {
-  params: {
-    id: string;
-  };
-}
 
 export async function GET(
   request: Request,
-  context: RouteContext
+  context: any
 ) {
   try {
     const promptId = context.params.id;
@@ -82,7 +77,7 @@ export async function GET(
 
 export async function POST(
   request: Request,
-  context: RouteContext
+  context: any
 ) {
   try {
     const { userId } = await auth();
