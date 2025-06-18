@@ -1,10 +1,11 @@
+import { AuditAction } from '@/app/constants/audit';
 import { prisma } from '@/lib/prisma';
 import { UsageTrackingService } from '@/lib/services/usage/usageTrackingService';
 import { SubscriptionStatus } from '@prisma/client';
 import Stripe from 'stripe';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2025-02-24.acacia',
+  apiVersion: '2025-05-28.basil',
 });
 
 interface ErrorContext {
@@ -33,7 +34,7 @@ export class MonitoringService {
       const unhealthySubscriptions = await prisma.subscription.findMany({
         where: {
           status: {
-            in: ['past_due', 'unpaid', 'canceled'],
+            in: [SubscriptionStatus.PAST_DUE, SubscriptionStatus.UNPAID, SubscriptionStatus.CANCELED],
           },
         },
         include: {
@@ -44,14 +45,17 @@ export class MonitoringService {
       for (const subscription of unhealthySubscriptions) {
         await prisma.auditLog.create({
           data: {
-            type: 'SUBSCRIPTION_HEALTH_CHECK',
+            action: 'SUBSCRIPTION_HEALTH_CHECK',
+            resource: 'subscription',
             userId: subscription.userId,
+            status: 'success',
             details: {
               subscriptionId: subscription.id,
               status: subscription.status,
               userId: subscription.userId,
               email: subscription.user?.email,
             },
+            timestamp: new Date(),
           },
         });
       }
@@ -81,17 +85,20 @@ export class MonitoringService {
 
         // Check each feature's usage
         const features = ['prompts', 'tokens', 'team_members'] as const;
-        const featureMap = {
-          prompts: { usage: 'promptCount', limit: 'maxPrompts' },
-          tokens: { usage: 'tokenUsage', limit: 'maxTokens' },
-          team_members: { usage: 'teamMemberCount', limit: 'maxTeamMembers' }
-        } as const;
-
         for (const feature of features) {
-          const { usage: usageKey, limit: limitKey } = featureMap[feature];
-          const usagePercentage = (usage[usageKey] / limits[limitKey]) * 100;
-
-          // Send warning if usage is above 80%
+          let usageValue = 0;
+          let limitValue = 0;
+          if (feature === 'prompts') {
+            usageValue = usage.prompts;
+            limitValue = limits.maxPrompts;
+          } else if (feature === 'tokens') {
+            usageValue = usage.tokens;
+            limitValue = limits.maxTokens;
+          } else if (feature === 'team_members') {
+            usageValue = usage.team_members;
+            limitValue = limits.maxTeamMembers;
+          }
+          const usagePercentage = (usageValue / limitValue) * 100;
           if (usagePercentage >= 80) {
             await this.sendUsageLimitWarning(
               subscription.userId,
@@ -166,13 +173,16 @@ export class MonitoringService {
     try {
       await prisma.auditLog.create({
         data: {
-          type: 'ERROR',
-          userId: context.userId,
+          action: AuditAction.ERROR,
+          resource: context.action || 'system',
+          userId: context.userId ?? null,
+          status: 'failure',
           details: {
             message: error.message,
             stack: error.stack,
             ...context,
           },
+          timestamp: new Date(),
         },
       });
     } catch (dbError) {

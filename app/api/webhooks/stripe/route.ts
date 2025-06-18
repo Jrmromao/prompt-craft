@@ -80,9 +80,7 @@ export async function POST(req: Request) {
           await CreditService.getInstance().addCredits(
             userId,
             amount,
-            CreditType.TOP_UP,
-         
-            'Credit purchase'
+            CreditType.TOP_UP
           );
 
           // Create a record of the purchase

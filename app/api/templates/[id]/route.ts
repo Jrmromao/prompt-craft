@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { TemplateService } from '@/lib/services/templateService';
 import { prisma } from '@/lib/prisma';
+import { auth } from '@clerk/nextjs/server';
 
 const templateService = new TemplateService();
 
@@ -50,7 +51,9 @@ export async function PATCH(request: Request, context: any) {
       );
     }
 
-    const template = await templateService.updateRating(context.params.id, rating);
+    const session = await auth();
+    const userId = session?.userId || 'anonymous';
+    const template = await templateService.updateRating(context.params.id, rating, userId);
     return NextResponse.json(template);
   } catch (error) {
     console.error('Error updating template rating:', error);

@@ -18,7 +18,8 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { MoreHorizontal, Pencil, Trash2, UserX, UserCheck, Ban } from 'lucide-react';
-import { Role, UserStatus } from '@prisma/client';
+import { Role, fromPrismaRole } from '@/utils/roles';
+import { UserStatus } from '@prisma/client';
 import { updateUserRole, updateUserStatus } from '../actions';
 import { toast } from 'sonner';
 
@@ -35,8 +36,9 @@ export function UserActions({ userId, currentRole, currentStatus, onEdit }: User
   const [showBanDialog, setShowBanDialog] = useState(false);
   const [showActivateDialog, setShowActivateDialog] = useState(false);
 
-  const handleRoleChange = async (newRole: Role) => {
+  const handleRoleChange = async (newRoleFromPrisma: any) => {
     try {
+      const newRole = fromPrismaRole(newRoleFromPrisma);
       await updateUserRole(userId, newRole);
       toast.success('User role updated successfully');
     } catch (error) {
@@ -52,6 +54,8 @@ export function UserActions({ userId, currentRole, currentStatus, onEdit }: User
       toast.error('Failed to update user status');
     }
   };
+
+
 
   return (
     <>

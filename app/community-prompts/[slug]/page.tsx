@@ -48,7 +48,8 @@ function getPromptJsonLd(prompt: any) {
 }
 
 // Dynamic metadata
-export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
+export async function generateMetadata(props: { params: Promise<{ slug: string }> }) {
+  const params = await props.params;
   const prompt = await getPrompt(params.slug);
   if (!prompt) return { title: 'Prompt Not Found | PromptHive' };
 
@@ -108,7 +109,8 @@ function LoadingSkeleton() {
 }
 
 // Main page
-export default async function PromptDetailPage({ params }: { params: { slug: string } }) {
+export default async function PromptDetailPage(props: { params: Promise<{ slug: string }> }) {
+  const params = await props.params;
   const prompt = await getPrompt(params.slug);
   if (!prompt) return notFound();
 

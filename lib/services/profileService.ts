@@ -73,6 +73,10 @@ export class ProfileService {
           lastCreditReset: true,
           imageUrl: true,
           bio: true,
+          username: true,         // <-- add this
+          displayName: true,      // <-- add this
+          isPublic: true,         // <-- add this
+          profileUrl: true,       // <-- add this
           jobTitle: true,
           location: true,
           company: true,

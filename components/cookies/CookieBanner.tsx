@@ -125,12 +125,7 @@ export default function CookieBanner({ onPreferencesChange }: CookieBannerProps)
         </div>
       </div>
 
-      <CookieManager
-        isOpen={showManager}
-        onClose={() => setShowManager(false)}
-        onSave={savePreferences}
-        initialPreferences={preferences}
-      />
+      <CookieManager />
     </>
   );
 }

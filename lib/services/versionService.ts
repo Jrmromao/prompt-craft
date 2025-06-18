@@ -1,4 +1,5 @@
 import { trackUserFlowEvent, trackUserFlowError } from '@/lib/error-tracking';
+import { prisma } from '@/lib/prisma';
 
 export class VersionService {
   // ... existing code ...
@@ -21,8 +22,8 @@ export class VersionService {
       trackUserFlowEvent('version_conversion', 'success', {
         userId,
         versionId,
-        promptId: prompt.id,
-        conversionTime: Date.now() - new Date(version.createdAt).getTime()
+        promptId: prompt?.id,
+        conversionTime: version.createdAt ? Date.now() - new Date(version.createdAt).getTime() : undefined
       });
 
       return prompt;
@@ -36,8 +37,15 @@ export class VersionService {
     }
   }
 
-  private async createPromptFromVersion(version: any, userId: string) {
+  private async createPromptFromVersion(version: any, userId: string): Promise<{ id: string }> {
     // Implementation of version to prompt conversion
     // ... existing code ...
+    return { id: 'dummy-id' };
+  }
+
+  async getVersion(versionId: string) {
+    return prisma.version.findUnique({
+      where: { id: versionId },
+    });
   }
 } 

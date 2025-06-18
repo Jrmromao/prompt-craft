@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/prisma';
 import { AuditService } from './auditService';
 import { Redis } from '@upstash/redis';
+import { AuditAction } from '@/app/constants/audit';
 
 export interface QuotaResult {
   allowed: boolean;
@@ -41,11 +42,17 @@ export class QuotaService {
         // First time usage
         const resetAt = new Date(now.getTime() + window);
         await this.redis.set(key, { count: 1, resetAt: resetAt.getTime() });
-        await auditService.logUserAction(userId, 'QUOTA_CHECK', action, {
+        await auditService.logAudit({
+          userId,
+          action: AuditAction.QUOTA_CHECK,
+          resource: action,
+          status: 'success',
+          details: {
           allowed: true,
           remaining: total - 1,
           total,
           resetAt,
+          },
         });
         return { allowed: true, remaining: total - 1, total, resetAt };
       }
@@ -54,22 +61,34 @@ export class QuotaService {
         // Reset window
         const resetAt = new Date(now.getTime() + window);
         await this.redis.set(key, { count: 1, resetAt: resetAt.getTime() });
-        await auditService.logUserAction(userId, 'QUOTA_CHECK', action, {
+        await auditService.logAudit({
+          userId,
+          action: AuditAction.QUOTA_CHECK,
+          resource: action,
+          status: 'success',
+          details: {
           allowed: true,
           remaining: total - 1,
           total,
           resetAt,
+          },
         });
         return { allowed: true, remaining: total - 1, total, resetAt };
       }
 
       if (quota.count >= total) {
         // Quota exceeded
-        await auditService.logUserAction(userId, 'QUOTA_CHECK', action, {
+        await auditService.logAudit({
+          userId,
+          action: AuditAction.QUOTA_CHECK,
+          resource: action,
+          status: 'success',
+          details: {
           allowed: false,
           remaining: 0,
           total,
           resetAt: new Date(quota.resetAt),
+          },
         });
         return {
           allowed: false,
@@ -85,11 +104,17 @@ export class QuotaService {
         resetAt: quota.resetAt,
       });
 
-      await auditService.logUserAction(userId, 'QUOTA_CHECK', action, {
+      await auditService.logAudit({
+        userId,
+        action: AuditAction.QUOTA_CHECK,
+        resource: action,
+        status: 'success',
+        details: {
         allowed: true,
         remaining: total - (quota.count + 1),
         total,
         resetAt: new Date(quota.resetAt),
+        },
       });
 
       return {
@@ -101,9 +126,15 @@ export class QuotaService {
     } catch (error) {
       console.error('Error checking quota:', error);
       // In case of error, allow the action but log it
-      await auditService.logUserAction(userId, 'QUOTA_CHECK', action, {
-        error: 'Failed to check quota',
-        allowed: true,
+      await auditService.logAudit({
+        userId,
+        action: AuditAction.QUOTA_CHECK,
+        resource: action,
+        status: 'failure',
+        details: {
+          error: 'Failed to check quota',
+          allowed: true,
+        },
       });
       return { allowed: true, remaining: 0, total: 0, resetAt: now };
     }

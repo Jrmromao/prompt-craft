@@ -30,6 +30,14 @@ interface Cookie {
   expiry: string;
 }
 
+export interface CookiePreferences {
+  necessary: boolean;
+  analytics: boolean;
+  functional: boolean;
+  marketing: boolean;
+  preferences: boolean;
+}
+
 const cookieCategories: CookieCategory[] = [
   {
     id: 'essential',

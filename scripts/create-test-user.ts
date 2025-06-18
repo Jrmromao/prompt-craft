@@ -28,7 +28,7 @@ async function createDummyUsers(count: number) {
           monthlyCredits: faker.number.int({ min: 50, max: 1000 }),
           purchasedCredits: faker.number.int({ min: 0, max: 500 }),
           creditCap: faker.number.int({ min: 100, max: 2000 }),
-          lastMonthlyReset: faker.date.recent(),
+          lastCreditReset: faker.date.recent(),
           imageUrl: faker.image.avatar(),
           bio: faker.lorem.sentence(),
           company: faker.company.name(),

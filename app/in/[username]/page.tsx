@@ -4,9 +4,8 @@ import { PublicProfile } from "@/components/profile/public-profile";
 import { prisma } from "@/lib/prisma";
 import { AuditService } from "@/lib/services/auditService";
 
-export async function generateMetadata({
-  params,
-}: { params: { username: string } }): Promise<Metadata> {
+export async function generateMetadata(props: { params: Promise<{ username: string }> }): Promise<Metadata> {
+  const params = await props.params;
   const user = await prisma.user.findUnique({
     where: { username: params.username },
     select: { username: true, displayName: true, bio: true },
@@ -24,9 +23,8 @@ export async function generateMetadata({
   };
 }
 
-export default async function PublicProfilePage({
-  params,
-}: { params: { username: string } }) {
+export default async function PublicProfilePage(props: { params: Promise<{ username: string }> }) {
+  const params = await props.params;
   const user = await prisma.user.findUnique({
     where: { username: params.username },
     include: {

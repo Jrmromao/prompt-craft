@@ -68,10 +68,9 @@ export async function GET(
       include: {
         promptVersion: {
           include: {
-          
-            promptTest: {
+            tests: {
               include: {
-                promptRating: true,
+                promptVersion: true,
               },
             },
           },
