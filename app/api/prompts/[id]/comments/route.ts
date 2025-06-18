@@ -15,9 +15,9 @@ const commentSchema = z.object({
 });
 
 interface RouteContext {
-  params: Promise<{
+  params: {
     id: string;
-  }>;
+  };
 }
 
 export async function GET(
@@ -25,8 +25,7 @@ export async function GET(
   context: RouteContext
 ) {
   try {
-    const params = await context.params;
-    const promptId = params.id;
+    const promptId = context.params.id;
     
     if (!promptId) {
       return NextResponse.json({ error: 'Prompt ID is required' }, { status: 400 });
@@ -91,8 +90,7 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const params = await context.params;
-    const promptId = params.id;
+    const promptId = context.params.id;
     
     if (!promptId) {
       return NextResponse.json({ error: 'Prompt ID is required' }, { status: 400 });

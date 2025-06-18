@@ -38,9 +38,9 @@ export async function POST(request: NextRequest, context: any) {
 }
 
 interface RouteContext {
-  params: Promise<{
+  params: {
     id: string;
-  }>;
+  };
 }
 
 export async function GET(
@@ -53,8 +53,7 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const params = await context.params;
-    const promptId = params.id;
+    const promptId = context.params.id;
     
     if (!promptId) {
       return NextResponse.json({ error: 'Prompt ID is required' }, { status: 400 });

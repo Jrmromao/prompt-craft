@@ -97,6 +97,31 @@ export class PromptService {
     return PromptService.instance;
   }
 
+
+  // Add inside the PromptService class
+public async getPromptBySlug(slug: string): Promise<Prompt | null> {
+  const prompt = await prisma.prompt.findFirst({
+    where: { slug },
+    include: {
+      tags: true,
+      user: {
+        select: {
+          id: true,
+          name: true,
+          imageUrl: true,
+        },
+      },
+      _count: {
+        select: {
+          comments: true,
+          votes: true,
+        },
+      },
+    },
+  });
+  return prompt ? this.convertDatesToStrings(prompt as any) : null;
+}
+
   /**
    * Safely converts a Prisma prompt to our custom Prompt type
    * @throws Error if the conversion fails
@@ -126,6 +151,11 @@ export class PromptService {
         dataRetentionPolicy: (prompt as any).dataRetentionPolicy ?? {},
         isArchived: (prompt as any).isArchived ?? false,
         archivedAt: (prompt as any).archivedAt?.toISOString() ?? null,
+        // Add missing properties with defaults:
+        isVerified: (prompt as any).isVerified ?? false,
+        isFeatured: (prompt as any).isFeatured ?? false,
+        followerCount: (prompt as any).followerCount ?? 0,
+        favoriteCount: (prompt as any).favoriteCount ?? 0,
       };
     } catch (error) {
       console.error('Error converting dates to strings:', error);

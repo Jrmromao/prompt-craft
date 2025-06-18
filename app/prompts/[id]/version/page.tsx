@@ -95,16 +95,7 @@ const dummyTestHistory = [
   }
 ];
 
-interface PageProps {
-  params: {
-    id: string;
-  };
-  searchParams: {
-    versionId?: string;
-  };
-}
-
-export default function VersionPage({ params, searchParams }: PageProps) {
+export default function VersionPage({ params, searchParams }: { params: { id: string }; searchParams: { versionId?: string } }) {
   const promptId = params.id;
   const router = useRouter();
   const [versions, setVersions] = useState<Version[]>([]);
@@ -115,6 +106,20 @@ export default function VersionPage({ params, searchParams }: PageProps) {
   const [testHistory, setTestHistory] = useState<any[]>([]);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
   const [isCreateVersionOpen, setIsCreateVersionOpen] = useState(false);
+  const [userPlan, setUserPlan] = useState<string>('FREE');
+
+  useEffect(() => {
+    async function fetchUserPlan() {
+      try {
+        const res = await fetch('/api/user/plan');
+        const data = await res.json();
+        setUserPlan(data.planType || 'FREE');
+      } catch {
+        setUserPlan('FREE');
+      }
+    }
+    fetchUserPlan();
+  }, []);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -156,7 +161,7 @@ export default function VersionPage({ params, searchParams }: PageProps) {
       .finally(() => setIsLoadingHistory(false));
   }, [selectedVersion, promptId]);
 
-  const handleTestPrompt = async (content: string, testInput: string, promptVersionId: string) => {
+  const handleTestPrompt = async (content: string, testInput: string, promptVersionId?: string) => {
     try {
       const response = await fetch('/api/prompts/test', {
         method: 'POST',
@@ -414,6 +419,7 @@ export default function VersionPage({ params, searchParams }: PageProps) {
         </div>
 
         <TestPromptModal
+          userPlan={userPlan}
           isOpen={isTestModalOpen}
           onClose={() => setIsTestModalOpen(false)}
           promptId={prompt.id}

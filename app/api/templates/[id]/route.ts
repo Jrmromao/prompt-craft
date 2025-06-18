@@ -4,12 +4,9 @@ import { prisma } from '@/lib/prisma';
 
 const templateService = new TemplateService();
 
-export async function GET(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
+export async function GET(request: Request, context: any) {
   try {
-    const templateId = params.id;
+    const templateId = context.params.id;
     
     const template = await prisma.promptTemplate.findUnique({
       where: { id: templateId },
@@ -42,10 +39,7 @@ export async function GET(
   }
 }
 
-export async function PATCH(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
+export async function PATCH(request: Request, context: any) {
   try {
     const { rating } = await request.json();
     
@@ -56,7 +50,7 @@ export async function PATCH(
       );
     }
 
-    const template = await templateService.updateRating(params.id, rating);
+    const template = await templateService.updateRating(context.params.id, rating);
     return NextResponse.json(template);
   } catch (error) {
     console.error('Error updating template rating:', error);

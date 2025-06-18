@@ -11,10 +11,6 @@ import { UserService } from '@/lib/services/userService';
 // Mark page as dynamic since it uses headers() through AnalyticsTrackingService
 export const dynamic = 'force-dynamic';
 
-interface PageProps {
-  params: Promise<{ id: string }>;
-}
-
 async function getPrompt(id: string) {
   try {
     return await prisma.prompt.findFirst({
@@ -55,9 +51,8 @@ function getPromptJsonLd(prompt: any) {
   };
 }
 
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const resolvedParams = await params;
-  const prompt = await getPrompt(resolvedParams.id);
+export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
+  const prompt = await getPrompt(params.id);
   if (!prompt) return { title: 'Prompt Not Found | PromptHive' };
 
   const title = `${prompt.name} | PromptHive`;
@@ -87,9 +82,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   };
 }
 
-export default async function PromptDetailPage({ params }: PageProps) {
-  const resolvedParams = await params;
-  const prompt = await getPrompt(resolvedParams.id);
+export default async function PromptDetailPage({ params }: { params: { id: string } }) {
+  const prompt = await getPrompt(params.id);
   if (!prompt) return notFound();
 
   const promptWithVersion = {
@@ -106,6 +100,7 @@ export default async function PromptDetailPage({ params }: PageProps) {
     ? {
         id: clerkUser.id,
         name: clerkUser.fullName || '',
+        username: clerkUser.username || 'anonymous',
         email: clerkUser.primaryEmailAddress?.emailAddress || '',
         imageUrl: clerkUser.imageUrl,
         planType: planType || PlanType.FREE,
@@ -113,6 +108,7 @@ export default async function PromptDetailPage({ params }: PageProps) {
     : {
         id: 'anonymous',
         name: 'Anonymous',
+        username: 'anonymous',
         email: '',
         imageUrl: '',
         planType: PlanType.FREE,
@@ -124,7 +120,7 @@ export default async function PromptDetailPage({ params }: PageProps) {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(getPromptJsonLd(prompt)) }}
-      />x
+      />
     </Suspense>
   );
 } 

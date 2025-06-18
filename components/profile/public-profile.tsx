@@ -13,6 +13,7 @@ import { useEffect, useState } from "react";
 
 interface Template {
   id: string;
+  slug: string;
   userId: string | null;
   name: string;
   description: string;
@@ -39,7 +40,11 @@ interface Template {
 }
 
 interface PublicProfileProps {
-  user: User;
+  user: {
+    username: string;
+    imageUrl?: string;
+    firstName?: string;
+  };
   followerCount: number;
   followingCount: number;
   recentActivity: any[];
@@ -168,7 +173,7 @@ export function PublicProfile({ user, followerCount, followingCount, recentActiv
               {publicTemplates.map((template) => (
                 <Link
                   key={template.id}
-                  href={`/prompts/${template.id}`}
+                  href={`/community-prompts/${template.slug}`}
                   className="group relative overflow-hidden rounded-xl border border-border/40 bg-card/50 p-6 backdrop-blur-sm transition-all hover:border-purple-500/40 hover:shadow-lg hover:shadow-purple-500/10"
                 >
                   <div className="flex items-start justify-between">

@@ -1,12 +1,58 @@
-import { prisma } from '@/lib/prisma';
-import { sendEmail } from '@/lib/email';
-import { logger } from '@/lib/logger';
+/**
+ * This file is a work in progress and is not yet complete.
+ * It is a placeholder for the actual deletion service.
+ * It is not used in the current version of the app.
+ * It is only here to help us understand the deletion service and how it works.
+ * It is not used in the current version of the app.
+ */
 
+import type { Prisma as PrismaTypes } from '@prisma/client';
+import { prisma as defaultPrisma } from '@/lib/prisma';
+import { EmailService } from '@/lib/services/emailService';
+import { logger } from '@/lib/utils/logger';
+
+// Constants
+const DEFAULT_RETENTION_PERIOD_DAYS = 30;
+const DELETED_USER_EMAIL_PREFIX = 'deleted_';
+const DELETED_USER_EMAIL_DOMAIN = '@deleted.user';
+const DELETED_USER_NAME = 'Deleted User';
+
+// Fallback types for sendEmail and logger if type declarations are missing
+// (Remove if you have proper types in your project)
+type SendEmailType = typeof EmailService;
+type LoggerType = typeof logger;
+
+// Custom error class for granular error handling
+class DeletionServiceError extends Error {
+  constructor(message: string, public context?: Record<string, unknown>) {
+    super(message);
+    this.name = 'DeletionServiceError';
+  }
+}
+
+/**
+ * Service for handling user deletion, anonymization, and recovery.
+ * Dependencies can be injected for testability.
+ */
 export class DeletionService {
   private static instance: DeletionService;
+  private prisma: typeof defaultPrisma;
+  private emailService: EmailService;
+  private logger: typeof logger;
 
-  private constructor() {}
+  private constructor(
+    prisma = defaultPrisma,
+    emailService = EmailService.getInstance(),
+    loggerInstance = logger
+  ) {
+    this.prisma = prisma;
+    this.emailService = emailService;
+    this.logger = loggerInstance;
+  }
 
+  /**
+   * Singleton accessor
+   */
   public static getInstance(): DeletionService {
     if (!DeletionService.instance) {
       DeletionService.instance = new DeletionService();
@@ -16,59 +62,55 @@ export class DeletionService {
 
   /**
    * Initiates the user deletion process
+   * @param userId User ID
+   * @param reason Optional reason for deletion
    */
   async initiateDeletion(userId: string, reason?: string): Promise<void> {
     try {
-      // 1. Create deletion audit log
-      await prisma.deletionAuditLog.create({
+      if (!userId) throw new DeletionServiceError('User ID is required');
+      // If you get an error about 'deletionAuditLog' not existing, check your schema.prisma for the model
+      await this.prisma.deletionAuditLog.create({
         data: {
           userId,
           action: 'DELETION_REQUESTED',
-          details: { reason },
+          details: { reason } as unknown as PrismaTypes.JsonObject,
           timestamp: new Date(),
         },
       });
 
       // 2. Update user with deletion request
-      await prisma.user.update({
+      await this.prisma.user.update({
         where: { id: userId },
         data: {
           dataDeletionRequest: new Date(),
-          deletionReason: reason,
         },
       });
 
       // 3. Notify user
-      const user = await prisma.user.findUnique({
+      const user = await this.prisma.user.findUnique({
         where: { id: userId },
-        select: { email: true },
+        select: { email: true, name: true },
       });
 
-      if (user?.email) {
-        await sendEmail({
-          to: user.email,
-          subject: 'Account Deletion Request Received',
-          template: 'account-deletion-request',
-          data: {
-            retentionPeriod: '30 days',
-            contactEmail: process.env.PRIVACY_EMAIL,
-          },
-        });
+      if (user?.email && user?.name) {
+        await this.emailService.sendGDPRAccountDeletionNotification(user.email, user.name);
       }
 
-      logger.info('Deletion request initiated', { userId });
+      this.logger.info('Deletion request initiated', { userId });
     } catch (error) {
-      logger.error('Failed to initiate deletion', { userId, error });
-      throw new Error('Failed to initiate account deletion');
+      this.logger.error('Failed to initiate deletion', { userId, error });
+      throw new DeletionServiceError('Failed to initiate account deletion', { userId, error });
     }
   }
 
   /**
    * Anonymizes user data while maintaining necessary records
+   * @param userId User ID
    */
   async anonymizeUserData(userId: string): Promise<void> {
     try {
-      const user = await prisma.user.findUnique({
+      if (!userId) throw new DeletionServiceError('User ID is required');
+      const user = await this.prisma.user.findUnique({
         where: { id: userId },
         select: {
           email: true,
@@ -79,38 +121,36 @@ export class DeletionService {
       });
 
       if (!user) {
-        throw new Error('User not found');
+        throw new DeletionServiceError('User not found', { userId });
       }
 
-      // 1. Create deleted user record
-      await prisma.deletedUser.create({
+      // If you get an error about 'deletedUser' not existing, check your schema.prisma for the model
+      await this.prisma.deletedUser.create({
         data: {
           originalUserId: userId,
           originalEmail: user.email || '',
           originalName: user.name || '',
           deletionDate: new Date(),
-          retentionPeriod: 30, // 30 days retention
+          retentionPeriod: DEFAULT_RETENTION_PERIOD_DAYS,
           dataSnapshot: {
             clerkId: user.clerkId,
-            lastActive: new Date(),
-          },
+            lastActive: new Date().toISOString(), // Store as ISO string for JSON compatibility
+          } as unknown as PrismaTypes.JsonObject,
         },
       });
 
       // 2. Anonymize user data
-      await prisma.user.update({
+      await this.prisma.user.update({
         where: { id: userId },
         data: {
-          email: `deleted_${userId}@deleted.user`,
-          name: 'Deleted User',
+          email: `${DELETED_USER_EMAIL_PREFIX}${userId}${DELETED_USER_EMAIL_DOMAIN}`,
+          name: DELETED_USER_NAME,
           imageUrl: null,
-          isAnonymized: true,
-          anonymizedAt: new Date(),
         },
       });
 
       // 3. Log the anonymization
-      await prisma.deletionAuditLog.create({
+      await this.prisma.deletionAuditLog.create({
         data: {
           userId,
           action: 'DATA_ANONYMIZED',
@@ -118,36 +158,38 @@ export class DeletionService {
         },
       });
 
-      logger.info('User data anonymized', { userId });
+      this.logger.info('User data anonymized', { userId });
     } catch (error) {
-      logger.error('Failed to anonymize user data', { userId, error });
-      throw new Error('Failed to anonymize user data');
+      this.logger.error('Failed to anonymize user data', { userId, error });
+      throw new DeletionServiceError('Failed to anonymize user data', { userId, error });
     }
   }
 
   /**
    * Permanently deletes user data after retention period
+   * @param userId User ID
    */
   async permanentDeletion(userId: string): Promise<void> {
     try {
-      // 1. Verify retention period has passed
-      const deletedUser = await prisma.deletedUser.findFirst({
+      if (!userId) throw new DeletionServiceError('User ID is required');
+      // If you get an error about 'deletedUser' not existing, check your schema.prisma for the model
+      const deletedUser = await this.prisma.deletedUser.findFirst({
         where: { originalUserId: userId },
       });
 
       if (!deletedUser) {
-        throw new Error('No deletion record found');
+        throw new DeletionServiceError('No deletion record found', { userId });
       }
 
       const retentionEndDate = new Date(deletedUser.deletionDate);
       retentionEndDate.setDate(retentionEndDate.getDate() + deletedUser.retentionPeriod);
 
       if (new Date() < retentionEndDate) {
-        throw new Error('Retention period not yet passed');
+        throw new DeletionServiceError('Retention period not yet passed', { userId });
       }
 
       // 2. Log the permanent deletion
-      await prisma.deletionAuditLog.create({
+      await this.prisma.deletionAuditLog.create({
         data: {
           userId,
           action: 'PERMANENT_DELETION',
@@ -156,27 +198,35 @@ export class DeletionService {
       });
 
       // 3. Delete the user (this will cascade delete related records)
-      await prisma.user.delete({
+      await this.prisma.user.delete({
         where: { id: userId },
       });
 
       // 4. Delete the deleted user record
-      await prisma.deletedUser.delete({
+      await this.prisma.deletedUser.delete({
         where: { id: deletedUser.id },
       });
 
-      logger.info('User permanently deleted', { userId });
+      this.logger.info('User permanently deleted', { userId });
     } catch (error) {
-      logger.error('Failed to permanently delete user', { userId, error });
-      throw new Error('Failed to permanently delete user');
+      this.logger.error('Failed to permanently delete user', { userId, error });
+      throw new DeletionServiceError('Failed to permanently delete user', { userId, error });
     }
   }
 
   /**
    * Handles the complete deletion process
+   * @param userId User ID
+   * @param reason Optional reason for deletion
+   * @param scheduleJob Optional callback for scheduling permanent deletion (for testability/production)
    */
-  async handleDeletion(userId: string, reason?: string): Promise<void> {
+  async handleDeletion(
+    userId: string,
+    reason?: string,
+    scheduleJob?: (fn: () => Promise<void>, delayMs: number) => void
+  ): Promise<void> {
     try {
+      if (!userId) throw new DeletionServiceError('User ID is required');
       // 1. Initiate deletion
       await this.initiateDeletion(userId, reason);
 
@@ -184,55 +234,57 @@ export class DeletionService {
       await this.anonymizeUserData(userId);
 
       // 3. Schedule permanent deletion
-      const retentionPeriod = 30; // days
-      const deletionDate = new Date();
-      deletionDate.setDate(deletionDate.getDate() + retentionPeriod);
-
-      // Note: In a production environment, you would use a job scheduler
-      // like Bull or a cloud function to handle the delayed deletion
-      setTimeout(async () => {
+      const retentionPeriod = DEFAULT_RETENTION_PERIOD_DAYS;
+      const delayMs = retentionPeriod * 24 * 60 * 60 * 1000;
+      const job = async () => {
         try {
           await this.permanentDeletion(userId);
         } catch (error) {
-          logger.error('Failed to execute scheduled deletion', { userId, error });
+          this.logger.error('Failed to execute scheduled deletion', { userId, error });
         }
-      }, retentionPeriod * 24 * 60 * 60 * 1000);
+      };
+      if (scheduleJob) {
+        scheduleJob(job, delayMs);
+      } else {
+        // Fallback: setTimeout (not reliable for production)
+        setTimeout(job, delayMs);
+      }
 
-      logger.info('Deletion process completed', { userId });
+      this.logger.info('Deletion process completed', { userId });
     } catch (error) {
-      logger.error('Failed to handle deletion process', { userId, error });
-      throw new Error('Failed to handle deletion process');
+      this.logger.error('Failed to handle deletion process', { userId, error });
+      throw new DeletionServiceError('Failed to handle deletion process', { userId, error });
     }
   }
 
   /**
    * Recovers a user's account during the retention period
+   * @param userId User ID
    */
   async recoverAccount(userId: string): Promise<void> {
     try {
-      const deletedUser = await prisma.deletedUser.findFirst({
+      if (!userId) throw new DeletionServiceError('User ID is required');
+      // If you get an error about 'deletedUser' not existing, check your schema.prisma for the model
+      const deletedUser = await this.prisma.deletedUser.findFirst({
         where: { originalUserId: userId },
       });
 
       if (!deletedUser) {
-        throw new Error('No deletion record found');
+        throw new DeletionServiceError('No deletion record found', { userId });
       }
 
       // 1. Restore user data
-      await prisma.user.update({
+      await this.prisma.user.update({
         where: { id: userId },
         data: {
           email: deletedUser.originalEmail,
           name: deletedUser.originalName,
-          isAnonymized: false,
-          anonymizedAt: null,
           dataDeletionRequest: null,
-          deletionReason: null,
         },
       });
 
       // 2. Log the recovery
-      await prisma.deletionAuditLog.create({
+      await this.prisma.deletionAuditLog.create({
         data: {
           userId,
           action: 'ACCOUNT_RECOVERED',
@@ -241,23 +293,22 @@ export class DeletionService {
       });
 
       // 3. Delete the deleted user record
-      await prisma.deletedUser.delete({
+      await this.prisma.deletedUser.delete({
         where: { id: deletedUser.id },
       });
 
       // 4. Notify user
-      if (deletedUser.originalEmail) {
-        await sendEmail({
-          to: deletedUser.originalEmail,
-          subject: 'Account Recovery Successful',
-          template: 'account-recovered',
-        });
+      if (deletedUser.originalEmail && deletedUser.originalName) {
+        await this.emailService.sendGDPRAccountDeletionNotification(
+          deletedUser.originalEmail,
+          deletedUser.originalName
+        );
       }
 
-      logger.info('Account recovered', { userId });
+      this.logger.info('Account recovered', { userId });
     } catch (error) {
-      logger.error('Failed to recover account', { userId, error });
-      throw new Error('Failed to recover account');
+      this.logger.error('Failed to recover account', { userId, error });
+      throw new DeletionServiceError('Failed to recover account', { userId, error });
     }
   }
 } 

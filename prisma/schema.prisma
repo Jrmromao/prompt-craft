@@ -84,6 +84,8 @@ model User {
   following                 Follow[]                   @relation("Following")
   followedPrompts           PromptFollow[]
   favoritedPrompts          PromptFavorite[]
+  deletionAuditLogs DeletionAuditLog[]
+
 
   @@index([clerkId])
   @@index([email])
@@ -229,6 +231,33 @@ model Tag {
   prompts   Prompt[] @relation("PromptToTag")
 
   @@index([slug])
+}
+
+
+model DeletionAuditLog {
+  id        String   @id @default(cuid())
+  userId    String
+  action    String
+  details   Json?
+  timestamp DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([action])
+  @@index([timestamp])
+}
+
+model DeletedUser {
+  id              String   @id @default(cuid())
+  originalUserId  String   // The ID of the user being deleted
+  originalEmail   String
+  originalName    String
+  deletionDate    DateTime @default(now())
+  retentionPeriod Int      // In days
+  dataSnapshot    Json?
+
+  @@index([originalUserId])
+  @@index([deletionDate])
 }
 
 model CreditHistory {

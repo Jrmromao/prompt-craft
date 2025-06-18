@@ -12,13 +12,10 @@ const settingsSchema = z.object({
   language: z.string().optional(),
 });
 
-export async function GET(
-  request: Request,
-  { params }: { params: { userId: string } }
-) {
+export async function GET(request: Request, context: any) {
   try {
     const { userId } = await auth();    
-    if (!userId || userId !== params.userId) {
+    if (!userId || userId !== context.params.userId) {
       return new NextResponse('Unauthorized', { status: 401 });
     }
 
@@ -40,13 +37,10 @@ export async function GET(
   }
 }
 
-export async function PATCH(
-  request: Request,
-  { params }: { params: { userId: string } }
-) {
+export async function PATCH(request: Request, context: any) {
   try {
     const { userId } = await auth();
-    if (!userId || userId !== params.userId) {
+    if (!userId || userId !== context.params.userId) {
       return new NextResponse('Unauthorized', { status: 401 });
     }
 

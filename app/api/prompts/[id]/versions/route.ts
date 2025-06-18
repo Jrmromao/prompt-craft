@@ -12,9 +12,9 @@ export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
 interface RouteContext {
-  params: Promise<{
+  params: {
     id: string;
-  }>;
+  };
 }
 
 export async function GET(request: Request, context: RouteContext) {
@@ -24,9 +24,8 @@ export async function GET(request: Request, context: RouteContext) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const params = await context.params;
     const versionControlService = VersionControlService.getInstance();
-    const versions = await versionControlService.getVersion(params.id);
+    const versions = await versionControlService.getVersion(context.params.id);
 
     return NextResponse.json(versions);
   } catch (error) {
@@ -42,7 +41,6 @@ export async function POST(request: Request, context: RouteContext) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const params = await context.params;
     const body = await request.json();
     const validationResult = versionSchema.safeParse(body);
     
@@ -56,7 +54,7 @@ export async function POST(request: Request, context: RouteContext) {
     const { content, description, commitMessage, tags, baseVersionId, tests } = validationResult.data;
     const versionControlService = VersionControlService.getInstance();
     const version = await versionControlService.createVersion(
-      params.id,
+      context.params.id,
       content,
       description ?? null,
       commitMessage,

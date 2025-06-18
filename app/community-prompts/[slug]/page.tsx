@@ -1,20 +1,15 @@
 import { prisma } from '@/lib/prisma';
-import { notFound, redirect } from 'next/navigation';
+import { notFound } from 'next/navigation';
 import { Metadata } from 'next';
 import { Suspense } from 'react';
 import { PromptContent } from '@/components/PromptContent';
 import { currentUser } from '@clerk/nextjs/server';
-import { TestPromptModal } from '@/components/TestPromptModal';
+import { PlanType } from '@/utils/constants';
 
 // Mark page as dynamic since it uses headers() through AnalyticsTrackingService
 export const dynamic = 'force-dynamic';
 
-interface PageProps {
-  params: Promise<{ slug: string }>;
-  searchParams?: Promise<any>;
-}
-
-// Move to services/prompt.ts in a real app
+// Fetch prompt by slug
 async function getPrompt(slug: string) {
   try {
     return await prisma.prompt.findFirst({
@@ -34,7 +29,7 @@ async function getPrompt(slug: string) {
   }
 }
 
-// Move to utils/seo.ts in a real app
+// JSON-LD for SEO
 function getPromptJsonLd(prompt: any) {
   return {
     '@context': 'https://schema.org',
@@ -52,9 +47,9 @@ function getPromptJsonLd(prompt: any) {
   };
 }
 
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const resolvedParams = await params;
-  const prompt = await getPrompt(resolvedParams.slug);
+// Dynamic metadata
+export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
+  const prompt = await getPrompt(params.slug);
   if (!prompt) return { title: 'Prompt Not Found | PromptHive' };
 
   const title = `${prompt.name} | Community Prompt | PromptHive`;
@@ -84,6 +79,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   };
 }
 
+// Loading skeleton
 function LoadingSkeleton() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -111,26 +107,50 @@ function LoadingSkeleton() {
   );
 }
 
-export default async function PromptDetailPage({ params }: PageProps) {
-  const resolvedParams = await params;
-  const prompt = await getPrompt(resolvedParams.slug);
+// Main page
+export default async function PromptDetailPage({ params }: { params: { slug: string } }) {
+  const prompt = await getPrompt(params.slug);
   if (!prompt) return notFound();
+
+  // Fetch initial comment count
+  const initialCommentCount = await prisma.comment.count({ where: { promptId: prompt.id } });
 
   const promptWithVersion = {
     ...prompt,
-    currentVersionId: prompt.versions[0]?.id || prompt.id
+    currentVersionId: prompt.versions[0]?.id || prompt.id,
+    metadata: prompt.metadata as { copyCount?: number; viewCount?: number; usageCount?: number } | undefined,
+    promptType: prompt.promptType || 'text',
   };
 
   const clerkUser = await currentUser();
-  const user = clerkUser ? {
-    name: clerkUser.fullName || '',
-    email: clerkUser.primaryEmailAddress?.emailAddress || '',
-    imageUrl: clerkUser.imageUrl
-  } : undefined;
+  if (!clerkUser) {
+    return notFound();
+  }
+
+  // Fetch user info directly from the database
+  const dbUser = await prisma.user.findUnique({
+    where: { clerkId: clerkUser.id },
+    select: {
+      id: true,
+      username: true,
+      name: true,
+      email: true,
+      planType: true,
+    },
+  });
+
+  // Prepare minimal user object for PromptContent
+  const minimalUser = {
+    id: dbUser?.id || 'anonymous',
+    name: dbUser?.name || 'Anonymous',
+    username: dbUser?.username || 'anonymous',
+    email: dbUser?.email || '',
+    planType: PlanType[dbUser?.planType as keyof typeof PlanType] || PlanType.FREE,
+  };
 
   return (
     <Suspense fallback={<LoadingSkeleton />}>
-      <PromptContent prompt={promptWithVersion} user={user} />
+      <PromptContent prompt={promptWithVersion} user={minimalUser} initialCommentCount={initialCommentCount} />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(getPromptJsonLd(prompt)) }}

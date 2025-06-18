@@ -10,11 +10,11 @@ export const revalidate = 0;
 
 export async function GET(
   request: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
   try {
     const { userId: clerkUserId } = await auth();
-    const { id: promptId } = await params;
+    const promptId = params.id;
 
     if (!clerkUserId) {
       return NextResponse.json(
@@ -67,11 +67,11 @@ export async function GET(
 
 export async function POST(
   request: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
   try {
     const { userId: clerkUserId } = await auth();
-    const { id: promptId } = await params;
+    const promptId = params.id;
 
     if (!clerkUserId) {
       return NextResponse.json(

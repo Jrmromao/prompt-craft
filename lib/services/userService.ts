@@ -10,6 +10,7 @@ interface SerializableUserWithPlan {
   id: string;
   clerkId: string;
   email: string;
+  username: string;
   credits: number;
   plan: {
     id: string;
@@ -143,9 +144,19 @@ export class UserService {
     try {
       const user = await prisma.user.findUnique({
         where: { clerkId },
-        include: {
+        select: {
+          id: true,
+          clerkId: true,
+          username: true,
+          email: true,
+          name: true,
+          planType: true,
+          createdAt: true,
+          updatedAt: true,
+          lastCreditReset: true,
           subscription: {
-            include: {
+            select: {
+              // select fields from subscription or use include for plan
               plan: true,
             },
           },

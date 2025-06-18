@@ -14,20 +14,14 @@ const getCacheControl = (duration: number) => {
   return `public, s-maxage=${duration}, stale-while-revalidate=${duration * 2}`;
 };
 
-interface RouteContext {
-  params: Promise<{
-    id: string;
-  }>;
-}
-
-export async function GET(request: Request, context: RouteContext) {
+export async function GET(request: Request, context: any) {
   try {
     const { userId } = await auth();
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const params = await context.params;
+    const params = context.params;
     const promptId = params.id;
     if (!promptId) {
       return NextResponse.json({ error: 'Prompt ID is required' }, { status: 400 });
@@ -70,14 +64,14 @@ export async function GET(request: Request, context: RouteContext) {
   }
 }
 
-export async function PUT(request: Request, context: RouteContext) {
+export async function PUT(request: Request, context: any) {
   try {
     const { userId } = await auth();
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const params = await context.params;
+    const params = context.params;
     const promptId = params.id;
     if (!promptId) {
       return NextResponse.json({ error: 'Prompt ID is required' }, { status: 400 });
@@ -94,14 +88,14 @@ export async function PUT(request: Request, context: RouteContext) {
   }
 }
 
-export async function DELETE(request: Request, context: RouteContext) {
+export async function DELETE(request: Request, context: any) {
   try {
     const { userId } = await auth();
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const params = await context.params;
+    const params = context.params;
     const promptId = params.id;
     if (!promptId) {
       return NextResponse.json({ error: 'Prompt ID is required' }, { status: 400 });

@@ -1,12 +1,10 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
-export async function POST(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
+export async function POST(request: NextRequest, context: any) {
+
   try {
-    const templateId = params.id;
+    const templateId = context.params.id;
     
     const template = await prisma.promptTemplate.update({
       where: { id: templateId },

@@ -11,11 +11,12 @@ const MILLISECONDS_PER_DAY = 24 * 60 * 60 * 1000;
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
-export async function POST(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function POST(request: NextRequest, context: any) {
   try {
+    let params = context.params;
+    if (typeof params.then === 'function') {
+      params = await params;
+    }
     const { userId } = await auth();
     const headersList = await headers();
     const ipAddress = headersList.get('x-forwarded-for') || undefined;

@@ -1,19 +1,12 @@
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { currentUser } from "@clerk/nextjs/server";
 import { PublicProfile } from "@/components/profile/public-profile";
 import { prisma } from "@/lib/prisma";
 import { AuditService } from "@/lib/services/auditService";
 
-interface PublicProfilePageProps {
-  params: {
-    username: string;
-  };
-}
-
 export async function generateMetadata({
   params,
-}: PublicProfilePageProps): Promise<Metadata> {
+}: { params: { username: string } }): Promise<Metadata> {
   const user = await prisma.user.findUnique({
     where: { username: params.username },
     select: { username: true, displayName: true, bio: true },
@@ -33,7 +26,7 @@ export async function generateMetadata({
 
 export default async function PublicProfilePage({
   params,
-}: PublicProfilePageProps) {
+}: { params: { username: string } }) {
   const user = await prisma.user.findUnique({
     where: { username: params.username },
     include: {
@@ -50,6 +43,13 @@ export default async function PublicProfilePage({
     notFound();
   }
 
+  // Map Prisma user to the minimal shape expected by PublicProfile
+  const mappedUser = {
+    username: user.username,
+    imageUrl: user.imageUrl ?? "",
+    firstName: user.displayName ?? user.username,
+  };
+
   // Fetch recent audit logs
   const recentActivity = await AuditService.getInstance().getAuditLogs(user.id, {
     limit: 5,
@@ -57,7 +57,7 @@ export default async function PublicProfilePage({
 
   return (
     <PublicProfile 
-      user={user}
+      user={mappedUser}
       followerCount={user._count.followers}
       followingCount={user._count.following}
       recentActivity={recentActivity}

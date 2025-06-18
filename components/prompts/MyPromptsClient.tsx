@@ -2,7 +2,7 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Search, Filter, MessageSquare, Sparkles, Users, Star, Clock, Edit, Trash, Plus, MoreVertical, Share2, X, Tag, Calendar } from 'lucide-react';
+import { Search, Filter, MessageSquare, Sparkles, Users, Star, Clock, Edit, Trash, Plus, MoreVertical, Share2, X, Tag, Calendar, Copy } from 'lucide-react';
 import Link from 'next/link';
 import { Input } from '@/components/ui/input';
 import {
@@ -37,6 +37,19 @@ export function MyPromptsClient({ prompts }: MyPromptsClientProps) {
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [tagSelectorOpen, setTagSelectorOpen] = useState(false);
 
+  // Bulletproof prompt stats state (copyCount, commentCount)
+  const [promptStats, setPromptStats] = useState<Record<string, { copyCount: number; commentCount: number }>>(() =>
+    Object.fromEntries(
+      prompts.map(p => [
+        p.id,
+        {
+          copyCount: p.copyCount ?? 0,
+          commentCount: p._count?.comments ?? 0,
+        },
+      ])
+    )
+  );
+
   // Get unique tag objects from all prompts
   const allTags = Array.from(
     new Map(prompts.flatMap(p => p.tags).map(tag => [tag.id, tag])).values()
@@ -62,6 +75,43 @@ export function MyPromptsClient({ prompts }: MyPromptsClientProps) {
     if (sortBy === 'popular') return b._count.votes - a._count.votes;
     return 0;
   });
+
+  const handleCardClick = (e: React.MouseEvent, promptId: string) => {
+    // Prevent navigation if clicking on the dropdown menu
+    if ((e.target as HTMLElement).closest('.dropdown-menu')) {
+      return;
+    }
+    router.push(`/prompts/${promptId}`);
+  };
+
+  // Handler for copying prompt content (simulate copy action)
+  const handleCopy = async (e: React.MouseEvent, promptId: string, content: string) => {
+    e.stopPropagation();
+    try {
+      await navigator.clipboard.writeText(content);
+      setPromptStats(prev => ({
+        ...prev,
+        [promptId]: {
+          ...prev[promptId],
+          copyCount: prev[promptId].copyCount + 1,
+        },
+      }));
+    } catch (err) {
+      // Optionally show a toast
+    }
+  };
+
+  // Handler for incrementing comment count (simulate add comment)
+  const handleAddComment = (e: React.MouseEvent, promptId: string) => {
+    e.stopPropagation();
+    setPromptStats(prev => ({
+      ...prev,
+      [promptId]: {
+        ...prev[promptId],
+        commentCount: prev[promptId].commentCount + 1,
+      },
+    }));
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background via-background/95 to-background/90">
@@ -241,9 +291,12 @@ export function MyPromptsClient({ prompts }: MyPromptsClientProps) {
                 whileHover={{ y: -5 }}
                 transition={{ duration: 0.2 }}
               >
-                <Card className="group relative h-full overflow-hidden border-purple-200 transition-all hover:border-purple-500/50 hover:shadow-lg hover:shadow-purple-500/5 dark:border-purple-500/20">
+                <Card
+                  className="group relative h-full overflow-hidden border-purple-200 transition-all hover:border-purple-500/50 hover:shadow-lg hover:shadow-purple-500/5 dark:border-purple-500/20 cursor-pointer"
+                  onClick={(e) => handleCardClick(e, prompt.id)}
+                >
                   <CardHeader>
-                    <div className="absolute right-4 top-4">
+                    <div className="absolute right-4 top-4 dropdown-menu">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button variant="ghost" size="icon" className="h-8 w-8">
@@ -251,15 +304,27 @@ export function MyPromptsClient({ prompts }: MyPromptsClientProps) {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem>
+                          <DropdownMenuItem onClick={(e) => {
+                            e.stopPropagation();
+                            router.push(`/prompts/${prompt.id}/edit`);
+                          }}>
                             <Edit className="mr-2 h-4 w-4" />
                             Edit
                           </DropdownMenuItem>
-                          <DropdownMenuItem>
+                          <DropdownMenuItem onClick={(e) => {
+                            e.stopPropagation();
+                            // Add share functionality
+                          }}>
                             <Share2 className="mr-2 h-4 w-4" />
                             Share
                           </DropdownMenuItem>
-                          <DropdownMenuItem className="text-red-600">
+                          <DropdownMenuItem
+                            className="text-red-600"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              // Add delete functionality
+                            }}
+                          >
                             <Trash className="mr-2 h-4 w-4" />
                             Delete
                           </DropdownMenuItem>
@@ -315,12 +380,24 @@ export function MyPromptsClient({ prompts }: MyPromptsClientProps) {
                     </div>
                     <div className="flex items-center gap-4 text-sm text-muted-foreground">
                       <div className="flex items-center gap-1">
-                        <Star className="h-4 w-4 text-yellow-400" />
-                        <span>{prompt._count.votes}</span>
+                        <button
+                          className="flex items-center gap-1 hover:text-purple-600 focus:outline-none"
+                          title="Copy prompt"
+                          onClick={e => handleCopy(e, prompt.id, prompt.content)}
+                        >
+                          <Copy className="h-4 w-4 text-purple-400" />
+                          <span>{promptStats[prompt.id]?.copyCount ?? 0}</span>
+                        </button>
                       </div>
                       <div className="flex items-center gap-1">
-                        <MessageSquare className="h-4 w-4 text-purple-400" />
-                        {/* <span>{prompt._count.comments || 0}</span> */}
+                        <button
+                          className="flex items-center gap-1 hover:text-purple-600 focus:outline-none"
+                          title="Add comment (demo)"
+                          onClick={e => handleAddComment(e, prompt.id)}
+                        >
+                          <MessageSquare className="h-4 w-4 text-purple-400" />
+                          <span>{promptStats[prompt.id]?.commentCount ?? 0}</span>
+                        </button>
                       </div>
                     </div>
                   </CardFooter>

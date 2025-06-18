@@ -7,23 +7,14 @@ import { UserService } from '@/lib/services/userService';
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
-interface RouteContext {
-  params: Promise<{
-    id: string;
-  }>;
-}
-
-export async function POST(
-  request: NextRequest,
-  context: RouteContext
-) {
+export async function POST(request: NextRequest, context: any) {
   try {
     const { userId } = await auth();
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const params = await context.params;
+    const params = context.params;
     const promptId = params.id;
     
     if (!promptId) {

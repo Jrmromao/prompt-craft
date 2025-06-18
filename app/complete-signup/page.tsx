@@ -7,7 +7,7 @@ import { prisma } from "@/lib/prisma";
 export default async function CompleteSignupPage({
   searchParams,
 }: {
-  searchParams: { session_id?: string };
+  searchParams?: { [key: string]: string | string[] | undefined };
 }) {
   const { userId } = await auth();
 
@@ -17,12 +17,16 @@ export default async function CompleteSignupPage({
   }
 
   // If no session_id, redirect to pricing
-  if (!searchParams.session_id) {
+  if (!searchParams?.session_id) {
     redirect("/pricing");
   }
 
   // Get the checkout session
-  const session = await stripe.checkout.sessions.retrieve(searchParams.session_id);
+  const session = await stripe.checkout.sessions.retrieve(
+    Array.isArray(searchParams.session_id)
+      ? searchParams.session_id[0]
+      : searchParams.session_id
+  );
   
   if (!session) {
     redirect("/pricing");
@@ -38,8 +42,8 @@ export default async function CompleteSignupPage({
           </p>
         </div>
         <SignUp
-          afterSignUpUrl={`/profile?session_id=${searchParams.session_id}`}
-          redirectUrl={`/profile?session_id=${searchParams.session_id}`}
+          afterSignUpUrl={`/profile?session_id=${Array.isArray(searchParams.session_id) ? searchParams.session_id[0] : searchParams.session_id}`}
+          redirectUrl={`/profile?session_id=${Array.isArray(searchParams.session_id) ? searchParams.session_id[0] : searchParams.session_id}`}
         />
       </div>
     </div>

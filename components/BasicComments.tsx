@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/components/ui/use-toast';
@@ -36,11 +36,12 @@ const REQUEST_COOLDOWN = 2000; // 2 seconds cooldown between requests
 interface BasicCommentsProps {
   promptId: string;
   initialComments?: Comment[];
+  initialCommentCount?: number;
   onCommentCountChange?: (count: number) => void;
   onCountChange?: (count: number) => void;
 }
 
-export function BasicComments({ promptId, initialComments = [], onCommentCountChange, onCountChange }: BasicCommentsProps) {
+export function BasicComments({ promptId, initialComments = [], initialCommentCount = 0, onCommentCountChange, onCountChange }: BasicCommentsProps) {
   const [comments, setComments] = useState<Comment[]>(initialComments);
   const [newComment, setNewComment] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -48,14 +49,20 @@ export function BasicComments({ promptId, initialComments = [], onCommentCountCh
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
-  const [totalComments, setTotalComments] = useState(initialComments.length);
   const [hasInitialized, setHasInitialized] = useState(false);
   const [isCommentsVisible, setIsCommentsVisible] = useState(true);
   const [lastRequestTime, setLastRequestTime] = useState(0);
   const { user, isLoaded } = useUser();
   const { getToken } = useAuth();
   const { toast } = useToast();
-  const { incrementViewCount, isLoading: analyticsLoading } = usePromptAnalytics();
+  const { incrementViewCount, isLoading: analyticsLoading, commentCount, setCommentCount } = usePromptAnalytics();
+
+  // On mount, initialize context value if needed
+  useEffect(() => {
+    if (typeof commentCount !== 'number') {
+      setCommentCount(initialCommentCount);
+    }
+  }, [commentCount, initialCommentCount, setCommentCount]);
 
   // Throttled request function
   const makeRequest = useCallback(async (requestFn: () => Promise<any>) => {
@@ -108,7 +115,6 @@ export function BasicComments({ promptId, initialComments = [], onCommentCountCh
 
         const data = await response.json();
         setComments(prev => pageNum === 1 ? data.comments : [...prev, ...data.comments]);
-        setTotalComments(data.totalComments || data.total || 0);
         setHasMore(data.hasMore);
       });
     } catch (error) {
@@ -184,7 +190,7 @@ export function BasicComments({ promptId, initialComments = [], onCommentCountCh
     // Optimistic update
     setComments(prev => [tempComment, ...prev]);
     setNewComment('');
-    setTotalComments(prev => prev + 1);
+    setCommentCount(typeof commentCount === 'number' ? commentCount + 1 : 1);
 
     try {
       const token = await getToken();
@@ -219,7 +225,7 @@ export function BasicComments({ promptId, initialComments = [], onCommentCountCh
       // Revert optimistic update on error
       setComments(prev => prev.filter(comment => comment.id !== tempId));
       setNewComment(newComment);
-      setTotalComments(prev => prev - 1);
+      setCommentCount(typeof commentCount === 'number' && commentCount > 0 ? commentCount - 1 : 0);
       toast({
         title: 'Error',
         description: error instanceof Error ? error.message : 'Failed to post comment',
@@ -231,13 +237,13 @@ export function BasicComments({ promptId, initialComments = [], onCommentCountCh
   };
 
   useEffect(() => {
-    if (onCommentCountChange) {
-      onCommentCountChange(totalComments);
+    if (typeof commentCount === 'number' && onCommentCountChange) {
+      onCommentCountChange(commentCount);
     }
-    if (onCountChange) {
-      onCountChange(totalComments);
+    if (typeof commentCount === 'number' && onCountChange) {
+      onCountChange(commentCount);
     }
-  }, [totalComments, onCommentCountChange, onCountChange]);
+  }, [commentCount, onCommentCountChange, onCountChange]);
 
   return (
     <div className="space-y-4">
@@ -267,9 +273,9 @@ export function BasicComments({ promptId, initialComments = [], onCommentCountCh
       <div className="space-y-4">
         <div className="flex items-center justify-between border-b pb-2">
           <div className="text-sm font-medium">
-            {totalComments} {totalComments === 1 ? 'comment' : 'comments'}
+            {commentCount} {commentCount === 1 ? 'comment' : 'comments'}
           </div>
-          {totalComments > 0 && (
+          {commentCount > 0 && (
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
