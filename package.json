@@ -114,7 +114,7 @@
     "node-schedule": "^2.1.1",
     "openai": "^5.1.1",
     "pdf-lib": "^1.17.1",
-    "postcss": "8.4.35",
+    "postcss": "8.5.4",
     "react": "^18",
     "react-beautiful-dnd": "^13.1.1",
     "react-day-picker": "^9.7.0",
