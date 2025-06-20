@@ -134,7 +134,7 @@
     "svix": "^1.62.0",
     "swr": "^2.3.3",
     "tailwind-merge": "^2.2.1",
-    "tailwindcss": "3.4.1",
+    "tailwindcss": "3.4.17",
     "tailwindcss-animate": "^1.0.7",
     "vix": "^0.0.1",
     "xss-clean": "^0.1.4",
