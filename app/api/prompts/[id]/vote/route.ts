@@ -16,7 +16,8 @@ export async function GET(
 ) {
   try {
     const { userId: clerkUserId } = await auth();
-    const promptId = context.params.id;
+    const params = await context.params;
+    const promptId = params.id;
 
     if (!clerkUserId) {
       return NextResponse.json(
@@ -73,7 +74,8 @@ export async function POST(
 ) {
   try {
     const { userId: clerkUserId } = await auth();
-    const promptId = context.params.id;
+    const params = await context.params;
+    const promptId = params.id;
 
     if (!clerkUserId) {
       return NextResponse.json(
