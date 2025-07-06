@@ -68,8 +68,8 @@ export async function POST(req: NextRequest) {
         },
       ],
       mode: 'payment',
-      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/profile?success=true`,
-      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/profile?canceled=true`,
+      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/account?success=true`,
+      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/account?canceled=true`,
       metadata: {
         type: CREDIT_PURCHASE_METADATA,
         userId: user.id,

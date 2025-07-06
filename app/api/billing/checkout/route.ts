@@ -87,7 +87,7 @@ export async function POST(req: NextRequest) {
         },
       ],
       mode: 'subscription',
-      success_url: `${baseUrl}/profile?session_id={CHECKOUT_SESSION_ID}`,
+      success_url: `${baseUrl}/account?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${baseUrl}/pricing`,
       allow_promotion_codes: true,
       billing_address_collection: 'required',

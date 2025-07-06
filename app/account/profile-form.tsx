@@ -79,7 +79,7 @@ export function ProfileForm({ user }: ProfileFormProps) {
   async function onSubmit(data: ProfileFormValues) {
     try {
       setIsLoading(true);
-      const response = await fetch('/api/profile', {
+      const response = await fetch('/api/account', {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',

@@ -58,12 +58,13 @@ import { useSidebarStore } from '@/components/layout/NavBarWrapper';
 import { useTheme } from '@/components/ThemeProvider';
 import { UsageTab } from '@/components/profile/UsageTab';
 import BillingInvoicesSection from '@/components/profile/BillingInvoicesSection';
-import PrivacySettingsPage from '@/app/profile/privacy/page';
+import PrivacySettingsPage from '@/app/account/privacy/page';
 import { CreditPurchaseSection } from '@/app/components/profile/CreditPurchaseSection';
 import { CreditPurchaseDialog } from '@/app/components/profile/CreditPurchaseDialog';
 import { ActivityList } from '@/components/settings/activity-list';
 import { AuditService, AuditLogEntry } from '@/lib/services/auditService';
 import { AuditAction } from '@/app/constants/audit';
+import { UpgradeAccountDialog } from './UpgradeAccountDialog';
 
 const Sheet = dynamic(() => import('@/components/ui/sheet').then(mod => mod.Sheet), {
   ssr: false,
@@ -416,6 +417,7 @@ function ProfileContent({ user, currentPath }: ProfileClientProps) {
     currentPath && validTabs.includes(currentPath) ? currentPath : 'overview'
   );
   const [isCreditModalOpen, setIsCreditModalOpen] = useState(false);
+  const [isUpgradeDialogOpen, setIsUpgradeDialogOpen] = useState(false);
   const [activities, setActivities] = useState<AuditLogEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -447,11 +449,11 @@ function ProfileContent({ user, currentPath }: ProfileClientProps) {
             {accountOptions.map(opt => (
               <button
                 key={opt.label}
-                onClick={() => handleSidebarClick(opt.href.replace('/profile', '') || 'overview')}
-                className={`relative flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm font-medium transition ${activeTab === (opt.href.replace('/profile', '') || 'overview') ? 'bg-accent text-foreground' : 'text-muted-foreground hover:bg-accent hover:text-foreground'}`}
+                onClick={() => handleSidebarClick(opt.href.replace('/account', '') || 'overview')}
+                className={`relative flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm font-medium transition ${activeTab === (opt.href.replace('/account', '') || 'overview') ? 'bg-accent text-foreground' : 'text-muted-foreground hover:bg-accent hover:text-foreground'}`}
                 data-testid={`sidebar-${opt.label.toLowerCase()}-button`}
               >
-                {activeTab === (opt.href.replace('/profile', '') || 'overview') && (
+                {activeTab === (opt.href.replace('/account', '') || 'overview') && (
                   <span className="absolute left-0 top-1/2 h-6 w-1 -translate-y-1/2 rounded bg-purple-500" />
                 )}
                 <opt.icon className="h-4 w-4 text-purple-400" />
@@ -790,7 +792,7 @@ function ProfileContent({ user, currentPath }: ProfileClientProps) {
                           <Button
                             size="sm"
                             className="bg-gradient-to-r from-purple-600 to-pink-600 px-4 py-1 text-sm font-semibold text-white shadow transition hover:from-purple-700 hover:to-pink-700"
-                            onClick={() => router.push('/pricing')}
+                            onClick={() => setIsUpgradeDialogOpen(true)}
                             aria-label="Upgrade Plan"
                           >
                             Upgrade Plan
@@ -899,6 +901,16 @@ function ProfileContent({ user, currentPath }: ProfileClientProps) {
           </ErrorBoundary>
         </main>
       </div>
+      {/* Upgrade Account Dialog */}
+      <UpgradeAccountDialog 
+        open={isUpgradeDialogOpen} 
+        onOpenChange={setIsUpgradeDialogOpen}
+        onUpgrade={(plan) => {
+          // Handle upgrade logic here
+          console.log('Upgrading to plan:', plan);
+          setIsUpgradeDialogOpen(false);
+        }}
+      />
     </div>
   );
 }

@@ -7,7 +7,7 @@ import { Stripe } from 'stripe';
 // Constants for better maintainability
 const CURRENCY = 'usd';
 const SUBSCRIPTION_MODE = 'subscription';
-const SUCCESS_URL = '/profile?tab=billing';
+const SUCCESS_URL = '/account?tab=billing';
 const CANCEL_URL = '/pricing';
 
 // Error types for better error handling

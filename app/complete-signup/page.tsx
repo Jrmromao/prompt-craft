@@ -10,7 +10,7 @@ export default async function CompleteSignupPage(props: { searchParams?: Promise
 
   // If user is already signed in, redirect to profile
   if (userId) {
-    redirect("/profile");
+    redirect("/account");
   }
 
   // If no session_id, redirect to pricing
@@ -39,8 +39,8 @@ export default async function CompleteSignupPage(props: { searchParams?: Promise
           </p>
         </div>
         <SignUp
-          afterSignUpUrl={`/profile?session_id=${Array.isArray(searchParams.session_id) ? searchParams.session_id[0] : searchParams.session_id}`}
-          redirectUrl={`/profile?session_id=${Array.isArray(searchParams.session_id) ? searchParams.session_id[0] : searchParams.session_id}`}
+          afterSignUpUrl={`/account?session_id=${Array.isArray(searchParams.session_id) ? searchParams.session_id[0] : searchParams.session_id}`}
+          redirectUrl={`/account?session_id=${Array.isArray(searchParams.session_id) ? searchParams.session_id[0] : searchParams.session_id}`}
         />
       </div>
     </div>

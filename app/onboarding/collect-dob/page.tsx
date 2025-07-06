@@ -47,7 +47,7 @@ export default function CollectDobPage() {
       await user.update({ unsafeMetadata: { dateOfBirth } });
       setSuccess(true);
       setTimeout(() => {
-        router.push("/profile");
+        router.push("/account");
       }, 1200);
     } catch (err: unknown) {
       if (err instanceof Error) {

@@ -28,6 +28,7 @@ export const cacheConfig = {
     '/api/prompts/[id]',
     '/api/comments/[id]',
     '/api/user/[id]',
+    '/api/account(.*)',
     '/api/profile/[id]',
     '/api/settings/[id]',
   ],

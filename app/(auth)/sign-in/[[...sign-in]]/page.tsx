@@ -33,7 +33,7 @@ export default function SignInPage() {
         password,
       });
       if (result.status === 'complete') {
-        router.push('/profile');
+        router.push('/account');
       } else {
         setError('Sign in failed. Please try again.');
       }
@@ -49,7 +49,7 @@ export default function SignInPage() {
     signIn.authenticateWithRedirect({
       strategy: provider,
       redirectUrl: "/sso-callback",
-      redirectUrlComplete: "/profile",
+      redirectUrlComplete: "/account",
     });
   };
 

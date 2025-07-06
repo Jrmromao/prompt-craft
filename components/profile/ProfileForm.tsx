@@ -66,7 +66,7 @@ export function ProfileForm({ user }: ProfileFormProps) {
     try {
       trackUserFlowEvent('profile_delete', 'start_delete', { userId: user.id });
       
-      const response = await fetch('/api/profile', {
+      const response = await fetch('/api/account', {
         method: 'DELETE',
       });
 

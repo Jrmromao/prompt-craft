@@ -1,5 +1,5 @@
 import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
-import { ProfileForm } from '@/app/profile/profile-form';
+import { ProfileForm } from '@/app/account/profile-form';
 import { Role, PlanType } from '@prisma/client';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
@@ -123,7 +123,7 @@ describe('ProfileForm', () => {
     });
 
     await waitFor(() => {
-      expect(global.fetch).toHaveBeenCalledWith('/api/profile', {
+      expect(global.fetch).toHaveBeenCalledWith('/api/account', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

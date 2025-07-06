@@ -1,17 +1,6 @@
-jest.doMock('@prisma/client', () => ({
-  Role: {
-    USER: 'USER',
-    ADMIN: 'ADMIN',
-  },
-  PlanType: {
-    PRO: 'PRO',
-    ELITE: 'ELITE',
-    ENTERPRISE: 'ENTERPRISE',
-  },
-}));
-
+import React from 'react';
 import { render, screen, act } from '@testing-library/react';
-import ProfilePage from '@/app/profile/page';
+import AccountPage from '@/app/account/page';
 import { auth } from '@clerk/nextjs/server';
 import { currentUser } from '@clerk/nextjs/server';
 import { getProfileByClerkId } from '@/app/services/profileService';
@@ -34,7 +23,7 @@ jest.mock('@/app/services/profileService', () => ({
 }));
 
 // Correctly mock the named export for ProfileClient
-jest.mock('@/app/profile/ProfileClient', () => ({
+jest.mock('@/app/account/ProfileClient', () => ({
   __esModule: true,
   ProfileClient: ({ user }: { user: any }) => (
     <div>
@@ -54,7 +43,7 @@ jest.mock('@/app/profile/ProfileClient', () => ({
   ),
 }));
 
-describe('ProfilePage', () => {
+describe('AccountPage', () => {
   const mockUser = {
     id: 'user-123',
     name: 'John Doe',
@@ -94,7 +83,7 @@ describe('ProfilePage', () => {
 
     let page;
     await act(async () => {
-      page = await ProfilePage();
+      page = await AccountPage();
     });
     render(page);
 
