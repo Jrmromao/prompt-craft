@@ -704,11 +704,80 @@ public async getPromptBySlug(slug: string): Promise<Prompt | null> {
     );
   }
 
-  async getPublicPrompts(page: number = 1, limit: number = 10): Promise<{ prompts: Prompt[]; total: number }> {
+  async getPublicPrompts(
+    page: number = 1, 
+    limit: number = 10,
+    options: {
+      search?: string;
+      sortBy?: string;
+      tag?: string;
+    } = {}
+  ): Promise<{ prompts: Prompt[]; total: number }> {
+    const { search, sortBy = 'most_popular', tag } = options;
     const skip = (page - 1) * limit;
+
+    // Build where clause
+    const where: Prisma.PromptWhereInput = {
+      isPublic: true,
+      ...(search
+        ? {
+            OR: [
+              { name: { contains: search, mode: Prisma.QueryMode.insensitive } },
+              { content: { contains: search, mode: Prisma.QueryMode.insensitive } },
+              { description: { contains: search, mode: Prisma.QueryMode.insensitive } },
+            ],
+          }
+        : {}),
+      ...(tag
+        ? {
+            tags: {
+              some: {
+                name: { contains: tag, mode: Prisma.QueryMode.insensitive },
+              },
+            },
+          }
+        : {}),
+    };
+
+    // Build orderBy clause
+    let orderBy: Prisma.PromptOrderByWithRelationInput[] = [];
+    switch (sortBy) {
+      case 'most_popular':
+        orderBy = [
+          { upvotes: 'desc' },
+          { viewCount: 'desc' },
+          { createdAt: 'desc' }
+        ];
+        break;
+      case 'newest':
+        orderBy = [{ createdAt: 'desc' }];
+        break;
+      case 'oldest':
+        orderBy = [{ createdAt: 'asc' }];
+        break;
+      case 'most_viewed':
+        orderBy = [
+          { viewCount: 'desc' },
+          { upvotes: 'desc' },
+          { createdAt: 'desc' }
+        ];
+        break;
+      case 'trending':
+        // For trending, we'll use a combination of recent activity and popularity
+        orderBy = [
+          { updatedAt: 'desc' },
+          { upvotes: 'desc' },
+          { viewCount: 'desc' }
+        ];
+        break;
+      default:
+        orderBy = [{ createdAt: 'desc' }];
+    }
+
     const [prompts, total] = await Promise.all([
       prisma.prompt.findMany({
-        where: { isPublic: true },
+        where,
+        orderBy,
         skip,
         take: limit,
         include: {
@@ -728,7 +797,7 @@ public async getPromptBySlug(slug: string): Promise<Prompt | null> {
           },
         },
       }),
-      prisma.prompt.count({ where: { isPublic: true } }),
+      prisma.prompt.count({ where }),
     ]);
 
     return {

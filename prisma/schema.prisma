@@ -46,6 +46,26 @@ model User {
   lastDataAccess            DateTime?
   dataRetentionPolicy       Json?                      @default("{\"autoDelete\": false, \"dataCategories\": [\"personal\", \"usage\", \"analytics\"], \"retentionPeriod\": 365}")
   dataProcessingConsent     Json?                      @default("{\"analytics\": false, \"marketing\": false, \"thirdParty\": false}")
+  
+  // Gamification Fields
+  level                     Int                        @default(1)
+  experience                Int                        @default(0)
+  totalExperience           Int                        @default(0)
+  reputation                Int                        @default(0)
+  streak                    Int                        @default(0)
+  longestStreak             Int                        @default(0)
+  lastActivityDate          DateTime?
+  totalCreditsEarned        Int                        @default(0)
+  totalCreditsSpent         Int                        @default(0)
+  totalVotesCast            Int                        @default(0)
+  totalVotesReceived        Int                        @default(0)
+  totalPromptsCreated       Int                        @default(0)
+  totalPromptsShared        Int                        @default(0)
+  premiumCredits            Int                        @default(0)
+  seasonalRank              Int?
+  seasonalTier              SeasonalTier?
+  
+  // Relations
   apiKeys                   ApiKey[]
   apiUsage                  ApiUsage[]
   auditLogs                 AuditLog[]
@@ -91,6 +111,16 @@ model User {
   voteAbuseDetections       VoteAbuseDetection[]
   abuseInvestigations       VoteAbuseDetection[]       @relation("AbuseInvestigator")
   votePatterns              VotePattern[]
+  
+  // Gamification Relations
+  userAchievements          UserAchievement[]
+  userBadges                UserBadge[]
+  challengeParticipations   ChallengeParticipation[]
+  seasonalStats             SeasonalStats[]
+  userCollections           UserCollection[]
+  activityLogs              ActivityLog[]
+  streakLogs                StreakLog[]
+  levelProgressions         LevelProgression[]
 
   @@index([clerkId])
   @@index([email])
@@ -104,6 +134,11 @@ model User {
   @@index([username])
   @@index([profileUrl])
   @@index([isPublic])
+  @@index([level])
+  @@index([reputation])
+  @@index([streak])
+  @@index([seasonalRank])
+  @@index([seasonalTier])
 }
 
 model Plan {
@@ -169,51 +204,61 @@ model Usage {
 }
 
 model Prompt {
-  id                  String              @id @default(cuid())
-  userId              String
-  createdAt           DateTime            @default(now())
-  content             String
-  description         String?
-  isPublic            Boolean             @default(false)
-  name                String
-  updatedAt           DateTime            @updatedAt
-  upvotes             Int                 @default(0)
-  slug                String              @unique
-  lastUsedAt          DateTime?
-  lastViewedAt        DateTime?
-  usageCount          Int                 @default(0)
-  viewCount           Int                 @default(0)
-  copyCount           Int                 @default(0)
-  promptType          String              @default("text")
-  metadata            Json?
-  responseTime        Int?
-  model               String              @default("gpt-4")
-  dataRetentionPolicy Json?               @default("{\"autoDelete\": false, \"retentionPeriod\": 365}")
-  isArchived          Boolean?            @default(false)
-  archivedAt          DateTime?
-  isVerified          Boolean             @default(false)
-  isFeatured          Boolean             @default(false)
-  apiUsage            ApiUsage[]
-  comments            Comment[]
-  likes               CommentLike[]
-  playgroundRuns      PlaygroundRun[]
-  user                User                @relation(fields: [userId], references: [id], onDelete: Cascade)
-  analytics           PromptAnalytics?
-  branches            PromptBranch[]
-  copies              PromptCopy[]
-  testHistory         PromptTestHistory[]
-  usages              PromptUsage[]
-  views               PromptView[]
-  reports             Report[]
-  versions            Version[]
-  votes               Vote[]
-  tags                Tag[]               @relation("PromptToTag")
-  followerCount       Int                 @default(0)
-  favoriteCount       Int                 @default(0)
-  followers           PromptFollow[]
-  favorites           PromptFavorite[]
-  ratings             PromptRating[]
-  voteRewards         VoteReward[]
+  id                String             @id @default(cuid())
+  name              String
+  content           String
+  description       String?
+  isPublic          Boolean            @default(false)
+  userId            String
+  slug              String             @unique
+  upvotes           Int                @default(0)
+  downvotes         Int                @default(0)
+  lastUsedAt        DateTime?
+  lastViewedAt      DateTime?
+  usageCount        Int                @default(0)
+  viewCount         Int                @default(0)
+  copyCount         Int                @default(0)
+  shareCount        Int                @default(0)
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  metadata          Json?
+  model             String             @default("gpt-3.5-turbo")
+  promptType        String             @default("default")
+  responseTime      Float?
+  dataRetentionPolicy Json?            @default("{}")
+  isArchived        Boolean            @default(false)
+  archivedAt        DateTime?
+  isVerified        Boolean            @default(false)
+  isFeatured        Boolean            @default(false)
+  
+  // Gamification fields
+  qualityScore      Float              @default(0.0)
+  difficultyLevel   Int                @default(1)
+  isPremium         Boolean            @default(false)
+  premiumTier       PremiumTier?
+  
+     user              User               @relation(fields: [userId], references: [id])
+   comments          Comment[]
+   copies            PromptCopy[]
+   usages            PromptUsage[]
+   versions          Version[]
+   reports           Report[]
+   votes             Vote[]
+   tags              Tag[]              @relation("PromptToTag")
+   followerCount     Int                @default(0)
+   favoriteCount     Int                @default(0)
+   followers         PromptFollow[]
+   favorites         PromptFavorite[]
+   ratings           PromptRating[]
+   voteRewards       VoteReward[]
+   collectionItems   CollectionItem[]
+   likes             CommentLike[]
+   analytics         PromptAnalytics?
+   views             PromptView[]
+   branches          PromptBranch[]
+   playgroundRuns    PlaygroundRun[]
+   apiUsage          ApiUsage[]
+   testHistory       PromptTestHistory[]
 
   @@index([userId])
   @@index([slug])
@@ -227,6 +272,10 @@ model Prompt {
   @@index([isFeatured])
   @@index([createdAt], map: "prompt_created_at_idx")
   @@index([updatedAt], map: "prompt_updated_at_idx")
+  @@index([qualityScore])
+  @@index([difficultyLevel])
+  @@index([isPremium])
+  @@index([premiumTier])
 }
 
 model Tag {
@@ -1130,4 +1179,363 @@ enum VoteAbuseStatus {
   CONFIRMED
   FALSE_POSITIVE
   RESOLVED
+}
+
+// Gamification Models
+model Achievement {
+  id                String              @id @default(cuid())
+  name              String              @unique
+  description       String
+  icon              String
+  category          AchievementCategory
+  tier              AchievementTier     @default(BRONZE)
+  requirements      Json                // Flexible requirements system
+  rewards           Json                // Credits, badges, titles, etc.
+  isActive          Boolean             @default(true)
+  isSecret          Boolean             @default(false)
+  isPremium         Boolean             @default(false)
+  sortOrder         Int                 @default(0)
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  
+  userAchievements  UserAchievement[]
+
+  @@index([category])
+  @@index([tier])
+  @@index([isActive])
+  @@index([isPremium])
+  @@index([sortOrder])
+}
+
+model UserAchievement {
+  id              String      @id @default(cuid())
+  userId          String
+  achievementId   String
+  unlockedAt      DateTime    @default(now())
+  progress        Json?       // For tracking partial progress
+  
+  user            User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  achievement     Achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, achievementId])
+  @@index([userId])
+  @@index([achievementId])
+  @@index([unlockedAt])
+}
+
+model Badge {
+  id          String      @id @default(cuid())
+  name        String      @unique
+  description String
+  icon        String
+  color       String      @default("#6366f1")
+  rarity      BadgeRarity @default(COMMON)
+  category    BadgeCategory
+  isPremium   Boolean     @default(false)
+  isActive    Boolean     @default(true)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  
+  userBadges  UserBadge[]
+
+  @@index([category])
+  @@index([rarity])
+  @@index([isPremium])
+  @@index([isActive])
+}
+
+model UserBadge {
+  id        String   @id @default(cuid())
+  userId    String
+  badgeId   String
+  earnedAt  DateTime @default(now())
+  isVisible Boolean  @default(true)
+  
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  badge     Badge    @relation(fields: [badgeId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, badgeId])
+  @@index([userId])
+  @@index([badgeId])
+  @@index([earnedAt])
+}
+
+model Challenge {
+  id                  String                    @id @default(cuid())
+  name                String
+  description         String
+  icon                String
+  category            ChallengeCategory
+  type                ChallengeType
+  difficulty          ChallengeDifficulty
+  requirements        Json                      // Flexible requirements
+  rewards             Json                      // Credits, badges, XP
+  startDate           DateTime
+  endDate             DateTime
+  maxParticipants     Int?
+  isPremium           Boolean                   @default(false)
+  isActive            Boolean                   @default(true)
+  createdAt           DateTime                  @default(now())
+  updatedAt           DateTime                  @updatedAt
+  
+  participations      ChallengeParticipation[]
+
+  @@index([category])
+  @@index([type])
+  @@index([difficulty])
+  @@index([startDate])
+  @@index([endDate])
+  @@index([isPremium])
+  @@index([isActive])
+}
+
+model ChallengeParticipation {
+  id            String            @id @default(cuid())
+  userId        String
+  challengeId   String
+  startedAt     DateTime          @default(now())
+  completedAt   DateTime?
+  progress      Json              // Track progress
+  status        ChallengeStatus   @default(ACTIVE)
+  rewards       Json?             // Rewards earned
+  
+  user          User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  challenge     Challenge         @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, challengeId])
+  @@index([userId])
+  @@index([challengeId])
+  @@index([status])
+  @@index([startedAt])
+  @@index([completedAt])
+}
+
+model SeasonalStats {
+  id                String       @id @default(cuid())
+  userId            String
+  season            String       // e.g., "2024-Q1", "Winter-2024"
+  tier              SeasonalTier @default(BRONZE)
+  rank              Int?
+  points            Int          @default(0)
+  promptsCreated    Int          @default(0)
+  votesCast         Int          @default(0)
+  creditsEarned     Int          @default(0)
+  achievementsCount Int          @default(0)
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+  
+  user              User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, season])
+  @@index([userId])
+  @@index([season])
+  @@index([tier])
+  @@index([rank])
+  @@index([points])
+}
+
+model UserCollection {
+  id          String               @id @default(cuid())
+  userId      String
+  name        String
+  description String?
+  icon        String?
+  isPublic    Boolean              @default(false)
+  isPremium   Boolean              @default(false)
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
+  
+  user        User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items       CollectionItem[]
+
+  @@index([userId])
+  @@index([isPublic])
+  @@index([isPremium])
+  @@index([createdAt])
+}
+
+model CollectionItem {
+  id           String         @id @default(cuid())
+  collectionId String
+  promptId     String
+  addedAt      DateTime       @default(now())
+  notes        String?
+  
+  collection   UserCollection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+  prompt       Prompt         @relation(fields: [promptId], references: [id], onDelete: Cascade)
+
+  @@unique([collectionId, promptId])
+  @@index([collectionId])
+  @@index([promptId])
+  @@index([addedAt])
+}
+
+model ActivityLog {
+  id          String       @id @default(cuid())
+  userId      String
+  action      ActivityType
+  details     Json?
+  points      Int          @default(0)
+  multiplier  Float        @default(1.0)
+  timestamp   DateTime     @default(now())
+  
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([action])
+  @@index([timestamp])
+  @@index([points])
+}
+
+model StreakLog {
+  id          String   @id @default(cuid())
+  userId      String
+  streakType  String   // "daily", "weekly", "voting", "creating"
+  count       Int
+  startDate   DateTime
+  endDate     DateTime?
+  isActive    Boolean  @default(true)
+  
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([streakType])
+  @@index([count])
+  @@index([isActive])
+}
+
+model LevelProgression {
+  id            String   @id @default(cuid())
+  userId        String
+  fromLevel     Int
+  toLevel       Int
+  experienceGained Int
+  rewards       Json?    // Rewards for leveling up
+  timestamp     DateTime @default(now())
+  
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([fromLevel])
+  @@index([toLevel])
+  @@index([timestamp])
+}
+
+model PremiumFeature {
+  id            String   @id @default(cuid())
+  name          String   @unique
+  description   String
+  category      String
+  requiredTier  PlanType
+  isActive      Boolean  @default(true)
+  config        Json?    // Feature configuration
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([category])
+  @@index([requiredTier])
+  @@index([isActive])
+}
+
+// Enums for gamification
+enum AchievementCategory {
+  CREATOR
+  VOTER
+  SOCIAL
+  COLLECTOR
+  STREAK
+  MILESTONE
+  SEASONAL
+  PREMIUM
+}
+
+enum AchievementTier {
+  BRONZE
+  SILVER
+  GOLD
+  PLATINUM
+  DIAMOND
+  LEGENDARY
+}
+
+enum BadgeRarity {
+  COMMON
+  UNCOMMON
+  RARE
+  EPIC
+  LEGENDARY
+  MYTHIC
+}
+
+enum BadgeCategory {
+  CREATOR
+  VOTER
+  SOCIAL
+  COLLECTOR
+  ACHIEVEMENT
+  SEASONAL
+  PREMIUM
+  SPECIAL
+}
+
+enum ChallengeCategory {
+  DAILY
+  WEEKLY
+  MONTHLY
+  SEASONAL
+  SPECIAL
+  COMMUNITY
+  PREMIUM
+}
+
+enum ChallengeType {
+  INDIVIDUAL
+  TEAM
+  COMMUNITY
+  COMPETITIVE
+}
+
+enum ChallengeDifficulty {
+  EASY
+  MEDIUM
+  HARD
+  EXPERT
+  LEGENDARY
+}
+
+enum ChallengeStatus {
+  ACTIVE
+  COMPLETED
+  FAILED
+  ABANDONED
+}
+
+enum SeasonalTier {
+  BRONZE
+  SILVER
+  GOLD
+  PLATINUM
+  DIAMOND
+  MASTER
+  GRANDMASTER
+}
+
+enum ActivityType {
+  PROMPT_CREATED
+  PROMPT_SHARED
+  VOTE_CAST
+  COMMENT_POSTED
+  ACHIEVEMENT_UNLOCKED
+  LEVEL_UP
+  STREAK_MILESTONE
+  COLLECTION_CREATED
+  CHALLENGE_COMPLETED
+  PREMIUM_FEATURE_USED
+}
+
+enum PremiumTier {
+  BASIC
+  PREMIUM
+  ELITE
+  EXCLUSIVE
 }

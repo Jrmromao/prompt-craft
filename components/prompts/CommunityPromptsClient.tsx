@@ -1,731 +1,790 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useState, useEffect } from 'react';
+import { useAuth } from '@clerk/nextjs';
 import { Button } from '@/components/ui/button';
-import { Plus, Search, Filter, TrendingUp, Users, Sparkles, Loader2, MessageSquare } from 'lucide-react';
-import Link from 'next/link';
 import { Input } from '@/components/ui/input';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { useInView } from 'react-intersection-observer';
-import { PromptService } from '@/lib/services/promptService';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { AlertCircle } from 'lucide-react';
-import { formatDistanceToNow } from 'date-fns';
-import { NavBar } from '@/components/layout/NavBar';
-import { useUser } from '@clerk/nextjs';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { PromptSearchBar } from './PromptSearchBar';
-import { Prompt } from '@/types/prompt';
+import { Separator } from '@/components/ui/separator';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { 
+  Loader2, 
+  Search, 
+  Filter, 
+  TrendingUp, 
+  Users, 
+  Trophy, 
+  Star, 
+  BarChart3, 
+  Eye, 
+  User, 
+  Crown, 
+  Coins,
+  Sparkles,
+  ArrowRight,
+  Heart,
+  MessageCircle,
+  Bookmark,
+  Share2,
+  Grid3X3,
+  List,
+  SortAsc,
+  SortDesc,
+  Calendar,
+  Award,
+  Zap,
+  Target,
+  TrendingDown
+} from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import Link from 'next/link';
+import { cn } from '@/lib/utils';
 
-interface CommunityPromptsClientProps {
-  initialPrompts: Prompt[];
-  totalPrompts: number;
+interface Prompt {
+  id: string;
+  name: string;
+  description: string;
+  upvotes: number;
+  views: number;
+  tags: string[];
+  user: {
+    name: string;
+    imageUrl: string;
+  };
+  createdAt: string;
+  isPublic: boolean;
 }
 
-export function CommunityPromptsClient({ initialPrompts, totalPrompts }: CommunityPromptsClientProps) {
-  const [prompts, setPrompts] = useState<Prompt[]>(initialPrompts || []);
-  const [page, setPage] = useState(1);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [hasMore, setHasMore] = useState((initialPrompts?.length || 0) < (totalPrompts || 0));
-  const [searchQuery, setSearchQuery] = useState('');
-  const [sortBy, setSortBy] = useState<'recent' | 'popular' | 'trending'>('popular');
-  const { ref, inView } = useInView();
-  const { isSignedIn, user } = useUser();
-  const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [tagSelectorOpen, setTagSelectorOpen] = useState(false);
-  const [showLeaderboards, setShowLeaderboards] = useState(false);
+interface LeaderboardData {
+  topCreators: Array<{
+    id: string;
+    name: string;
+    imageUrl: string;
+    totalUpvotes: number;
+    promptCount: number;
+  }>;
+  topVoters: Array<{
+    id: string;
+    name: string;
+    imageUrl: string;
+    totalVotes: number;
+  }>;
+  topCreditEarners: Array<{
+    id: string;
+    name: string;
+    imageUrl: string;
+    creditsEarned: number;
+  }>;
+  trendingPrompts: Array<{
+    id: string;
+    name: string;
+    totalUpvotes: number;
+    weeklyUpvotes: number;
+  }>;
+  userStats: {
+    creditsEarned: number;
+    votesCast: number;
+    promptsCreated: number;
+    totalUpvotes: number;
+  } | null;
+}
 
+type SidebarView = 'prompts' | 'leaderboards';
+type LeaderboardTab = 'myStats' | 'topCreators' | 'topVoters' | 'topCreditEarners' | 'trending';
+type ViewMode = 'grid' | 'list';
+
+export function CommunityPromptsClient() {
+  const { isSignedIn } = useAuth();
+  const [prompts, setPrompts] = useState<Prompt[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sortBy, setSortBy] = useState('most_popular');
+  const [filterTag, setFilterTag] = useState('all');
+  const [viewMode, setViewMode] = useState<ViewMode>('grid');
+  
+  // Sidebar navigation state
+  const [sidebarView, setSidebarView] = useState<SidebarView>('prompts');
+  const [activeLeaderboardTab, setActiveLeaderboardTab] = useState<LeaderboardTab>(
+    isSignedIn ? 'myStats' : 'topCreators'
+  );
+  
   // Leaderboard data
-  const [leaderboardData, setLeaderboardData] = useState<{
-    topCreators: Array<{
-      id: string;
-      name: string;
-      imageUrl: string;
-      totalUpvotes: number;
-      promptCount: number;
-    }>;
-    trendingPrompts: Array<{
-      id: string;
-      name: string;
-      totalUpvotes: number;
-      weeklyUpvotes: number;
-    }>;
-    topVoters: Array<{
-      id: string;
-      name: string;
-      imageUrl: string;
-      totalVotes: number;
-    }>;
-    topCreditEarners: Array<{
-      id: string;
-      name: string;
-      imageUrl: string;
-      creditsFromVotes: number;
-      totalCreditsEarned: number;
-    }>;
-    userStats: {
-      creditsEarned: number;
-      votesCast: number;
-      promptsCreated: number;
-      totalUpvotes: number;
-    } | null;
-  }>({
+  const [leaderboardData, setLeaderboardData] = useState<LeaderboardData>({
     topCreators: [],
-    trendingPrompts: [],
     topVoters: [],
     topCreditEarners: [],
+    trendingPrompts: [],
     userStats: null
   });
+  const [leaderboardLoading, setLeaderboardLoading] = useState(false);
 
-  // Fetch leaderboard data when needed
-  const fetchLeaderboardData = async () => {
-    try {
-      const response = await fetch('/api/community/leaderboards');
-      if (response.ok) {
-        const data = await response.json();
-        setLeaderboardData(data);
-      }
-    } catch (error) {
-      console.error('Error fetching leaderboard data:', error);
-    }
-  };
-
-  // Fetch leaderboard data when leaderboards are shown
+  // Fetch prompts
   useEffect(() => {
-    if (showLeaderboards && leaderboardData.topCreators.length === 0) {
-      fetchLeaderboardData();
-    }
-  }, [showLeaderboards]);
-
-  // Get unique tags from all prompts
-  const allTags = Array.from(new Set(prompts.flatMap(p => p.tags.map(t => t.name))));
-
-  const loadMorePrompts = async () => {
-    if (loading || !hasMore) return;
-
-    try {
-      setLoading(true);
-      setError(null);
-      const response = await fetch(`/api/prompts/public?page=${page + 1}&limit=10`);
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+    const fetchPrompts = async () => {
+      try {
+        setLoading(true);
+        const params = new URLSearchParams({
+          search: searchQuery,
+          sortBy,
+          ...(filterTag !== 'all' && { tag: filterTag })
+        });
+        
+        const response = await fetch(`/api/prompts/public?${params}`);
+        if (response.ok) {
+          const data = await response.json();
+          setPrompts(data.prompts || []);
+        }
+      } catch (error) {
+        console.error('Error fetching prompts:', error);
+      } finally {
+        setLoading(false);
       }
-      
-      const data = await response.json();
-      
-      if (!data.prompts || !Array.isArray(data.prompts)) {
-        throw new Error('Invalid response format');
-      }
+    };
 
-      setPrompts((prev) => [...prev, ...data.prompts]);
-      setPage((prev) => prev + 1);
-      setHasMore(data.prompts.length === 10);
-    } catch (err) {
-      console.error('Error loading more prompts:', err);
-      setError(err instanceof Error ? err.message : 'Failed to load more prompts');
-    } finally {
-      setLoading(false);
+    if (sidebarView === 'prompts') {
+      fetchPrompts();
     }
-  };
+  }, [searchQuery, sortBy, filterTag, sidebarView]);
 
+  // Fetch leaderboard data
   useEffect(() => {
-    if (inView) {
-      loadMorePrompts();
-    }
-  }, [inView]);
-
-  // Filter prompts based on search, tags, and sort
-  const filteredPrompts = prompts
-    .filter(prompt => {
-      if (!prompt) return false;
-      const searchLower = searchQuery.toLowerCase();
-      const matchesSearch =
-        prompt.name.toLowerCase().includes(searchLower) ||
-        (prompt.description?.toLowerCase() || '').includes(searchLower) ||
-        prompt.tags.some(tag => tag.name.toLowerCase().includes(searchLower));
-      const matchesTags = selectedTags.length === 0 ||
-        selectedTags.every(tag => prompt.tags.some(t => t.name === tag));
-      return matchesSearch && matchesTags;
-    })
-    .sort((a, b) => {
-      if (sortBy === 'recent') {
-        return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
+    const fetchLeaderboardData = async () => {
+      if (sidebarView !== 'leaderboards') return;
+      
+      try {
+        setLeaderboardLoading(true);
+        const response = await fetch('/api/community/leaderboards');
+        if (response.ok) {
+          const data = await response.json();
+          setLeaderboardData(data);
+        }
+      } catch (error) {
+        console.error('Error fetching leaderboard data:', error);
+      } finally {
+        setLeaderboardLoading(false);
       }
-      return b.upvotes - a.upvotes;
-    });
+    };
 
-  const featuredPrompts = filteredPrompts.slice(0, 3);
-  const regularPrompts = filteredPrompts.slice(3);
+    fetchLeaderboardData();
+  }, [sidebarView]);
 
-  if (error) {
+  // Update default tab when auth state changes
+  useEffect(() => {
+    if (sidebarView === 'leaderboards') {
+      setActiveLeaderboardTab(isSignedIn ? 'myStats' : 'topCreators');
+    }
+  }, [isSignedIn, sidebarView]);
+
+  const sidebarItems = [
+    {
+      id: 'prompts' as SidebarView,
+      label: 'Discover Prompts',
+      icon: Sparkles,
+      description: 'Explore community creations',
+      gradient: 'from-purple-500 to-pink-500'
+    },
+    {
+      id: 'leaderboards' as SidebarView,
+      label: 'Leaderboards',
+      icon: Trophy,
+      description: 'Community champions',
+      gradient: 'from-yellow-500 to-orange-500'
+    }
+  ];
+
+  const leaderboardTabs = [
+    ...(isSignedIn ? [{
+      id: 'myStats' as LeaderboardTab,
+      label: 'My Stats',
+      icon: User,
+      color: 'from-purple-500 to-pink-500',
+      bgColor: 'bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20'
+    }] : []),
+    {
+      id: 'topCreators' as LeaderboardTab,
+      label: 'Top Creators',
+      icon: Crown,
+      color: 'from-yellow-500 to-orange-500',
+      bgColor: 'bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20'
+    },
+    {
+      id: 'topVoters' as LeaderboardTab,
+      label: 'Top Voters',
+      icon: Star,
+      color: 'from-blue-500 to-cyan-500',
+      bgColor: 'bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20'
+    },
+    {
+      id: 'topCreditEarners' as LeaderboardTab,
+      label: 'Top Earners',
+      icon: Coins,
+      color: 'from-green-500 to-emerald-500',
+      bgColor: 'bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20'
+    },
+    {
+      id: 'trending' as LeaderboardTab,
+      label: 'Trending',
+      icon: TrendingUp,
+      color: 'from-orange-500 to-red-500',
+      bgColor: 'bg-gradient-to-r from-orange-50 to-red-50 dark:from-orange-900/20 dark:to-red-900/20'
+    }
+  ];
+
+  const filterTags = [
+    { value: 'all', label: 'All Categories', icon: Grid3X3 },
+    { value: 'writing', label: 'Writing', icon: MessageCircle },
+    { value: 'coding', label: 'Coding', icon: BarChart3 },
+    { value: 'marketing', label: 'Marketing', icon: Target },
+    { value: 'creative', label: 'Creative', icon: Sparkles },
+    { value: 'business', label: 'Business', icon: Award }
+  ];
+
+  const renderLeaderboardContent = () => {
+    if (leaderboardLoading) {
+      return (
+        <div className="flex items-center justify-center h-96">
+          <div className="text-center">
+            <Loader2 className="h-12 w-12 animate-spin text-purple-500 mx-auto mb-4" />
+            <p className="text-muted-foreground">Loading leaderboards...</p>
+          </div>
+        </div>
+      );
+    }
+
+    const currentTab = leaderboardTabs.find(tab => tab.id === activeLeaderboardTab);
+    
+    if (!currentTab) {
+      return <div>Tab not found</div>;
+    }
+    
     return (
-      <div className="container mx-auto px-4 py-8">
-        <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
-          <AlertTitle>Error</AlertTitle>
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      </div>
-    );
-  }
-
-  return (
-    <>
-      {isSignedIn && <NavBar user={user ? { name: user.fullName || '', email: user.primaryEmailAddress?.emailAddress || '', imageUrl: user.imageUrl } : undefined} />}
-      <div className="min-h-screen bg-gradient-to-b from-background via-background/95 to-background/90">
-        {/* Hero Section */}
-        <div className="relative overflow-hidden bg-gradient-to-b from-purple-500/10 via-pink-500/5 to-transparent py-16">
-          <div className="container relative z-10 mx-auto max-w-6xl px-4">
-            <div className="mx-auto max-w-3xl text-center">
-              <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-purple-200 bg-purple-100/40 px-4 py-2 dark:border-purple-500/20 dark:bg-purple-500/10">
-                <Sparkles className="h-4 w-4 text-purple-400" />
-                <span className="text-sm text-purple-700 dark:text-purple-300">
-                  Community Prompts
-                </span>
-              </div>
-              <h1 className="mb-4 bg-gradient-to-r from-purple-400 via-pink-400 to-purple-400 bg-clip-text text-4xl font-bold tracking-tight text-transparent sm:text-5xl">
-                Discover Amazing Prompts
-              </h1>
-              <p className="mb-8 text-lg text-muted-foreground">
-                Explore, upvote, and get inspired by the best prompts from our community.
+      <div className="space-y-6">
+        {/* Tab Header */}
+        <div className={cn("rounded-2xl p-8 border-0", currentTab.bgColor)}>
+          <div className="flex items-center gap-4">
+            <div className={cn("p-4 rounded-xl bg-gradient-to-r shadow-lg", currentTab.color)}>
+              <currentTab.icon className="h-8 w-8 text-white" />
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold">{currentTab.label}</h2>
+              <p className="text-muted-foreground">
+                {activeLeaderboardTab === 'myStats' && 'Your community achievements'}
+                {activeLeaderboardTab === 'topCreators' && 'Most successful prompt creators'}
+                {activeLeaderboardTab === 'topVoters' && 'Most active community members'}
+                {activeLeaderboardTab === 'topCreditEarners' && 'Highest credit earners'}
+                {activeLeaderboardTab === 'trending' && 'This week\'s rising stars'}
               </p>
-              <div className="flex flex-wrap items-center justify-center gap-4">
-                {isSignedIn ? (
-                  <>
-                    <Button
-                      asChild
-                      size="lg"
-                      className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
-                    >
-                      <Link href="/prompts/new">
-                        <Sparkles className="mr-2 h-4 w-4" />
-                        Create New Prompt
-                      </Link>
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="lg"
-                      asChild
-                      className="border-purple-200 hover:bg-purple-100/40 dark:border-purple-500/20 dark:hover:bg-purple-500/10"
-                    >
-                      <Link href="/prompts/my-prompts">
-                        <Users className="mr-2 h-4 w-4" />
-                        My Prompts
-                      </Link>
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="lg"
-                      onClick={() => setShowLeaderboards(!showLeaderboards)}
-                      className="border-purple-200 hover:bg-purple-100/40 dark:border-purple-500/20 dark:hover:bg-purple-500/10"
-                    >
-                      <TrendingUp className="mr-2 h-4 w-4" />
-                      {showLeaderboards ? 'Hide' : 'Show'} Leaderboards
-                    </Button>
-                  </>
-                ) : (
-                  <>
-                    <Button
-                      asChild
-                      size="lg"
-                      className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
-                    >
-                      <Link href="/sign-up?redirect_url=/prompts/new">
-                        <Sparkles className="mr-2 h-4 w-4" />
-                        Start Creating Your Prompts
-                      </Link>
-                    </Button>
-                    <Button
-                      asChild
-                      size="lg"
-                      variant="outline"
-                      className="border-purple-200 hover:bg-purple-100/40 dark:border-purple-500/20 dark:hover:bg-purple-500/10"
-                    >
-                      <Link href="/">
-                        <Sparkles className="mr-2 h-4 w-4" />
-                        Back to Home
-                      </Link>
-                    </Button>
-                  </>
-                )}
-              </div>
             </div>
           </div>
-          <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top,_var(--tw-gradient-stops))] from-purple-500/20 via-pink-500/5 to-transparent" />
         </div>
 
-        <div className="container mx-auto max-w-6xl space-y-8 px-4 py-8">
-          {/* Search and Filter with Tag Selector */}
-          <div className="flex flex-col gap-4 md:flex-row md:items-center">
-            <div className="relative flex-1">
-              <PromptSearchBar value={searchQuery} onChange={setSearchQuery} />
-            </div>
-            <Popover open={tagSelectorOpen} onOpenChange={setTagSelectorOpen}>
-              <PopoverTrigger asChild>
-                <Button variant="outline" className="flex items-center gap-2">
-                  <Filter className="h-4 w-4" />
-                  Filter by Tag
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-56 p-2">
-                <div className="max-h-48 overflow-y-auto">
-                  {allTags.map(tag => (
-                    <div
-                      key={tag}
-                      className={`flex items-center gap-2 px-2 py-1 rounded cursor-pointer hover:bg-muted ${selectedTags.includes(tag) ? 'bg-purple-100 text-purple-700 dark:bg-purple-500/10 dark:text-purple-300' : ''}`}
-                      onClick={() => {
-                        if (!selectedTags.includes(tag)) {
-                          setSelectedTags(prev => [...prev, tag]);
-                          setTagSelectorOpen(false);
-                        }
-                      }}
-                    >
-                      <Filter className="h-3 w-3" />
-                      <span>{tag}</span>
-                      {selectedTags.includes(tag) && <span className="ml-auto text-xs">✓</span>}
+        {/* Content */}
+        <Card className="border-0 shadow-lg">
+          <CardContent className="p-8">
+            {activeLeaderboardTab === 'myStats' && (
+              leaderboardData.userStats ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {[
+                    { label: 'Credits Earned', value: leaderboardData.userStats.creditsEarned, icon: Coins, color: 'from-green-500 to-emerald-500' },
+                    { label: 'Votes Cast', value: leaderboardData.userStats.votesCast, icon: Star, color: 'from-blue-500 to-cyan-500' },
+                    { label: 'Prompts Created', value: leaderboardData.userStats.promptsCreated, icon: Sparkles, color: 'from-purple-500 to-pink-500' },
+                    { label: 'Total Upvotes', value: leaderboardData.userStats.totalUpvotes, icon: TrendingUp, color: 'from-orange-500 to-red-500' }
+                  ].map((stat, index) => (
+                    <div key={index} className="group relative overflow-hidden rounded-xl bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 p-6 hover:shadow-lg transition-all duration-300">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-muted-foreground">{stat.label}</p>
+                          <p className="text-3xl font-bold mt-1">{stat.value}</p>
+                        </div>
+                        <div className={cn("p-3 rounded-lg bg-gradient-to-r shadow-lg", stat.color)}>
+                          <stat.icon className="h-6 w-6 text-white" />
+                        </div>
+                      </div>
                     </div>
                   ))}
-                  {allTags.length === 0 && (
-                    <div className="text-muted-foreground text-sm px-2 py-1">No tags available</div>
-                  )}
                 </div>
-              </PopoverContent>
-            </Popover>
-            <div className="flex items-center gap-2">
-              {selectedTags.slice(0, 3).map(tag => (
-                <Badge
-                  key={tag}
-                  variant="secondary"
-                  className="flex items-center gap-1 bg-purple-100 text-purple-700 hover:bg-purple-200 dark:bg-purple-500/10 dark:text-purple-300"
-                >
-                  <Filter className="h-3 w-3" />
-                  {tag}
-                  <span
-                    className="ml-1 cursor-pointer"
-                    onClick={() => setSelectedTags(prev => prev.filter(t => t !== tag))}
-                  >×</span>
-                </Badge>
-              ))}
-              {selectedTags.length > 3 && (
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Badge variant="outline" className="cursor-pointer">
-                      +{selectedTags.length - 3} more
-                    </Badge>
-                  </PopoverTrigger>
-                  <PopoverContent className="flex flex-wrap gap-2 max-w-xs">
-                    {selectedTags.slice(3).map(tag => (
-                      <Badge
-                        key={tag}
-                        variant="secondary"
-                        className="flex items-center gap-1 bg-purple-100 text-purple-700 hover:bg-purple-200 dark:bg-purple-500/10 dark:text-purple-300"
-                      >
-                        <Filter className="h-3 w-3" />
-                        {tag}
-                        <span
-                          className="ml-1 cursor-pointer"
-                          onClick={() => setSelectedTags(prev => prev.filter(t => t !== tag))}
-                        >×</span>
-                      </Badge>
-                    ))}
-                  </PopoverContent>
-                </Popover>
-              )}
-            </div>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="outline"
-                  className="w-full border-purple-200 hover:bg-purple-100/40 dark:border-purple-500/20 dark:hover:bg-purple-500/10 md:w-auto"
-                >
-                  <Filter className="mr-2 h-4 w-4" />
-                  Sort by: {sortBy === 'recent' ? 'Most Recent' : 'Most Popular'}
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="border-purple-200 dark:border-purple-500/20">
-                <DropdownMenuItem
-                  onClick={() => setSortBy('popular')}
-                  className="focus:bg-purple-100/40 dark:focus:bg-purple-500/10"
-                >
-                  Most Popular
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => setSortBy('recent')}
-                  className="focus:bg-purple-100/40 dark:focus:bg-purple-500/10"
-                >
-                  Most Recent
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
+              ) : (
+                <div className="text-center py-16">
+                  <div className="p-4 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                    <User className="h-8 w-8 text-white" />
+                  </div>
+                  <h3 className="text-lg font-semibold mb-2">Start Your Journey</h3>
+                  <p className="text-muted-foreground mb-6">Create prompts and vote to see your stats here!</p>
+                  <Button className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white">
+                    <Sparkles className="h-4 w-4 mr-2" />
+                    Create Your First Prompt
+                  </Button>
+                </div>
+              )
+            )}
 
-          {/* Leaderboards Section */}
-          {showLeaderboards && (
-            <div className="space-y-6 rounded-lg border border-purple-200 bg-gradient-to-r from-purple-50/50 to-pink-50/50 p-6 dark:border-purple-500/20 dark:from-purple-500/5 dark:to-pink-500/5">
-              <h2 className="flex items-center text-2xl font-semibold text-purple-700 dark:text-purple-300">
-                <TrendingUp className="mr-2 h-5 w-5" />
-                Community Leaderboards
-              </h2>
-              
-              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
-                {/* Top Creators */}
-                <Card className="border-purple-200 dark:border-purple-500/20">
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-lg text-purple-700 dark:text-purple-300">
-                      🏆 Top Creators
-                    </CardTitle>
-                    <CardDescription>Most upvoted prompt creators</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-2">
-                    {leaderboardData.topCreators.length > 0 ? (
-                      leaderboardData.topCreators.map((creator, index) => (
-                        <div key={creator.id} className="flex items-center gap-2">
-                          <Badge variant={index === 0 ? "default" : "outline"} className="w-6 h-6 rounded-full p-0 flex items-center justify-center">
-                            {index + 1}
-                          </Badge>
-                          <Avatar className="h-6 w-6">
-                            <AvatarImage src={creator.imageUrl} />
-                            <AvatarFallback className="text-xs">{creator.name.charAt(0)}</AvatarFallback>
-                          </Avatar>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium truncate">{creator.name}</p>
-                            <p className="text-xs text-muted-foreground">{creator.totalUpvotes} upvotes</p>
-                          </div>
-                        </div>
-                      ))
-                    ) : (
-                      <p className="text-sm text-muted-foreground">Loading...</p>
-                    )}
-                  </CardContent>
-                </Card>
-
-                {/* Top Voters */}
-                <Card className="border-purple-200 dark:border-purple-500/20">
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-lg text-purple-700 dark:text-purple-300">
-                      🗳️ Top Voters
-                    </CardTitle>
-                    <CardDescription>Most active community voters</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-2">
-                    {leaderboardData.topVoters.length > 0 ? (
-                      leaderboardData.topVoters.map((voter, index) => (
-                        <div key={voter.id} className="flex items-center gap-2">
-                          <Badge variant={index === 0 ? "default" : "outline"} className="w-6 h-6 rounded-full p-0 flex items-center justify-center">
-                            {index + 1}
-                          </Badge>
-                          <Avatar className="h-6 w-6">
-                            <AvatarImage src={voter.imageUrl} />
-                            <AvatarFallback className="text-xs">{voter.name.charAt(0)}</AvatarFallback>
-                          </Avatar>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium truncate">{voter.name}</p>
-                            <p className="text-xs text-muted-foreground">{voter.totalVotes} votes</p>
-                          </div>
-                        </div>
-                      ))
-                    ) : (
-                      <p className="text-sm text-muted-foreground">Loading...</p>
-                    )}
-                  </CardContent>
-                </Card>
-
-                {/* Top Credit Earners */}
-                <Card className="border-purple-200 dark:border-purple-500/20">
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-lg text-purple-700 dark:text-purple-300">
-                      💰 Top Credit Earners
-                    </CardTitle>
-                    <CardDescription>Users earning most credits from votes</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-2">
-                    {leaderboardData.topCreditEarners.length > 0 ? (
-                      leaderboardData.topCreditEarners.map((earner, index) => (
-                        <div key={earner.id} className="flex items-center gap-2">
-                          <Badge variant={index === 0 ? "default" : "outline"} className="w-6 h-6 rounded-full p-0 flex items-center justify-center">
-                            {index + 1}
-                          </Badge>
-                          <Avatar className="h-6 w-6">
-                            <AvatarImage src={earner.imageUrl} />
-                            <AvatarFallback className="text-xs">{earner.name.charAt(0)}</AvatarFallback>
-                          </Avatar>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium truncate">{earner.name}</p>
-                            <p className="text-xs text-muted-foreground">{earner.creditsFromVotes} credits</p>
-                          </div>
-                        </div>
-                      ))
-                    ) : (
-                      <p className="text-sm text-muted-foreground">Loading...</p>
-                    )}
-                  </CardContent>
-                </Card>
-
-                {/* Trending This Week */}
-                <Card className="border-purple-200 dark:border-purple-500/20">
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-lg text-purple-700 dark:text-purple-300">
-                      📈 Trending This Week
-                    </CardTitle>
-                    <CardDescription>Fastest growing prompts</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-2">
-                    {leaderboardData.trendingPrompts.length > 0 ? (
-                      leaderboardData.trendingPrompts.map((prompt, index) => (
-                        <div key={prompt.id} className="space-y-1">
-                          <p className="text-sm font-medium truncate">{prompt.name}</p>
-                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                            <TrendingUp className="h-3 w-3 text-green-500" />
-                            <span>+{prompt.weeklyUpvotes} this week</span>
-                          </div>
-                        </div>
-                      ))
-                    ) : (
-                      <p className="text-sm text-muted-foreground">Loading...</p>
-                    )}
-                  </CardContent>
-                </Card>
-
-                {/* Your Stats */}
-                {isSignedIn && (
-                  <Card className="border-purple-200 bg-purple-100/40 dark:border-purple-500/20 dark:bg-purple-500/10">
-                    <CardHeader className="pb-3">
-                      <CardTitle className="text-lg text-purple-700 dark:text-purple-300">
-                        📊 Your Stats
-                      </CardTitle>
-                      <CardDescription>Your community activity</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-2">
-                      {leaderboardData.userStats ? (
-                        <>
-                          <div className="flex justify-between">
-                            <span className="text-sm">Credits Earned:</span>
-                            <Badge variant="secondary">{leaderboardData.userStats.creditsEarned}</Badge>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-sm">Votes Cast:</span>
-                            <Badge variant="secondary">{leaderboardData.userStats.votesCast}</Badge>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-sm">Prompts Created:</span>
-                            <Badge variant="secondary">{leaderboardData.userStats.promptsCreated}</Badge>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-sm">Total Upvotes:</span>
-                            <Badge variant="secondary">{leaderboardData.userStats.totalUpvotes}</Badge>
-                          </div>
-                        </>
-                      ) : (
-                        <p className="text-sm text-muted-foreground">Loading...</p>
-                      )}
-                    </CardContent>
-                  </Card>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Featured Prompts */}
-          <TooltipProvider>
-          {featuredPrompts.length > 0 && (
-            <div className="space-y-4">
-              <h2 className="flex items-center text-2xl font-semibold text-purple-700 dark:text-purple-300">
-                <Sparkles className="mr-2 h-5 w-5" />
-                Featured Prompts
-              </h2>
-              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {featuredPrompts.map((prompt, index) => (
-                  <Link key={prompt.id} href={`/community-prompts/${prompt.slug}`}>
-                    <Card className="group relative h-full overflow-visible border-purple-200 transition-all hover:-translate-y-1 hover:border-purple-500/50 hover:shadow-lg hover:shadow-purple-500/5 dark:border-purple-500/20">
-                      <div className="absolute -top-3 left-4">
-                        <Badge className="rounded-full border border-white bg-gradient-to-r from-purple-600 to-pink-600 px-3 py-1 font-semibold text-white shadow dark:border-gray-900">
-                          Featured
-                        </Badge>
+            {activeLeaderboardTab === 'topCreators' && (
+              <div className="space-y-4">
+                {leaderboardData.topCreators.length > 0 ? (
+                  leaderboardData.topCreators.map((user, index) => (
+                    <div key={user.id} className="flex items-center gap-4 p-4 rounded-xl bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 hover:shadow-lg transition-all duration-300 group">
+                      <div className="flex items-center justify-center w-12 h-12 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold text-lg shadow-lg">
+                        {index < 3 ? (
+                          index === 0 ? '🥇' : index === 1 ? '🥈' : '🥉'
+                        ) : (
+                          index + 1
+                        )}
                       </div>
-                      <CardHeader>
-                        <div className="flex items-start justify-between">
-                          <div>
-                            <CardTitle className="line-clamp-1 bg-gradient-to-r from-purple-700 to-pink-600 bg-clip-text text-transparent group-hover:from-purple-600 group-hover:to-pink-500 dark:from-purple-300 dark:to-pink-300">
-                              {prompt.name}
-                            </CardTitle>
-                            <CardDescription className="line-clamp-2">{prompt.description || 'No description provided'}</CardDescription>
-                          </div>
-                        </div>
-                        <div className="mt-4 flex items-center gap-2">
-                          <Avatar className="h-6 w-6 ring-2 ring-purple-200 dark:ring-purple-500/20">
-                            <AvatarImage src={prompt.user.imageUrl || undefined} alt={prompt.user.name || 'User'} />
-                            <AvatarFallback className="bg-purple-100 text-purple-700 dark:bg-purple-500/10 dark:text-purple-300">
-                              {prompt.user.name?.[0]?.toUpperCase() || 'U'}
-                            </AvatarFallback>
-                          </Avatar>
-                          <span className="text-sm text-muted-foreground">{prompt.user.name || 'Anonymous'}</span>
-                        </div>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="flex flex-wrap gap-2">
-                          {prompt.tags.slice(0, 2).map(tag => (
-                            <Badge
-                              key={tag.id}
-                              variant="outline"
-                              className="border-purple-200 bg-purple-100/40 text-purple-700 dark:border-purple-500/20 dark:bg-purple-500/10 dark:text-purple-300"
-                            >
-                              {tag.name}
-                            </Badge>
-                          ))}
-                          {prompt.tags.length > 2 && (
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Badge
-                                  variant="outline"
-                                  className="border-purple-200 bg-purple-100/40 text-purple-700 cursor-pointer dark:border-purple-500/20 dark:bg-purple-500/10 dark:text-purple-300"
-                                >
-                                  +{prompt.tags.length - 2}
-                                </Badge>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <div className="flex flex-wrap gap-1 max-w-xs">
-                                  {prompt.tags.slice(2).map(tag => (
-                                    <Badge key={tag.id} variant="outline">{tag.name}</Badge>
-                                  ))}
-                                </div>
-                              </TooltipContent>
-                            </Tooltip>
-                          )}
-                        </div>
-                        <div className="mt-4 flex items-center justify-between">
-                          <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                            <div className="flex items-center gap-1">
-                              <TrendingUp className="h-4 w-4 text-purple-400" />
-                              {prompt.upvotes}
-                            </div>
-                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                              <MessageSquare className="h-4 w-4" />
-                              <span>{prompt._count.votes} votes</span>
-                            </div>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </Link>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Regular Prompts */}
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {regularPrompts.map((prompt, index) => (
-              <Link key={prompt.id} href={`/community-prompts/${prompt.slug}`}>
-                <Card className="group h-full border-purple-200 transition-all hover:-translate-y-1 hover:border-purple-500/50 hover:shadow-lg hover:shadow-purple-500/5 dark:border-purple-500/20">
-                  <CardHeader>
-                    <CardTitle className="line-clamp-1 bg-gradient-to-r from-purple-700 to-pink-600 bg-clip-text text-transparent group-hover:from-purple-600 group-hover:to-pink-500 dark:from-purple-300 dark:to-pink-300">
-                      {prompt.name}
-                    </CardTitle>
-                    <CardDescription className="line-clamp-2">{prompt.description || 'No description provided'}</CardDescription>
-                    <div className="mt-4 flex items-center gap-2">
-                      <Avatar className="h-6 w-6 ring-2 ring-purple-200 dark:ring-purple-500/20">
-                        <AvatarImage src={prompt.user.imageUrl || undefined} alt={prompt.user.name || 'User'} />
-                        <AvatarFallback className="bg-purple-100 text-purple-700 dark:bg-purple-500/10 dark:text-purple-300">
-                          {prompt.user.name?.[0]?.toUpperCase() || 'U'}
+                      <Avatar className="h-12 w-12 border-2 border-white dark:border-gray-700 shadow-md">
+                        <AvatarImage src={user.imageUrl} />
+                        <AvatarFallback className="bg-gradient-to-r from-purple-500 to-pink-500 text-white">
+                          {user.name[0]}
                         </AvatarFallback>
                       </Avatar>
-                      <span className="text-sm text-muted-foreground">{prompt.user.name || 'Anonymous'}</span>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex flex-wrap gap-2">
-                      {prompt.tags.slice(0, 2).map(tag => (
-                        <Badge
-                          key={tag.id}
-                          variant="outline"
-                          className="border-purple-200 bg-purple-100/40 text-purple-700 dark:border-purple-500/20 dark:bg-purple-500/10 dark:text-purple-300"
-                        >
-                          {tag.name}
-                        </Badge>
-                      ))}
-                      {prompt.tags.length > 2 && (
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Badge
-                              variant="outline"
-                              className="border-purple-200 bg-purple-100/40 text-purple-700 cursor-pointer dark:border-purple-500/20 dark:bg-purple-500/10 dark:text-purple-300"
-                            >
-                              +{prompt.tags.length - 2}
-                            </Badge>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <div className="flex flex-wrap gap-1 max-w-xs">
-                              {prompt.tags.slice(2).map(tag => (
-                                <Badge key={tag.id} variant="outline">{tag.name}</Badge>
-                              ))}
-                            </div>
-                          </TooltipContent>
-                        </Tooltip>
-                      )}
-                    </div>
-                    <div className="mt-4 flex items-center justify-between">
-                      <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                        <div className="flex items-center gap-1">
-                          <TrendingUp className="h-4 w-4 text-purple-400" />
-                          {prompt.upvotes}
-                        </div>
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <MessageSquare className="h-4 w-4" />
-                          <span>{prompt._count.votes} votes</span>
-                        </div>
+                      <div className="flex-1">
+                        <h4 className="font-semibold text-lg">{user.name}</h4>
+                        <p className="text-muted-foreground">
+                          <span className="font-medium text-purple-600 dark:text-purple-400">
+                            {user.totalUpvotes}
+                          </span> upvotes • <span className="font-medium">{user.promptCount}</span> prompts
+                        </p>
+                      </div>
+                      <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                        <ArrowRight className="h-5 w-5 text-muted-foreground" />
                       </div>
                     </div>
-                  </CardContent>
-                </Card>
-              </Link>
-            ))}
+                  ))
+                ) : (
+                  <div className="text-center py-16">
+                    <div className={cn("p-4 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center bg-gradient-to-r", currentTab.color)}>
+                      <currentTab.icon className="h-8 w-8 text-white" />
+                    </div>
+                    <h3 className="text-lg font-semibold mb-2">No Data Yet</h3>
+                    <p className="text-muted-foreground">Be the first to appear on this leaderboard!</p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {activeLeaderboardTab === 'topVoters' && (
+              <div className="space-y-4">
+                {leaderboardData.topVoters.length > 0 ? (
+                  leaderboardData.topVoters.map((user, index) => (
+                    <div key={user.id} className="flex items-center gap-4 p-4 rounded-xl bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 hover:shadow-lg transition-all duration-300 group">
+                      <div className="flex items-center justify-center w-12 h-12 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold text-lg shadow-lg">
+                        {index < 3 ? (
+                          index === 0 ? '🥇' : index === 1 ? '🥈' : '🥉'
+                        ) : (
+                          index + 1
+                        )}
+                      </div>
+                      <Avatar className="h-12 w-12 border-2 border-white dark:border-gray-700 shadow-md">
+                        <AvatarImage src={user.imageUrl} />
+                        <AvatarFallback className="bg-gradient-to-r from-purple-500 to-pink-500 text-white">
+                          {user.name[0]}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1">
+                        <h4 className="font-semibold text-lg">{user.name}</h4>
+                        <p className="text-muted-foreground">
+                          <span className="font-medium text-blue-600 dark:text-blue-400">
+                            {user.totalVotes}
+                          </span> votes cast
+                        </p>
+                      </div>
+                      <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                        <ArrowRight className="h-5 w-5 text-muted-foreground" />
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center py-16">
+                    <div className={cn("p-4 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center bg-gradient-to-r", currentTab.color)}>
+                      <currentTab.icon className="h-8 w-8 text-white" />
+                    </div>
+                    <h3 className="text-lg font-semibold mb-2">No Data Yet</h3>
+                    <p className="text-muted-foreground">Be the first to appear on this leaderboard!</p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {activeLeaderboardTab === 'topCreditEarners' && (
+              <div className="space-y-4">
+                {leaderboardData.topCreditEarners.length > 0 ? (
+                  leaderboardData.topCreditEarners.map((user, index) => (
+                    <div key={user.id} className="flex items-center gap-4 p-4 rounded-xl bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 hover:shadow-lg transition-all duration-300 group">
+                      <div className="flex items-center justify-center w-12 h-12 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold text-lg shadow-lg">
+                        {index < 3 ? (
+                          index === 0 ? '🥇' : index === 1 ? '🥈' : '🥉'
+                        ) : (
+                          index + 1
+                        )}
+                      </div>
+                      <Avatar className="h-12 w-12 border-2 border-white dark:border-gray-700 shadow-md">
+                        <AvatarImage src={user.imageUrl} />
+                        <AvatarFallback className="bg-gradient-to-r from-purple-500 to-pink-500 text-white">
+                          {user.name[0]}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1">
+                        <h4 className="font-semibold text-lg">{user.name}</h4>
+                        <p className="text-muted-foreground">
+                          <span className="font-medium text-green-600 dark:text-green-400">
+                            {user.creditsEarned}
+                          </span> credits earned
+                        </p>
+                      </div>
+                      <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                        <ArrowRight className="h-5 w-5 text-muted-foreground" />
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center py-16">
+                    <div className={cn("p-4 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center bg-gradient-to-r", currentTab.color)}>
+                      <currentTab.icon className="h-8 w-8 text-white" />
+                    </div>
+                    <h3 className="text-lg font-semibold mb-2">No Data Yet</h3>
+                    <p className="text-muted-foreground">Be the first to appear on this leaderboard!</p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {activeLeaderboardTab === 'trending' && (
+              <div className="space-y-4">
+                {leaderboardData.trendingPrompts.length > 0 ? (
+                  leaderboardData.trendingPrompts.map((prompt, index) => (
+                    <div key={prompt.id} className="flex items-center gap-4 p-4 rounded-xl bg-gradient-to-r from-orange-50 to-red-50 dark:from-orange-900/20 dark:to-red-900/20 hover:shadow-lg transition-all duration-300 group">
+                      <div className="flex items-center justify-center w-12 h-12 rounded-full bg-gradient-to-r from-orange-500 to-red-500 text-white font-bold text-lg shadow-lg">
+                        {index + 1}
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="font-semibold text-lg line-clamp-1">{prompt.name}</h4>
+                        <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                          <span className="flex items-center gap-1">
+                            <TrendingUp className="h-4 w-4 text-orange-500" />
+                            <span className="font-medium text-orange-600 dark:text-orange-400">
+                              +{prompt.weeklyUpvotes}
+                            </span> this week
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <Star className="h-4 w-4" />
+                            {prompt.totalUpvotes} total
+                          </span>
+                        </div>
+                      </div>
+                      <Link href={`/prompts/${prompt.id}`}>
+                        <Button variant="ghost" size="sm" className="opacity-0 group-hover:opacity-100 transition-opacity">
+                          <Eye className="h-4 w-4 mr-2" />
+                          View
+                        </Button>
+                      </Link>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center py-16">
+                    <div className="p-4 rounded-full bg-gradient-to-r from-orange-500 to-red-500 w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                      <TrendingUp className="h-8 w-8 text-white" />
+                    </div>
+                    <h3 className="text-lg font-semibold mb-2">No Trending Prompts</h3>
+                    <p className="text-muted-foreground">Check back later for this week's trending content!</p>
+                  </div>
+                )}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    );
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+      {/* Hero Section */}
+      <div className="relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-purple-600/10 to-pink-600/10 dark:from-purple-400/5 dark:to-pink-400/5" />
+        <div className="container mx-auto px-4 py-16 relative">
+          <div className="text-center max-w-4xl mx-auto">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white text-sm font-medium mb-6 shadow-lg">
+              <Sparkles className="h-4 w-4" />
+              Community Hub
+            </div>
+            <h1 className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent mb-6 leading-tight">
+              Discover Amazing Prompts
+            </h1>
+            <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto leading-relaxed">
+              Explore, upvote, and get inspired by the best AI prompts from our vibrant community of creators.
+            </p>
+            
+            {/* Navigation Pills */}
+            <div className="flex items-center justify-center gap-4 mb-8">
+              {sidebarItems.map((item) => (
+                <Button
+                  key={item.id}
+                  variant={sidebarView === item.id ? "default" : "outline"}
+                  size="lg"
+                  className={cn(
+                    "px-8 py-4 rounded-full font-semibold transition-all duration-300 shadow-lg",
+                    sidebarView === item.id 
+                      ? `bg-gradient-to-r ${item.gradient} text-white hover:shadow-xl border-0` 
+                      : "bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm hover:shadow-xl border-2 border-gray-200 dark:border-gray-700"
+                  )}
+                  onClick={() => setSidebarView(item.id)}
+                >
+                  <item.icon className="h-5 w-5 mr-3" />
+                  <div className="text-left">
+                    <div className="font-semibold">{item.label}</div>
+                    <div className="text-xs opacity-75">{item.description}</div>
+                  </div>
+                </Button>
+              ))}
+            </div>
           </div>
-          </TooltipProvider>
-
-          {filteredPrompts.length === 0 && (
-            <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-purple-200 p-8 text-center dark:border-purple-500/20">
-              <h3 className="mb-2 text-lg font-semibold text-purple-700 dark:text-purple-300">No prompts found</h3>
-              <p className="mb-4 text-sm text-muted-foreground">
-                {searchQuery
-                  ? "Try adjusting your search or filter to find what you're looking for."
-                  : 'Be the first to share a prompt with the community!'}
-              </p>
-              <Button
-                asChild
-                className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
-              >
-                <Link href="/prompts/new">
-                  <Sparkles className="mr-2 h-4 w-4" />
-                  Create Prompt
-                </Link>
-              </Button>
-            </div>
-          )}
-
-          {/* Loading State */}
-          {loading && (
-            <div className="flex justify-center py-8">
-              <Loader2 className="h-8 w-8 animate-spin text-purple-400" />
-            </div>
-          )}
-
-          {/* Load More Trigger */}
-          {hasMore && !loading && (
-            <div ref={ref} className="h-20" />
-          )}
         </div>
       </div>
-    </>
+
+      <div className="container mx-auto px-4 pb-16">
+        {sidebarView === 'prompts' ? (
+          <div className="space-y-8">
+            {/* Enhanced Search and Filters */}
+            <Card className="border-0 shadow-lg bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm">
+              <CardContent className="p-8">
+                <div className="space-y-6">
+                  {/* Search Bar */}
+                  <div className="relative">
+                    <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5" />
+                    <Input
+                      placeholder="Search for the perfect prompt..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="pl-12 pr-4 py-4 text-lg rounded-xl border-2 border-gray-200 dark:border-gray-700 focus:border-purple-500 dark:focus:border-purple-400 bg-white dark:bg-gray-900"
+                    />
+                  </div>
+
+                  {/* Filter Pills */}
+                  <div className="flex flex-wrap gap-3">
+                    {filterTags.map((tag) => (
+                      <Button
+                        key={tag.value}
+                        variant={filterTag === tag.value ? "default" : "outline"}
+                        size="sm"
+                        className={cn(
+                          "px-4 py-2 rounded-full font-medium transition-all duration-300",
+                          filterTag === tag.value
+                            ? "bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg border-0"
+                            : "bg-white dark:bg-gray-800 hover:shadow-md border-2 border-gray-200 dark:border-gray-700"
+                        )}
+                        onClick={() => setFilterTag(tag.value)}
+                      >
+                        <tag.icon className="h-4 w-4 mr-2" />
+                        {tag.label}
+                      </Button>
+                    ))}
+                  </div>
+
+                  {/* Sort and View Controls */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <Select value={sortBy} onValueChange={setSortBy}>
+                        <SelectTrigger className="w-48 rounded-xl border-2 border-gray-200 dark:border-gray-700">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="most_popular">
+                            <div className="flex items-center gap-2">
+                              <TrendingUp className="h-4 w-4" />
+                              Most Popular
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="newest">
+                            <div className="flex items-center gap-2">
+                              <Calendar className="h-4 w-4" />
+                              Newest
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="most_viewed">
+                            <div className="flex items-center gap-2">
+                              <Eye className="h-4 w-4" />
+                              Most Viewed
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="trending">
+                            <div className="flex items-center gap-2">
+                              <Zap className="h-4 w-4" />
+                              Trending
+                            </div>
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant={viewMode === 'grid' ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setViewMode('grid')}
+                        className={cn(
+                          "p-2 rounded-lg",
+                          viewMode === 'grid' 
+                            ? "bg-gradient-to-r from-purple-500 to-pink-500 text-white"
+                            : "border-2 border-gray-200 dark:border-gray-700"
+                        )}
+                      >
+                        <Grid3X3 className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant={viewMode === 'list' ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setViewMode('list')}
+                        className={cn(
+                          "p-2 rounded-lg",
+                          viewMode === 'list' 
+                            ? "bg-gradient-to-r from-purple-500 to-pink-500 text-white"
+                            : "border-2 border-gray-200 dark:border-gray-700"
+                        )}
+                      >
+                        <List className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Prompts Display */}
+            {loading ? (
+              <div className="flex items-center justify-center h-96">
+                <div className="text-center">
+                  <Loader2 className="h-12 w-12 animate-spin text-purple-500 mx-auto mb-4" />
+                  <p className="text-muted-foreground">Loading amazing prompts...</p>
+                </div>
+              </div>
+            ) : (
+              <div className={cn(
+                "gap-6",
+                viewMode === 'grid' ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3" : "space-y-4"
+              )}>
+                {prompts.map((prompt) => (
+                  <Card key={prompt.id} className="group hover:shadow-xl transition-all duration-300 border-0 shadow-lg bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm overflow-hidden">
+                    <CardHeader className="pb-3">
+                      <div className="flex items-start justify-between">
+                        <CardTitle className="text-xl line-clamp-2 group-hover:text-transparent group-hover:bg-gradient-to-r group-hover:from-purple-600 group-hover:to-pink-600 group-hover:bg-clip-text transition-all duration-300">
+                          {prompt.name}
+                        </CardTitle>
+                        <div className="flex items-center gap-2">
+                          <Badge variant="secondary" className="flex items-center gap-1 bg-gray-100 dark:bg-gray-700">
+                            <Eye className="h-3 w-3" />
+                            {prompt.views}
+                          </Badge>
+                        </div>
+                      </div>
+                      <CardDescription className="line-clamp-3 text-base leading-relaxed">
+                        {prompt.description}
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <Avatar className="h-8 w-8 border-2 border-white dark:border-gray-700 shadow-md">
+                            <AvatarImage src={prompt.user.imageUrl} />
+                            <AvatarFallback className="bg-gradient-to-r from-purple-500 to-pink-500 text-white text-sm">
+                              {prompt.user.name[0]}
+                            </AvatarFallback>
+                          </Avatar>
+                          <span className="text-sm font-medium text-muted-foreground">
+                            {prompt.user.name}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-1 text-sm font-medium text-purple-600 dark:text-purple-400">
+                            <TrendingUp className="h-4 w-4" />
+                            {prompt.upvotes}
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="flex flex-wrap gap-2">
+                        {prompt.tags.slice(0, 3).map((tag, index) => (
+                          <Badge key={`${prompt.id}-tag-${index}`} variant="outline" className="text-xs border-purple-200 dark:border-purple-700 text-purple-600 dark:text-purple-400">
+                            {tag}
+                          </Badge>
+                        ))}
+                        {prompt.tags.length > 3 && (
+                          <Badge key={`${prompt.id}-more-tags`} variant="outline" className="text-xs border-purple-200 dark:border-purple-700 text-purple-600 dark:text-purple-400">
+                            +{prompt.tags.length - 3} more
+                          </Badge>
+                        )}
+                      </div>
+
+                      <div className="flex items-center gap-2 pt-2">
+                        <Link href={`/prompts/${prompt.id}`} className="flex-1">
+                          <Button className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl">
+                            <Sparkles className="h-4 w-4 mr-2" />
+                            View Prompt
+                          </Button>
+                        </Link>
+                        <Button variant="outline" size="sm" className="p-2 rounded-lg border-2 border-gray-200 dark:border-gray-700 hover:border-purple-500 dark:hover:border-purple-400">
+                          <Bookmark className="h-4 w-4" />
+                        </Button>
+                        <Button variant="outline" size="sm" className="p-2 rounded-lg border-2 border-gray-200 dark:border-gray-700 hover:border-purple-500 dark:hover:border-purple-400">
+                          <Share2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+
+            {!loading && prompts.length === 0 && (
+              <div className="text-center py-20">
+                <div className="p-6 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 w-20 h-20 mx-auto mb-6 flex items-center justify-center">
+                  <Search className="h-10 w-10 text-white" />
+                </div>
+                <h3 className="text-2xl font-bold mb-4">No prompts found</h3>
+                <p className="text-muted-foreground text-lg mb-8">
+                  Try adjusting your search or filters to discover amazing prompts
+                </p>
+                <Button 
+                  onClick={() => {
+                    setSearchQuery('');
+                    setFilterTag('all');
+                  }}
+                  className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white shadow-lg"
+                >
+                  <Sparkles className="h-4 w-4 mr-2" />
+                  Clear Filters
+                </Button>
+              </div>
+            )}
+          </div>
+        ) : (
+          // Leaderboards Content
+          <div className="space-y-8">
+            {/* Leaderboard Navigation */}
+            <div className="flex flex-wrap gap-3 justify-center">
+              {leaderboardTabs.map((tab) => (
+                <Button
+                  key={tab.id}
+                  variant={activeLeaderboardTab === tab.id ? "default" : "outline"}
+                  size="lg"
+                  className={cn(
+                    "px-6 py-3 rounded-full font-semibold transition-all duration-300 shadow-lg",
+                    activeLeaderboardTab === tab.id 
+                      ? `bg-gradient-to-r ${tab.color} text-white hover:shadow-xl border-0` 
+                      : "bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm hover:shadow-xl border-2 border-gray-200 dark:border-gray-700"
+                  )}
+                  onClick={() => setActiveLeaderboardTab(tab.id)}
+                >
+                  <tab.icon className="h-5 w-5 mr-2" />
+                  {tab.label}
+                </Button>
+              ))}
+            </div>
+
+            {renderLeaderboardContent()}
+          </div>
+        )}
+      </div>
+    </div>
   );
 } 
