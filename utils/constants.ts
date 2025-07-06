@@ -1,18 +1,17 @@
 export enum Role {
   USER = 'USER',
   ADMIN = 'ADMIN',
+  SUPER_ADMIN = 'SUPER_ADMIN'
 }
 
 export enum PlanType {
   FREE = 'FREE',
-  PRO = 'PRO',
-  ELITE = 'ELITE',
-  ENTERPRISE = 'ENTERPRISE'
+  PRO = 'PRO'
 }
 
 export enum Period {
   WEEKLY = 'WEEKLY',
-  MONTHLY = 'MONTHLY',
+  MONTHLY = 'MONTHLY'
 }
 
 export enum CreditType {

@@ -46,5 +46,9 @@ export enum AuditAction {
   ERROR = "ERROR",
   BACKUP = "BACKUP",
   CONTENT_FILTER = "CONTENT_FILTER",
+  
+  // Security and admin actions
+  SECURITY_ALERT = "SECURITY_ALERT",
+  ADMIN_ACTION = "ADMIN_ACTION",
 }
 

@@ -77,15 +77,11 @@ export class PromptService {
   private readonly PROMPT_LIMITS: Record<PlanType, number> = {
     [PlanType.FREE]: 10,
     [PlanType.PRO]: 50,
-    [PlanType.ENTERPRISE]: Infinity,
-    [PlanType.ELITE]: Infinity,
   };
 
   private readonly PRIVATE_PROMPT_LIMITS: Record<PlanType, number> = {
     [PlanType.FREE]: 5,
     [PlanType.PRO]: 50,
-    [PlanType.ENTERPRISE]: Infinity,
-    [PlanType.ELITE]: Infinity,
   };
 
   private constructor() {}

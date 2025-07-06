@@ -1,7 +1,6 @@
 export enum PlanType {
+  FREE = 'FREE',
   PRO = 'PRO',
-  ELITE = 'ELITE',
-  ENTERPRISE = 'ENTERPRISE',
 }
 
 export interface SubscriptionPlan {

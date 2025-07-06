@@ -104,15 +104,6 @@ const subscriptionPlans = [
     isEnterprise: false,
     cta: 'Upgrade to Pro',
   },
-  {
-    name: 'ELITE',
-    price: 49,
-    description: 'For power users and teams',
-    features: coreFeatures.ELITE,
-    popular: false,
-    isEnterprise: false,
-    cta: 'Go Elite',
-  },
 ];
 
 // Update annual discount to 15%

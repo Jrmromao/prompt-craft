@@ -1,12 +1,10 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { CommunityService } from '@/lib/services/communityService';
+import { VoteRewardService } from '@/lib/services/voteRewardService';
 import { prisma } from '@/lib/prisma';
 import { Prisma } from '@prisma/client';
-import { PlanService } from '@/lib/services/planService';
-import { CreditService } from '@/lib/services/creditService';
-import { PlanType } from '@/app/constants/plans';
-import { CreditType } from '@prisma/client';
+import { headers } from 'next/headers';
 
 // Export dynamic configuration
 export const dynamic = 'force-dynamic';
@@ -94,6 +92,14 @@ export async function POST(
       );
     }
 
+    // Get IP address and user agent for anti-abuse tracking
+    const headersList = await headers();
+    const ipAddress = headersList.get('x-forwarded-for') || 
+                     headersList.get('x-real-ip') || 
+                     headersList.get('cf-connecting-ip') || 
+                     undefined;
+    const userAgent = headersList.get('user-agent') || undefined;
+
     // Get the database user ID
     const user = await prisma.user.findUnique({
       where: { clerkId: clerkUserId },
@@ -112,6 +118,7 @@ export async function POST(
       where: { id: promptId },
       select: { userId: true }
     });
+    
     if (!prompt) {
       return NextResponse.json(
         { error: 'Prompt not found' },
@@ -119,53 +126,98 @@ export async function POST(
       );
     }
 
-    // Prevent self-upvotes from awarding credits
-    const isSelfUpvote = prompt.userId === user.id;
-
-    // Check if this is the first upvote from this user on this prompt
+    // Check if vote already exists
     const existingVote = await prisma.vote.findUnique({
       where: { userId_promptId: { userId: user.id, promptId } }
     });
-    const isFirstUpvote = !existingVote;
 
-    // Upsert the vote
-    const vote = await prisma.vote.upsert({
-      where: {
-        userId_promptId: {
+    const isFirstVote = !existingVote;
+    const isChangingVote = existingVote && existingVote.value !== value;
+
+    // Process the vote using transaction
+    const result = await prisma.$transaction(async (tx) => {
+      // Upsert the vote
+      const vote = await tx.vote.upsert({
+        where: {
+          userId_promptId: {
+            userId: user.id,
+            promptId
+          }
+        },
+        update: {
+          value,
+          updatedAt: new Date()
+        },
+        create: {
           userId: user.id,
-          promptId
+          promptId,
+          value
         }
-      },
-      update: {
-        value
-      },
-      create: {
-        userId: user.id,
-        promptId,
-        value
+      });
+
+      // Update prompt upvotes count
+      if (isFirstVote) {
+        // New vote
+        await tx.prompt.update({
+          where: { id: promptId },
+          data: { upvotes: { increment: value } }
+        });
+      } else if (isChangingVote) {
+        // Changing vote (e.g., from downvote to upvote or vice versa)
+        const increment = value - existingVote.value; // Will be +2 or -2
+        await tx.prompt.update({
+          where: { id: promptId },
+          data: { upvotes: { increment } }
+        });
+      } else {
+        // Removing vote (clicking same vote again)
+        await tx.prompt.update({
+          where: { id: promptId },
+          data: { upvotes: { decrement: existingVote.value } }
+        });
+        
+        // Delete the vote
+        await tx.vote.delete({
+          where: { id: vote.id }
+        });
+        
+        return { vote: null, creditsAwarded: 0 };
       }
+
+      return { vote, creditsAwarded: 0 };
     });
 
-    // Award credits if:
-    // - Upvote (value === 1)
-    // - Not a self-upvote
-    // - First upvote from this user
-    // - Upvoter is Pro or Elite
+    // Process credit rewards only for new upvotes using the anti-abuse system
     let creditsAwarded = 0;
-    if (value === 1 && !isSelfUpvote && isFirstUpvote) {
-      const upvoterPlan = await PlanService.getUserPlan(user.id);
-      if (upvoterPlan.id === PlanType.PRO) {
-        await CreditService.getInstance().addCredits(prompt.userId, 1, CreditType.UPVOTE);
-        creditsAwarded = 1;
-      } else if (upvoterPlan.id === PlanType.ELITE) {
-        await CreditService.getInstance().addCredits(prompt.userId, 2, CreditType.UPVOTE);
-        creditsAwarded = 2;
+    if (value === 1 && (isFirstVote || isChangingVote) && result.vote) {
+      const voteRewardService = VoteRewardService.getInstance();
+      const rewardResult = await voteRewardService.processVoteReward(
+        result.vote.id,
+        user.id,
+        prompt.userId,
+        promptId,
+        value,
+        ipAddress,
+        userAgent
+      );
+
+      creditsAwarded = rewardResult.creditsAwarded;
+
+      // If abuse was detected, log it but don't fail the vote
+      if (rewardResult.abuseDetected) {
+        console.warn(`Vote abuse detected for user ${user.id}: ${rewardResult.reason}`);
       }
     }
 
-    return NextResponse.json({ vote, creditsAwarded });
+    return NextResponse.json({ 
+      vote: result.vote, 
+      creditsAwarded,
+      message: creditsAwarded > 0 ? `Awarded ${creditsAwarded} credits to prompt author` : undefined
+    });
+
   } catch (error) {
     console.error('Error creating/updating vote:', error);
+    
     // Handle Prisma connection errors
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P1017') {
       return NextResponse.json(
@@ -173,6 +225,7 @@ export async function POST(
         { status: 503 }
       );
     }
+    
     return NextResponse.json(
       { error: 'Failed to create/update vote' },
       { status: 500 }

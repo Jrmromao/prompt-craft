@@ -37,25 +37,6 @@ const plans = [
       'Pay-as-you-go Credits: $0.06/credit',
       'BYOK (Bring Your Own Key)'
     ]
-  },
-  {
-    type: PlanType.ELITE,
-    name: 'Elite Plan',
-    price: 49,
-    features: [
-      'Unlimited Private Prompts',
-      'Unlimited Testing Runs',
-      'Advanced AI Parameters',
-      'Team Collaboration (up to 10 users)',
-      'Custom Integrations',
-      'Advanced Analytics',
-      'Priority Support',
-      'Custom Model Fine-tuning',
-      'White-label Solutions',
-      'SLA Guarantee',
-      'Unlimited credits included',
-      'BYOK (Bring Your Own Key)'
-    ]
   }
 ];
 

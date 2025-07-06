@@ -113,7 +113,7 @@ export function NavBar({ user, onMenuClick }: { user?: NavBarUser; onMenuClick?:
                     <DropdownMenuItem asChild>
                       <Link href="/account" className="cursor-pointer">
                         <User className="mr-2 h-4 w-4" />
-                        Profile
+                        Account
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem

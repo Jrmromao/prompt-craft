@@ -86,6 +86,11 @@ model User {
   favoritedPrompts          PromptFavorite[]
   deletionAuditLogs         DeletionAuditLog[]
   promptRatings             PromptRating[]
+  voteRewardsGiven          VoteReward[]               @relation("VoteRewardsGiven")
+  voteRewardsReceived       VoteReward[]               @relation("VoteRewardsReceived")
+  voteAbuseDetections       VoteAbuseDetection[]
+  abuseInvestigations       VoteAbuseDetection[]       @relation("AbuseInvestigator")
+  votePatterns              VotePattern[]
 
   @@index([clerkId])
   @@index([email])
@@ -208,6 +213,7 @@ model Prompt {
   followers           PromptFollow[]
   favorites           PromptFavorite[]
   ratings             PromptRating[]
+  voteRewards         VoteReward[]
 
   @@index([userId])
   @@index([slug])
@@ -333,14 +339,15 @@ model ApiKey {
 }
 
 model Vote {
-  id        String   @id @default(cuid())
+  id        String      @id @default(cuid())
   userId    String
   promptId  String
   value     Int
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  prompt    Prompt   @relation(fields: [promptId], references: [id], onDelete: Cascade)
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+  prompt    Prompt      @relation(fields: [promptId], references: [id], onDelete: Cascade)
+  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reward    VoteReward?
 
   @@unique([userId, promptId])
   @@index([userId])
@@ -927,6 +934,7 @@ enum CreditType {
   USAGE
   TOP_UP
   REFUND
+  UPVOTE
 }
 
 enum SubscriptionStatus {
@@ -1026,4 +1034,100 @@ model PromptFavorite {
   @@index([userId])
   @@index([promptId])
   @@index([createdAt])
+}
+
+model VoteReward {
+  id             String   @id @default(cuid())
+  voteId         String   @unique
+  voterId        String   // User who voted
+  promptAuthorId String   // User who received the credits
+  promptId       String
+  creditsAwarded Int
+  voterPlanType  PlanType
+  createdAt      DateTime @default(now())
+  ipAddress      String?
+  userAgent      String?
+  vote           Vote     @relation(fields: [voteId], references: [id], onDelete: Cascade)
+  voter          User     @relation("VoteRewardsGiven", fields: [voterId], references: [id], onDelete: Cascade)
+  promptAuthor   User     @relation("VoteRewardsReceived", fields: [promptAuthorId], references: [id], onDelete: Cascade)
+  prompt         Prompt   @relation(fields: [promptId], references: [id], onDelete: Cascade)
+
+  @@index([voterId])
+  @@index([promptAuthorId])
+  @@index([promptId])
+  @@index([createdAt])
+  @@index([voterPlanType])
+  @@index([ipAddress])
+}
+
+model VoteAbuseDetection {
+  id               String              @id @default(cuid())
+  userId           String
+  abuseType        VoteAbuseType
+  severity         VoteAbuseSeverity
+  details          Json
+  detectedAt       DateTime            @default(now())
+  resolvedAt       DateTime?
+  status           VoteAbuseStatus     @default(PENDING)
+  investigatedBy   String?
+  resolution       String?
+  user             User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  investigator     User?               @relation("AbuseInvestigator", fields: [investigatedBy], references: [id])
+
+  @@index([userId])
+  @@index([abuseType])
+  @@index([severity])
+  @@index([status])
+  @@index([detectedAt])
+  @@index([investigatedBy])
+}
+
+model VotePattern {
+  id                    String   @id @default(cuid())
+  userId                String
+  timeWindow            String   // e.g., "1h", "24h", "7d"
+  votesCount            Int
+  upvotesCount          Int
+  downvotesCount        Int
+  uniquePromptsVoted    Int
+  uniqueAuthorsVoted    Int
+  creditsEarned         Int
+  suspiciousPatterns    Json     // Array of detected patterns
+  riskScore             Float    @default(0.0)
+  lastUpdated           DateTime @default(now())
+  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, timeWindow])
+  @@index([userId])
+  @@index([riskScore])
+  @@index([lastUpdated])
+  @@index([timeWindow])
+}
+
+enum VoteAbuseType {
+  SOCKPUPPET_VOTING
+  VOTE_MANIPULATION
+  RAPID_VOTING
+  IP_CLUSTERING
+  DEVICE_FINGERPRINT_MATCH
+  TEMPORAL_PATTERN_ABUSE
+  COORDINATED_VOTING
+  SELF_VOTE_ATTEMPT
+  EXCESSIVE_VOTING_RATE
+  SUSPICIOUS_ACCOUNT_AGE
+}
+
+enum VoteAbuseSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum VoteAbuseStatus {
+  PENDING
+  INVESTIGATING
+  CONFIRMED
+  FALSE_POSITIVE
+  RESOLVED
 }
