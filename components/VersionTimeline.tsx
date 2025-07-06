@@ -9,8 +9,7 @@ import { Card } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useRouter } from 'next/navigation';
 import { Version } from '@/types/version';
-import { PLANS, hasFeature } from '@/app/constants/plans';
-import { PlanType } from '@prisma/client';
+import { PLANS, hasFeature, PlanType } from '@/app/constants/plans';
 
 interface VersionTimelineProps {
   promptId: string;
@@ -60,7 +59,13 @@ export function VersionTimeline({ promptId, onVersionSelect, selectedVersionId, 
       {versions.length > 0 && (
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-lg font-semibold">Version History</h3>
-          {hasFeature(PLANS[userPlan.toUpperCase() as PlanType], 'Version Control') ? (
+          {(() => {
+            const planTypeString = userPlan.toUpperCase();
+            const planType = Object.values(PlanType).includes(planTypeString as PlanType) 
+              ? planTypeString as PlanType 
+              : PlanType.FREE;
+            return hasFeature(PLANS[planType], 'Version Control');
+          })() ? (
             <Button
               variant="outline"
               size="sm"

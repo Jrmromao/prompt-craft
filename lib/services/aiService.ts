@@ -75,8 +75,6 @@ export class AIService {
     const modelAccess: Record<PlanType, AIModel[]> = {
       [PlanType.FREE]: ['deepseek'],
       [PlanType.PRO]: ['deepseek', 'gpt4', 'claude'],
-      [PlanType.ELITE]: ['deepseek', 'gpt4', 'claude'],
-      [PlanType.ENTERPRISE]: ['deepseek', 'gpt4', 'claude'],
     };
 
     return modelAccess[user.planType as PlanType].includes(model);

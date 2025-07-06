@@ -88,8 +88,7 @@ export async function GET(request: Request) {
       resolvedAt: detection.resolvedAt,
       investigatedBy: detection.investigator?.name,
       resolution: detection.resolution,
-      details: detection.details,
-      riskScore: detection.riskScore || 0
+      details: detection.details
     }));
 
     return NextResponse.json({

@@ -3,8 +3,7 @@ import { auth } from '@clerk/nextjs/server';
 import { AIService } from '@/lib/services/aiService';
 import { MetricsService } from '@/lib/services/metricsService';
 import { prisma } from '@/lib/prisma';
-import { PLANS } from '@/app/constants/plans';
-import { PlanType } from '@prisma/client';
+import { PLANS, PlanType } from '@/app/constants/plans';
 
 // Export dynamic configuration
 export const dynamic = 'force-dynamic';
@@ -34,7 +33,11 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    const plan = PLANS[user.planType.toUpperCase() as PlanType];
+    const planTypeString = user.planType.toUpperCase();
+    const planType = Object.values(PlanType).includes(planTypeString as PlanType) 
+      ? planTypeString as PlanType 
+      : PlanType.FREE;
+    const plan = PLANS[planType];
     if (!plan?.features.some(f => f.name === 'Prompt Testing')) {
       return NextResponse.json(
         { error: 'Prompt testing is not available in your current plan. Please upgrade to continue.' },
@@ -43,7 +46,7 @@ export async function POST(req: Request) {
     }
 
     // Check test run limit for Pro users
-    if (user.planType === PlanType.PRO) {
+    if (planType === PlanType.PRO) {
       const testRunCount = await prisma.promptTest.count({
         where: {
           promptVersion: {

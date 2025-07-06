@@ -193,9 +193,6 @@ export default function PricingContent() {
   };
 
   const getTokenDisplay = (plan: Plan) => {
-    if (plan.id === PlanType.ELITE || plan.id === PlanType.ENTERPRISE) {
-      return 'Unlimited tokens';
-    }
     return `${plan.limits.tokens.toLocaleString()} tokens/month`;
   };
 

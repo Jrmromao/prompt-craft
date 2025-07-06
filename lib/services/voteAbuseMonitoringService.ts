@@ -164,9 +164,10 @@ ${JSON.stringify(abuseDetection.details, null, 2)}
 
     // Send to all admin emails
     for (const email of this.ADMIN_EMAILS) {
+      if (!email) continue;
       try {
         await this.emailService.sendEmail({
-          to: email,
+          email,
           subject,
           html: message
         });
@@ -242,9 +243,10 @@ ${JSON.stringify(abuseDetection.details, null, 2)}
     `;
 
     for (const email of this.ADMIN_EMAILS) {
+      if (!email) continue;
       try {
         await this.emailService.sendEmail({
-          to: email,
+          email,
           subject,
           html: message
         });
@@ -282,9 +284,10 @@ ${JSON.stringify(abuseDetection.details, null, 2)}
     `;
 
     for (const email of this.ADMIN_EMAILS) {
+      if (!email) continue;
       try {
         await this.emailService.sendEmail({
-          to: email,
+          email,
           subject,
           html: message
         });
@@ -406,9 +409,10 @@ ${JSON.stringify(abuseDetection.details, null, 2)}
     `;
 
     for (const email of this.ADMIN_EMAILS) {
+      if (!email) continue;
       try {
         await this.emailService.sendEmail({
-          to: email,
+          email,
           subject,
           html: message
         });
@@ -452,9 +456,10 @@ ${JSON.stringify(abuseDetection.details, null, 2)}
     `;
 
     for (const email of this.ADMIN_EMAILS) {
+      if (!email) continue;
       try {
         await this.emailService.sendEmail({
-          to: email,
+          email,
           subject,
           html: message
         });
@@ -553,7 +558,7 @@ ${JSON.stringify(abuseDetection.details, null, 2)}
 
         return {
           userId: offender.userId,
-          userName: user?.name,
+          userName: user?.name ?? undefined,
           userEmail: user?.email,
           detectionCount: offender._count,
           highestSeverity: offender._max.severity!,
@@ -749,9 +754,10 @@ ${JSON.stringify(abuseDetection.details, null, 2)}
       `;
 
       for (const email of this.ADMIN_EMAILS) {
+        if (!email) continue;
         try {
           await this.emailService.sendEmail({
-            to: email,
+            email,
             subject,
             html: message
           });

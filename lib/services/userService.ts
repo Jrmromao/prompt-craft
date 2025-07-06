@@ -68,10 +68,10 @@ function convertPlanType(prismaPlanType: string): PlanType {
       return PlanType.FREE;
     case 'PRO':
       return PlanType.PRO;
-    case 'ELITE':
-      return PlanType.ELITE;
-    case 'ENTERPRISE':
-      return PlanType.ENTERPRISE;
+    // case 'ELITE':
+    //   return PlanType.ELITE;
+    // case 'ENTERPRISE':
+    //   return PlanType.ENTERPRISE;
     default:
       return PlanType.FREE;
   }
@@ -84,10 +84,10 @@ function convertToPrismaPlanType(planType: PlanType): PrismaPlanType {
       return PrismaPlanType.FREE;
     case PlanType.PRO:
       return PrismaPlanType.PRO;
-    case PlanType.ELITE:
-      return PrismaPlanType.ELITE;
-    case PlanType.ENTERPRISE:
-      return PrismaPlanType.ENTERPRISE;
+    // case PlanType.ELITE:
+    //   return PrismaPlanType.ELITE;
+    // case PlanType.ENTERPRISE:
+    //   return PrismaPlanType.ENTERPRISE;
     default:
       return PrismaPlanType.FREE;
   }

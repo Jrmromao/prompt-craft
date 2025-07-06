@@ -3,8 +3,8 @@ import { auth } from '@clerk/nextjs/server';
 import { AIService } from '@/lib/services/aiService';
 import { CreditService } from '@/lib/services/creditService';
 import { prisma } from '@/lib/prisma';
-import { PLANS } from '@/app/constants/plans';
-import { PlanType, CreditType } from '@prisma/client';
+import { PLANS, PlanType } from '@/app/constants/plans';
+import { CreditType } from '@prisma/client';
 import { UserService } from '@/lib/services/userService';
 import { Redis } from '@upstash/redis';
 
@@ -137,7 +137,11 @@ Please generate a complete, well-structured prompt that follows best practices f
     // Check if user has enough credits
     const hasEnoughCredits = await CreditService.getInstance().hasEnoughCredits(userDatabaseId, creditCost);
     if (!hasEnoughCredits) {
-      const plan = PLANS[user?.planType.toUpperCase() as PlanType];
+      const planTypeString = user?.planType.toUpperCase();
+      const planType = Object.values(PlanType).includes(planTypeString as PlanType) 
+        ? planTypeString as PlanType 
+        : PlanType.FREE;
+      const plan = PLANS[planType];
       const errorMessage = plan?.credits.included !== -1 
         ? `Insufficient credits. You need ${creditCost} credits for this operation. Please purchase more credits to continue.`
         : 'This operation is not available in your current plan. Please upgrade to continue.';
