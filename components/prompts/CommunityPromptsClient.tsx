@@ -38,11 +38,74 @@ export function CommunityPromptsClient({ initialPrompts, totalPrompts }: Communi
   const [error, setError] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState((initialPrompts?.length || 0) < (totalPrompts || 0));
   const [searchQuery, setSearchQuery] = useState('');
-  const [sortBy, setSortBy] = useState<'recent' | 'popular'>('popular');
+  const [sortBy, setSortBy] = useState<'recent' | 'popular' | 'trending'>('popular');
   const { ref, inView } = useInView();
   const { isSignedIn, user } = useUser();
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [tagSelectorOpen, setTagSelectorOpen] = useState(false);
+  const [showLeaderboards, setShowLeaderboards] = useState(false);
+
+  // Leaderboard data
+  const [leaderboardData, setLeaderboardData] = useState<{
+    topCreators: Array<{
+      id: string;
+      name: string;
+      imageUrl: string;
+      totalUpvotes: number;
+      promptCount: number;
+    }>;
+    trendingPrompts: Array<{
+      id: string;
+      name: string;
+      totalUpvotes: number;
+      weeklyUpvotes: number;
+    }>;
+    topVoters: Array<{
+      id: string;
+      name: string;
+      imageUrl: string;
+      totalVotes: number;
+    }>;
+    topCreditEarners: Array<{
+      id: string;
+      name: string;
+      imageUrl: string;
+      creditsFromVotes: number;
+      totalCreditsEarned: number;
+    }>;
+    userStats: {
+      creditsEarned: number;
+      votesCast: number;
+      promptsCreated: number;
+      totalUpvotes: number;
+    } | null;
+  }>({
+    topCreators: [],
+    trendingPrompts: [],
+    topVoters: [],
+    topCreditEarners: [],
+    userStats: null
+  });
+
+  // Fetch leaderboard data when needed
+  const fetchLeaderboardData = async () => {
+    try {
+      const response = await fetch('/api/community/leaderboards');
+      if (response.ok) {
+        const data = await response.json();
+        setLeaderboardData(data);
+      }
+    } catch (error) {
+      console.error('Error fetching leaderboard data:', error);
+    }
+  };
+
+  // Fetch leaderboard data when leaderboards are shown
+  useEffect(() => {
+    if (showLeaderboards && leaderboardData.topCreators.length === 0) {
+      fetchLeaderboardData();
+    }
+  }, [showLeaderboards]);
 
   // Get unique tags from all prompts
   const allTags = Array.from(new Set(prompts.flatMap(p => p.tags.map(t => t.name))));
@@ -160,6 +223,15 @@ export function CommunityPromptsClient({ initialPrompts, totalPrompts }: Communi
                         <Users className="mr-2 h-4 w-4" />
                         My Prompts
                       </Link>
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="lg"
+                      onClick={() => setShowLeaderboards(!showLeaderboards)}
+                      className="border-purple-200 hover:bg-purple-100/40 dark:border-purple-500/20 dark:hover:bg-purple-500/10"
+                    >
+                      <TrendingUp className="mr-2 h-4 w-4" />
+                      {showLeaderboards ? 'Hide' : 'Show'} Leaderboards
                     </Button>
                   </>
                 ) : (
@@ -297,6 +369,172 @@ export function CommunityPromptsClient({ initialPrompts, totalPrompts }: Communi
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
+
+          {/* Leaderboards Section */}
+          {showLeaderboards && (
+            <div className="space-y-6 rounded-lg border border-purple-200 bg-gradient-to-r from-purple-50/50 to-pink-50/50 p-6 dark:border-purple-500/20 dark:from-purple-500/5 dark:to-pink-500/5">
+              <h2 className="flex items-center text-2xl font-semibold text-purple-700 dark:text-purple-300">
+                <TrendingUp className="mr-2 h-5 w-5" />
+                Community Leaderboards
+              </h2>
+              
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
+                {/* Top Creators */}
+                <Card className="border-purple-200 dark:border-purple-500/20">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-lg text-purple-700 dark:text-purple-300">
+                      🏆 Top Creators
+                    </CardTitle>
+                    <CardDescription>Most upvoted prompt creators</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-2">
+                    {leaderboardData.topCreators.length > 0 ? (
+                      leaderboardData.topCreators.map((creator, index) => (
+                        <div key={creator.id} className="flex items-center gap-2">
+                          <Badge variant={index === 0 ? "default" : "outline"} className="w-6 h-6 rounded-full p-0 flex items-center justify-center">
+                            {index + 1}
+                          </Badge>
+                          <Avatar className="h-6 w-6">
+                            <AvatarImage src={creator.imageUrl} />
+                            <AvatarFallback className="text-xs">{creator.name.charAt(0)}</AvatarFallback>
+                          </Avatar>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium truncate">{creator.name}</p>
+                            <p className="text-xs text-muted-foreground">{creator.totalUpvotes} upvotes</p>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-sm text-muted-foreground">Loading...</p>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* Top Voters */}
+                <Card className="border-purple-200 dark:border-purple-500/20">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-lg text-purple-700 dark:text-purple-300">
+                      🗳️ Top Voters
+                    </CardTitle>
+                    <CardDescription>Most active community voters</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-2">
+                    {leaderboardData.topVoters.length > 0 ? (
+                      leaderboardData.topVoters.map((voter, index) => (
+                        <div key={voter.id} className="flex items-center gap-2">
+                          <Badge variant={index === 0 ? "default" : "outline"} className="w-6 h-6 rounded-full p-0 flex items-center justify-center">
+                            {index + 1}
+                          </Badge>
+                          <Avatar className="h-6 w-6">
+                            <AvatarImage src={voter.imageUrl} />
+                            <AvatarFallback className="text-xs">{voter.name.charAt(0)}</AvatarFallback>
+                          </Avatar>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium truncate">{voter.name}</p>
+                            <p className="text-xs text-muted-foreground">{voter.totalVotes} votes</p>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-sm text-muted-foreground">Loading...</p>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* Top Credit Earners */}
+                <Card className="border-purple-200 dark:border-purple-500/20">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-lg text-purple-700 dark:text-purple-300">
+                      💰 Top Credit Earners
+                    </CardTitle>
+                    <CardDescription>Users earning most credits from votes</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-2">
+                    {leaderboardData.topCreditEarners.length > 0 ? (
+                      leaderboardData.topCreditEarners.map((earner, index) => (
+                        <div key={earner.id} className="flex items-center gap-2">
+                          <Badge variant={index === 0 ? "default" : "outline"} className="w-6 h-6 rounded-full p-0 flex items-center justify-center">
+                            {index + 1}
+                          </Badge>
+                          <Avatar className="h-6 w-6">
+                            <AvatarImage src={earner.imageUrl} />
+                            <AvatarFallback className="text-xs">{earner.name.charAt(0)}</AvatarFallback>
+                          </Avatar>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium truncate">{earner.name}</p>
+                            <p className="text-xs text-muted-foreground">{earner.creditsFromVotes} credits</p>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-sm text-muted-foreground">Loading...</p>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* Trending This Week */}
+                <Card className="border-purple-200 dark:border-purple-500/20">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-lg text-purple-700 dark:text-purple-300">
+                      📈 Trending This Week
+                    </CardTitle>
+                    <CardDescription>Fastest growing prompts</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-2">
+                    {leaderboardData.trendingPrompts.length > 0 ? (
+                      leaderboardData.trendingPrompts.map((prompt, index) => (
+                        <div key={prompt.id} className="space-y-1">
+                          <p className="text-sm font-medium truncate">{prompt.name}</p>
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                            <TrendingUp className="h-3 w-3 text-green-500" />
+                            <span>+{prompt.weeklyUpvotes} this week</span>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-sm text-muted-foreground">Loading...</p>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* Your Stats */}
+                {isSignedIn && (
+                  <Card className="border-purple-200 bg-purple-100/40 dark:border-purple-500/20 dark:bg-purple-500/10">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-lg text-purple-700 dark:text-purple-300">
+                        📊 Your Stats
+                      </CardTitle>
+                      <CardDescription>Your community activity</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-2">
+                      {leaderboardData.userStats ? (
+                        <>
+                          <div className="flex justify-between">
+                            <span className="text-sm">Credits Earned:</span>
+                            <Badge variant="secondary">{leaderboardData.userStats.creditsEarned}</Badge>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-sm">Votes Cast:</span>
+                            <Badge variant="secondary">{leaderboardData.userStats.votesCast}</Badge>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-sm">Prompts Created:</span>
+                            <Badge variant="secondary">{leaderboardData.userStats.promptsCreated}</Badge>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-sm">Total Upvotes:</span>
+                            <Badge variant="secondary">{leaderboardData.userStats.totalUpvotes}</Badge>
+                          </div>
+                        </>
+                      ) : (
+                        <p className="text-sm text-muted-foreground">Loading...</p>
+                      )}
+                    </CardContent>
+                  </Card>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* Featured Prompts */}
           <TooltipProvider>
