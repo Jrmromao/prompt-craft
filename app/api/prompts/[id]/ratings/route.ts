@@ -29,12 +29,13 @@ export async function POST(
       return NextResponse.json({ error: 'Scores must be between 1 and 10' }, { status: 400 });
     }
 
+    const params = await context.params;
     // Upsert the rating (create or update)
     const rating = await prisma.promptRating.upsert({
       where: {
         userId_promptId: {
           userId: session.userId,
-          promptId: context.params.id,
+          promptId: params.id,
         },
       },
       update: {
@@ -47,7 +48,7 @@ export async function POST(
       },
       create: {
         userId: session.userId,
-        promptId: context.params.id,
+        promptId: params.id,
         clarity,
         specificity,
         context: contextScore,
@@ -76,11 +77,12 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const params = await context.params;
     const rating = await prisma.promptRating.findUnique({
       where: {
         userId_promptId: {
           userId: session.userId,
-          promptId: context.params.id,
+          promptId: params.id,
         },
       },
     });

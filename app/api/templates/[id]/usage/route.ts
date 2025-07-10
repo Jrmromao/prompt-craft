@@ -4,7 +4,8 @@ import { prisma } from '@/lib/prisma';
 export async function POST(request: NextRequest, context: any) {
 
   try {
-    const templateId = context.params.id;
+    const params = await context.params;
+    const templateId = params.id;
     
     const template = await prisma.promptTemplate.update({
       where: { id: templateId },

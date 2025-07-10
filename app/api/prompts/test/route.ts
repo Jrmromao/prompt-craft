@@ -4,6 +4,8 @@ import { AIService } from '@/lib/services/aiService';
 import { MetricsService } from '@/lib/services/metricsService';
 import { prisma } from '@/lib/prisma';
 import { PLANS, PlanType } from '@/app/constants/plans';
+import { CreditService } from '@/lib/services/creditService';
+import { encode } from 'gpt-tokenizer';
 
 // Export dynamic configuration
 export const dynamic = 'force-dynamic';
@@ -89,6 +91,22 @@ export async function POST(req: Request) {
       maxTokens,
     });
     console.log('Test completed');
+
+    // Calculate input and output tokens
+    const inputTokenCount = encode(content).length;
+    const outputTokenCount = result.tokenCount || 0;
+    // Calculate credit cost
+    const creditService = CreditService.getInstance();
+    let model: 'gpt-4' | 'gpt-3.5-turbo' = 'gpt-4';
+    if (result.model === 'gpt-3.5-turbo') {
+      model = 'gpt-3.5-turbo';
+    }
+    const creditCost = creditService.calculateTokenCost(inputTokenCount, outputTokenCount, model);
+    // Deduct credits
+    const creditDeducted = await creditService.deductCredits(user.id, creditCost, 'USAGE', 'Prompt test');
+    if (!creditDeducted) {
+      return NextResponse.json({ error: `Insufficient credits to test prompt. Required: ${creditCost}` }, { status: 402 });
+    }
 
     // Track usage using metrics service
     const metricsService = MetricsService.getInstance();

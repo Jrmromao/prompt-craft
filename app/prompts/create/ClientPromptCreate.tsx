@@ -49,6 +49,7 @@ import {
   Filter,
   Settings2,
   AlertCircle,
+  Star as StarIcon,
 } from 'lucide-react';
 import { AIService } from '@/lib/services/aiService';
 import { PromptType, LLMType } from '@/types/ai';
@@ -78,6 +79,7 @@ import { useCreditBalance } from '@/hooks/useCreditBalance';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { cn } from '@/lib/utils';
+import { encode } from 'gpt-tokenizer';
 
 interface ExamplePrompt {
   id: string;
@@ -866,6 +868,23 @@ const getCategoryColor = (category: string) => {
   }
 };
 
+// Helper to render stars for a rating (1-10 scaled to 1-5)
+function renderStars(rating: number) {
+  // If rating is 1-10, scale to 1-5
+  const value = Math.round((rating / 10) * 5);
+  return (
+    <span className="inline-flex items-center ml-1">
+      {[1, 2, 3, 4, 5].map(i =>
+        i <= value ? (
+          <StarIcon key={i} className="h-4 w-4 text-yellow-400 fill-yellow-400" fill="currentColor" />
+        ) : (
+          <StarIcon key={i} className="h-4 w-4 text-gray-300" fill="none" />
+        )
+      )}
+    </span>
+  );
+}
+
 const ClientPromptCreate = memo<ClientPromptCreateProps>(function ClientPromptCreate() {
   const searchParams = useSearchParams();
   const templateId = searchParams.get('template') ?? "";
@@ -894,7 +913,7 @@ const ClientPromptCreate = memo<ClientPromptCreateProps>(function ClientPromptCr
     temperature: 0.7,
     language: 'en',
     promptType: 'content-creation',
-    llm: 'gpt-4',
+    llm: 'deepseek-chat',
     systemPrompt: '',
     context: '',
     examples: [],
@@ -929,7 +948,28 @@ const ClientPromptCreate = memo<ClientPromptCreateProps>(function ClientPromptCr
   const [showCreditWarning, setShowCreditWarning] = useState(false);
   const [customTone, setCustomTone] = useState('');
   const [showAllModels, setShowAllModels] = useState(false);
-  const defaultModels: LLMType[] = ['gpt-4', 'claude-3-opus', 'deepseek-coder-33b'];
+  const defaultModels: LLMType[] = ['gpt-3.5-turbo', 'deepseek-chat', 'deepseek-coder-33b'];
+  const [step, setStep] = useState<'draft' | 'review'>('draft');
+  const [aiContent, setAiContent] = useState<string | null>(null);
+  const [isOptimizing, setIsOptimizing] = useState(false);
+  const [showReviewDialog, setShowReviewDialog] = useState(false);
+  const [ratings, setRatings] = useState<any>(null);
+  const [inputTokens, setInputTokens] = useState(0);
+  const [estimatedCredits, setEstimatedCredits] = useState(0);
+  // 1. Add state for output tokens and original draft for undo
+  const [outputTokens, setOutputTokens] = useState<number | null>(null);
+  const [originalDraft, setOriginalDraft] = useState<string | null>(null);
+  const CREDIT_WARNING_THRESHOLD = 5; // credits
+  // 2. Add preset profiles for advanced settings
+  const ADVANCED_PRESETS = [
+    { label: 'Creative', temperature: 0.9, topP: 1, frequencyPenalty: 0, presencePenalty: 0 },
+    { label: 'Balanced', temperature: 0.7, topP: 1, frequencyPenalty: 0, presencePenalty: 0 },
+    { label: 'Concise', temperature: 0.3, topP: 0.8, frequencyPenalty: 0.5, presencePenalty: 0.5 },
+  ];
+  const [selectedPreset, setSelectedPreset] = useState<string>('Balanced');
+  const [showCreditWarningModal, setShowCreditWarningModal] = useState(false);
+  const [pendingOptimizeEvent, setPendingOptimizeEvent] = useState<React.FormEvent | null>(null);
+  const creditWarningRef = useRef<(() => Promise<void>) | null>(null);
 
   useEffect(() => {
     if (templateId) {
@@ -1084,103 +1124,125 @@ const ClientPromptCreate = memo<ClientPromptCreateProps>(function ClientPromptCr
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  // Handler for top up
+  const handleTopUpCredits = () => {
+    setShowCreditWarningModal(false);
+    setTimeout(() => setShowCreditsDialog(true), 100); // Open the credit purchase modal
+  };
+
+  // Handler for continue
+  const handleContinueAnyway = () => {
+    setShowCreditWarningModal(false);
+    if (pendingOptimizeEvent && creditWarningRef.current) {
+      creditWarningRef.current();
+      setPendingOptimizeEvent(null);
+    }
+  };
+
+  // Step 1: User submits draft, call AI to optimize
+  const handleOptimize = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitting(true);
+    if (estimatedCredits > CREDIT_WARNING_THRESHOLD) {
+      setPendingOptimizeEvent(e);
+      creditWarningRef.current = async () => {
+        setIsOptimizing(true);
+        setError(null);
+        setOriginalDraft(formData.content);
+        try {
+          const res = await fetch('/api/prompts/optimize', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              content: formData.content,
+              temperature: formData.temperature,
+              topP: formData.topP,
+              frequencyPenalty: formData.frequencyPenalty,
+              presencePenalty: formData.presencePenalty,
+              maxTokens: formData.maxTokens,
+            }),
+          });
+          const data = await res.json();
+          if (!res.ok || !data.optimizedContent) {
+            setError(data.error || 'Failed to optimize prompt');
+            setIsOptimizing(false);
+            return;
+          }
+          setAiContent(data.optimizedContent);
+          setRatings(data.ratings || null);
+          setShowReviewDialog(true);
+          setStep('review');
+          if (typeof data.outputTokens === 'number') setOutputTokens(data.outputTokens);
+          else setOutputTokens(typeof formData.maxTokens === 'number' ? formData.maxTokens : 0);
+        } catch (err) {
+          setError('Failed to optimize prompt');
+        } finally {
+          setIsOptimizing(false);
+        }
+      };
+      setShowCreditWarningModal(true);
+      return;
+    }
+    setIsOptimizing(true);
     setError(null);
-
-    const estimatedCost = 1; // Basic cost for prompt creation, adjust based on your pricing model
-
+    setOriginalDraft(formData.content);
     try {
-      // Check credit balance before proceeding
-      if (balance) {
-        const totalCredits = balance.monthlyCredits + balance.purchasedCredits;
-
-        if (totalCredits < estimatedCost) {
-          setShowCreditsDialog(true);
-          setCreditsInfo({
-            currentCredits: totalCredits,
-            requiredCredits: estimatedCost,
-            missingCredits: estimatedCost - totalCredits
-          });
-          setIsSubmitting(false);
-          return;
-        }
-
-        // Show warning if usage is high
-        if (balance.usage.monthlyPercentage >= 75) {
-          toast({
-            title: 'High Credit Usage',
-            description: `You've used ${balance.usage.monthlyPercentage}% of your monthly credits. Consider upgrading your plan or purchasing additional credits.`,
-            variant: 'default',
-          });
-        }
-      }
-
-      const response = await fetch('/api/prompts', {
+      const res = await fetch('/api/prompts/optimize', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          name: formData.name,
-          description: formData.description,
           content: formData.content,
-          isPublic: formData.isPublic,
-          tags: formData.tags,
-          promptType: formData.promptType,
-          llm: formData.llm,
-          tone: formData.tone,
-          format: formData.format,
-          wordCount: formData.wordCount,
-          targetAudience: formData.targetAudience,
-          includeExamples: formData.includeExamples,
-          includeKeywords: formData.includeKeywords,
           temperature: formData.temperature,
-          language: formData.language,
-          persona: formData.persona,
-          includeImageDescription: formData.includeImageDescription,
-          systemPrompt: formData.systemPrompt,
-          context: formData.context,
-          examples: formData.examples,
-          constraints: formData.constraints,
-          outputFormat: formData.outputFormat,
           topP: formData.topP,
           frequencyPenalty: formData.frequencyPenalty,
           presencePenalty: formData.presencePenalty,
           maxTokens: formData.maxTokens,
-          validationRules: formData.validationRules,
-          fallbackStrategy: formData.fallbackStrategy,
         }),
       });
+      const data = await res.json();
+      if (!res.ok || !data.optimizedContent) {
+        setError(data.error || 'Failed to optimize prompt');
+        setIsOptimizing(false);
+        return;
+      }
+      setAiContent(data.optimizedContent);
+      setRatings(data.ratings || null);
+      setShowReviewDialog(true);
+      setStep('review');
+      if (typeof data.outputTokens === 'number') setOutputTokens(data.outputTokens);
+      else setOutputTokens(typeof formData.maxTokens === 'number' ? formData.maxTokens : 0);
+    } catch (err) {
+      setError('Failed to optimize prompt');
+    } finally {
+      setIsOptimizing(false);
+    }
+  };
 
+  // Step 2: User reviews AI-enhanced prompt, can save or cancel
+  const handleSave = async () => {
+    if (!aiContent) return;
+    setIsSubmitting(true);
+    setError(null);
+    try {
+      const response = await fetch('/api/prompts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...formData,
+          content: aiContent,
+        }),
+      });
+      const data = await response.json();
       if (!response.ok) {
-        throw new Error('Failed to create prompt');
+        setError(data.error || 'Failed to create prompt');
+        setIsSubmitting(false);
+        return;
       }
-
-      const prompt = await response.json();
-
-      // If this prompt was created from a template, increment its usage count
-      if (templateId) {
-        try {
-          await fetch(`/api/templates/${templateId}/usage`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' }
-          });
-        } catch (error) {
-          console.error('Failed to increment template usage:', error);
-          // Don't throw here, as the prompt was created successfully
-        }
-      }
-
-      // Show success toast with credit usage info
       toast({
         title: 'Prompt Created',
-        description: `Successfully created prompt. ${estimatedCost} credits used.`,
+        description: 'Successfully created prompt.',
         duration: 5000,
       });
-
-      router.push(`/prompts/${prompt.id}`);
+      router.push(`/prompts/${data.id}`);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to create prompt';
       setError(errorMessage);
@@ -1194,44 +1256,9 @@ const ClientPromptCreate = memo<ClientPromptCreateProps>(function ClientPromptCr
     }
   };
 
-  const handleSave = async () => {
-    if (!generatedPrompt) return;
-    
-    setIsSubmitting(true);
-    setError(null);
-
-    try {
-      const response = await fetch('/api/prompts', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...formData,
-          content: generatedPrompt,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to save prompt');
-      }
-
-      toast({
-        title: 'Success',
-        description: 'Prompt saved successfully',
-      });
-      router.push('/prompts');
-    } catch (error) {
-      console.error('Error:', error);
-      setError(error instanceof Error ? error.message : 'Failed to save prompt');
-      toast({
-        title: 'Error',
-        description: error instanceof Error ? error.message : 'Failed to save prompt',
-        variant: 'destructive',
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
+  const handleCancel = () => {
+    setStep('draft');
+    setAiContent(null);
   };
 
   const handleExampleClick = (example: ExamplePrompt) => {
@@ -1321,6 +1348,26 @@ const ClientPromptCreate = memo<ClientPromptCreateProps>(function ClientPromptCr
     { value: 'custom', label: 'Custom', description: 'Specify your own tone' },
   ];
 
+  useEffect(() => {
+    // Count tokens in the prompt content
+    const tokens = encode(formData.content || '').length;
+    setInputTokens(tokens);
+    // Estimate credits
+    const model = AVAILABLE_LLMS.find(llm => llm.value === formData.llm);
+    const inputRate = model?.creditCost.input ?? 0;
+    const outputRate = model?.creditCost.output ?? 0;
+    const outputTokens = formData.maxTokens ?? 0;
+    const credits = (tokens / 1000) * inputRate + (outputTokens / 1000) * outputRate;
+    setEstimatedCredits(credits);
+  }, [formData.content, formData.llm, formData.maxTokens]);
+
+  // Place this before the return statement, inside the component:
+  const selectedModel = AVAILABLE_LLMS.find(llm => llm.value === formData.llm);
+  const inputCreditRate = selectedModel?.creditCost.input ?? 0;
+  const outputCreditRate = selectedModel?.creditCost.output ?? 0;
+  const outputTokensSafe = outputTokens ?? formData.maxTokens ?? 0;
+  const estimatedReviewCredits = ((inputTokens / 1000) * inputCreditRate + (outputTokensSafe / 1000) * outputCreditRate).toFixed(2);
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-purple-50/40 via-white to-pink-50/80 dark:from-purple-950/20 dark:via-gray-900 dark:to-pink-950/20">
       <NavBar user={clerkUser ? {
@@ -1335,7 +1382,7 @@ const ClientPromptCreate = memo<ClientPromptCreateProps>(function ClientPromptCr
         
         {/* Hero/Header Section */}
         <div className="max-w-3xl mx-auto text-center mb-12">
-          <h1 className="text-4xl font-bold mb-4 bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent font-inter">
+          <h1 className="text-4xl font-bold mb-4 bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-transparent font-inter">
             Create Your Prompt
           </h1>
           <p className="text-lg text-gray-600 dark:text-gray-400 font-inter">
@@ -1406,427 +1453,509 @@ const ClientPromptCreate = memo<ClientPromptCreateProps>(function ClientPromptCr
               </CardContent>
             </Card>
             {/* Main Form */}
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <Card className="rounded-2xl border-2 border-purple-100 dark:border-purple-800 bg-white dark:bg-gray-800 shadow-lg">
-                <CardContent className="pt-6">
-                  <div className="space-y-6">
-                    {showCreditWarning && (
-                      <Alert variant="default" className="mb-4 border-yellow-200 bg-yellow-50 dark:border-yellow-800 dark:bg-yellow-900/20">
-                        <AlertCircle className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
-                        <AlertTitle className="text-yellow-800 dark:text-yellow-300">Low Credit Balance</AlertTitle>
-                        <AlertDescription className="text-yellow-700 dark:text-yellow-400">
-                          You are approaching your credit limit. Consider upgrading your plan or purchasing additional credits to continue creating prompts.
-                        </AlertDescription>
-                      </Alert>
-                    )}
-                    <div className="space-y-2">
-                      <Label htmlFor="name">Name</Label>
-                      <Input
-                        id="name"
-                        value={formData.name}
-                        onChange={e => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                        placeholder="Enter prompt name"
-                        required
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="description">Description</Label>
-                      <Textarea
-                        id="description"
-                        value={formData.description}
-                        onChange={e => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                        placeholder="Enter prompt description"
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {step === 'draft' && (
+              <form onSubmit={handleOptimize} className="space-y-6">
+                <Card className="rounded-2xl border-2 border-purple-100 dark:border-purple-800 bg-white dark:bg-gray-800 shadow-lg">
+                  <CardContent className="pt-6">
+                    <div className="space-y-6">
+                      {showCreditWarning && (
+                        <Alert variant="default" className="mb-4 border-yellow-200 bg-yellow-50 dark:border-yellow-800 dark:bg-yellow-900/20">
+                          <AlertCircle className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
+                          <AlertTitle className="text-yellow-800 dark:text-yellow-300">Low Credit Balance</AlertTitle>
+                          <AlertDescription className="text-yellow-700 dark:text-yellow-400">
+                            You are approaching your credit limit. Consider upgrading your plan or purchasing additional credits to continue creating prompts.
+                          </AlertDescription>
+                        </Alert>
+                      )}
                       <div className="space-y-2">
-                        <Label htmlFor="language">Language</Label>
-                        <Select
-                          value={formData.language}
-                          onValueChange={(value) => setFormData(prev => ({ ...prev, language: value }))}
-                        >
-                          <SelectTrigger className="w-full">
-                            <SelectValue placeholder="Select language" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {LANGUAGE_OPTIONS.map((lang) => (
-                              <SelectItem key={lang.value} value={lang.value}>
-                                <div className="flex items-center gap-2">
-                                  <span className="text-lg">{lang.flag}</span>
-                                  <div className="flex flex-col">
-                                    <span>{lang.label}</span>
-                                    <span className="text-xs text-muted-foreground">{lang.description}</span>
-                                  </div>
-                                </div>
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <p className="text-sm text-muted-foreground">
-                          Select the language for your prompt
-                        </p>
+                        <Label htmlFor="name">Name</Label>
+                        <Input
+                          id="name"
+                          value={formData.name}
+                          onChange={e => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                          placeholder="Enter prompt name"
+                          required
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="description">Description</Label>
+                        <Textarea
+                          id="description"
+                          value={formData.description}
+                          onChange={e => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                          placeholder="Enter prompt description"
+                        />
                       </div>
 
-                      <div className="space-y-2">
-                        <Label htmlFor="tone">Tone</Label>
-                        <div className="flex gap-2">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                          <Label htmlFor="language">Language</Label>
                           <Select
-                            value={formData.tone}
-                            onValueChange={(value) => {
-                              setFormData(prev => ({ ...prev, tone: value }));
-                              if (value !== 'custom') {
-                                setCustomTone('');
-                              }
-                            }}
+                            value={formData.language}
+                            onValueChange={(value) => setFormData(prev => ({ ...prev, language: value }))}
                           >
                             <SelectTrigger className="w-full">
-                              <SelectValue placeholder="Select tone" />
+                              <SelectValue placeholder="Select language" />
                             </SelectTrigger>
                             <SelectContent>
-                              {TONE_OPTIONS.map((tone) => (
-                                <SelectItem key={tone.value} value={tone.value}>
-                                  <div className="flex flex-col">
-                                    <span>{tone.label}</span>
-                                    <span className="text-xs text-muted-foreground">{tone.description}</span>
+                              {LANGUAGE_OPTIONS.map((lang) => (
+                                <SelectItem key={lang.value} value={lang.value}>
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-lg">{lang.flag}</span>
+                                    <div className="flex flex-col">
+                                      <span>{lang.label}</span>
+                                      <span className="text-xs text-muted-foreground">{lang.description}</span>
+                                    </div>
                                   </div>
                                 </SelectItem>
                               ))}
                             </SelectContent>
                           </Select>
-                          {formData.tone === 'custom' && (
-                            <Input
-                              value={customTone}
-                              onChange={(e) => {
-                                setCustomTone(e.target.value);
-                                setFormData(prev => ({ ...prev, tone: e.target.value }));
-                              }}
-                              placeholder="Enter custom tone"
-                              className="flex-1"
-                            />
-                          )}
+                          <p className="text-sm text-muted-foreground">
+                            Select the language for your prompt
+                          </p>
                         </div>
-                        <p className="text-sm text-muted-foreground">
-                          The tone helps set the style and mood of the generated content
-                        </p>
-                      </div>
-                    </div>
 
-                    <div className="space-y-2">
-                      <Label htmlFor="persona">Persona</Label>
-                      <Input
-                        id="persona"
-                        value={formData.persona ?? ''}
-                        onChange={e => setFormData(prev => ({ ...prev, persona: e.target.value }))}
-                        placeholder="e.g., Act as a helpful assistant, Act as a senior developer"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-2">
-                        <Label>Prompt Template</Label>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <span tabIndex={0}>
-                              <HelpCircle className="h-4 w-4 cursor-pointer text-gray-400 hover:text-purple-500" />
-                            </span>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>Create your prompt template using [variables] in brackets</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </div>
-                      <Textarea
-                        value={formData.content}
-                        onChange={e => setFormData(prev => ({ ...prev, content: e.target.value }))}
-                        placeholder="e.g., Write a blog post about [topic] for [audience]"
-                        required
-                        className="min-h-[120px] font-mono"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Tags</Label>
-                      <div className="flex flex-wrap gap-2">
-                        {formData.tags.map(tag => (
-                          <Badge
-                            key={tag}
-                            variant="secondary"
-                            className="flex items-center gap-1 bg-purple-100 text-purple-700 hover:bg-purple-200 dark:bg-purple-900/30 dark:text-purple-300 dark:hover:bg-purple-900/50"
-                          >
-                            {tag}
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setFormData(prev => ({
-                                  ...prev,
-                                  tags: prev.tags.filter(t => t !== tag),
-                                }));
+                        <div className="space-y-2">
+                          <Label htmlFor="tone">Tone</Label>
+                          <div className="flex gap-2">
+                            <Select
+                              value={formData.tone}
+                              onValueChange={(value) => {
+                                setFormData(prev => ({ ...prev, tone: value }));
+                                if (value !== 'custom') {
+                                  setCustomTone('');
+                                }
                               }}
-                              className="ml-1 rounded-full hover:bg-purple-200 dark:hover:bg-purple-800"
                             >
-                              <X className="h-3 w-3" />
-                            </button>
-                          </Badge>
-                        ))}
-                      </div>
-                      <div className="flex gap-2">
-                        <Input
-                          value={newTag ?? ""}
-                          onChange={e => setNewTag(e.target.value)}
-                          onKeyDown={e => {
-                            if (e.key === 'Enter') {
-                              e.preventDefault();
-                              addNewTag();
-                            }
-                          }}
-                          placeholder="Add a tag"
-                          className="flex-1"
-                        />
-                        <Button type="button" onClick={addNewTag} variant="outline">
-                          Add
-                        </Button>
-                      </div>
-                    </div>
-                   
-                    <div className="space-y-2">
-                      <Label htmlFor="maxTokens">Token Limit</Label>
-                      <Input
-                        id="maxTokens"
-                        type="number"
-                        min={1}
-                        max={4096}
-                        value={formData.maxTokens ?? 1024}
-                        onChange={e => setFormData(prev => ({ ...prev, maxTokens: Number(e.target.value) }))}
-                        placeholder="e.g., 1024"
-                      />
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Switch
-                        id="isPublic"
-                        checked={formData.isPublic}
-                        onCheckedChange={checked => setFormData(prev => ({ ...prev, isPublic: checked }))}
-                        className="data-[state=checked]:bg-purple-500"
-                      />
-                      <Label
-                        htmlFor="isPublic"
-                        className="flex items-center gap-2 text-gray-700 dark:text-gray-200"
-                      >
-                        {formData.isPublic ? (
-                          <>
-                            <Globe className="h-4 w-4" /> Make prompt public
-                          </>
-                        ) : (
-                          <>
-                            <Lock className="h-4 w-4" /> Keep prompt private
-                          </>
-                        )}
-                      </Label>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="llm">Language Model</Label>
-                      <Alert variant="default" className="mb-4 border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-900/20">
-                        <Info className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                        <AlertTitle className="text-blue-800 dark:text-blue-300">More Models Coming Soon</AlertTitle>
-                        <AlertDescription className="text-blue-700 dark:text-blue-400">
-                          We're continuously adding new models to provide you with more options. Stay tuned for updates!
-                        </AlertDescription>
-                      </Alert>
-                      <div className="flex items-center gap-2 mb-4">
-                        <h4 className="font-medium">Credit Cost Legend</h4>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <HelpCircle className="h-4 w-4 cursor-pointer text-gray-400 hover:text-purple-500 transition-colors" />
-                          </TooltipTrigger>
-                          <TooltipContent 
-                            side="right" 
-                            className="w-96 p-4 bg-white dark:bg-gray-800 border-purple-200 dark:border-purple-800 shadow-lg"
-                          >
-                            <div className="space-y-4">
-                              <div className="flex items-center justify-between border-b border-purple-100 dark:border-purple-800 pb-2">
-                                <h5 className="font-semibold text-purple-800 dark:text-purple-300">Credit Costs</h5>
-                                <Badge variant="outline" className="bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300">
-                                  Per 1,000 tokens
-                                </Badge>
-                              </div>
-                              
-                              <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                  <div className="flex items-center gap-2">
-                                    <Badge variant="outline" className="flex items-center gap-1 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300">
-                                      <span className="text-muted-foreground">Input:</span>
-                                      <span className="font-medium">
-                                        {AVAILABLE_LLMS.find(llm => llm.value === formData.llm)?.creditCost.input ?? 0}
-                                      </span>
-                                    </Badge>
-                                  </div>
-                                  <p className="text-xs text-muted-foreground">For prompt tokens</p>
-                                </div>
-
-                                <div className="space-y-2">
-                                  <div className="flex items-center gap-2">
-                                    <Badge variant="outline" className="flex items-center gap-1 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300">
-                                      <span className="text-muted-foreground">Output:</span>
-                                      <span className="font-medium">
-                                        {AVAILABLE_LLMS.find(llm => llm.value === formData.llm)?.creditCost.output ?? 0}
-                                      </span>
-                                    </Badge>
-                                  </div>
-                                  <p className="text-xs text-muted-foreground">For response tokens</p>
-                                </div>
-                              </div>
-
-                              <div className="pt-3 border-t border-purple-100 dark:border-purple-800">
-                                <div className="flex items-center gap-2 mb-2">
-                                  <Info className="h-4 w-4 text-purple-500" />
-                                  <h6 className="font-medium text-purple-800 dark:text-purple-300">Example Calculation</h6>
-                                </div>
-                                <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-3">
-                                  <p className="text-sm text-purple-700 dark:text-purple-400">
-                                    A 500-token prompt with 200-token response would cost{' '}
-                                    <span className="font-semibold">
-                                      {(
-                                        (AVAILABLE_LLMS.find(llm => llm.value === formData.llm)?.creditCost.input ?? 0) * 0.5 +
-                                        (AVAILABLE_LLMS.find(llm => llm.value === formData.llm)?.creditCost.output ?? 0) * 0.2
-                                      ).toFixed(1)}{' '}
-                                      credits
-                                    </span>
-                                  </p>
-                                </div>
-                              </div>
-                            </div>
-                          </TooltipContent>
-                        </Tooltip>
-                      </div>
-                      <ScrollArea className="h-[400px] rounded-md border p-4">
-                        <RadioGroup
-                          value={formData.llm}
-                          onValueChange={(value) => setFormData(prev => ({ ...prev, llm: value as LLMType }))}
-                          className="space-y-4"
-                        >
-                          {AVAILABLE_LLMS
-                            .filter(llm => showAllModels || defaultModels.includes(llm.value))
-                            .map((llm) => (
-                            <div
-                              key={llm.value}
-                              className={cn(
-                                "flex items-start space-x-4 rounded-lg border p-4 transition-colors",
-                                formData.llm === llm.value
-                                  ? "border-primary bg-primary/5"
-                                  : "hover:bg-accent/50"
-                              )}
-                            >
-                              <RadioGroupItem
-                                value={llm.value}
-                                id={llm.value}
-                                className="mt-1"
+                              <SelectTrigger className="w-full">
+                                <SelectValue placeholder="Select tone" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {TONE_OPTIONS.map((tone) => (
+                                  <SelectItem key={tone.value} value={tone.value}>
+                                    <div className="flex flex-col">
+                                      <span>{tone.label}</span>
+                                      <span className="text-xs text-muted-foreground">{tone.description}</span>
+                                    </div>
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            {formData.tone === 'custom' && (
+                              <Input
+                                value={customTone}
+                                onChange={(e) => {
+                                  setCustomTone(e.target.value);
+                                  setFormData(prev => ({ ...prev, tone: e.target.value }));
+                                }}
+                                placeholder="Enter custom tone"
+                                className="flex-1"
                               />
-                              <div className="flex-1 space-y-1">
-                                <div className="flex items-center justify-between">
-                                  <Label
-                                    htmlFor={llm.value}
-                                    className="text-base font-semibold"
-                                  >
-                                    {llm.label}
-                                  </Label>
-                                  <div className="flex items-center gap-2">
-                                    <Badge
-                                      variant="secondary"
-                                      className={getCategoryColor(llm.category)}
-                                    >
-                                      {llm.provider}
-                                    </Badge>
-                                    <Tooltip>
-                                      <TooltipTrigger asChild>
-                                        <Badge
-                                          variant="outline"
-                                          className="flex items-center gap-1 text-xs"
-                                        >
-                                          <span className="text-muted-foreground">Cost:</span>
-                                          <span className="font-medium">
-                                            {llm.creditCost.input} → {llm.creditCost.output}
-                                          </span>
-                                        </Badge>
-                                      </TooltipTrigger>
-                                      <TooltipContent className="max-w-[300px]">
-                                        <div className="space-y-2">
-                                          <p className="font-medium">Credit Cost per 1,000 tokens:</p>
-                                          <div className="text-sm space-y-1">
-                                            <p>• Input: {llm.creditCost.input} credits</p>
-                                            <p>• Output: {llm.creditCost.output} credits</p>
-                                          </div>
-                                          <p className="text-xs text-muted-foreground">
-                                            Example: A 500-token prompt with 200-token response would cost {(llm.creditCost.input * 0.5 + llm.creditCost.output * 0.2).toFixed(1)} credits
-                                          </p>
-                                        </div>
-                                      </TooltipContent>
-                                    </Tooltip>
+                            )}
+                          </div>
+                          <p className="text-sm text-muted-foreground">
+                            The tone helps set the style and mood of the generated content
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="persona">Persona</Label>
+                        <Input
+                          id="persona"
+                          value={formData.persona ?? ''}
+                          onChange={e => setFormData(prev => ({ ...prev, persona: e.target.value }))}
+                          placeholder="e.g., Act as a helpful assistant, Act as a senior developer"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2">
+                          <Label>Prompt Template</Label>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <span tabIndex={0}>
+                                <HelpCircle className="h-4 w-4 cursor-pointer text-gray-400 bg-gradient-to-r from-purple-600 to-pink-600 hover:text-purple-500" />
+                              </span>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>Create your prompt template using [variables] in brackets</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </div>
+                        <Textarea
+                          value={formData.content}
+                          onChange={e => setFormData(prev => ({ ...prev, content: e.target.value }))}
+                          placeholder="e.g., Write a blog post about [topic] for [audience]"
+                          required
+                          className="min-h-[120px] font-mono"
+                        />
+                        <div className="flex flex-wrap gap-4 mt-2 text-xs text-muted-foreground">
+                          <span>Input tokens: <span className="font-semibold">{inputTokens}</span></span>
+                          <span>Estimated output tokens: <span className="font-semibold">{formData.maxTokens}</span></span>
+                          <span>Estimated credits: <span className="font-semibold">{estimatedCredits.toFixed(2)}</span></span>
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Tags</Label>
+                        <div className="flex flex-wrap gap-2">
+                          {formData.tags.map(tag => (
+                            <Badge
+                              key={tag}
+                              variant="secondary"
+                              className="flex items-center gap-1 bg-purple-100 text-purple-700 hover:bg-purple-200 dark:bg-purple-900/30 dark:text-purple-300 dark:hover:bg-purple-900/50"
+                            >
+                              {tag}
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setFormData(prev => ({
+                                    ...prev,
+                                    tags: prev.tags.filter(t => t !== tag),
+                                  }));
+                                }}
+                                className="ml-1 rounded-full hover:bg-purple-200 dark:hover:bg-purple-800"
+                              >
+                                <X className="h-3 w-3" />
+                              </button>
+                            </Badge>
+                          ))}
+                        </div>
+                        <div className="flex gap-2">
+                          <Input
+                            value={newTag ?? ""}
+                            onChange={e => setNewTag(e.target.value)}
+                            onKeyDown={e => {
+                              if (e.key === 'Enter') {
+                                e.preventDefault();
+                                addNewTag();
+                              }
+                            }}
+                            placeholder="Add a tag"
+                            className="flex-1"
+                          />
+                          <Button type="button" onClick={addNewTag} variant="outline">
+                            Add
+                          </Button>
+                        </div>
+                      </div>
+                     
+                      <div className="space-y-2">
+                        <Label htmlFor="maxTokens">Token Limit</Label>
+                        <Input
+                          id="maxTokens"
+                          type="number"
+                          min={1}
+                          max={4096}
+                          value={formData.maxTokens ?? 1024}
+                          onChange={e => setFormData(prev => ({ ...prev, maxTokens: Number(e.target.value) }))}
+                          placeholder="e.g., 1024"
+                        />
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Switch
+                          id="isPublic"
+                          checked={formData.isPublic}
+                          onCheckedChange={checked => setFormData(prev => ({ ...prev, isPublic: checked }))}
+                          className="data-[state=checked]:bg-purple-500"
+                        />
+                        <Label
+                          htmlFor="isPublic"
+                          className="flex items-center gap-2 text-gray-700 dark:text-gray-200"
+                        >
+                          {formData.isPublic ? (
+                            <>
+                              <Globe className="h-4 w-4" /> Make prompt public
+                            </>
+                          ) : (
+                            <>
+                              <Lock className="h-4 w-4" /> Keep prompt private
+                            </>
+                          )}
+                        </Label>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="llm">Language Model</Label>
+                        <Alert variant="default" className="mb-4 border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-900/20">
+                          <Info className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                          <AlertTitle className="text-blue-800 dark:text-blue-300">More Models Coming Soon</AlertTitle>
+                          <AlertDescription className="text-blue-700 dark:text-blue-400">
+                            We're continuously adding new models to provide you with more options. Stay tuned for updates!
+                          </AlertDescription>
+                        </Alert>
+                        <div className="flex items-center gap-2 mb-4">
+                          <h4 className="font-medium">Credit Cost Legend</h4>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <HelpCircle className="h-4 w-4 cursor-pointer text-gray-400 hover:text-purple-500 transition-colors" />
+                            </TooltipTrigger>
+                            <TooltipContent 
+                              side="right" 
+                              className="w-96 p-4 bg-white dark:bg-gray-800 border-purple-200 dark:border-purple-800 shadow-lg"
+                            >
+                              <div className="space-y-4">
+                                <div className="flex items-center justify-between border-b border-purple-100 dark:border-purple-800 pb-2">
+                                  <h5 className="font-semibold text-purple-800 dark:text-purple-300">Credit Costs</h5>
+                                  <Badge variant="outline" className="bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300">
+                                    Per 1,000 tokens
+                                  </Badge>
+                                </div>
+                                
+                                <div className="grid grid-cols-2 gap-4">
+                                  <div className="space-y-2">
+                                    <div className="flex items-center gap-2">
+                                      <Badge variant="outline" className="flex items-center gap-1 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300">
+                                        <span className="text-muted-foreground">Input:</span>
+                                        <span className="font-medium">
+                                          {AVAILABLE_LLMS.find(llm => llm.value === formData.llm)?.creditCost.input ?? 0}
+                                        </span>
+                                      </Badge>
+                                    </div>
+                                    <p className="text-xs text-muted-foreground">For prompt tokens</p>
+                                  </div>
+
+                                  <div className="space-y-2">
+                                    <div className="flex items-center gap-2">
+                                      <Badge variant="outline" className="flex items-center gap-1 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300">
+                                        <span className="text-muted-foreground">Output:</span>
+                                        <span className="font-medium">
+                                          {AVAILABLE_LLMS.find(llm => llm.value === formData.llm)?.creditCost.output ?? 0}
+                                        </span>
+                                      </Badge>
+                                    </div>
+                                    <p className="text-xs text-muted-foreground">For response tokens</p>
                                   </div>
                                 </div>
-                                <p className="text-sm text-muted-foreground">
-                                  {llm.description}
-                                </p>
-                                <div className="flex flex-wrap gap-2 pt-2">
-                                  {llm.capabilities.map((capability) => (
-                                    <Badge
-                                      key={capability}
-                                      variant="outline"
-                                      className="text-xs"
-                                    >
-                                      {capability}
-                                    </Badge>
-                                  ))}
+
+                                <div className="pt-3 border-t border-purple-100 dark:border-purple-800">
+                                  <div className="flex items-center gap-2 mb-2">
+                                    <Info className="h-4 w-4 text-purple-500" />
+                                    <h6 className="font-medium text-purple-800 dark:text-purple-300">Example Calculation</h6>
+                                  </div>
+                                  <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-3">
+                                    <p className="text-sm text-purple-700 dark:text-purple-400">
+                                      A 500-token prompt with 200-token response would cost{' '}
+                                      <span className="font-semibold">
+                                        {(
+                                          (AVAILABLE_LLMS.find(llm => llm.value === formData.llm)?.creditCost.input ?? 0) * 0.5 +
+                                          (AVAILABLE_LLMS.find(llm => llm.value === formData.llm)?.creditCost.output ?? 0) * 0.2
+                                        ).toFixed(1)}{' '}
+                                        credits
+                                      </span>
+                                    </p>
+                                  </div>
                                 </div>
                               </div>
+                            </TooltipContent>
+                          </Tooltip>
+                        </div>
+                        <ScrollArea className="h-[400px] rounded-md border p-4">
+                          <RadioGroup
+                            value={formData.llm}
+                            onValueChange={(value) => setFormData(prev => ({ ...prev, llm: value as LLMType }))}
+                            className="space-y-4"
+                          >
+                            {AVAILABLE_LLMS
+                              .filter(llm => showAllModels || defaultModels.includes(llm.value))
+                              .map((llm) => (
+                              <div
+                                key={llm.value}
+                                className={cn(
+                                  "flex items-start space-x-4 rounded-lg border p-4 transition-colors",
+                                  formData.llm === llm.value
+                                    ? "border-primary bg-primary/5"
+                                    : "hover:bg-accent/50"
+                                )}
+                              >
+                                <RadioGroupItem
+                                  value={llm.value}
+                                  id={llm.value}
+                                  className="mt-1"
+                                />
+                                <div className="flex-1 space-y-1">
+                                  <div className="flex items-center justify-between">
+                                    <Label
+                                      htmlFor={llm.value}
+                                      className="text-base font-semibold"
+                                    >
+                                      {llm.label}
+                                    </Label>
+                                    <div className="flex items-center gap-2">
+                                      <Badge
+                                        variant="secondary"
+                                        className={getCategoryColor(llm.category)}
+                                      >
+                                        {llm.provider}
+                                      </Badge>
+                                      <Tooltip>
+                                        <TooltipTrigger asChild>
+                                          <Badge
+                                            variant="outline"
+                                            className="flex items-center gap-1 text-xs"
+                                          >
+                                            <span className="text-muted-foreground">Cost:</span>
+                                            <span className="font-medium">
+                                              {llm.creditCost.input} → {llm.creditCost.output}
+                                            </span>
+                                          </Badge>
+                                        </TooltipTrigger>
+                                        <TooltipContent className="max-w-[300px]">
+                                          <div className="space-y-2">
+                                            <p className="font-medium">Credit Cost per 1,000 tokens:</p>
+                                            <div className="text-sm space-y-1">
+                                              <p>• Input: {llm.creditCost.input} credits</p>
+                                              <p>• Output: {llm.creditCost.output} credits</p>
+                                            </div>
+                                            <p className="text-xs text-muted-foreground">
+                                              Example: A 500-token prompt with 200-token response would cost {(llm.creditCost.input * 0.5 + llm.creditCost.output * 0.2).toFixed(1)} credits
+                                            </p>
+                                          </div>
+                                        </TooltipContent>
+                                      </Tooltip>
+                                    </div>
+                                  </div>
+                                  <p className="text-sm text-muted-foreground">
+                                    {llm.description}
+                                  </p>
+                                  <div className="flex flex-wrap gap-2 pt-2">
+                                    {llm.capabilities.map((capability) => (
+                                      <Badge
+                                        key={capability}
+                                        variant="outline"
+                                        className="text-xs"
+                                      >
+                                        {capability}
+                                      </Badge>
+                                    ))}
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </RadioGroup>
+                          {!showAllModels && (
+                            <div className="mt-4 flex justify-center">
+                              <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() => setShowAllModels(true)}
+                                className="flex items-center gap-2"
+                              >
+                                <ChevronDown className="h-4 w-4" />
+                                Show More Models
+                              </Button>
                             </div>
-                          ))}
-                        </RadioGroup>
-                        {!showAllModels && (
-                          <div className="mt-4 flex justify-center">
-                            <Button
-                              type="button"
-                              variant="outline"
-                              onClick={() => setShowAllModels(true)}
-                              className="flex items-center gap-2"
-                            >
-                              <ChevronDown className="h-4 w-4" />
-                              Show More Models
-                            </Button>
-                          </div>
-                        )}
-                      </ScrollArea>
+                          )}
+                        </ScrollArea>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+                {/* Action Buttons */}
+                <div className="flex justify-end gap-4">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => router.back()}
+                    className="flex items-center gap-2 border-purple-200 dark:border-purple-800"
+                  >
+                    <ArrowLeft className="h-4 w-4" />
+                    Back
+                  </Button>
+                  <Button
+                    type="submit"
+                    disabled={isOptimizing}
+                    className="flex items-center gap-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-md"
+                  >
+                    {isOptimizing ? (
+                      <>
+                        <Loader2 className="h-4 animate-spin" />
+                        Optimizing...
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="h-4" />
+                        Optimize with AI
+                      </>
+                    )}
+                  </Button>
+                </div>
+                {error && (
+                  <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+                    <div className="flex items-center gap-2 text-red-600 dark:text-red-400">
+                      <X className="h-5 w-5" />
+                      <p className="font-medium">{error}</p>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
-              {/* Action Buttons */}
-              <div className="flex justify-end gap-4">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => router.back()}
-                  className="flex items-center gap-2 border-purple-200 dark:border-purple-800"
-                >
-                  <ArrowLeft className="h-4 w-4" />
-                  Back
-                </Button>
-                <Button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="flex items-center gap-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-md"
-                >
-                  {isSubmitting ? (
-                    <>
-                      <Loader2 className="h-4 animate-spin" />
-                      Creating...
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles className="h-4" />
-                      Create Prompt
-                    </>
+                )}
+              </form>
+            )}
+            {/* Review Dialog for AI-optimized prompt */}
+            {showReviewDialog && (
+              <Dialog open={showReviewDialog} onOpenChange={setShowReviewDialog}>
+                <DialogContent className="sm:max-w-[800px]">
+                  <DialogHeader>
+                    <DialogTitle>AI-Optimized Prompt</DialogTitle>
+                    <DialogDescription>
+                      Review and edit the optimized prompt before saving.
+                    </DialogDescription>
+                  </DialogHeader>
+                  {/* Ratings Display */}
+                  {ratings && (
+                    <div className="mb-4">
+                      <h4 className="font-semibold mb-2">AI Ratings</h4>
+                      <div className="grid grid-cols-2 gap-2 text-sm">
+                        <div>
+                          <span className="font-medium">Clarity:</span> {ratings.clarity} {renderStars(ratings.clarity)}
+                        </div>
+                        <div>
+                          <span className="font-medium">Effectiveness:</span> {ratings.effectiveness} {renderStars(ratings.effectiveness)}
+                        </div>
+                        <div>
+                          <span className="font-medium">Creativity:</span> {ratings.creativity} {renderStars(ratings.creativity)}
+                        </div>
+                        <div>
+                          <span className="font-medium">Conciseness:</span> {ratings.conciseness} {renderStars(ratings.conciseness)}
+                        </div>
+                        <div>
+                          <span className="font-medium">Best Practices:</span> {ratings.best_practices} {renderStars(ratings.best_practices)}
+                        </div>
+                      </div>
+                    </div>
                   )}
-                </Button>
-              </div>
-            </form>
+                  <div className="flex flex-wrap gap-4 mb-2 text-xs text-muted-foreground">
+                    <span>Input tokens: <span className="font-semibold">{inputTokens}</span></span>
+                    <span>Output tokens: <span className="font-semibold">{outputTokens ?? formData.maxTokens}</span></span>
+                    <span>Estimated credits: <span className="font-semibold">{estimatedReviewCredits}</span></span>
+                    <span>Remaining credits: <span className="font-semibold">{((balance?.monthlyCredits ?? 0) + (balance?.purchasedCredits ?? 0)).toLocaleString()}</span></span>
+                  </div>
+                  <Textarea
+                    value={aiContent || ''}
+                    onChange={e => setAiContent(e.target.value)}
+                    className="min-h-[200px] font-mono"
+                  />
+                  <div className="flex gap-2 mt-4">
+                    <Button onClick={handleSave} disabled={isSubmitting} className="bg-green-600 hover:bg-green-700 text-white">
+                      {isSubmitting ? 'Saving...' : 'Save Prompt'}
+                    </Button>
+                    <Button variant="outline" onClick={() => { setShowReviewDialog(false); setStep('draft'); setAiContent(null); setRatings(null); }}>Cancel</Button>
+                    {/* 6. Undo button */}
+                    {originalDraft && (
+                      <Button variant="secondary" onClick={() => setAiContent(originalDraft)}>
+                        Undo to Draft
+                      </Button>
+                    )}
+                  </div>
+                  {error && (
+                    <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg mt-4">
+                      <div className="flex items-center gap-2 text-red-600 dark:text-red-400">
+                        <X className="h-5 w-5" />
+                        <p className="font-medium">{error}</p>
+                      </div>
+                    </div>
+                  )}
+                </DialogContent>
+              </Dialog>
+            )}
           </div>
           {/* Sticky Sidebar: Quick Tips + Advanced AI Settings */}
           <div className="w-full lg:w-80 shrink-0 lg:sticky lg:top-16 h-fit flex flex-col gap-6">
@@ -1893,9 +2022,35 @@ const ClientPromptCreate = memo<ClientPromptCreateProps>(function ClientPromptCr
                 <CardDescription>Fine-tune the AI's response generation</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
+                <div className="mb-2">
+                  <Label>Preset</Label>
+                  <Select value={selectedPreset} onValueChange={preset => {
+                    setSelectedPreset(preset);
+                    const found = ADVANCED_PRESETS.find(p => p.label === preset);
+                    if (found) {
+                      setFormData(prev => ({
+                        ...prev,
+                        temperature: found.temperature,
+                        topP: found.topP,
+                        frequencyPenalty: found.frequencyPenalty,
+                        presencePenalty: found.presencePenalty,
+                      }));
+                    }
+                  }}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select preset" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {ADVANCED_PRESETS.map(preset => (
+                        <SelectItem key={preset.label} value={preset.label}>{preset.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
                 <div className="space-y-2">
                   <div className="flex justify-between">
                     <Label htmlFor="temperature">Temperature</Label>
+                    <Tooltip><TooltipTrigger asChild><span className="ml-1 cursor-pointer"><HelpCircle className="h-4 w-4 text-gray-400" /></span></TooltipTrigger><TooltipContent>Controls randomness: Lower values are more focused, higher values more creative.</TooltipContent></Tooltip>
                     <span className="text-sm text-muted-foreground">{formData.temperature ?? 0.7}</span>
                   </div>
                   <Slider
@@ -1914,6 +2069,7 @@ const ClientPromptCreate = memo<ClientPromptCreateProps>(function ClientPromptCr
                 <div className="space-y-2">
                   <div className="flex justify-between">
                     <Label htmlFor="topP">Top P</Label>
+                    <Tooltip><TooltipTrigger asChild><span className="ml-1 cursor-pointer"><HelpCircle className="h-4 w-4 text-gray-400" /></span></TooltipTrigger><TooltipContent>Controls diversity via nucleus sampling: 0.5 means half of all likelihood-weighted options are considered.</TooltipContent></Tooltip>
                     <span className="text-sm text-muted-foreground">{formData.topP ?? 1}</span>
                   </div>
                   <Slider
@@ -1932,6 +2088,7 @@ const ClientPromptCreate = memo<ClientPromptCreateProps>(function ClientPromptCr
                 <div className="space-y-2">
                   <div className="flex justify-between">
                     <Label htmlFor="frequencyPenalty">Frequency Penalty</Label>
+                    <Tooltip><TooltipTrigger asChild><span className="ml-1 cursor-pointer"><HelpCircle className="h-4 w-4 text-gray-400" /></span></TooltipTrigger><TooltipContent>Reduces repetition of the same line verbatim.</TooltipContent></Tooltip>
                     <span className="text-sm text-muted-foreground">{formData.frequencyPenalty ?? 0}</span>
                   </div>
                   <Slider
@@ -1950,6 +2107,7 @@ const ClientPromptCreate = memo<ClientPromptCreateProps>(function ClientPromptCr
                 <div className="space-y-2">
                   <div className="flex justify-between">
                     <Label htmlFor="presencePenalty">Presence Penalty</Label>
+                    <Tooltip><TooltipTrigger asChild><span className="ml-1 cursor-pointer"><HelpCircle className="h-4 w-4 text-gray-400" /></span></TooltipTrigger><TooltipContent>Reduces repetition of similar topics.</TooltipContent></Tooltip>
                     <span className="text-sm text-muted-foreground">{formData.presencePenalty ?? 0}</span>
                   </div>
                   <Slider
@@ -2100,14 +2258,28 @@ const ClientPromptCreate = memo<ClientPromptCreateProps>(function ClientPromptCr
           </DialogContent>
         </Dialog>
       )}
-      {error && (
-        <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-          <div className="flex items-center gap-2 text-red-600 dark:text-red-400">
-            <X className="h-5 w-5" />
-            <p className="font-medium">{error}</p>
+      {/* Add the credit warning modal JSX near the root of the component: */}
+      <Dialog open={showCreditWarningModal} onOpenChange={setShowCreditWarningModal}>
+        <DialogContent className="sm:max-w-[400px]">
+          <DialogHeader>
+            <DialogTitle>High Credit Usage</DialogTitle>
+            <DialogDescription>
+              This operation will use approximately <span className="font-semibold">{estimatedCredits.toFixed(2)} credits</span>.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="my-4 text-sm text-muted-foreground">
+            {((balance?.monthlyCredits ?? 0) + (balance?.purchasedCredits ?? 0)) < estimatedCredits ? (
+              <span className="text-red-600 font-medium">You do not have enough credits to complete this operation.</span>
+            ) : (
+              <span>Are you sure you want to continue?</span>
+            )}
           </div>
-        </div>
-      )}
+          <div className="flex gap-2 justify-end">
+            <Button variant="outline" onClick={handleTopUpCredits}>Top Up Credits</Button>
+            <Button onClick={handleContinueAnyway} disabled={((balance?.monthlyCredits ?? 0) + (balance?.purchasedCredits ?? 0)) < estimatedCredits} className="bg-green-600 hover:bg-green-700 text-white">Continue Anyway</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 });

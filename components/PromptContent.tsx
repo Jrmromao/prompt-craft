@@ -97,9 +97,12 @@ export interface PromptContentProps {
     usageCount: number;
   };
   initialCommentCount?: number;
+  initialVersionHistory?: any[];
+  initialComments?: any[];
+  initialAnalytics?: any;
 }
 
-function PromptContentInner({ user, prompt, initialCommentCount }: PromptContentProps) {
+function PromptContentInner({ user, prompt, initialCommentCount, initialVersionHistory, initialComments, initialAnalytics }: PromptContentProps) {
   const displayName = user?.username || 'Guest';
 
 
@@ -430,18 +433,18 @@ function PromptContentInner({ user, prompt, initialCommentCount }: PromptContent
                   <TabsTrigger value="analytics">Analytics</TabsTrigger>
                 </TabsList>
                 <TabsContent value="history" className="mt-0">
-                  <VersionHistory id={prompt.id} />
+                  <VersionHistory id={prompt.id} initialData={initialVersionHistory} />
                 </TabsContent>
                 <TabsContent value="comments" className="mt-0">
                   <BasicComments 
                     promptId={prompt.id} 
                     onCommentCountChange={setCommentCount}
-                    initialComments={[]}
+                    initialComments={initialComments}
                     initialCommentCount={initialCommentCount}
                   />
                 </TabsContent>
                 <TabsContent value="analytics" className="mt-0">
-                  <Analytics promptId={prompt.id} upvotes={upvotes} />
+                  <Analytics promptId={prompt.id} upvotes={upvotes} initialData={initialAnalytics} />
                 </TabsContent>
               </Tabs>
             </CardContent>
@@ -462,7 +465,7 @@ function PromptContentInner({ user, prompt, initialCommentCount }: PromptContent
   );
 }
 
-export function PromptContent({ user, prompt, initialCommentCount }: PromptContentProps) {
+export function PromptContent({ user, prompt, initialCommentCount, initialVersionHistory, initialComments, initialAnalytics }: PromptContentProps) {
   return (
     <PromptAnalyticsProvider
       promptId={prompt.id}
@@ -471,7 +474,14 @@ export function PromptContent({ user, prompt, initialCommentCount }: PromptConte
       initialUsageCount={prompt.usageCount || 0}
       initialCommentCount={typeof initialCommentCount === 'number' ? initialCommentCount : 0}
     >
-      <PromptContentInner user={user} prompt={prompt} initialCommentCount={initialCommentCount} />
+      <PromptContentInner
+        user={user}
+        prompt={prompt}
+        initialCommentCount={initialCommentCount}
+        initialVersionHistory={initialVersionHistory}
+        initialComments={initialComments}
+        initialAnalytics={initialAnalytics}
+      />
     </PromptAnalyticsProvider>
   );
 }

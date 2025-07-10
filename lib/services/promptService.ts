@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/prisma';
 import { Role, PlanType } from '@/utils/constants';
 import { Prisma, Prompt as PrismaPrompt } from '@prisma/client';
+import { AIService } from '@/lib/services/aiService';
 
 // Use Prisma's generated type instead of custom interface
 type Prompt = Omit<PrismaPrompt, 'createdAt' | 'updatedAt' | 'lastUsedAt' | 'lastViewedAt'> & {
@@ -136,6 +137,10 @@ public async getPromptBySlug(slug: string): Promise<Prompt | null> {
           imageUrl: prompt.user.imageUrl,
         },
         upvotes: prompt._count.votes,
+        downvotes: (prompt as any).downvotes ?? 0,
+        shareCount: (prompt as any).shareCount ?? 0,
+        qualityScore: (prompt as any).qualityScore ?? 0,
+        difficultyLevel: (prompt as any).difficultyLevel ?? 'unknown',
         _count: {
           votes: prompt._count.votes,
           comments: (prompt._count as any).comments ?? 0,
@@ -147,11 +152,12 @@ public async getPromptBySlug(slug: string): Promise<Prompt | null> {
         dataRetentionPolicy: (prompt as any).dataRetentionPolicy ?? {},
         isArchived: (prompt as any).isArchived ?? false,
         archivedAt: (prompt as any).archivedAt?.toISOString() ?? null,
-        // Add missing properties with defaults:
         isVerified: (prompt as any).isVerified ?? false,
         isFeatured: (prompt as any).isFeatured ?? false,
         followerCount: (prompt as any).followerCount ?? 0,
         favoriteCount: (prompt as any).favoriteCount ?? 0,
+        isPremium: (prompt as any).isPremium ?? false,
+        premiumTier: (prompt as any).premiumTier ?? null,
       };
     } catch (error) {
       console.error('Error converting dates to strings:', error);
@@ -268,11 +274,28 @@ public async getPromptBySlug(slug: string): Promise<Prompt | null> {
       lastUpdated: new Date(),
     };
 
+    // Optimize prompt content with AI
+    let optimizedContent = data.content;
+    try {
+      const aiService = AIService.getInstance();
+      const optimizationPrompt = `Rewrite and optimize the following prompt for clarity, effectiveness, and best practices. Only return the improved prompt, do not add any explanations.\n\nPrompt:\n${data.content}`;
+      const aiResult = await aiService.generateText(optimizationPrompt, {
+        model: 'gpt4',
+        temperature: 0.3,
+        maxTokens: 1000,
+      });
+      if (aiResult && aiResult.text) {
+        optimizedContent = aiResult.text.trim();
+      }
+    } catch (err) {
+      console.error('AI optimization failed, saving original content:', err);
+    }
+
     const prompt = await prisma.prompt.create({
       data: {
         name: data.name,
         description: data.description,
-        content: data.content,
+        content: optimizedContent,
         isPublic: data.isPublic || false,
         userId,
         slug: uniqueSlug,

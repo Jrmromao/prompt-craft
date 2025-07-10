@@ -130,13 +130,15 @@ export function BasicComments({ promptId, initialComments = [], initialCommentCo
     }
   }, [promptId, isLoading, isLoadingMore, makeRequest, toast]);
 
-  // Initial fetch only once when component mounts
+  // Initial fetch only once when component mounts, unless initialComments are provided
   useEffect(() => {
-    if (!hasInitialized && !isLoading) {
+    if (!hasInitialized && !isLoading && (!initialComments || initialComments.length === 0)) {
       setHasInitialized(true);
       fetchComments();
+    } else if (initialComments && initialComments.length > 0) {
+      setHasInitialized(true);
     }
-  }, [promptId, hasInitialized, isLoading, fetchComments]);
+  }, [promptId, hasInitialized, isLoading, fetchComments, initialComments]);
 
   const loadMore = async () => {
     if (isLoadingMore || !hasMore) return;

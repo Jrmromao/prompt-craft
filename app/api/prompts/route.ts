@@ -6,6 +6,8 @@ import { AIService } from '@/lib/services/aiService';
 import { prisma } from '@/lib/prisma';
 import { Role, PlanType } from '@/utils/constants';
 import { PLANS } from '@/app/constants/plans';
+import { CreditService } from '@/lib/services/creditService';
+import { encode } from 'gpt-tokenizer';
 
 // Export dynamic configuration
 export const dynamic = 'force-dynamic';
@@ -112,10 +114,39 @@ export const POST = withPlanLimitsMiddleware(
 
       // Create the prompt
       const promptService = PromptService.getInstance();
+      // Call savePrompt and get the optimized content and token info
+      const aiService = (await import('@/lib/services/aiService')).AIService.getInstance();
+      const optimizationPrompt = `Rewrite and optimize the following prompt for clarity, effectiveness, and best practices. Only return the improved prompt, do not add any explanations.\n\nPrompt:\n${content}`;
+      let optimizedContent = content;
+      let outputTokenCount = 0;
+      try {
+        const aiResult = await aiService.generateText(optimizationPrompt, {
+          model: 'gpt4',
+          temperature: 0.3,
+          maxTokens: 1000,
+        });
+        if (aiResult && aiResult.text) {
+          optimizedContent = aiResult.text.trim();
+          outputTokenCount = aiResult.tokenCount || 0;
+        }
+      } catch (err) {
+        console.error('AI optimization failed, saving original content:', err);
+      }
+      // Calculate input tokens
+      const inputTokenCount = encode(content).length;
+      // Calculate credit cost
+      const creditService = CreditService.getInstance();
+      const creditCost = creditService.calculateTokenCost(inputTokenCount, outputTokenCount, 'gpt-4');
+      // Deduct credits
+      const creditDeducted = await creditService.deductCredits(user.id, creditCost, 'USAGE', 'Prompt creation');
+      if (!creditDeducted) {
+        return NextResponse.json({ error: `Insufficient credits to create prompt. Required: ${creditCost}` }, { status: 402 });
+      }
+      // Save the prompt with optimized content
       const prompt = await promptService.savePrompt(user.id, {
         name,
         description,
-        content,
+        content: optimizedContent,
         isPublic,
         tags,
         systemPrompt,
@@ -131,7 +162,6 @@ export const POST = withPlanLimitsMiddleware(
         validationRules,
         fallbackStrategy
       });
-
       return NextResponse.json(prompt);
     } catch (error) {
       console.error('Error creating prompt:', error);

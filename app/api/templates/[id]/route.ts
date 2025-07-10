@@ -7,7 +7,8 @@ const templateService = new TemplateService();
 
 export async function GET(request: Request, context: any) {
   try {
-    const templateId = context.params.id;
+    const params = await context.params;
+    const templateId = params.id;
     
     const template = await prisma.promptTemplate.findUnique({
       where: { id: templateId },

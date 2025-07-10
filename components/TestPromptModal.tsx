@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
@@ -34,6 +34,14 @@ interface TestPromptModalProps {
   userPlan: string;
 }
 
+// Fix: Use 'gpt-tokenizer' for browser-compatible import
+let encode: ((text: string) => number[]) | null = null;
+if (typeof window !== 'undefined') {
+  import('gpt-tokenizer').then(mod => {
+    encode = mod.encode;
+  });
+}
+
 export function TestPromptModal({
   isOpen,
   onClose,
@@ -49,6 +57,30 @@ export function TestPromptModal({
   const [testResult, setTestResult] = useState<string | null>(null);
   const [showCreditsDialog, setShowCreditsDialog] = useState(false);
   const { balance, isLoading: isCreditLoading } = useCreditBalance();
+  const [estimatedTokens, setEstimatedTokens] = useState<number>(0);
+  const [estimatedCredits, setEstimatedCredits] = useState<number>(0);
+
+  useEffect(() => {
+    if (encode && promptContent) {
+      const tokens = encode(promptContent);
+      setEstimatedTokens(tokens.length);
+      // Assume 0 output tokens for estimation, or allow user to input expected output tokens
+      // For now, estimate 100 output tokens
+      const outputTokens = 100;
+      // Use the same credit calculation as backend
+      fetch('/api/credits/calculate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          inputTokens: tokens.length,
+          outputTokens,
+          model: 'gpt-4',
+        }),
+      })
+        .then(res => res.json())
+        .then(data => setEstimatedCredits(data.credits || 0));
+    }
+  }, [promptContent]);
 
   const handleTest = async () => {
     if (!testInput.trim()) {
@@ -88,9 +120,13 @@ export function TestPromptModal({
       if (typeof onTestHistorySaved === 'function') {
         onTestHistorySaved();
       }
-    } catch (error) {
-      console.error('Error testing prompt:', error);
-      toast.error(error instanceof Error ? error.message : 'Failed to test prompt');
+    } catch (error: any) {
+      if (error?.response?.status === 402 || error?.message?.includes('Insufficient credits')) {
+        setShowCreditsDialog(true);
+        toast.error('Insufficient credits to test prompt.');
+      } else {
+        toast.error(error instanceof Error ? error.message : 'Failed to test prompt');
+      }
     } finally {
       setIsTesting(false);
     }
@@ -150,11 +186,15 @@ export function TestPromptModal({
         </DialogContent>
       </Dialog>
 
+      <div className="text-xs text-muted-foreground mt-2">
+        Estimated tokens: {estimatedTokens} | Estimated credit cost: {estimatedCredits}
+      </div>
+
       <InsufficientCreditsDialog
         isOpen={showCreditsDialog}
         onClose={() => setShowCreditsDialog(false)}
         currentCredits={balance ? balance.monthlyCredits + balance.purchasedCredits : 0}
-        requiredCredits={1}
+        requiredCredits={estimatedCredits}
       />
     </>
   );

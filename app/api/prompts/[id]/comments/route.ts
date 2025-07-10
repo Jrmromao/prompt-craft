@@ -20,7 +20,8 @@ export async function GET(
   context: any
 ) {
   try {
-    const promptId = context.params.id;
+    const params = await context.params;
+    const promptId = params.id;
     
     if (!promptId) {
       return NextResponse.json({ error: 'Prompt ID is required' }, { status: 400 });
@@ -84,8 +85,8 @@ export async function POST(
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-
-    const promptId = context.params.id;
+    const params = await context.params;
+    const promptId = params.id;
     
     if (!promptId) {
       return NextResponse.json({ error: 'Prompt ID is required' }, { status: 400 });

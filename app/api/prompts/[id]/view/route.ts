@@ -13,10 +13,7 @@ export const revalidate = 0;
 
 export async function POST(request: NextRequest, context: any) {
   try {
-    let params = context.params;
-    if (typeof params.then === 'function') {
-      params = await params;
-    }
+    const params = await context.params;
     const { userId } = await auth();
     const headersList = await headers();
     const ipAddress = headersList.get('x-forwarded-for') || undefined;

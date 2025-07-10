@@ -20,8 +20,9 @@ export async function GET(request: Request, context: any) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const params = await context.params;
     const versionControlService = VersionControlService.getInstance();
-    const versions = await versionControlService.getVersion(context.params.id);
+    const versions = await versionControlService.getVersion(params.id);
 
     return NextResponse.json(versions);
   } catch (error) {
@@ -37,6 +38,7 @@ export async function POST(request: Request, context: any) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const params = await context.params;
     const body = await request.json();
     const validationResult = versionSchema.safeParse(body);
     
@@ -50,7 +52,7 @@ export async function POST(request: Request, context: any) {
     const { content, description, commitMessage, tags, baseVersionId, tests } = validationResult.data;
     const versionControlService = VersionControlService.getInstance();
     const version = await versionControlService.createVersion(
-      context.params.id,
+      params.id,
       content,
       description ?? null,
       commitMessage,

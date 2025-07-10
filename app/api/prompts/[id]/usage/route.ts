@@ -20,11 +20,12 @@ export async function POST(
     const body = await request.json();
     const { result, tokenCount } = body;
 
+    const params = await context.params;
     await prisma.$transaction(async (tx) => {
       // Create usage record
       await tx.promptUsage.create({
         data: {
-          promptId: context.params.id,
+          promptId: params.id,
           userId,
           result,
           tokenCount: tokenCount || 0
@@ -33,7 +34,7 @@ export async function POST(
 
       // Update prompt usage count
       await tx.prompt.update({
-        where: { id: context.params.id },
+        where: { id: params.id },
         data: {
           usageCount: {
             increment: 1,

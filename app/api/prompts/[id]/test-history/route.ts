@@ -23,9 +23,10 @@ export async function POST(
       return new NextResponse('Missing required fields', { status: 400 });
     }
 
+    const params = await context.params;
     const testHistory = await prisma.promptTestHistory.create({
       data: {
-        promptId: context.params.id,
+        promptId: params.id,
         userId,
         promptVersionId,
         input,
@@ -59,9 +60,10 @@ export async function GET(
     const { searchParams } = new URL(request.url);
     const promptVersionId = searchParams.get('promptVersionId');
 
+    const params = await context.params;
     const testHistory = await prisma.promptTestHistory.findMany({
       where: {
-        promptId: context.params.id,
+        promptId: params.id,
         userId,
         ...(promptVersionId ? { promptVersionId } : {}),
       },

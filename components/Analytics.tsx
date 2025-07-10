@@ -9,6 +9,7 @@ import { usePromptAnalytics } from './PromptAnalyticsContext';
 interface AnalyticsProps {
   promptId: string;
   upvotes?: number;
+  initialData?: AnalyticsData;
 }
 
 interface AnalyticsData {
@@ -48,12 +49,13 @@ interface AnalyticsData {
   }>;
 }
 
-export function Analytics({ promptId, upvotes }: AnalyticsProps) {
-  const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+export function Analytics({ promptId, upvotes, initialData }: AnalyticsProps) {
+  const [analytics, setAnalytics] = useState<AnalyticsData | null>(initialData || null);
+  const [isLoading, setIsLoading] = useState(initialData ? false : true);
   const { copyCount, viewCount, usageCount, commentCount } = usePromptAnalytics();
 
   useEffect(() => {
+    if (initialData) return; // Don't refetch if we have initial data
     const fetchAnalytics = async () => {
       try {
         const response = await fetch(`/api/prompts/${promptId}/analytics`);
@@ -68,9 +70,8 @@ export function Analytics({ promptId, upvotes }: AnalyticsProps) {
         setIsLoading(false);
       }
     };
-
     fetchAnalytics();
-  }, [promptId]);
+  }, [promptId, initialData]);
 
   if (isLoading) {
     return (

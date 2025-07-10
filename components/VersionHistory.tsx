@@ -30,11 +30,12 @@ import { Version } from '@/types/version';
 interface VersionHistoryProps {
   id: string;
   onVersionSelect?: (version: Version) => void;
+  initialData?: Version[];
 }
 
-export function VersionHistory({ id, onVersionSelect }: VersionHistoryProps) {
-  const [versions, setVersions] = useState<Version[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+export function VersionHistory({ id, onVersionSelect, initialData }: VersionHistoryProps) {
+  const [versions, setVersions] = useState<Version[]>(initialData || []);
+  const [isLoading, setIsLoading] = useState(initialData ? false : true);
   const [selectedVersion, setSelectedVersion] = useState<string | undefined>(undefined);
   const [comparison, setComparison] = useState<any>(null);
   const [isComparisonOpen, setIsComparisonOpen] = useState(false);
@@ -57,6 +58,7 @@ export function VersionHistory({ id, onVersionSelect }: VersionHistoryProps) {
   const [compareVersion2, setCompareVersion2] = useState<string | null>(null);
 
   useEffect(() => {
+    if (initialData && initialData.length > 0) return; // Don't refetch if we have initial data
     const fetchVersions = async () => {
       try {
         const response = await fetch(`/api/prompts/${id}/versions`);
@@ -77,9 +79,8 @@ export function VersionHistory({ id, onVersionSelect }: VersionHistoryProps) {
         setIsLoading(false);
       }
     };
-
     fetchVersions();
-  }, [id, toast]);
+  }, [id, toast, initialData]);
 
   useEffect(() => {
     const fetchCurrentPrompt = async () => {

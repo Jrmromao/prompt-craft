@@ -14,7 +14,7 @@ export async function POST(request: NextRequest, context: any) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const params = context.params;
+    const params = await context.params;
     const promptId = params.id;
     
     if (!promptId) {

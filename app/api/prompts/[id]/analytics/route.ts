@@ -22,7 +22,8 @@ export async function POST(request: NextRequest, context: any) {
 
     // Track the view
     const analyticsTrackingService = AnalyticsTrackingService.getInstance();
-    await analyticsTrackingService.trackPromptView(context.params.id, userId ?? undefined);
+    const params = await context.params;
+    await analyticsTrackingService.trackPromptView(params.id, userId ?? undefined);
 
     return NextResponse.json({ success: true });
   } catch (error) {
@@ -45,7 +46,8 @@ export async function GET(request: Request, context: any) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const promptId = context.params.id;
+    const params = await context.params;
+    const promptId = params.id;
     
     if (!promptId) {
       return NextResponse.json({ error: 'Prompt ID is required' }, { status: 400 });
