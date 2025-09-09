@@ -15,35 +15,42 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { userIdea, requirements, targetAudience, promptType, tone } = body;
+    const { basePrompt, count = 3 } = body;
 
-    if (!userIdea || userIdea.length < 10) {
+    if (!basePrompt) {
       return NextResponse.json(
-        { success: false, error: 'User idea must be at least 10 characters long' },
+        { success: false, error: 'Base prompt is required' },
+        { status: 400 }
+      );
+    }
+
+    if (count < 1 || count > 5) {
+      return NextResponse.json(
+        { success: false, error: 'Count must be between 1 and 5' },
         { status: 400 }
       );
     }
 
     const optimizationService = PromptOptimizationService.getInstance();
     
-    const result = await optimizationService.optimizePrompt({
-      userIdea,
-      requirements,
-      targetAudience,
-      promptType,
-      tone,
-      userId
-    });
+    const variations = await optimizationService.generatePromptVariations(
+      basePrompt,
+      userId,
+      count
+    );
 
     return NextResponse.json({
       success: true,
-      data: result
+      data: {
+        variations,
+        creditsUsed: count * 2
+      }
     });
 
   } catch (error) {
     Sentry.captureException(error);
     
-    const errorMessage = error instanceof Error ? error.message : 'Optimization failed';
+    const errorMessage = error instanceof Error ? error.message : 'Failed to generate variations';
     
     return NextResponse.json(
       { success: false, error: errorMessage },

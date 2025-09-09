@@ -1,7 +1,7 @@
 import { auth } from '@clerk/nextjs/server';
 import { redirect } from 'next/navigation';
 import { currentUser } from '@clerk/nextjs/server';
-import ClientWrapper from './ClientWrapper';
+import EnhancedPromptCreateForm from '@/components/EnhancedPromptCreateForm';
 import type { NavBarUser } from '@/components/layout/NavBar';
 
 export default async function CreatePromptPage() {
@@ -19,7 +19,7 @@ export default async function CreatePromptPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <ClientWrapper user={navBarUser} />
+      <EnhancedPromptCreateForm />
     </div>
   );
 }

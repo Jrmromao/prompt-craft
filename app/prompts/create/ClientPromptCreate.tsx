@@ -2260,23 +2260,59 @@ const ClientPromptCreate = memo<ClientPromptCreateProps>(function ClientPromptCr
       )}
       {/* Add the credit warning modal JSX near the root of the component: */}
       <Dialog open={showCreditWarningModal} onOpenChange={setShowCreditWarningModal}>
-        <DialogContent className="sm:max-w-[400px]">
+        <DialogContent className="sm:max-w-[400px] border-2 border-purple-200 dark:border-purple-800 rounded-2xl bg-gradient-to-b from-purple-50/80 via-white to-pink-50/60 dark:from-purple-950/30 dark:via-gray-900 dark:to-pink-950/20 shadow-xl">
           <DialogHeader>
-            <DialogTitle>High Credit Usage</DialogTitle>
-            <DialogDescription>
-              This operation will use approximately <span className="font-semibold">{estimatedCredits.toFixed(2)} credits</span>.
+            <div className="flex items-center gap-2 mb-2">
+              <Info className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+              <DialogTitle className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent font-bold text-lg font-inter">High Credit Usage</DialogTitle>
+            </div>
+            <DialogDescription className="text-gray-700 dark:text-gray-300 font-inter">
+              This operation will use approximately <span className="font-semibold text-purple-700 dark:text-purple-300">{estimatedCredits.toFixed(2)} credits</span>.
             </DialogDescription>
           </DialogHeader>
-          <div className="my-4 text-sm text-muted-foreground">
+          <div className="my-4 text-sm font-inter">
             {((balance?.monthlyCredits ?? 0) + (balance?.purchasedCredits ?? 0)) < estimatedCredits ? (
-              <span className="text-red-600 font-medium">You do not have enough credits to complete this operation.</span>
+              <span className="text-red-600 font-semibold">You do not have enough credits to complete this operation.</span>
             ) : (
-              <span>Are you sure you want to continue?</span>
+              <span className="text-purple-800 dark:text-purple-200">Are you sure you want to continue?</span>
             )}
           </div>
-          <div className="flex gap-2 justify-end">
-            <Button variant="outline" onClick={handleTopUpCredits}>Top Up Credits</Button>
-            <Button onClick={handleContinueAnyway} disabled={((balance?.monthlyCredits ?? 0) + (balance?.purchasedCredits ?? 0)) < estimatedCredits} className="bg-green-600 hover:bg-green-700 text-white">Continue Anyway</Button>
+          <div className="flex gap-2 justify-end mt-4">
+            {((balance?.monthlyCredits ?? 0) + (balance?.purchasedCredits ?? 0)) < estimatedCredits ? (
+              <>
+                <Button
+                  className="bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold shadow-md"
+                  onClick={handleTopUpCredits}
+                  autoFocus
+                >
+                  Add Credits
+                </Button>
+                <Button variant="outline" onClick={() => setShowCreditWarningModal(false)}>
+                  Cancel
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button
+                  onClick={handleContinueAnyway}
+                  className="bg-green-600 hover:bg-green-700 text-white font-semibold"
+                  disabled={isOptimizing}
+                  autoFocus
+                >
+                  {isOptimizing ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                  Proceed
+                </Button>
+                <Button
+                  className="border border-purple-400 text-purple-700 dark:text-purple-300 font-semibold bg-white dark:bg-gray-900 hover:bg-purple-50 dark:hover:bg-purple-900"
+                  onClick={handleTopUpCredits}
+                >
+                  Add Credits
+                </Button>
+                <Button variant="outline" onClick={() => setShowCreditWarningModal(false)}>
+                  Cancel
+                </Button>
+              </>
+            )}
           </div>
         </DialogContent>
       </Dialog>

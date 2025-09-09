@@ -804,8 +804,9 @@ function ProfileContent({ user, currentPath }: ProfileClientProps) {
                             variant="outline"
                             className="bg-gradient-to-r from-purple-500/10 to-pink-500/10 text-purple-600 hover:from-purple-500/20 hover:to-pink-500/20 border-purple-200 hover:border-purple-300 shadow-sm hover:shadow-md transition-all duration-300"
                             onClick={() => setIsCreditModalOpen(true)}
+                            aria-label="Add Credits"
                           >
-                            Buy Credits
+                            Add Credits
                           </Button>
                         )}
                       </div>
@@ -837,11 +838,28 @@ function ProfileContent({ user, currentPath }: ProfileClientProps) {
                 </Card>
               </TabsContent>
               <TabsContent value="billing">
-              <Card className="rounded-2xl border border-border bg-card p-8 shadow-lg">
-              <BillingInvoicesSection />
+                <Card className="rounded-2xl border border-border bg-card p-8 shadow-lg mb-6">
+                  <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                    <div className="flex flex-col">
+                      <span className="text-xs font-medium text-muted-foreground">Current Credits</span>
+                      <span className="text-2xl font-bold text-foreground">{totalCredits.toLocaleString()} / {user.creditCap.toLocaleString()}</span>
+                    </div>
+                    <Button
+                      size="sm"
+                      className="bg-gradient-to-r from-purple-600 to-pink-600 px-4 py-1 text-sm font-semibold text-white shadow transition hover:from-purple-700 hover:to-pink-700"
+                      onClick={() => setIsCreditModalOpen(true)}
+                      aria-label="Add Credits"
+                    >
+                      Add Credits
+                    </Button>
+                  </div>
+                  <div className="mt-2 text-xs text-muted-foreground">
+                    <a href="#" className="underline hover:text-purple-600">View credit usage history</a>
+                  </div>
                 </Card>
-                <div className="grid gap-8 md:grid-cols-2">
-                </div>
+                <Card className="rounded-2xl border border-border bg-card p-8 shadow-lg">
+                  <BillingInvoicesSection />
+                </Card>
               </TabsContent>
               <TabsContent value="prompts">
                 <Card className="rounded-2xl border border-border bg-card p-8 shadow-lg">
