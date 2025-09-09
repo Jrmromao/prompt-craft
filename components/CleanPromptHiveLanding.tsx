@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { useTheme } from 'next-themes';
+import { useTheme } from '@/components/ThemeProvider';
 import {
   Sparkles,
   ArrowRight,
@@ -28,7 +28,7 @@ interface CleanPromptHiveLandingProps {
 
 const CleanPromptHiveLanding = ({ user }: CleanPromptHiveLandingProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { theme, setTheme } = useTheme();
+  const { resolvedTheme, toggleTheme } = useTheme();
   const { signOut } = useClerk();
 
   const handleSignOut = async () => {
@@ -84,10 +84,10 @@ const CleanPromptHiveLanding = ({ user }: CleanPromptHiveLandingProps) => {
               )}
               
               <button
-                onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                onClick={toggleTheme}
                 className="p-2 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
               >
-                {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+                {resolvedTheme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
               </button>
             </div>
 
@@ -129,6 +129,13 @@ const CleanPromptHiveLanding = ({ user }: CleanPromptHiveLandingProps) => {
                     </Link>
                   </>
                 )}
+                <button
+                  onClick={toggleTheme}
+                  className="flex items-center gap-2 text-gray-600 dark:text-gray-300"
+                >
+                  {resolvedTheme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+                  {resolvedTheme === 'dark' ? 'Light Mode' : 'Dark Mode'}
+                </button>
               </div>
             </div>
           )}

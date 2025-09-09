@@ -1,172 +1,178 @@
 'use client';
-import { SignIn } from '@clerk/nextjs';
-import { Sparkles, Sun, Moon } from 'lucide-react';
-import { useTheme } from '@/components/ThemeProvider';
-import { dark} from '@clerk/themes';
-import { trackUserFlowError, trackUserFlowEvent } from '@/lib/error-tracking';
+
+import { useState } from 'react';
 import { useSignIn } from '@clerk/nextjs';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import Link from 'next/link';
+import { useTheme } from '@/components/ThemeProvider';
+import { Sparkles, Sun, Moon, ArrowLeft } from 'lucide-react';
 
 export default function SignInPage() {
-  const { theme, setTheme, toggleTheme } = useTheme();
   const { signIn, isLoaded } = useSignIn();
   const router = useRouter();
+  const { resolvedTheme, toggleTheme } = useTheme();
+  
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [githubHover, setGithubHover] = useState(false);
 
-  const handleSignIn = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!isLoaded) return;
+    
     setError('');
     setLoading(true);
-    if (!isLoaded) {
-      setError('Sign in is not available. Please try again later.');
-      setLoading(false);
-      return;
-    }
+    
     try {
       const result = await signIn.create({
         identifier: email,
         password,
       });
+      
       if (result.status === 'complete') {
-        router.push('/account');
-      } else {
-        setError('Sign in failed. Please try again.');
+        router.push('/dashboard');
       }
     } catch (err: any) {
-      setError(err?.errors?.[0]?.message || 'Sign in failed.');
+      setError(err?.errors?.[0]?.message || 'Sign in failed. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleOAuth = (provider: "oauth_google" | "oauth_github") => {
+  const handleOAuth = (provider: 'oauth_google' | 'oauth_github') => {
     if (!signIn) return;
     signIn.authenticateWithRedirect({
       strategy: provider,
-      redirectUrl: "/sso-callback",
-      redirectUrlComplete: "/account",
+      redirectUrl: '/sso-callback',
+      redirectUrlComplete: '/dashboard',
     });
   };
 
   return (
-    <div className="min-h-screen flex flex-col md:flex-row items-center justify-center bg-[#faf9fb] dark:bg-[#18122B]">
-      {/* Value Proposition Section */}
-      <div className="hidden md:flex flex-col items-center justify-center w-1/2 h-full px-12">
-        <div className="flex flex-col items-center gap-4">
-          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-purple-500 to-pink-500 shadow-lg mb-2">
-            <Sparkles className="h-8 w-8 text-white" />
-          </div>
-          <h2 className="text-2xl font-bold text-purple-700 dark:text-purple-300 text-center">AI-Powered Prompt Generation</h2>
-          <p className="text-center text-gray-500 dark:text-gray-400 max-w-xs text-base">
-            Unlock your creativity with advanced AI. Trusted by thousands of creators to generate, refine, and organize prompts effortlessly.
-          </p>
-        </div>
-      </div>
-      {/* Light/Dark Mode Toggle */}
-      <div className="fixed right-4 top-4 z-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+      {/* Theme Toggle */}
+      <div className="fixed top-4 right-4 z-50">
         <button
           onClick={toggleTheme}
-          className="rounded-full bg-gradient-to-r from-purple-600 to-pink-600 p-2 text-white shadow-md transition-transform hover:scale-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-400"
-          aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+          className="p-2 rounded-lg bg-white dark:bg-gray-800 shadow-md hover:shadow-lg transition-all"
         >
-          {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+          {resolvedTheme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
         </button>
       </div>
-      {/* Sign-in Card */}
-      <div className="w-full max-w-md mx-auto bg-white dark:bg-[#232136] rounded-xl shadow-lg p-8 flex flex-col gap-6 border border-gray-100 dark:border-[#393552] md:ml-0 md:mr-16">
-        <h1 className="text-2xl font-bold text-center text-purple-700 dark:text-purple-300 mb-1">Sign In to PromptHiveCO</h1>
-        <p className="text-center text-gray-500 dark:text-gray-400 text-sm mb-2">Sign in to your account to start creating amazing prompts.</p>
-        <form onSubmit={handleSignIn} className="w-full flex flex-col gap-4">
-          {/* Social Sign In Buttons */}
-          <div className="flex flex-col gap-3 w-full mb-2">
-            <button
-              type="button"
-              onClick={() => handleOAuth("oauth_google")}
-              className="flex items-center justify-center gap-3 w-full bg-white dark:bg-white border border-gray-200 dark:border-[#393552] text-gray-900 dark:text-gray-900 py-2.5 px-4 rounded-md font-medium shadow-sm hover:bg-purple-50 dark:hover:bg-[#2a273f] focus:outline-none focus:ring-2 focus:ring-purple-400 transition"
-              aria-label="Sign in with Google"
-            >
-              <img src="/google.svg" alt="Google" width={24} height={24} className="h-5 w-5" />
-              Sign in with Google
-            </button>
-            <button
-              type="button"
-              onClick={() => handleOAuth("oauth_github")}
-              className={`flex items-center justify-center gap-3 w-full border py-2.5 px-4 rounded-md font-medium shadow-sm focus:outline-none focus:ring-2 focus:ring-pink-400 transition
-                ${githubHover ? 'bg-purple-50 dark:bg-[#2a273f] border-purple-200 dark:border-[#393552]' : 'bg-white dark:bg-white text-gray-900 dark:text-gray-900 border-gray-200 dark:border-[#393552]'}`}
-              aria-label="Sign in with GitHub"
-              onMouseEnter={() => setGithubHover(true)}
-              onMouseLeave={() => setGithubHover(false)}
-            >
-              <img src="/github.svg" alt="GitHub" width={24} height={24} className="h-5 w-5" />
-              Sign in with GitHub
-            </button>
+
+      <div className="sm:mx-auto sm:w-full sm:max-w-md">
+        {/* Header */}
+        <div className="text-center">
+          <Link href="/" className="inline-flex items-center gap-2 mb-6 text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300">
+            <ArrowLeft className="w-4 h-4" />
+            Back to home
+          </Link>
+          
+          <div className="flex justify-center mb-6">
+            <div className="w-12 h-12 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl flex items-center justify-center">
+              <Sparkles className="w-6 h-6 text-white" />
+            </div>
           </div>
-          {/* Divider */}
-          <div className="flex items-center my-2">
-            <div className="flex-1 h-px bg-gray-200 dark:bg-gray-700" />
-            <span className="mx-2 text-xs text-gray-400">or</span>
-            <div className="flex-1 h-px bg-gray-200 dark:bg-gray-700" />
-          </div>
-          <label className="flex flex-col gap-1 text-sm font-medium text-gray-700 dark:text-gray-200">
-            Email address
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="rounded-md border border-gray-200 dark:border-gray-700 px-3 py-2 text-black dark:text-white dark:bg-[#18122B] focus:outline-none focus:ring-2 focus:ring-purple-400"
-              autoComplete="email"
-            />
-          </label>
-          <label className="flex flex-col gap-1 text-sm font-medium text-gray-700 dark:text-gray-200">
-            Password
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              className="rounded-md border border-gray-200 dark:border-gray-700 px-3 py-2 text-black dark:text-white dark:bg-[#18122B] focus:outline-none focus:ring-2 focus:ring-purple-400"
-            />
-          </label>
-          {error && <div className="text-red-500 text-sm" role="alert">{error}</div>}
-          <button
-            type="submit"
-            className="w-full rounded-md bg-gradient-to-r from-purple-600 to-pink-500 py-3 font-bold text-white shadow-sm transition-transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-purple-400"
-            disabled={loading}
-            aria-busy={loading}
-          >
-            {loading ? 'Signing In...' : 'Sign In'}
-          </button>
-        </form>
-        <div className="text-center text-sm text-gray-500 dark:text-gray-400">
-          Don&apos;t have an account?{' '}
-          <a href="/sign-up" className="font-semibold text-purple-600 hover:underline dark:text-purple-400">
-            Sign up now
-          </a>
-        </div>
-        <div className="text-center mt-4">
-          <a href="/" className="inline-block w-full">
-            <button type="button" className="w-full rounded-md border border-gray-200 dark:border-gray-700 py-2 font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-[#232136] hover:bg-purple-50 dark:hover:bg-[#2a273f] transition">
-              Go Home
-            </button>
-          </a>
+          
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+            Welcome back
+          </h2>
+          <p className="text-gray-600 dark:text-gray-400">
+            Sign in to your PromptHive account
+          </p>
         </div>
       </div>
-      {/* Mobile Value Proposition (above card) */}
-      <div className="flex md:hidden flex-col items-center justify-center w-full px-6 mt-8 mb-4">
-        <div className="flex flex-col items-center gap-3">
-          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-purple-500 to-pink-500 shadow-lg mb-1">
-            <Sparkles className="h-6 w-6 text-white" />
+
+      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+        <div className="bg-white dark:bg-gray-800 py-8 px-4 shadow-lg sm:rounded-lg sm:px-10 border border-gray-200 dark:border-gray-700">
+          {/* OAuth Buttons */}
+          <div className="space-y-3 mb-6">
+            <button
+              onClick={() => handleOAuth('oauth_google')}
+              className="w-full flex justify-center items-center gap-3 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
+            >
+              <img src="/google.svg" alt="Google" className="w-5 h-5" />
+              Continue with Google
+            </button>
+            
+            <button
+              onClick={() => handleOAuth('oauth_github')}
+              className="w-full flex justify-center items-center gap-3 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
+            >
+              <img src="/github.svg" alt="GitHub" className="w-5 h-5" />
+              Continue with GitHub
+            </button>
           </div>
-          <h2 className="text-lg font-bold text-purple-700 dark:text-purple-300 text-center">AI-Powered Prompt Generation</h2>
-          <p className="text-center text-gray-500 dark:text-gray-400 max-w-xs text-sm">
-            Unlock your creativity with advanced AI. Trusted by thousands of creators.
-          </p>
+
+          {/* Divider */}
+          <div className="relative mb-6">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-gray-300 dark:border-gray-600" />
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="px-2 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400">
+                Or continue with email
+              </span>
+            </div>
+          </div>
+
+          {/* Email Form */}
+          <form onSubmit={handleSignIn} className="space-y-4">
+            <div>
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Email address
+              </label>
+              <input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm placeholder-gray-400 dark:placeholder-gray-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                placeholder="Enter your email"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Password
+              </label>
+              <input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm placeholder-gray-400 dark:placeholder-gray-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                placeholder="Enter your password"
+              />
+            </div>
+
+            {error && (
+              <div className="text-red-600 dark:text-red-400 text-sm bg-red-50 dark:bg-red-900/20 p-3 rounded-lg">
+                {error}
+              </div>
+            )}
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              {loading ? 'Signing in...' : 'Sign in'}
+            </button>
+          </form>
+
+          {/* Footer */}
+          <div className="mt-6 text-center">
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              Don't have an account?{' '}
+              <Link href="/sign-up" className="font-medium text-purple-600 dark:text-purple-400 hover:text-purple-500 dark:hover:text-purple-300">
+                Sign up
+              </Link>
+            </p>
+          </div>
         </div>
       </div>
     </div>
