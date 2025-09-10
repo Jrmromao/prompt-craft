@@ -30,7 +30,6 @@ import {
 import { TemplateService } from '@/lib/services/templateService';
 import { useToast } from '@/components/ui/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
-import { NavBar } from '@/components/layout/NavBar';
 import { useAuth, useUser } from '@clerk/nextjs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import React from 'react';
@@ -171,8 +170,6 @@ export default function TemplateLibrary() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-purple-50/40 via-white to-pink-50/80 dark:from-purple-950/20 dark:via-gray-900 dark:to-pink-950/20">
-      <NavBar user={user} />
-      
       <div className="container mx-auto px-4 py-8">
         {/* Hero Section */}
         <div className="max-w-3xl mx-auto text-center mb-12">

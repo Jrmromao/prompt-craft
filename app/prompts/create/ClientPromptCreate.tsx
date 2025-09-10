@@ -56,8 +56,6 @@ import { PromptType, LLMType } from '@/types/ai';
 import { AVAILABLE_LLMS } from '@/types/ai';
 import { useToast } from '@/components/ui/use-toast';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import type { NavBarUser } from '@/components/layout/NavBar';
-import { NavBar } from '@/components/layout/NavBar';
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import { InsufficientCreditsDialog } from '@/components/prompts/InsufficientCreditsDialog';
 import Playground from '@/components/Playground';
@@ -1370,11 +1368,6 @@ const ClientPromptCreate = memo<ClientPromptCreateProps>(function ClientPromptCr
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-purple-50/40 via-white to-pink-50/80 dark:from-purple-950/20 dark:via-gray-900 dark:to-pink-950/20">
-      <NavBar user={clerkUser ? {
-        name: clerkUser.fullName || '',
-        email: clerkUser.primaryEmailAddress?.emailAddress || '',
-        imageUrl: clerkUser.imageUrl
-      } : undefined} />
       {showMedicalWarning && <FloatingWarningBar onClose={() => setShowMedicalWarning(false)} />}
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Remove Credit Usage Display */}

@@ -2,7 +2,7 @@
 import Link from 'next/link';
 import { Sparkles, User, LogOut } from 'lucide-react';
 import { ThemeToggle } from '@/components/ThemeToggle';
-import { useUser, useClerk } from '@clerk/nextjs';
+import { useAuth } from '@/hooks/useAuth';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   DropdownMenu,
@@ -15,8 +15,7 @@ import {
 import { Button } from '@/components/ui/button';
 
 export function PublicNavBar() {
-  const { user, isSignedIn } = useUser();
-  const { signOut } = useClerk();
+  const { user, isAuthenticated } = useAuth();
   const userInitials = user?.firstName?.[0] + (user?.lastName?.[0] || '');
 
   return (
@@ -51,7 +50,7 @@ export function PublicNavBar() {
           {/* Theme Toggle & Auth */}
           <div className="flex items-center gap-2">
             <ThemeToggle />
-            {isSignedIn ? (
+            {isAuthenticated ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="relative h-8 w-8 rounded-full">
@@ -81,7 +80,19 @@ export function PublicNavBar() {
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     className="cursor-pointer text-red-600 dark:text-red-400"
-                    onClick={() => signOut()}
+                    onClick={async () => {
+                      try {
+                        const response = await fetch('/api/auth/signout', {
+                          method: 'POST',
+                          credentials: 'include',
+                        });
+                        if (response.ok) {
+                          window.location.href = '/sign-in';
+                        }
+                      } catch (error) {
+                        console.error('Sign out error:', error);
+                      }
+                    }}
                   >
                     <LogOut className="mr-2 h-4 w-4" />
                     Sign out

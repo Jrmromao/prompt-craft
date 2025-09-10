@@ -16,7 +16,6 @@ import {
   Shield,
   Activity as ActivityIcon,
 } from 'lucide-react';
-import { NavBar } from '@/components/layout/NavBar';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
@@ -62,7 +61,7 @@ import PrivacySettingsPage from '@/app/account/privacy/page';
 import { CreditPurchaseSection } from '@/app/components/profile/CreditPurchaseSection';
 import { CreditPurchaseDialog } from '@/app/components/profile/CreditPurchaseDialog';
 import { ActivityList } from '@/components/settings/activity-list';
-import { AuditService, AuditLogEntry } from '@/lib/services/auditService';
+import { AuditLogEntry } from '@/lib/services/auditService';
 import { AuditAction } from '@/app/constants/audit';
 import { UpgradeAccountDialog } from './UpgradeAccountDialog';
 
@@ -697,22 +696,26 @@ function ProfileContent({ user, currentPath }: ProfileClientProps) {
     async function fetchActivities() {
       try {
         console.log('Fetching activities for user:', user.id);
-        const auditService = AuditService.getInstance();
 
-          
-        // Create a test audit log
+        // Create a test audit log via API
         const testLog = {
-          userId: user.id,
           action: AuditAction.USER_GET_PROFILE,
           resource: 'profile',
           details: { message: 'Test audit log' },
           status: 'success',
         };
         console.log('Creating test audit log:', testLog);
-        await auditService.logAudit(testLog);
+        
+        await fetch('/api/audit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(testLog)
+        });
 
         console.log('Fetching audit logs...');
-        const logs = await auditService.getAuditLogs(user.id, { limit: 50 });
+        const response = await fetch('/api/audit?limit=50');
+        const logs = await response.json();
+        
         console.log('Fetched activities:', logs);
         setActivities(logs);
       } catch (error) {
@@ -730,7 +733,6 @@ function ProfileContent({ user, currentPath }: ProfileClientProps) {
 
   return (
     <div className="min-h-screen bg-background">
-      <NavBar user={user} />
       {/* Mobile/Tablet Sidebar Drawer */}
       <Sheet open={sidebarOpen} onOpenChange={closeSidebar}>
         <SheetContent side="left" className="w-64 p-0">

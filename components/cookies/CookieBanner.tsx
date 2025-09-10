@@ -24,12 +24,26 @@ export default function CookieBanner({ onPreferencesChange }: CookieBannerProps)
   useEffect(() => {
     // Check if we have stored preferences
     const storedPreferences = localStorage.getItem('cookie-preferences');
-    if (!storedPreferences) {
+    const consentTimestamp = localStorage.getItem('cookie-consent-timestamp');
+    
+    // Show banner if no consent or if consent is older than 13 months (GDPR requirement)
+    if (!storedPreferences || !consentTimestamp) {
       setShowBanner(true);
     } else {
-      const parsed = JSON.parse(storedPreferences);
-      setPreferences(parsed);
-      onPreferencesChange(parsed);
+      const consentDate = new Date(consentTimestamp);
+      const thirteenMonthsAgo = new Date();
+      thirteenMonthsAgo.setMonth(thirteenMonthsAgo.getMonth() - 13);
+      
+      if (consentDate < thirteenMonthsAgo) {
+        // Consent expired, show banner again
+        localStorage.removeItem('cookie-preferences');
+        localStorage.removeItem('cookie-consent-timestamp');
+        setShowBanner(true);
+      } else {
+        const parsed = JSON.parse(storedPreferences);
+        setPreferences(parsed);
+        onPreferencesChange(parsed);
+      }
     }
   }, [onPreferencesChange]);
 
@@ -56,7 +70,9 @@ export default function CookieBanner({ onPreferencesChange }: CookieBannerProps)
   };
 
   const savePreferences = (newPreferences: CookiePreferences) => {
+    const timestamp = new Date().toISOString();
     localStorage.setItem('cookie-preferences', JSON.stringify(newPreferences));
+    localStorage.setItem('cookie-consent-timestamp', timestamp);
     setPreferences(newPreferences);
     setShowBanner(false);
     setShowManager(false);
@@ -79,18 +95,21 @@ export default function CookieBanner({ onPreferencesChange }: CookieBannerProps)
             </button>
             
             <div className="flex-1 pr-8 sm:pr-0">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                Cookie Consent
+              </h3>
               <p className="text-sm leading-relaxed text-gray-600 dark:text-gray-300">
-                We use cookies to enhance your browsing experience, serve personalized content, and
-                analyze our traffic. By clicking "Accept All", you consent to our use of cookies. You
-                can customize your preferences by clicking "Manage Preferences". For more information,
-                please read our{' '}
+                We use cookies and similar technologies to provide, protect, and improve our services. 
+                Some cookies are necessary for our website to function, while others help us understand 
+                how you use our site so we can improve it. You can choose to accept all cookies, 
+                decline non-essential cookies, or customize your preferences.{' '}
                 <Link
-                  href="/legal/privacy-policy"
+                  href="/legal/privacy"
                   className="text-emerald-600 underline-offset-2 hover:text-emerald-700 hover:underline dark:text-emerald-400 dark:hover:text-emerald-300"
                 >
                   Privacy Policy
                 </Link>{' '}
-                and{' '}
+                |{' '}
                 <Link
                   href="/legal/cookie-policy"
                   className="text-emerald-600 underline-offset-2 hover:text-emerald-700 hover:underline dark:text-emerald-400 dark:hover:text-emerald-300"

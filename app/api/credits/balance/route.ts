@@ -1,49 +1,35 @@
 import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
-import { auth } from '@clerk/nextjs/server';
+import { requireAuth } from '@/lib/auth-helpers';
 import { CreditService } from '@/lib/services/creditService';
 
 export async function GET() {
+  const authResult = await requireAuth();
+  if (authResult.error) return authResult.error;
+
   try {
-    const { userId } = await auth();
-    if (!userId) {
-      return new NextResponse('Unauthorized', { status: 401 });
-    }
-
-    const user = await prisma.user.findUnique({
-      where: { clerkId: userId },
-      select: {
-        id: true,
-        monthlyCredits: true,
-        purchasedCredits: true,
-        lastCreditReset: true,
-        planType: true,
-        role: true
-      }
-    });
-
-    if (!user) {
-      return new NextResponse('User not found', { status: 404 });
-    }
-
-    const usage = await CreditService.getInstance().getCreditUsage(user.id);
+    const usage = await CreditService.getInstance().getCreditUsage(authResult.user.id);
 
     return NextResponse.json({
-      monthlyCredits: user.monthlyCredits,
-      purchasedCredits: user.purchasedCredits,
-      totalCredits: user.monthlyCredits + user.purchasedCredits,
-      lastReset: user.lastCreditReset,
-      usage: {
-        used: usage.used,
-        total: usage.total,
-        percentage: usage.percentage,
-        nextResetDate: usage.nextResetDate
-      },
-      planType: user.planType,
-      role: user.role
+      success: true,
+      data: {
+        monthlyCredits: authResult.user.monthlyCredits,
+        purchasedCredits: authResult.user.purchasedCredits,
+        totalCredits: authResult.user.monthlyCredits + authResult.user.purchasedCredits,
+        usage: {
+          used: usage.used,
+          total: usage.total,
+          percentage: usage.percentage,
+          nextResetDate: usage.nextResetDate
+        },
+        planType: authResult.user.planType,
+        role: authResult.user.role
+      }
     });
   } catch (error) {
     console.error('Error fetching credit balance:', error);
-    return new NextResponse('Internal Server Error', { status: 500 });
+    return NextResponse.json({
+      success: false,
+      error: 'Failed to fetch credit balance'
+    }, { status: 500 });
   }
 } 

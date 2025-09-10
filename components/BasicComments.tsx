@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/components/ui/use-toast';
-import { useUser, useAuth } from '@clerk/nextjs';
+import { useAuth } from '@/hooks/useAuth';
 import { clientAnalyticsService } from '@/lib/services/clientAnalyticsService';
 import { usePromptAnalytics } from './PromptAnalyticsContext';
 import { Loader2, ChevronDown, ChevronUp } from 'lucide-react';
@@ -52,8 +52,7 @@ export function BasicComments({ promptId, initialComments = [], initialCommentCo
   const [hasInitialized, setHasInitialized] = useState(false);
   const [isCommentsVisible, setIsCommentsVisible] = useState(true);
   const [lastRequestTime, setLastRequestTime] = useState(0);
-  const { user, isLoaded } = useUser();
-  const { getToken } = useAuth();
+  const { user, isAuthenticated, isLoading: authLoading } = useAuth();
   const { toast } = useToast();
   const { incrementViewCount, isLoading: analyticsLoading, commentCount, setCommentCount } = usePromptAnalytics();
 
@@ -78,7 +77,7 @@ export function BasicComments({ promptId, initialComments = [], initialCommentCo
   useEffect(() => {
     const trackView = async () => {
       try {
-        if (isLoaded && user && !hasInitialized) {
+        if (!authLoading && isAuthenticated && user && !hasInitialized) {
           await makeRequest(() => incrementViewCount());
         }
       } catch (error) {
@@ -87,7 +86,7 @@ export function BasicComments({ promptId, initialComments = [], initialCommentCo
     };
 
     trackView();
-  }, [promptId, isLoaded, user, incrementViewCount, hasInitialized, makeRequest]);
+  }, [promptId, authLoading, isAuthenticated, user, incrementViewCount, hasInitialized, makeRequest]);
 
   const fetchComments = useCallback(async (pageNum: number = 1) => {
     if (isLoading || isLoadingMore) return;
@@ -150,7 +149,7 @@ export function BasicComments({ promptId, initialComments = [], initialCommentCo
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!isLoaded) {
+    if (authLoading) {
       toast({
         title: 'Error',
         description: 'Please wait while we load your account information',
@@ -184,7 +183,7 @@ export function BasicComments({ promptId, initialComments = [], initialCommentCo
       content: newComment,
       createdAt: new Date().toISOString(),
       user: {
-        name: user.fullName || 'You',
+        name: [user.firstName, user.lastName].filter(Boolean).join(' ') || user.username || 'You',
         imageUrl: user.imageUrl,
       },
     };
@@ -195,13 +194,11 @@ export function BasicComments({ promptId, initialComments = [], initialCommentCo
     setCommentCount(typeof commentCount === 'number' ? commentCount + 1 : 1);
 
     try {
-      const token = await getToken();
       await makeRequest(async () => {
         const response = await fetch(`/api/prompts/${promptId}/comments`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`,
           },
           credentials: 'include',
           body: JSON.stringify({ content: newComment }),

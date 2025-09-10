@@ -8,7 +8,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { MessageSquare, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import Link from 'next/link';
-import { useAuth } from '@clerk/nextjs';
+import { useAuth } from '@/hooks/useAuth';
 
 interface Ticket {
   id: string;
@@ -48,7 +48,8 @@ export function TicketList() {
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
-  const { userId } = useAuth();
+  const { user, isAuthenticated } = useAuth();
+  const userId = user?.id;
 
   useEffect(() => {
     const checkAdminStatus = async () => {
@@ -62,10 +63,10 @@ export function TicketList() {
       }
     };
 
-    if (userId) {
+    if (isAuthenticated && userId) {
       checkAdminStatus();
     }
-  }, [userId]);
+  }, [isAuthenticated, userId]);
 
   useEffect(() => {
     const fetchTickets = async () => {

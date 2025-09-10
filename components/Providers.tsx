@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-
 import { AnalyticsProvider } from '@/lib/analytics';
 import { isConstructorError, logError } from '@/lib/error-handling';
 import CookieBanner from '@/components/cookies/CookieBanner';

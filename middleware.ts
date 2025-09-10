@@ -22,26 +22,7 @@ const PUBLIC_ROUTES = [
   '/sign-up(.*)',
   '/api/webhooks(.*)',
   '/api/health',
-  '/api/test',
-  '/api/forms(.*)',
   '/api/email-signup',
-  '/api/upload(.*)',
-  '/api/ai/generate',
-  '/api/ai/run',
-  '/api/prompts/(.*)/comments',
-  '/api/prompts/(.*)/comments/(.*)',
-  '/api/prompts/(.*)/vote',
-  '/api/billing(.*)',
-  '/api/subscription(.*)',
-  '/api/credits(.*)',
-  '/api/user(.*)',
-  '/api/profile(.*)',
-  '/api/settings(.*)',
-  '/api/admin(.*)',
-  '/api/moderated-words(.*)',
-  '/api/create-users(.*)',
-  '/api/playground(.*)',
-  '/api/test(.*)',
   '/about',
   '/privacy',
   '/terms',
@@ -182,22 +163,69 @@ const roleBasedRoutes = {
   '/admin/settings': ['SUPER_ADMIN'],
 };
 
-export default clerkMiddleware(async (auth: ClerkMiddlewareAuth, req: NextRequest) => {
-  const session = await auth();
+export default clerkMiddleware(async (auth, req: NextRequest) => {
+  const { userId } = await auth();
+  const { pathname } = req.nextUrl;
   
-  // Handle role-based access
-  const path = req.nextUrl.pathname;
-  for (const [route, allowedRoles] of Object.entries(roleBasedRoutes)) {
-    if (path.startsWith(route)) {
-      const publicMetadata = session.sessionClaims?.publicMetadata as PublicMetadata;
-      const userRole = publicMetadata?.role || 'USER';
-      if (!allowedRoles.includes(userRole)) {
-        return NextResponse.redirect(new URL('/unauthorized', req.url));
-      }
-      break;
+  console.log(`🔍 Middleware: ${pathname}, userId: ${userId ? 'authenticated' : 'not authenticated'}`);
+
+  // Apply security middleware first
+  const securityResponse = await securityMiddleware(req);
+  if (securityResponse && securityResponse.status !== 200) {
+    return securityResponse;
+  }
+
+  // Check if route is public
+  if (isPublicRoute(req)) {
+    console.log(`✅ Public route allowed: ${pathname}`);
+    return NextResponse.next();
+  }
+
+  // Check if route requires authentication
+  const PRIVATE_ROUTES = [
+    '/dashboard',
+    '/prompts',
+    '/playground', 
+    '/account',
+    '/profile',
+    '/settings',
+    '/admin',
+    '/onboarding',
+    '/complete-signup'
+  ];
+
+  const isPrivateRoute = PRIVATE_ROUTES.some(route => pathname.startsWith(route));
+
+  if (isPrivateRoute && !userId) {
+    console.log(`🔒 Private route requires auth: ${pathname}`);
+    const signInUrl = new URL('/sign-in', req.url);
+    signInUrl.searchParams.set('redirect_url', pathname);
+    return NextResponse.redirect(signInUrl);
+  }
+
+  // Handle authenticated users on auth routes
+  const AUTH_ROUTES = ['/sign-in', '/sign-up'];
+  const isAuthRoute = AUTH_ROUTES.some(route => pathname.startsWith(route));
+  
+  if (isAuthRoute && userId) {
+    console.log(`✅ Authenticated user on auth route, redirecting: ${pathname}`);
+    const redirectUrl = req.nextUrl.searchParams.get('redirect_url') || '/prompts';
+    return NextResponse.redirect(new URL(redirectUrl, req.url));
+  }
+
+  // Handle role-based access for admin routes
+  if (pathname.startsWith('/admin')) {
+    const session = await auth();
+    const userRole = session.sessionClaims?.publicMetadata?.role as string;
+    const allowedRoles = ['ADMIN', 'SUPER_ADMIN'];
+    
+    if (!allowedRoles.includes(userRole)) {
+      console.log(`🚫 Access denied for role ${userRole} to ${pathname}`);
+      return NextResponse.redirect(new URL('/unauthorized', req.url));
     }
   }
 
+  console.log(`✅ Request allowed: ${pathname}`);
   return NextResponse.next();
 });
 

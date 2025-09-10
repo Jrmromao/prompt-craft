@@ -1,6 +1,5 @@
 import { Metadata } from 'next';
 import GamifiedCommunityClient from '@/components/prompts/GamifiedCommunityClient';
-import { PublicNavBar } from '@/components/layout/PublicNavBar';
 
 export const metadata: Metadata = {
   title: 'Community Hub | PromptCraft',
@@ -11,7 +10,6 @@ export const metadata: Metadata = {
 export default function CommunityPromptsPage() {
   return (
     <>
-      <PublicNavBar />
       <GamifiedCommunityClient />
     </>
   );

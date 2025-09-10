@@ -15,7 +15,7 @@ import {
   Users,
   Target,
 } from 'lucide-react';
-import { useClerk } from '@clerk/nextjs';
+import { useAuth } from '@/hooks/useAuth';
 
 interface CleanPromptHiveLandingProps {
   user?: {
@@ -29,10 +29,20 @@ interface CleanPromptHiveLandingProps {
 const CleanPromptHiveLanding = ({ user }: CleanPromptHiveLandingProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { resolvedTheme, toggleTheme } = useTheme();
-  const { signOut } = useClerk();
+  const { isAuthenticated } = useAuth();
 
   const handleSignOut = async () => {
-    await signOut();
+    try {
+      const response = await fetch('/api/auth/signout', {
+        method: 'POST',
+        credentials: 'include',
+      });
+      if (response.ok) {
+        window.location.href = '/sign-in';
+      }
+    } catch (error) {
+      console.error('Sign out error:', error);
+    }
   };
 
   return (
@@ -62,7 +72,7 @@ const CleanPromptHiveLanding = ({ user }: CleanPromptHiveLandingProps) => {
               
               {user ? (
                 <div className="flex items-center space-x-4">
-                  <Link href="/dashboard" className="text-purple-600 dark:text-purple-400 font-medium hover:text-purple-700 dark:hover:text-purple-300">
+                  <Link href="/prompts" className="text-purple-600 dark:text-purple-400 font-medium hover:text-purple-700 dark:hover:text-purple-300">
                     Dashboard
                   </Link>
                   <button
@@ -112,7 +122,7 @@ const CleanPromptHiveLanding = ({ user }: CleanPromptHiveLandingProps) => {
                 </a>
                 {user ? (
                   <>
-                    <Link href="/dashboard" className="block text-purple-600 dark:text-purple-400 font-medium">
+                    <Link href="/prompts" className="block text-purple-600 dark:text-purple-400 font-medium">
                       Dashboard
                     </Link>
                     <button onClick={handleSignOut} className="block text-gray-600 dark:text-gray-300">

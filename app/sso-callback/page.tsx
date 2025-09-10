@@ -1,7 +1,41 @@
 "use client";
-import { AuthenticateWithRedirectCallback } from "@clerk/nextjs";
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
 export default function SsoCallbackPage() {
+  const router = useRouter();
+
+  useEffect(() => {
+    // After OAuth callback, check authentication status
+    const checkAuthAndRedirect = async () => {
+      try {
+        const response = await fetch('/api/auth/validate', {
+          method: 'GET',
+          credentials: 'include',
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          if (data.isAuthenticated) {
+            console.log('OAuth successful, redirecting to prompts');
+            router.push('/prompts');
+          } else {
+            console.log('OAuth failed, redirecting to sign-in');
+            router.push('/sign-in');
+          }
+        } else {
+          console.log('Auth check failed, redirecting to sign-in');
+          router.push('/sign-in');
+        }
+      } catch (error) {
+        console.error('OAuth callback error:', error);
+        router.push('/sign-in');
+      }
+    };
+
+    checkAuthAndRedirect();
+  }, [router]);
+
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-white dark:bg-black text-gray-900 dark:text-white p-4">
       <div className="flex flex-col items-center gap-4 w-full max-w-sm">
@@ -15,7 +49,6 @@ export default function SsoCallbackPage() {
           </svg>
           <span className="text-sm text-gray-600 dark:text-gray-400">Please wait…</span>
         </div>
-        <AuthenticateWithRedirectCallback />
       </div>
     </main>
   );

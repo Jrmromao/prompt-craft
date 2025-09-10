@@ -24,16 +24,16 @@ export async function validateSubscription() {
     redirect('/sign-in');
   }
 
-  // If user has an active subscription, allow access
+  // If user has an active subscription, allow full access
   if (user.subscription?.status === 'ACTIVE') {
-    return { canCreate: true };
+    return { canCreate: true, isPro: true };
   }
 
-  // If user has no prompts yet, allow one free prompt
-  if (user.prompts.length === 0) {
-    return { canCreate: true, isLastFree: true };
-  }
-
-  // If user has used their free prompt and has no subscription, redirect to pricing
-  return { canCreate: false, redirectTo: '/pricing' };
+  // Free users can always view their prompts page
+  // They just have limited creation abilities
+  return { 
+    canCreate: user.prompts.length === 0, // Can create if no prompts yet
+    isPro: false,
+    isLastFree: user.prompts.length === 0
+  };
 }

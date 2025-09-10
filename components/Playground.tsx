@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Loader2, Copy, Check, AlertCircle, Play, History, Settings } from 'lucide-react';
 import { toast } from 'sonner';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { CREDIT_COSTS, calculateCreditCost } from '@/app/constants/creditCosts';
 import { PLAN_LIMITS } from '@/app/constants/planLimits';
 
@@ -246,10 +247,7 @@ export default function Playground({
                     disabled={loading || !prompt.trim() || disabled || isOverLimit}
                   >
                     {loading ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Running...
-                      </>
+                      <LoadingSpinner text="Running..." />
                     ) : isOverLimit ? (
                       'Upgrade for more runs'
                     ) : (

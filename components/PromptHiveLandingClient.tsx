@@ -31,7 +31,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useClerk, useAuth, useSignIn } from '@clerk/nextjs';
+import { useAuth } from '@/hooks/useAuth';
 import { toast } from "@/components/ui/use-toast";
 
 // SEO metadata
@@ -197,11 +197,11 @@ const PricingSection = ({
     imageUrl: string;
   } | null;
 }) => {
-  const { isSignedIn } = useClerk();
+  const { isAuthenticated } = useAuth();
 
   const handleSubscribe = async (plan: Plan) => {
     try {
-      if (!isSignedIn) {
+      if (!isAuthenticated) {
         // Redirect to sign up with return URL
         const returnUrl = encodeURIComponent('/pricing');
         window.location.href = `/sign-up?redirect_url=${returnUrl}`;
@@ -391,9 +391,7 @@ const PromptHiveLandingClient = ({ user }: PromptHiveLandingClientProps) => {
   const [plans, setPlans] = useState<Plan[]>([]);
   const [loadingPlans, setLoadingPlans] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { signOut, isSignedIn } = useClerk();
-  const { signIn } = useSignIn();
-  const { getToken } = useAuth();
+  const { isAuthenticated, user } = useAuth();
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -593,12 +591,25 @@ const PromptHiveLandingClient = ({ user }: PromptHiveLandingClientProps) => {
   }, [livePreview.input]);
 
   const handleSignOut = async () => {
-    await signOut();
+    try {
+      const response = await fetch('/api/auth/signout', {
+        method: 'POST',
+        credentials: 'include',
+      });
+      
+      if (response.ok) {
+        window.location.href = '/sign-in';
+      } else {
+        console.error('Sign out failed');
+      }
+    } catch (error) {
+      console.error('Sign out error:', error);
+    }
   };
 
   const handleSubscribe = async (plan: Plan) => {
     try {
-      if (!isSignedIn) {
+      if (!isAuthenticated) {
         // Redirect to sign up with return URL
         const returnUrl = encodeURIComponent('/pricing');
         window.location.href = `/sign-up?redirect_url=${returnUrl}`;
@@ -698,16 +709,6 @@ const PromptHiveLandingClient = ({ user }: PromptHiveLandingClientProps) => {
       <div
         className={`relative min-h-screen bg-white text-gray-900 transition-colors duration-300 dark:bg-black dark:text-white`}
       >
-        {/* Light/Dark Mode Toggle */}
-        <div className="fixed right-4 top-4 z-50">
-          <button
-            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-            className="rounded-full bg-gradient-to-r from-purple-600 to-pink-600 p-2 text-white shadow-md transition-transform hover:scale-110"
-            aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
-          >
-            {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-          </button>
-        </div>
 
         <AnimatedBackground />
 

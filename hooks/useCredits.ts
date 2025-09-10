@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { useAuth } from '@clerk/nextjs';
+import { useAuth } from '@/hooks/useAuth';
 import { PlanType, Period } from '@/utils/constants';
 
 interface CreditState {
@@ -11,7 +11,8 @@ interface CreditState {
 }
 
 export function useCredits() {
-  const { userId } = useAuth();
+  const { user, isAuthenticated } = useAuth();
+  const userId = user?.id;
   const [creditState, setCreditState] = useState<CreditState | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

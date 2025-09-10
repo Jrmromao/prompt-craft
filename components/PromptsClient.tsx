@@ -2,8 +2,11 @@
 import { PromptManager } from '@/components/PromptManager';
 import { usePrompts } from '@/hooks/usePrompts';
 import { Button } from '@/components/ui/button';
+import { SkeletonCard } from '@/components/ui/skeleton-card';
+import { ErrorMessage } from '@/components/ui/error-message';
+import { ContentOrganizer } from '@/components/organization/ContentOrganizer';
 import Link from 'next/link';
-import { useAuth } from '@clerk/nextjs';
+import { useAuth } from '@/hooks/useAuth';
 
 type PromptsClientProps = {
   mode: 'create' | 'full';
@@ -11,12 +14,34 @@ type PromptsClientProps = {
 
 export function PromptsClient({ mode }: PromptsClientProps) {
   const { prompts, isLoading, error, savePrompt, updatePrompt, deletePrompt } = usePrompts();
-  const { userId } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
 
   if (error) {
     return (
       <div className="container mx-auto p-4">
-        <div className="rounded-lg bg-destructive/10 p-4 text-destructive">{error}</div>
+        <ErrorMessage
+          variant="error"
+          title="Failed to load prompts"
+          message={error}
+          actions={[
+            {
+              label: "Try Again",
+              onClick: () => window.location.reload()
+            }
+          ]}
+        />
+      </div>
+    );
+  }
+
+  if (isLoading && mode === 'full') {
+    return (
+      <div className="container mx-auto p-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <SkeletonCard key={i} />
+          ))}
+        </div>
       </div>
     );
   }
@@ -44,15 +69,22 @@ export function PromptsClient({ mode }: PromptsClientProps) {
 
   return (
     <div className="container mx-auto p-4">
-      <PromptManager
-        prompts={prompts}
-        isLoading={isLoading}
-        onSave={savePrompt}
-        onEdit={updatePrompt}
-        onDelete={deletePrompt}
-        mode="full"
-        currentUserId={typeof userId === 'string' ? userId : undefined}
-      />
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        <div className="lg:col-span-1">
+          <ContentOrganizer />
+        </div>
+        <div className="lg:col-span-3">
+          <PromptManager
+            prompts={prompts}
+            isLoading={isLoading}
+            onSave={savePrompt}
+            onEdit={updatePrompt}
+            onDelete={deletePrompt}
+            mode="full"
+            currentUserId={user?.id}
+          />
+        </div>
+      </div>
     </div>
   );
 }

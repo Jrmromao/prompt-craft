@@ -110,7 +110,17 @@ export class AIService {
     }
   }
 
-  public async runPrompt(options: RunPromptOptions): Promise<{ text: string }> {
+  public async runPrompt(options: RunPromptOptions): Promise<{ text: string; tokensUsed: number; creditsDeducted: number }> {
+    if (!options.userId) {
+      throw new Error('User ID required');
+    }
+
+    // Validate model access
+    const hasAccess = await this.validateModelAccess(options.userId, options.model || 'deepseek');
+    if (!hasAccess) {
+      throw new Error('Model access denied for current plan');
+    }
+
     // Get the prompt from the database
     const prompt = await prisma.prompt.findUnique({
       where: { id: options.promptId },
@@ -121,16 +131,101 @@ export class AIService {
       throw new Error('Prompt not found');
     }
 
-    // Combine the prompt template with the user input
-    const fullPrompt = prompt.content.replace('{input}', options.input);
+    // Estimate credits needed (rough estimate: 1 credit per 100 tokens)
+    const estimatedTokens = Math.ceil(prompt.content.length / 4) + Math.ceil(options.input.length / 4) + 500; // Add buffer for response
+    const estimatedCredits = Math.ceil(estimatedTokens / 100);
 
-    // Generate the response
-    const result = await this.generateText(fullPrompt, {
-      model: options.model,
-      temperature: options.temperature,
+    // Check if user has enough credits
+    const user = await prisma.user.findUnique({
+      where: { clerkId: options.userId },
+      select: {
+        id: true,
+        monthlyCredits: true,
+        purchasedCredits: true,
+      }
     });
 
-    return { text: result.text };
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    const totalCredits = user.monthlyCredits + user.purchasedCredits;
+    if (totalCredits < estimatedCredits) {
+      throw new Error('Insufficient credits');
+    }
+
+    // Use transaction to ensure atomicity
+    return await prisma.$transaction(async (tx) => {
+      // Combine the prompt template with the user input
+      const fullPrompt = prompt.content.replace('{input}', options.input);
+
+      // Generate the response
+      const result = await this.generateText(fullPrompt, {
+        model: options.model,
+        temperature: options.temperature,
+      });
+
+      // Calculate actual credits used based on tokens
+      const actualCredits = Math.ceil(result.tokenCount / 100);
+
+      // Deduct credits from user
+      const currentUser = await tx.user.findUnique({
+        where: { id: user.id },
+        select: {
+          monthlyCredits: true,
+          purchasedCredits: true,
+        }
+      });
+
+      if (!currentUser) {
+        throw new Error('User not found during transaction');
+      }
+
+      // Deduct from purchased credits first, then monthly
+      let remainingToDeduct = actualCredits;
+      let newPurchasedCredits = currentUser.purchasedCredits;
+      let newMonthlyCredits = currentUser.monthlyCredits;
+
+      if (currentUser.purchasedCredits >= remainingToDeduct) {
+        newPurchasedCredits -= remainingToDeduct;
+        remainingToDeduct = 0;
+      } else {
+        remainingToDeduct -= currentUser.purchasedCredits;
+        newPurchasedCredits = 0;
+        newMonthlyCredits -= remainingToDeduct;
+      }
+
+      // Update user credits
+      await tx.user.update({
+        where: { id: user.id },
+        data: {
+          monthlyCredits: newMonthlyCredits,
+          purchasedCredits: newPurchasedCredits,
+        }
+      });
+
+      // Log the transaction
+      await tx.creditTransaction.create({
+        data: {
+          userId: user.id,
+          amount: -actualCredits,
+          type: 'DEDUCTION',
+          reason: 'AI_GENERATION',
+          metadata: JSON.stringify({
+            promptId: options.promptId,
+            model: options.model || 'deepseek',
+            tokensUsed: result.tokenCount
+          }),
+          balanceAfter: newMonthlyCredits + newPurchasedCredits,
+        }
+      });
+
+      return {
+        text: result.text,
+        tokensUsed: result.tokenCount,
+        creditsDeducted: actualCredits
+      };
+    });
   }
 
   private async generateWithDeepseek(

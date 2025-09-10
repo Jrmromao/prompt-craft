@@ -159,8 +159,15 @@ export default function CookieManager() {
       }),
       {}
     );
+    const timestamp = new Date().toISOString();
     localStorage.setItem('cookie-preferences', JSON.stringify(preferences));
+    localStorage.setItem('cookie-consent-timestamp', timestamp);
     setIsOpen(false);
+    
+    // Trigger window event for other components to listen to
+    window.dispatchEvent(new CustomEvent('cookiePreferencesChanged', {
+      detail: { preferences, timestamp }
+    }));
   };
 
   const exportPreferences = () => {
@@ -202,6 +209,19 @@ export default function CookieManager() {
       }))
     );
     localStorage.removeItem('cookie-preferences');
+    localStorage.removeItem('cookie-consent-timestamp');
+    
+    // Trigger window event for other components to listen to
+    window.dispatchEvent(new CustomEvent('cookiePreferencesChanged', {
+      detail: { preferences: {}, timestamp: null }
+    }));
+  };
+
+  const withdrawConsent = () => {
+    if (confirm('Are you sure you want to withdraw all cookie consent? This will disable all non-essential cookies and you will be asked for consent again.')) {
+      clearAllCookies();
+      setIsOpen(false);
+    }
   };
 
   return (
@@ -298,14 +318,19 @@ export default function CookieManager() {
             <Button
               variant="outline"
               size="sm"
-              onClick={clearAllCookies}
-              className="gap-2"
+              onClick={withdrawConsent}
+              className="gap-2 text-red-600 hover:text-red-700 hover:bg-red-50"
             >
               <Trash2 className="h-4 w-4" />
-              Clear All
+              Withdraw Consent
             </Button>
           </div>
-          <Button onClick={savePreferences}>Save Preferences</Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => setIsOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={savePreferences}>Save Preferences</Button>
+          </div>
         </div>
       </DialogContent>
     </Dialog>

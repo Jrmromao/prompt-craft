@@ -30,7 +30,7 @@ function renderFeature(feature: string, isPostMVP: boolean, index: number) {
 // 1. Define core features for each plan (lean, conversion-focused)
 const coreFeatures = {
   FREE: [
-    '100 credits/month (resets monthly)',
+    '10 credits/month (resets monthly)',
     'Buy extra credits (never expire)',
     'Earn credits from upvotes (never expire)',
     'Up to 3 private prompts',
@@ -42,11 +42,11 @@ const coreFeatures = {
     '500 credits/month (resets monthly)',
     'Buy extra credits at discounted rate (never expire)',
     'Earn bonus credits from upvotes (never expire)',
-    'Up to 20 private prompts',
+    'Unlimited private prompts',
     'Create unlimited public prompts',
-    'Advanced prompt testing',
+    'Advanced prompt testing with AI optimization',
     'Prompt version control',
-    'Advanced analytics',
+    'Advanced analytics dashboard',
     'Priority support',
     'Access to premium AI models',
   ],
@@ -68,7 +68,7 @@ const subscriptionPlans = [
   {
     name: 'FREE',
     price: 0,
-    description: 'Get started with the basics',
+    description: 'Perfect for getting started',
     features: coreFeatures.FREE,
     popular: false,
     isEnterprise: false,
@@ -76,8 +76,8 @@ const subscriptionPlans = [
   },
   {
     name: 'PRO',
-    price: 15.99,
-    description: 'For professionals and creators',
+    price: 9.99,
+    description: 'For professionals and power users',
     features: coreFeatures.PRO,
     popular: true,
     isEnterprise: false,
@@ -95,9 +95,9 @@ export default function PricingSection() {
     <section className="py-24 bg-gradient-to-b from-white to-gray-50 dark:from-black dark:to-gray-900">
       <div className="container mx-auto px-4">
         <div className="text-center mb-16">
-          <h2 className="text-4xl font-bold mb-4">Simple, Transparent Pricing</h2>
+          <h2 className="text-4xl font-bold mb-4">Simple, Credit-Based Pricing</h2>
           <p className="text-xl text-gray-600 dark:text-gray-400">
-            Choose the plan that best fits your needs
+            Pay only for what you use. Credits never expire when purchased.
           </p>
           <div className="flex items-center justify-center gap-4 mt-8">
             <span className={cn("text-sm", !isAnnual && "text-purple-600 font-semibold")}>Monthly</span>
@@ -178,6 +178,39 @@ export default function PricingSection() {
         {/* See all features link */}
         <div className="text-center mt-8">
           <a href="#" className="text-purple-600 underline hover:text-purple-800 text-sm">See all features</a>
+        </div>
+        
+        {/* Credit Purchase Options */}
+        <div className="max-w-4xl mx-auto mb-16">
+          <div className="text-center mb-8">
+            <h3 className="text-2xl font-bold mb-4">Need More Credits?</h3>
+            <p className="text-gray-600 dark:text-gray-400">
+              Purchase additional credits that never expire. Perfect for heavy usage or one-time projects.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700 text-center">
+              <h4 className="text-lg font-semibold mb-2">Starter Pack</h4>
+              <div className="text-3xl font-bold text-purple-600 mb-2">100 Credits</div>
+              <div className="text-gray-600 dark:text-gray-400 mb-4">$4.99</div>
+              <div className="text-sm text-gray-500">$0.05 per credit</div>
+            </div>
+            <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border-2 border-purple-500 text-center relative">
+              <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                <span className="bg-purple-500 text-white px-3 py-1 rounded-full text-xs font-semibold">Best Value</span>
+              </div>
+              <h4 className="text-lg font-semibold mb-2">Power Pack</h4>
+              <div className="text-3xl font-bold text-purple-600 mb-2">500 Credits</div>
+              <div className="text-gray-600 dark:text-gray-400 mb-4">$19.99</div>
+              <div className="text-sm text-gray-500">$0.04 per credit</div>
+            </div>
+            <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700 text-center">
+              <h4 className="text-lg font-semibold mb-2">Pro Pack</h4>
+              <div className="text-3xl font-bold text-purple-600 mb-2">1000 Credits</div>
+              <div className="text-gray-600 dark:text-gray-400 mb-4">$34.99</div>
+              <div className="text-sm text-gray-500">$0.035 per credit</div>
+            </div>
+          </div>
         </div>
       </div>
     </section>

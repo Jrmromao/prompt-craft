@@ -1,6 +1,7 @@
 'use client';
+import React, { useState } from 'react';
 import Link from 'next/link';
-import { Sparkles, User, LogOut, Menu, BookOpen, Users, Layers } from 'lucide-react';
+import { Sparkles, User, Menu, BookOpen, Users, Layers } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
@@ -11,12 +12,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { useClerk } from '@clerk/nextjs';
 import { ThemeToggle } from '../ThemeToggle';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { MobileMenu } from './MobileMenu';
-import { useState } from 'react';
+import { GlobalSearch } from '@/components/search/GlobalSearch';
+import { CommandPalette } from '@/components/ui/command-palette';
+import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 
 export interface NavBarUser {
   name: string;
@@ -25,9 +27,9 @@ export interface NavBarUser {
 }
 
 export function NavBar({ user, onMenuClick }: { user?: NavBarUser; onMenuClick?: () => void }) {
-  const { signOut } = useClerk();
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { isCommandPaletteOpen, setIsCommandPaletteOpen } = useKeyboardShortcuts();
   const userInitials =
     user?.name
       ?.split(' ')
@@ -52,27 +54,15 @@ export function NavBar({ user, onMenuClick }: { user?: NavBarUser; onMenuClick?:
               {user && (
                 <div className="hidden items-center gap-4 md:flex">
                   <Link
-                    href="/prompts/templates"
+                    href="/prompts"
                     className={cn(
                       'flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-all hover:scale-105',
-                      isActive('/prompts/templates')
+                      isActive('/prompts')
                         ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-md'
                         : 'text-muted-foreground hover:bg-purple-100/40 dark:hover:bg-purple-500/10'
                     )}
                   >
                     <Layers className="h-4 w-4" />
-                    Templates
-                  </Link>
-                  <Link
-                    href="/prompts/my-prompts"
-                    className={cn(
-                      'flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-all hover:scale-105',
-                      isActive('/prompts/my-prompts')
-                        ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-md'
-                        : 'text-muted-foreground hover:bg-purple-100/40 dark:hover:bg-purple-500/10'
-                    )}
-                  >
-                    <BookOpen className="h-4 w-4" />
                     My Prompts
                   </Link>
                   <Link
@@ -90,6 +80,14 @@ export function NavBar({ user, onMenuClick }: { user?: NavBarUser; onMenuClick?:
                 </div>
               )}
             </div>
+            
+            {/* Global Search */}
+            {user && (
+              <div className="hidden md:flex flex-1 max-w-md mx-8">
+                <GlobalSearch />
+              </div>
+            )}
+            
             <div className="flex items-center gap-4">
               <ThemeToggle />
               {user ? (
@@ -116,13 +114,6 @@ export function NavBar({ user, onMenuClick }: { user?: NavBarUser; onMenuClick?:
                         Account
                       </Link>
                     </DropdownMenuItem>
-                    <DropdownMenuItem
-                      className="cursor-pointer text-red-600 dark:text-red-400"
-                      onClick={() => signOut()}
-                    >
-                      <LogOut className="mr-2 h-4 w-4" />
-                      Sign out
-                    </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
               ) : (
@@ -144,6 +135,10 @@ export function NavBar({ user, onMenuClick }: { user?: NavBarUser; onMenuClick?:
         </div>
       </nav>
       <MobileMenu isOpen={isMobileMenuOpen} onClose={() => setIsMobileMenuOpen(false)} />
+      <CommandPalette 
+        open={isCommandPaletteOpen} 
+        onOpenChange={setIsCommandPaletteOpen} 
+      />
     </>
   );
 }

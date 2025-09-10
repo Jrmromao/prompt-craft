@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useAuth } from '@clerk/nextjs';
+import { useAuth } from '@/hooks/useAuth';
 
 interface CreditBalance {
   monthlyCredits: number;
@@ -16,16 +16,19 @@ export function useCreditBalance() {
   const [balance, setBalance] = useState<CreditBalance | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
-  const { getToken } = useAuth();
+  const { user, isAuthenticated } = useAuth();
 
   useEffect(() => {
     const fetchBalance = async () => {
+      if (!isAuthenticated || !user) {
+        setIsLoading(false);
+        return;
+      }
+
       try {
-        const token = await getToken();
         const response = await fetch('/api/user/credits', {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          method: 'GET',
+          credentials: 'include',
         });
 
         if (!response.ok) {
@@ -42,7 +45,7 @@ export function useCreditBalance() {
     };
 
     fetchBalance();
-  }, [getToken]);
+  }, [isAuthenticated, user]);
 
   return { balance, isLoading, error };
 } 

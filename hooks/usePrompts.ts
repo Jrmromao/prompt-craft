@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState, useRef } from 'react';
-import { useAuth } from '@clerk/nextjs';
+import { useAuth } from '@/hooks/useAuth';
 
 interface Prompt {
   id: string;
@@ -25,7 +25,8 @@ interface UsePromptsOptions {
 }
 
 export function usePrompts(options: UsePromptsOptions = {}) {
-  const { userId } = useAuth();
+  const { user, isAuthenticated } = useAuth();
+  const userId = user?.id;
   const [prompts, setPrompts] = useState<Prompt[]>([]);
   const [total, setTotal] = useState(0);
   const [isLoading, setIsLoading] = useState(true);

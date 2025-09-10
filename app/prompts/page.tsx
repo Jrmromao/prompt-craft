@@ -18,12 +18,6 @@ export default async function PromptsPage() {
 
   const subscription = await validateSubscription();
 
-
-  // If user can't create prompts, redirect to pricing
-  if (!subscription.canCreate) {
-    redirect(subscription.redirectTo || '/pricing');
-  }
-
-  // For paid tiers, show full prompts interface
-  return <PromptsClient mode="full" />;
+  // Always show prompts page - let PromptsClient handle creation limits
+  return <PromptsClient mode={subscription.isPro ? "full" : "limited"} />;
 }

@@ -1,14 +1,10 @@
 'use client';
 
 import { CreatePromptDialog } from './CreatePromptDialog';
-import { ThemeToggle } from '@/components/ThemeToggle';
 
 export function CreatePromptPage() {
   return (
     <div className="container mx-auto py-8">
-      <div className="flex justify-end mb-4">
-        <ThemeToggle />
-      </div>
       <div className="max-w-4xl mx-auto">
         <h1 className="text-4xl font-bold mb-8">Create a New Prompt</h1>
         

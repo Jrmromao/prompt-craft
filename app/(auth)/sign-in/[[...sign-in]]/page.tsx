@@ -1,21 +1,61 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useSignIn } from '@clerk/nextjs';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { useTheme } from '@/components/ThemeProvider';
-import { Sparkles, Sun, Moon, ArrowLeft } from 'lucide-react';
+import { Sparkles, ArrowLeft } from 'lucide-react';
+import { getSafeRedirectUrl } from '@/lib/utils/auth-helpers';
+import { useAuth } from '@/hooks/useAuth';
 
 export default function SignInPage() {
   const { signIn, isLoaded } = useSignIn();
+  const { isAuthenticated, user, isLoading: authLoading, refreshAuth } = useAuth();
   const router = useRouter();
-  const { resolvedTheme, toggleTheme } = useTheme();
+  const searchParams = useSearchParams();
   
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [oauthLoading, setOauthLoading] = useState(false);
+  
+  // Get the redirect URL from query params and make it safe
+  const redirectUrl = getSafeRedirectUrl(searchParams.get('redirect_url'));
+
+  // Simple server-side authentication check
+  useEffect(() => {
+    if (!authLoading && isAuthenticated) {
+      console.log('User is authenticated, redirecting to:', redirectUrl);
+      const timer = setTimeout(() => {
+        router.push(redirectUrl);
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [isAuthenticated, authLoading, router, redirectUrl]);
+
+  if (authLoading || !isLoaded) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 border-4 border-purple-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600 dark:text-gray-400">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // If user is authenticated, show loading while redirecting
+  if (isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 border-4 border-purple-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600 dark:text-gray-400">Redirecting...</p>
+        </div>
+      </div>
+    );
+  }
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,7 +71,7 @@ export default function SignInPage() {
       });
       
       if (result.status === 'complete') {
-        router.push('/profile');
+        router.push(redirectUrl);
       }
     } catch (err: any) {
       setError(err?.errors?.[0]?.message || 'Sign in failed. Please try again.');
@@ -40,29 +80,55 @@ export default function SignInPage() {
     }
   };
 
-  const handleOAuth = (provider: 'oauth_google' | 'oauth_github') => {
-    if (!signIn) return;
-    signIn.authenticateWithRedirect({
-      strategy: provider,
-      redirectUrl: '/sso-callback',
-      redirectUrlComplete: '/dashboard',
-    });
+  // OAuth handler is now implemented directly in handleOAuthClick
+  
+  // Simplified OAuth handler using server-side authentication
+  const handleOAuthClick = async (provider: 'oauth_google' | 'oauth_github') => {
+    // Check if user is already authenticated using server-side API
+    if (isAuthenticated) {
+      console.log('User already authenticated, redirecting...');
+      router.push(redirectUrl);
+      return;
+    }
+    
+    if (oauthLoading || !isLoaded || authLoading) {
+      console.log('OAuth blocked: loading state or auth not ready');
+      return;
+    }
+    
+    setOauthLoading(true);
+    setError('');
+    
+    try {
+      console.log('Initiating OAuth with', provider);
+      // Use redirect authentication - this will redirect to OAuth provider
+      // but the user will return to our custom page after authentication
+      await signIn.authenticateWithRedirect({
+        strategy: provider,
+        redirectUrl: '/sso-callback',
+        redirectUrlComplete: redirectUrl,
+      });
+    } catch (error: any) {
+      console.error('OAuth error:', error);
+      
+      // Handle specific Clerk errors
+      if (error?.message?.includes('already signed in') || 
+          error?.message?.includes('You\'re already signed in')) {
+        console.log('OAuth error indicates user already signed in, redirecting...');
+        router.push(redirectUrl);
+        return;
+      }
+      
+      setError('Authentication failed. Please try again.');
+    } finally {
+      setOauthLoading(false);
+    }
   };
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-      {/* Theme Toggle */}
-      <div className="fixed top-4 right-4 z-50">
-        <button
-          onClick={toggleTheme}
-          className="p-2 rounded-lg bg-white dark:bg-gray-800 shadow-md hover:shadow-lg transition-all"
-        >
-          {resolvedTheme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-        </button>
-      </div>
 
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        {/* Header */}
         <div className="text-center">
           <Link href="/" className="inline-flex items-center gap-2 mb-6 text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300">
             <ArrowLeft className="w-4 h-4" />
@@ -86,26 +152,34 @@ export default function SignInPage() {
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white dark:bg-gray-800 py-8 px-4 shadow-lg sm:rounded-lg sm:px-10 border border-gray-200 dark:border-gray-700">
-          {/* OAuth Buttons */}
           <div className="space-y-3 mb-6">
             <button
-              onClick={() => handleOAuth('oauth_google')}
-              className="w-full flex justify-center items-center gap-3 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
+              onClick={() => handleOAuthClick('oauth_google')}
+              disabled={isAuthenticated || oauthLoading || !isLoaded || authLoading}
+              className="w-full flex justify-center items-center gap-3 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <img src="/google.svg" alt="Google" className="w-5 h-5" />
-              Continue with Google
+              {oauthLoading ? (
+                <div className="w-5 h-5 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
+              ) : (
+                <img src="/google.svg" alt="Google" className="w-5 h-5" />
+              )}
+              {oauthLoading ? 'Connecting...' : 'Continue with Google'}
             </button>
             
             <button
-              onClick={() => handleOAuth('oauth_github')}
-              className="w-full flex justify-center items-center gap-3 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
+              onClick={() => handleOAuthClick('oauth_github')}
+              disabled={isAuthenticated || oauthLoading || !isLoaded || authLoading}
+              className="w-full flex justify-center items-center gap-3 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <img src="/github.svg" alt="GitHub" className="w-5 h-5" />
-              Continue with GitHub
+              {oauthLoading ? (
+                <div className="w-5 h-5 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
+              ) : (
+                <img src="/github.svg" alt="GitHub" className="w-5 h-5" />
+              )}
+              {oauthLoading ? 'Connecting...' : 'Continue with GitHub'}
             </button>
           </div>
 
-          {/* Divider */}
           <div className="relative mb-6">
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-gray-300 dark:border-gray-600" />
@@ -117,7 +191,6 @@ export default function SignInPage() {
             </div>
           </div>
 
-          {/* Email Form */}
           <form onSubmit={handleSignIn} className="space-y-4">
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -164,7 +237,6 @@ export default function SignInPage() {
             </button>
           </form>
 
-          {/* Footer */}
           <div className="mt-6 text-center">
             <p className="text-sm text-gray-600 dark:text-gray-400">
               Don't have an account?{' '}

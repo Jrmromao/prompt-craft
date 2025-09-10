@@ -12,8 +12,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Sparkles, Wand2, Copy, RefreshCw, Check } from 'lucide-react';
-import { toast } from '@/components/ui/use-toast';
+import { Sparkles, Wand2, Copy, RefreshCw } from 'lucide-react';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
+import { toast } from 'sonner';
 
 const formSchema = z.object({
   name: z.string().min(1, 'Name is required'),
@@ -79,15 +80,12 @@ export default function EnhancedPromptCreateForm() {
       setSelectedPrompt(result.data.optimizedPrompt);
       setActiveTab('optimized');
       
-      toast({
-        title: "Prompt Optimized!",
+      toast.success("Prompt Optimized!", {
         description: `Used ${result.data.creditsConsumed} credits`
       });
     } catch (error) {
-      toast({
-        title: "Optimization Failed",
-        description: error instanceof Error ? error.message : 'Unknown error',
-        variant: "destructive"
+      toast.error("Optimization Failed", {
+        description: error instanceof Error ? error.message : 'Unknown error'
       });
     } finally {
       setIsOptimizing(false);
@@ -113,20 +111,16 @@ export default function EnhancedPromptCreateForm() {
       setVariations(result.data.variations);
       setActiveTab('variations');
     } catch (error) {
-      toast({
-        title: "Failed to generate variations",
-        description: error instanceof Error ? error.message : 'Unknown error',
-        variant: "destructive"
+      toast.error("Failed to generate variations", {
+        description: error instanceof Error ? error.message : 'Unknown error'
       });
     }
   };
 
   const createPrompt = async () => {
     if (!selectedPrompt) {
-      toast({
-        title: "No prompt selected",
-        description: "Please optimize your idea first",
-        variant: "destructive"
+      toast.error("No prompt selected", {
+        description: "Please optimize your idea first"
       });
       return;
     }
@@ -147,8 +141,7 @@ export default function EnhancedPromptCreateForm() {
 
       if (!response.ok) throw new Error('Failed to create prompt');
 
-      toast({
-        title: "Prompt Created!",
+      toast.success("Prompt Created!", {
         description: "Your optimized prompt has been saved"
       });
 
@@ -159,10 +152,8 @@ export default function EnhancedPromptCreateForm() {
       setSelectedPrompt('');
       setActiveTab('idea');
     } catch (error) {
-      toast({
-        title: "Creation Failed",
-        description: error instanceof Error ? error.message : 'Unknown error',
-        variant: "destructive"
+      toast.error("Creation Failed", {
+        description: error instanceof Error ? error.message : 'Unknown error'
       });
     }
   };
@@ -318,10 +309,7 @@ export default function EnhancedPromptCreateForm() {
                     className="h-12 px-8 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
                   >
                     {isOptimizing ? (
-                      <>
-                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-3"></div>
-                        Optimizing with AI...
-                      </>
+                      <LoadingSpinner text="Optimizing with AI..." />
                     ) : (
                       <>
                         <Wand2 className="mr-3 h-5 w-5" />

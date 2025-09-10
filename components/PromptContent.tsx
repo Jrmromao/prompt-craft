@@ -30,7 +30,10 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
-import { VoteButton } from '@/components/VoteButton';
+import { EnhancedVoting } from '@/components/collaboration/EnhancedVoting';
+import { EnhancedComments } from '@/components/collaboration/EnhancedComments';
+import { SmartRecommendations } from '@/components/ai/SmartRecommendations';
+import { PromptAnalyticsDashboard } from '@/components/analytics/PromptAnalyticsDashboard';
 import { Analytics } from '@/components/Analytics';
 import { VersionHistory } from '@/components/VersionHistory';
 import { NavBarWrapper } from '@/components/layout/NavBarWrapper';
@@ -264,7 +267,19 @@ function PromptContentInner({ user, prompt, initialCommentCount, initialVersionH
               </div>
             </div>
             <div className="flex items-center gap-2 mt-4 md:mt-0">
-              <VoteButton id={prompt.id} initialUpvotes={upvotes} onVoteChange={setUpvotes} />
+              <EnhancedVoting
+                promptId={prompt.id}
+                initialStats={{
+                  upvotes: upvotes,
+                  downvotes: 0,
+                  totalVotes: upvotes,
+                  userVote: null,
+                  recentVoters: [],
+                  trending: false
+                }}
+                onStatsChange={(stats) => setUpvotes(stats.upvotes)}
+                showAnalytics={true}
+              />
               <Button
                 onClick={() => setIsTestModalOpen(true)}
                 className="bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700"
