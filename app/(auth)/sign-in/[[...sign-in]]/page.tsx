@@ -31,7 +31,7 @@ export default function SignInPage() {
       });
       
       if (result.status === 'complete') {
-        router.push('/dashboard');
+        router.push('/profile');
       }
     } catch (err: any) {
       setError(err?.errors?.[0]?.message || 'Sign in failed. Please try again.');

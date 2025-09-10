@@ -1,6 +1,7 @@
 import { AIService } from './aiService';
 import { CreditService } from './creditService';
 import { prisma } from '@/lib/prisma';
+import { createHash } from 'crypto';
 
 interface OptimizationRequest {
   userIdea: string;
@@ -23,10 +24,23 @@ export class PromptOptimizationService {
   private static instance: PromptOptimizationService;
   private aiService: AIService;
   private creditService: CreditService;
+  private cache = new Map<string, OptimizationResult>();
+  private cacheExpiry = new Map<string, number>();
+  private readonly CACHE_TTL = 1000 * 60 * 30; // 30 minutes
 
   private constructor() {
     this.aiService = AIService.getInstance();
     this.creditService = CreditService.getInstance();
+  }
+
+  private getCacheKey(request: OptimizationRequest): string {
+    const key = `${request.userIdea}-${request.promptType}-${request.tone}`;
+    return createHash('md5').update(key).digest('hex');
+  }
+
+  private isExpired(key: string): boolean {
+    const expiry = this.cacheExpiry.get(key);
+    return !expiry || Date.now() > expiry;
   }
 
   public static getInstance(): PromptOptimizationService {
@@ -37,6 +51,12 @@ export class PromptOptimizationService {
   }
 
   public async optimizePrompt(request: OptimizationRequest): Promise<OptimizationResult> {
+    const cacheKey = this.getCacheKey(request);
+    
+    if (this.cache.has(cacheKey) && !this.isExpired(cacheKey)) {
+      return this.cache.get(cacheKey)!;
+    }
+
     // Check credits first
     const requiredCredits = 5; // Optimization costs 5 credits
     const creditCheck = await this.creditService.checkCreditBalance(request.userId, requiredCredits);
@@ -61,13 +81,19 @@ export class PromptOptimizationService {
     // Parse AI response
     const parsed = this.parseOptimizationResponse(result.text);
 
-    return {
+    const optimizationResult = {
       optimizedPrompt: parsed.optimizedPrompt,
       suggestions: parsed.suggestions,
       improvements: parsed.improvements,
       tokensUsed: result.tokenCount,
       creditsConsumed: requiredCredits
     };
+
+    // Cache the result
+    this.cache.set(cacheKey, optimizationResult);
+    this.cacheExpiry.set(cacheKey, Date.now() + this.CACHE_TTL);
+
+    return optimizationResult;
   }
 
   private buildOptimizationPrompt(request: OptimizationRequest): string {

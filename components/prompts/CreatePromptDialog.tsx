@@ -11,14 +11,43 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Slider } from '@/components/ui/slider';
 import { PREDEFINED_TAGS } from '@/lib/constants/tags';
 import { Card } from '@/components/ui/card';
-import { useState } from 'react';
+import { useState, FormEvent, Dispatch, SetStateAction } from 'react';
 
-export function CreatePromptDialog() {
-  const [name, setName] = React.useState('');
-  const [description, setDescription] = React.useState('');
-  const [content, setContent] = React.useState('');
-  const [isPublic, setIsPublic] = React.useState(true);
+interface CreatePromptDialogProps {
+  open?: boolean;
+  onOpenChange?: Dispatch<SetStateAction<boolean>>;
+  onSubmit?: (e: FormEvent<Element>) => Promise<void>;
+  name?: string;
+  setName?: Dispatch<SetStateAction<string>>;
+  description?: string;
+  setDescription?: Dispatch<SetStateAction<string>>;
+  content?: string;
+  setContent?: Dispatch<SetStateAction<string>>;
+  isPublic?: boolean;
+  setIsPublic?: Dispatch<SetStateAction<boolean>>;
+  promptType?: any;
+  setPromptType?: (type: any) => void;
+  tags?: string[];
+  setTags?: Dispatch<SetStateAction<string[]>>;
+  [key: string]: any; // Allow additional props
+}
+
+export function CreatePromptDialog(props: CreatePromptDialogProps = {}) {
+  const [internalName, setInternalName] = React.useState('');
+  const [internalDescription, setInternalDescription] = React.useState('');
+  const [internalContent, setInternalContent] = React.useState('');
+  const [internalIsPublic, setInternalIsPublic] = React.useState(true);
   const [selectedTags, setSelectedTags] = React.useState<string[]>([]);
+  
+  // Use props if provided, otherwise use internal state
+  const name = props.name ?? internalName;
+  const setName = props.setName ?? setInternalName;
+  const description = props.description ?? internalDescription;
+  const setDescription = props.setDescription ?? setInternalDescription;
+  const content = props.content ?? internalContent;
+  const setContent = props.setContent ?? setInternalContent;
+  const isPublic = props.isPublic ?? internalIsPublic;
+  const setIsPublic = props.setIsPublic ?? setInternalIsPublic;
   const [temperature, setTemperature] = React.useState(0.7);
   const [maxTokens, setMaxTokens] = React.useState(2048);
   const [step, setStep] = useState<'draft' | 'review'>('draft');
