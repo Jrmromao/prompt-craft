@@ -9,6 +9,7 @@ import { TooltipProvider } from '@/components/ui/tooltip';
 import { Toaster } from 'sonner';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { UnifiedNavigation } from '@/components/layout/UnifiedNavigation';
+import { BottomTabNavigation } from '@/components/mobile/BottomTabNavigation';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -43,6 +44,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                     <UnifiedNavigation />
                     <main className="flex-grow pb-16 md:pb-0">{children}</main>
                     <Footer />
+                    <BottomTabNavigation />
                   </div>
                 </TooltipProvider>
               </ThemeProvider>

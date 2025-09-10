@@ -1,8 +1,6 @@
 import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { quotaMiddleware } from './middleware/quota';
-import { rateLimitMiddleware } from './middleware/rate-limit';
 
 // Define routes that don't require authentication
 const PUBLIC_ROUTES = [

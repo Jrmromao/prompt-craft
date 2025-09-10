@@ -3,11 +3,13 @@ import { useState, useEffect } from 'react';
 interface User {
   id: string;
   email: string | null;
-  firstName: string | null;
-  lastName: string | null;
-  username: string | null;
-  imageUrl: string | null;
+  name: string | null;
+  firstName?: string | null;
+  lastName?: string | null;
+  username?: string | null;
+  imageUrl?: string | null;
   role: string;
+  planType: string;
   createdAt: string | null;
 }
 
@@ -40,12 +42,40 @@ export function useAuth() {
 
       if (response.ok) {
         const data = await response.json();
-        setAuthState({
-          isAuthenticated: data.isAuthenticated,
-          user: data.user,
-          isLoading: false,
-          error: null,
-        });
+        
+        if (data.success && data.data) {
+          // New API format: {success: true, data: {isAuthenticated: true, user: {...}}}
+          const { isAuthenticated, user } = data.data;
+          
+          // Transform user data to match expected format
+          const transformedUser = user ? {
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            firstName: user.name?.split(' ')[0] || null,
+            lastName: user.name?.split(' ').slice(1).join(' ') || null,
+            username: user.name,
+            imageUrl: null,
+            role: user.role,
+            planType: user.planType,
+            createdAt: user.createdAt,
+          } : null;
+
+          setAuthState({
+            isAuthenticated,
+            user: transformedUser,
+            isLoading: false,
+            error: null,
+          });
+        } else {
+          // API returned success: false
+          setAuthState({
+            isAuthenticated: false,
+            user: null,
+            isLoading: false,
+            error: data.error || 'Authentication failed',
+          });
+        }
       } else {
         setAuthState({
           isAuthenticated: false,

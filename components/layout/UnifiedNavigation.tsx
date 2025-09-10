@@ -26,7 +26,9 @@ export function UnifiedNavigation() {
   // Prepare user data for NavBar
   const navUser = isAuthenticated && user
     ? {
-        name: [user.firstName, user.lastName].filter(Boolean).join(' ') || user.username || 'User',
+        name: user.name || user.firstName && user.lastName 
+          ? [user.firstName, user.lastName].filter(Boolean).join(' ')
+          : user.username || 'User',
         email: user.email || '',
         imageUrl: user.imageUrl || undefined,
       }

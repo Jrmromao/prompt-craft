@@ -97,7 +97,7 @@ export function PromptManager({
           content,
           isPublic,
           promptType,
-          tags: tags.map(tag => ({ id: '', name: tag })),
+          tags: (tags || []).map(tag => ({ id: '', name: tag })),
           metadata,
         });
         toast({ title: 'Prompt updated successfully!' });
@@ -132,7 +132,7 @@ export function PromptManager({
     setContent(prompt.content);
     setIsPublic(prompt.isPublic);
     setPromptType(prompt.promptType as 'text' | 'image' | 'video' | 'music');
-    setTags(prompt.tags.map(tag => tag.name));
+    setTags((prompt.tags || []).map(tag => tag.name));
     setIsDialogOpen(true);
   };
 
@@ -261,7 +261,7 @@ export function PromptManager({
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {prompts.map(prompt => (
+        {(prompts || []).map(prompt => (
           <div
             key={prompt.id}
             className="rounded-lg border p-4 shadow-sm transition-shadow hover:shadow-md"
@@ -284,7 +284,7 @@ export function PromptManager({
             )}
             <p className="mt-2 line-clamp-3 text-sm text-muted-foreground">{prompt.content}</p>
             <div className="mt-4 flex flex-wrap gap-2">
-              {prompt.tags.map(tag => (
+              {(prompt.tags || []).map(tag => (
                 <Badge key={tag.id} variant="secondary">
                   {tag.name}
                 </Badge>
