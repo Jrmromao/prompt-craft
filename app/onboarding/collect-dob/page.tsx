@@ -97,7 +97,7 @@ export default function CollectDobPage() {
           </label>
           <p className="text-xs text-gray-600 dark:text-gray-400">
             By continuing, you confirm you are at least 16 years old and agree to our{' '}
-            <a href="/privacy-policy" target="_blank" rel="noopener noreferrer" className="underline text-purple-600 dark:text-purple-400">Privacy Policy</a>.
+            <a href="/legal/privacy-policy" target="_blank" rel="noopener noreferrer" className="underline text-purple-600 dark:text-purple-400">Privacy Policy</a>.
           </p>
           {error && <div className="text-red-500 text-sm" role="alert">{error}</div>}
           {success && <div className="text-green-500 text-sm" role="status">Date of birth saved! Redirecting…</div>}

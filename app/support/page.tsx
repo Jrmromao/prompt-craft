@@ -37,7 +37,7 @@ export default function SupportPage() {
                 </p>
               </div>
               <div className="flex-grow" />
-              <Link href="/support/new" className="mt-4 w-full">
+              <Link href="/support" className="mt-4 w-full">
                 <Button className="w-full" size="lg">
                   <Plus className="mr-2 h-4 w-4" />
                   New Ticket
@@ -58,7 +58,7 @@ export default function SupportPage() {
                 </p>
               </div>
               <div className="flex-grow" />
-              <Link href="/support/kb" className="mt-4 w-full">
+              <Link href="/support" className="mt-4 w-full">
                 <Button variant="outline" className="w-full" size="lg">
                   Browse Articles
                 </Button>
@@ -134,7 +134,7 @@ export default function SupportPage() {
         <div className="space-y-6">
           <div className="flex items-center justify-between">
             <h2 className="text-2xl font-semibold">Frequently Asked Questions</h2>
-            <Link href="/support/faq">
+            <Link href="/support">
               <Button variant="link">View All FAQs</Button>
             </Link>
           </div>

@@ -84,7 +84,7 @@ export function CommunityClient({ featuredPrompts, recentPrompts }: CommunityCli
             </p>
             <div className="flex flex-wrap items-center justify-center gap-4">
               <Button asChild size="lg">
-                <Link href="/prompts/new">
+                <Link href="/prompts">
                   <Sparkles className="mr-2 h-4 w-4" />
                   Share Your Prompt
                 </Link>

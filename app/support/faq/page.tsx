@@ -122,7 +122,7 @@ export default function FAQPage() {
                 Can't find what you're looking for? Our support team is here to help.
               </p>
               <div className="flex justify-center gap-4">
-                <Link href="/support/new">
+                <Link href="/support">
                   <Button>Create Support Ticket</Button>
                 </Link>
               </div>

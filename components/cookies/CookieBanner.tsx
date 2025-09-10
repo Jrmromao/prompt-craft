@@ -85,14 +85,14 @@ export default function CookieBanner({ onPreferencesChange }: CookieBannerProps)
                 can customize your preferences by clicking "Manage Preferences". For more information,
                 please read our{' '}
                 <Link
-                  href="/privacy-policy"
+                  href="/legal/privacy-policy"
                   className="text-emerald-600 underline-offset-2 hover:text-emerald-700 hover:underline dark:text-emerald-400 dark:hover:text-emerald-300"
                 >
                   Privacy Policy
                 </Link>{' '}
                 and{' '}
                 <Link
-                  href="/cookie-policy"
+                  href="/legal/cookie-policy"
                   className="text-emerald-600 underline-offset-2 hover:text-emerald-700 hover:underline dark:text-emerald-400 dark:hover:text-emerald-300"
                 >
                   Cookie Policy

@@ -88,7 +88,7 @@ export function CreditUsageIndicator() {
             </span>
             {balance.usage.monthlyPercentage >= 75 && (
               <a 
-                href="/credits" 
+                href="/pricing" 
                 className="text-primary hover:underline"
               >
                 Get more credits

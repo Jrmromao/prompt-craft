@@ -67,16 +67,14 @@ export class PromptOptimizationService {
 
     const optimizationPrompt = this.buildOptimizationPrompt(request);
     
-    const result = await this.aiService.generate({
-      prompt: optimizationPrompt,
+    const result = await this.aiService.generateText(optimizationPrompt, {
       model: 'deepseek',
       maxTokens: 800,
-      temperature: 0.7,
-      userId: request.userId
+      temperature: 0.7
     });
 
     // Deduct credits
-    await this.creditService.deductCredits(request.userId, requiredCredits, 'PROMPT_OPTIMIZATION');
+    await this.creditService.deductCredits(request.userId, requiredCredits, 'USAGE');
 
     // Parse AI response
     const parsed = this.parseOptimizationResponse(result.text);
@@ -156,15 +154,13 @@ ORIGINAL PROMPT: "${basePrompt}"
 
 Return only the variations, one per line, numbered 1-${count}.`;
 
-    const result = await this.aiService.generate({
-      prompt: variationPrompt,
+    const result = await this.aiService.generateText(variationPrompt, {
       model: 'deepseek',
       maxTokens: 600,
-      temperature: 0.8,
-      userId
+      temperature: 0.8
     });
 
-    await this.creditService.deductCredits(userId, requiredCredits, 'PROMPT_VARIATIONS');
+    await this.creditService.deductCredits(userId, requiredCredits, 'USAGE');
 
     return this.parseVariations(result.text, count);
   }

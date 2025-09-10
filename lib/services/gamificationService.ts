@@ -216,7 +216,7 @@ export class GamificationService {
     if (!user) throw new Error('User not found');
 
     const baseExp = EXPERIENCE_REWARDS[action];
-    const multiplier = PREMIUM_MULTIPLIERS[user.planType] || 1.0;
+    const multiplier = (PREMIUM_MULTIPLIERS as any)[user.planType] || 1.0;
     const experience = Math.floor(baseExp * multiplier);
 
     // Update streak if daily activity
@@ -247,7 +247,7 @@ export class GamificationService {
     // Calculate credits earned
     let creditsEarned = 0;
     if (levelUp) {
-      creditsEarned += CREDIT_REWARDS.LEVEL_UP[user.planType] || 0;
+      creditsEarned += (CREDIT_REWARDS.LEVEL_UP as any)[user.planType] || 0;
     }
 
     // Update user
@@ -438,8 +438,8 @@ export class GamificationService {
 
     // Check plan requirement
     const planHierarchy = [PlanType.FREE, PlanType.PRO];
-    const userPlanIndex = planHierarchy.indexOf(user.planType);
-    const requiredPlanIndex = planHierarchy.indexOf(feature.requiredTier);
+    const userPlanIndex = planHierarchy.indexOf(user.planType as any);
+    const requiredPlanIndex = planHierarchy.indexOf(feature.requiredTier as any);
 
     return userPlanIndex >= requiredPlanIndex;
   }

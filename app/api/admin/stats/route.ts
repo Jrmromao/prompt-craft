@@ -9,9 +9,9 @@ export async function GET(request: NextRequest) {
     const errorService = ErrorHandlingService.getInstance();
 
     const [abuseReports, errorStats, userStats] = await Promise.all([
-      prisma.abuseReport.findMany({
+      prisma.voteAbuseDetection.findMany({
         take: 10,
-        orderBy: { createdAt: 'desc' },
+        orderBy: { detectedAt: 'desc' },
         include: { user: { select: { id: true, email: true } } }
       }),
       errorService.getErrorStats(),
@@ -27,9 +27,9 @@ export async function GET(request: NextRequest) {
         recentReports: abuseReports.map(report => ({
           id: report.id,
           userId: report.userId,
-          type: report.type,
+          type: report.abuseType,
           severity: report.severity,
-          timestamp: report.createdAt,
+          timestamp: report.detectedAt,
           details: report.details
         }))
       },

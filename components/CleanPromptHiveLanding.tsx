@@ -165,7 +165,7 @@ const CleanPromptHiveLanding = ({ user }: CleanPromptHiveLandingProps) => {
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
               {user ? (
-                <Link href="/prompts/create" className="bg-purple-600 text-white px-8 py-4 rounded-lg font-semibold hover:bg-purple-700 transition-colors flex items-center gap-2">
+                <Link href="/prompts" className="bg-purple-600 text-white px-8 py-4 rounded-lg font-semibold hover:bg-purple-700 transition-colors flex items-center gap-2">
                   Create Your First Prompt
                   <ArrowRight className="w-5 h-5" />
                 </Link>
@@ -387,10 +387,10 @@ const CleanPromptHiveLanding = ({ user }: CleanPromptHiveLandingProps) => {
             </div>
             
             <div className="flex space-x-6 text-sm text-gray-600 dark:text-gray-400">
-              <Link href="/legal/privacy" className="hover:text-purple-600 dark:hover:text-purple-400">
+              <Link href="/legal/privacy-policy" className="hover:text-purple-600 dark:hover:text-purple-400">
                 Privacy
               </Link>
-              <Link href="/legal/terms" className="hover:text-purple-600 dark:hover:text-purple-400">
+              <Link href="/legal/terms-of-service" className="hover:text-purple-600 dark:hover:text-purple-400">
                 Terms
               </Link>
               <Link href="/support" className="hover:text-purple-600 dark:hover:text-purple-400">

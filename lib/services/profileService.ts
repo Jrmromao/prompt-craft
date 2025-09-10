@@ -107,7 +107,7 @@ export class ProfileService {
         // Cache the user in Redis
         await this.redis.set(cacheKey, user, { ex: this.CACHE_TTL });
       }
-      return user;
+      return user as any;
     } catch (error) {
       console.error(`Error fetching profile for user ${clerkId}:`, error);
       throw new ServiceError('Failed to fetch user profile', 'DATABASE_ERROR');

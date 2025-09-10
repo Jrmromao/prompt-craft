@@ -41,11 +41,11 @@ export function UserSummaryCard({ user }: UserSummaryCardProps) {
 
         <div className="flex gap-4">
           <Button asChild>
-            <Link href="/prompt">Use Prompt</Link>
+            <Link href="/prompts">Use Prompt</Link>
           </Button>
           {(user.plan?.name === 'FREE' || (user.monthlyCredits + user.purchasedCredits) < 10) && (
             <Button variant="outline" asChild>
-              <Link href="/billing">Upgrade Plan</Link>
+              <Link href="/pricing">Upgrade Plan</Link>
             </Button>
           )}
         </div>

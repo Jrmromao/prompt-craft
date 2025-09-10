@@ -208,7 +208,7 @@ export default function PrivacySettingsPage() {
 
       {/* Links */}
       <div className="flex gap-6 mt-4 text-sm">
-        <a href="/privacy-policy" className="text-purple-600 hover:underline">Privacy Policy</a>
+        <a href="/legal/privacy-policy" className="text-purple-600 hover:underline">Privacy Policy</a>
         <a href="/contact" className="text-muted-foreground hover:underline">Contact Support</a>
       </div>
 

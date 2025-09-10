@@ -15,7 +15,7 @@ export function UpgradeBanner() {
           </div>
         </div>
         <Button asChild size="lg">
-          <Link href="/billing">View Plans</Link>
+          <Link href="/pricing">View Plans</Link>
         </Button>
       </div>
     </Card>

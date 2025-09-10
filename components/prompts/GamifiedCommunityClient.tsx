@@ -279,17 +279,35 @@ export default function GamifiedCommunityClient() {
         const challengesResponse = await fetch(`/api/gamification/challenges/${userId}`);
         const challengesData = await challengesResponse.json();
         setChallenges(challengesData);
-      }
 
-      // Load leaderboard
-      const leaderboardResponse = await fetch('/api/community/leaderboards');
-      const leaderboardData = await leaderboardResponse.json();
-      setLeaderboard(leaderboardData.topCreators || []);
+        // Load competitive data
+        const competitiveResponse = await fetch('/api/competitive/leaderboard');
+        const competitiveData = await competitiveResponse.json();
+        setLeaderboard(competitiveData.topCreators || []);
+        
+        // Check for new achievements
+        if (competitiveData.newAchievements?.length > 0) {
+          // Show achievement notification
+          showAchievementNotification(competitiveData.newAchievements);
+        }
+      } else {
+        // Load public leaderboard
+        const leaderboardResponse = await fetch('/api/community/leaderboards');
+        const leaderboardData = await leaderboardResponse.json();
+        setLeaderboard(leaderboardData.topCreators || []);
+      }
     } catch (error) {
       console.error('Error loading data:', error);
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const showAchievementNotification = (newAchievements: Achievement[]) => {
+    // Show toast notification for new achievements
+    newAchievements.forEach(achievement => {
+      console.log(`🎉 Achievement unlocked: ${achievement.name}!`);
+    });
   };
 
   const handleVote = async (promptId: string, value: number) => {
@@ -657,7 +675,7 @@ export default function GamifiedCommunityClient() {
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-3 mb-8">
+          <TabsList className="grid w-full grid-cols-5 mb-8">
             <TabsTrigger value="discover" className="flex items-center space-x-2">
               <Search className="h-4 w-4" />
               <span>Discover</span>
@@ -665,6 +683,14 @@ export default function GamifiedCommunityClient() {
             <TabsTrigger value="leaderboards" className="flex items-center space-x-2">
               <Trophy className="h-4 w-4" />
               <span>Leaderboards</span>
+            </TabsTrigger>
+            <TabsTrigger value="challenges" className="flex items-center space-x-2">
+              <Target className="h-4 w-4" />
+              <span>Challenges</span>
+            </TabsTrigger>
+            <TabsTrigger value="social" className="flex items-center space-x-2">
+              <Users className="h-4 w-4" />
+              <span>Social</span>
             </TabsTrigger>
             {isSignedIn && (
               <TabsTrigger value="dashboard" className="flex items-center space-x-2">
@@ -741,10 +767,236 @@ export default function GamifiedCommunityClient() {
             </div>
           </TabsContent>
 
+          <TabsContent value="challenges" className="space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Active Challenges */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                    <Target className="h-5 w-5 text-red-600" />
+                    <span>Weekly Challenges</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {challenges.map((challenge) => (
+                      <div key={challenge.id} className="border rounded-lg p-4">
+                        <div className="flex justify-between items-start mb-2">
+                          <h3 className="font-medium">{challenge.name}</h3>
+                          <Badge variant={challenge.isPremium ? "default" : "outline"}>
+                            {challenge.difficulty}
+                          </Badge>
+                        </div>
+                        <p className="text-sm text-gray-600 mb-3">{challenge.description}</p>
+                        <div className="flex items-center justify-between mb-3">
+                          <Progress value={(challenge.progress / challenge.maxProgress) * 100} className="flex-1 mr-4" />
+                          <span className="text-sm text-gray-500">
+                            {challenge.progress}/{challenge.maxProgress}
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-2 text-sm text-gray-600">
+                            <Timer className="h-4 w-4" />
+                            <span>Ends {new Date(challenge.endDate).toLocaleDateString()}</span>
+                          </div>
+                          <Button size="sm" disabled={challenge.status === 'completed'}>
+                            {challenge.status === 'completed' ? 'Completed' : 'Join'}
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Challenge Leaderboard */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                    <Medal className="h-5 w-5 text-yellow-600" />
+                    <span>Challenge Champions</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {leaderboard.slice(0, 5).map((user, index) => (
+                      <div key={user.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <div className="flex items-center space-x-3">
+                          <div className={cn(
+                            "w-8 h-8 rounded-full flex items-center justify-center text-white font-bold",
+                            index === 0 ? "bg-gradient-to-r from-yellow-400 to-orange-500" :
+                            index === 1 ? "bg-gradient-to-r from-gray-400 to-gray-600" :
+                            index === 2 ? "bg-gradient-to-r from-amber-600 to-amber-800" :
+                            "bg-gray-400"
+                          )}>
+                            {index + 1}
+                          </div>
+                          <Avatar className="h-8 w-8">
+                            <AvatarImage src={user.imageUrl} />
+                            <AvatarFallback>{user.name?.[0] || 'U'}</AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <p className="font-medium">{user.name}</p>
+                            <p className="text-sm text-gray-600">Level {user.level}</p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-bold text-purple-600">{user.totalCreditsEarned?.toLocaleString() || 0}</p>
+                          <p className="text-xs text-gray-500">points</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="social" className="space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Following Feed */}
+              <div className="lg:col-span-2">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center space-x-2">
+                      <Users className="h-5 w-5 text-blue-600" />
+                      <span>Following Feed</span>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {isSignedIn ? (
+                      <div className="space-y-4">
+                        <p className="text-gray-600 text-center py-8">
+                          Follow creators to see their latest prompts here!
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="text-center py-8">
+                        <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                        <p className="text-gray-600 mb-4">Sign in to follow creators and see their updates</p>
+                        <Button>Sign In</Button>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Suggested Users */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                    <Star className="h-5 w-5 text-yellow-600" />
+                    <span>Suggested Creators</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {leaderboard.slice(0, 5).map((user) => (
+                      <div key={user.id} className="flex items-center justify-between">
+                        <div className="flex items-center space-x-3">
+                          <Avatar className="h-10 w-10">
+                            <AvatarImage src={user.imageUrl} />
+                            <AvatarFallback>{user.name?.[0] || 'U'}</AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <p className="font-medium">{user.name}</p>
+                            <p className="text-sm text-gray-600">Level {user.level}</p>
+                          </div>
+                        </div>
+                        <Button size="sm" variant="outline">
+                          Follow
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
           <TabsContent value="leaderboards" className="space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {renderLeaderboard()}
-              {/* Add more leaderboard types */}
+              {/* Top Creators */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                    <Crown className="h-5 w-5 text-yellow-600" />
+                    <span>Top Creators</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {leaderboard.slice(0, 10).map((user, index) => (
+                      <div key={user.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <div className="flex items-center space-x-3">
+                          <div className={cn(
+                            "w-8 h-8 rounded-full flex items-center justify-center text-white font-bold",
+                            index === 0 ? "bg-gradient-to-r from-yellow-400 to-orange-500" :
+                            index === 1 ? "bg-gradient-to-r from-gray-400 to-gray-600" :
+                            index === 2 ? "bg-gradient-to-r from-amber-600 to-amber-800" :
+                            "bg-gray-400"
+                          )}>
+                            {index + 1}
+                          </div>
+                          <Avatar className="h-8 w-8">
+                            <AvatarImage src={user.imageUrl} />
+                            <AvatarFallback>{user.name?.[0] || 'U'}</AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <p className="font-medium">{user.name}</p>
+                            <p className="text-sm text-gray-600">Level {user.level}</p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-bold text-purple-600">{(user.totalCreditsEarned || 0).toLocaleString()}</p>
+                          <p className="text-xs text-gray-500">credits</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Top Voters */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                    <ThumbsUp className="h-5 w-5 text-blue-600" />
+                    <span>Top Voters</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {leaderboard.slice(0, 10).map((user, index) => (
+                      <div key={`voter-${user.id}`} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <div className="flex items-center space-x-3">
+                          <div className={cn(
+                            "w-8 h-8 rounded-full flex items-center justify-center text-white font-bold",
+                            index === 0 ? "bg-gradient-to-r from-blue-400 to-blue-600" :
+                            index === 1 ? "bg-gradient-to-r from-green-400 to-green-600" :
+                            index === 2 ? "bg-gradient-to-r from-purple-400 to-purple-600" :
+                            "bg-gray-400"
+                          )}>
+                            {index + 1}
+                          </div>
+                          <Avatar className="h-8 w-8">
+                            <AvatarImage src={user.imageUrl} />
+                            <AvatarFallback>{user.name?.[0] || 'U'}</AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <p className="font-medium">{user.name}</p>
+                            <p className="text-sm text-gray-600">Community Helper</p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-bold text-blue-600">{Math.floor(Math.random() * 500) + 100}</p>
+                          <p className="text-xs text-gray-500">votes</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
             </div>
           </TabsContent>
 

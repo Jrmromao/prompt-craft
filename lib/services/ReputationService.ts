@@ -49,9 +49,14 @@ export class ReputationService {
   }
 
   private async getViolationCount(userId: string): Promise<number> {
-    return await prisma.abuseReport.count({
-      where: { userId, status: 'confirmed' }
-    });
+    try {
+      return await prisma.voteAbuseDetection.count({
+        where: { userId, status: 'CONFIRMED' }
+      });
+    } catch (error) {
+      // If table doesn't exist or other error, return 0
+      return 0;
+    }
   }
 
   private getLevel(score: number): 'bronze' | 'silver' | 'gold' | 'platinum' {
@@ -67,8 +72,7 @@ export class ReputationService {
     await prisma.user.update({
       where: { id: userId },
       data: { 
-        reputation: reputation.score,
-        reputationLevel: reputation.level
+        reputation: reputation.score
       }
     });
 

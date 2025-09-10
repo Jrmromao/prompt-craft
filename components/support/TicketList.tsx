@@ -122,7 +122,7 @@ export function TicketList() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold">Support Tickets</h2>
-        <Link href="/support/new">
+        <Link href="/support">
           <Button>
             <Plus className="mr-2 h-4 w-4" />
             New Ticket

@@ -39,10 +39,10 @@ export function Footer() {
               Support
             </Link>
             <span className="text-muted-foreground">|</span>
-            <Link href="/legal/terms" className="hover:underline">
+            <Link href="/legal/terms-of-service" className="hover:underline">
               Terms of Service
             </Link>
-            <Link href="/legal/privacy" className="hover:underline">
+            <Link href="/legal/privacy-policy" className="hover:underline">
               Privacy Policy
             </Link>
           </div>
