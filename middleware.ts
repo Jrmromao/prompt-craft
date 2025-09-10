@@ -3,17 +3,6 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { quotaMiddleware } from './middleware/quota';
 import { rateLimitMiddleware } from './middleware/rate-limit';
-import type { ClerkMiddlewareAuth } from '@clerk/nextjs/server';
-import { clerkClient } from '@clerk/nextjs/server'; 
-
-// Define types for session claims
-type PrivateMetadata = {
-  databaseId?: string;
-};
-
-type PublicMetadata = {
-  role?: string;
-};
 
 // Define routes that don't require authentication
 const PUBLIC_ROUTES = [
@@ -156,24 +145,11 @@ async function securityMiddleware(request: NextRequest) {
 
 const isAdminRoute = createRouteMatcher(['/admin', '/admin/users', '/admin/analytics', '/admin/settings']);
 
-const roleBasedRoutes = {
-  '/admin': ['ADMIN', 'SUPER_ADMIN'],
-  '/admin/users': ['ADMIN', 'SUPER_ADMIN'],
-  '/admin/analytics': ['ADMIN', 'SUPER_ADMIN'],
-  '/admin/settings': ['SUPER_ADMIN'],
-};
-
 export default clerkMiddleware(async (auth, req: NextRequest) => {
   const { userId } = await auth();
   const { pathname } = req.nextUrl;
   
   console.log(`🔍 Middleware: ${pathname}, userId: ${userId ? 'authenticated' : 'not authenticated'}`);
-
-  // Apply security middleware first
-  const securityResponse = await securityMiddleware(req);
-  if (securityResponse && securityResponse.status !== 200) {
-    return securityResponse;
-  }
 
   // Check if route is public
   if (isPublicRoute(req)) {
@@ -215,8 +191,8 @@ export default clerkMiddleware(async (auth, req: NextRequest) => {
 
   // Handle role-based access for admin routes
   if (pathname.startsWith('/admin')) {
-    const session = await auth();
-    const userRole = session.sessionClaims?.publicMetadata?.role as string;
+    const authResult = await auth();
+    const userRole = (authResult.sessionClaims?.publicMetadata as any)?.role as string;
     const allowedRoles = ['ADMIN', 'SUPER_ADMIN'];
     
     if (!allowedRoles.includes(userRole)) {
