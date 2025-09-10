@@ -44,7 +44,9 @@ export const PLANS: Record<PlanType, Plan> = {
     features: [
       { name: 'Credits', description: '100 credits/month (resets monthly)' },
       { name: 'Private Prompts', description: 'Up to 3 private prompts' },
-      { name: 'Public Prompts', description: 'Create public prompts' },
+      { name: 'Public Prompts', description: 'Create unlimited public prompts' },
+      { name: 'Basic Testing', description: 'Basic prompt testing' },
+      { name: 'Community Support', description: 'Community support' },
     ],
     limits: {
       promptRuns: 100,
@@ -67,13 +69,17 @@ export const PLANS: Record<PlanType, Plan> = {
     name: 'Pro',
     description: 'For professionals and creators',
     price: {
-      monthly: 19,
-      annual: 180 // $15/month when billed annually (21% savings)
+      monthly: 15.99,
+      annual: 163.90 // ~$13.66/month when billed annually (15% savings)
     },
     features: [
       { name: 'Credits', description: '500 credits/month (resets monthly)' },
       { name: 'Private Prompts', description: 'Up to 20 private prompts' },
+      { name: 'Public Prompts', description: 'Create unlimited public prompts' },
       { name: 'Version Control', description: 'Prompt version control' },
+      { name: 'Advanced Testing', description: 'Advanced prompt testing' },
+      { name: 'Analytics', description: 'Advanced analytics' },
+      { name: 'Premium Models', description: 'Access to premium AI models' },
       { name: 'Priority Support', description: 'Priority support' },
     ],
     limits: {

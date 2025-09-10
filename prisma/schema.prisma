@@ -968,8 +968,6 @@ enum Role {
 enum PlanType {
   FREE
   PRO
-  ELITE
-  ENTERPRISE
 }
 
 enum Period {

@@ -30,46 +30,25 @@ function renderFeature(feature: string, isPostMVP: boolean, index: number) {
 // 1. Define core features for each plan (lean, conversion-focused)
 const coreFeatures = {
   FREE: [
-    '100 credits/month (resets monthly, does not accumulate)',
+    '100 credits/month (resets monthly)',
     'Buy extra credits (never expire)',
     'Earn credits from upvotes (never expire)',
-    {
-      label: 'Up to 3 private prompts',
-      note: 'If your prompts are large, your monthly credits may not cover all 3.'
-    },
-    'Create public prompts',
-    'No version control',
-    'Run prompt tests until credits are used',
+    'Up to 3 private prompts',
+    'Create unlimited public prompts',
+    'Basic prompt testing',
+    'Community support',
   ],
   PRO: [
-    '500 credits/month (resets monthly, does not accumulate)',
-    'Buy extra credits at a lower rate (never expire)',
+    '500 credits/month (resets monthly)',
+    'Buy extra credits at discounted rate (never expire)',
     'Earn bonus credits from upvotes (never expire)',
-    {
-      label: 'Up to 20 private prompts',
-      note: 'More room for your best ideas—credit usage still applies.'
-    },
-    'Unlimited public prompts',
+    'Up to 20 private prompts',
+    'Create unlimited public prompts',
+    'Advanced prompt testing',
     'Prompt version control',
     'Advanced analytics',
     'Priority support',
-    'Run prompt tests until credits are used',
-  ],
-  ELITE: [
-    'Unlimited credits (no monthly cap)',
-    'Unlimited private prompts',
-    'Unlimited public prompts',
-    'Unlimited prompt tests',
     'Access to premium AI models',
-    'Custom templates',
-    'Advanced prompt version control',
-    'Early access to new features',
-    'Priority support',
-    'Dedicated onboarding session',
-    'SLA guarantee',
-    'Max credit rewards for community engagement',
-    'Exclusive community badge',
-    'Advanced analytics & reporting',
   ],
 };
 
@@ -135,11 +114,11 @@ export default function PricingSection() {
             <div
               key={plan.name}
               className={cn(
-                "relative rounded-2xl p-8 border transition-all duration-300 h-full flex flex-col",
+                "relative rounded-2xl p-8 border transition-all duration-300 h-full flex flex-col shadow-lg hover:shadow-xl",
                 plan.isEnterprise
                   ? "border-purple-500 bg-purple-50 dark:bg-purple-950/20"
-                  : "border-gray-200 dark:border-gray-800 hover:border-purple-500 dark:hover:border-purple-500",
-                plan.popular && "ring-2 ring-purple-500"
+                  : "border-gray-200 dark:border-gray-800 hover:border-purple-500 dark:hover:border-purple-500 bg-white/80 backdrop-blur-sm dark:bg-gray-900/80",
+                plan.popular && "ring-2 ring-purple-500 scale-105"
               )}
             >
               {plan.popular && (
@@ -176,47 +155,19 @@ export default function PricingSection() {
                 </div>
               </div>
               <ul className="space-y-4 mb-8 flex-grow">
-                {plan.features.map((feature, index) => {
-                  if (typeof feature === 'string') {
-                    return (
-                      <li key={index} className="flex items-center gap-3">
-                        <Check className="h-5 w-5 text-green-500 flex-shrink-0" />
-                        <span>{feature}</span>
-                      </li>
-                    );
-                  }
-                  // For features with a note (object)
-                  return (
-                    <li key={index} className="flex items-center gap-3">
-                      <Check className="h-5 w-5 text-green-500 flex-shrink-0" />
-                      <span>
-                        {feature.label}
-                        <span
-                          className="ml-2 text-gray-400 cursor-help underline decoration-dashed decoration-2 underline-offset-2"
-                          title={feature.note}
-                        >
-                          (i)
-                        </span>
-                      </span>
-                    </li>
-                  );
-                })}
-                {/* Show a tooltip or note for post-MVP features */}
-                {plan.name === 'ELITE' && (
-                  <li className="flex items-center gap-3 mt-2">
-                    <Check className="h-5 w-5 text-gray-400 flex-shrink-0" />
-                    <span className="text-gray-500 cursor-help underline decoration-dashed decoration-2 underline-offset-2" title={postMVPFeatures.join(', ')}>
-                      + More features coming soon
-                    </span>
+                {plan.features.map((feature, index) => (
+                  <li key={index} className="flex items-center gap-3">
+                    <Check className="h-5 w-5 text-green-500 flex-shrink-0" />
+                    <span>{feature}</span>
                   </li>
-                )}
+                ))}
               </ul>
               <button
                 className={cn(
-                  "w-full py-3 px-6 rounded-lg font-semibold transition-all duration-300 mt-auto",
+                  "w-full py-3 px-6 rounded-xl font-semibold transition-all duration-300 mt-auto shadow-lg hover:shadow-xl transform hover:scale-105",
                   plan.name === 'FREE'
                     ? "bg-white text-purple-600 border-2 border-purple-600 hover:bg-purple-50 dark:bg-black dark:hover:bg-purple-950/20"
-                    : "bg-purple-600 text-white hover:bg-purple-700"
+                    : "bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700"
                 )}
               >
                 {plan.cta}

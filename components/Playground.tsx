@@ -8,7 +8,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Loader2, Copy, Check, AlertCircle, Play, History, Settings } from 'lucide-react';
 import { toast } from 'sonner';
-import { cn } from '@/lib/utils';
+import { CREDIT_COSTS, calculateCreditCost } from '@/app/constants/creditCosts';
+import { PLAN_LIMITS } from '@/app/constants/planLimits';
 
 interface PlaygroundProps {
   initialPrompt?: string;
@@ -42,6 +43,7 @@ export default function Playground({
   const [copied, setCopied] = useState(false);
   const [activeTab, setActiveTab] = useState('prompt');
   const [isPaidUser, setIsPaidUser] = useState(false);
+  const [creditCost, setCreditCost] = useState(0);
 
   useEffect(() => {
     async function fetchUsage() {
@@ -52,14 +54,15 @@ export default function Playground({
         setUsage(data);
         // Check if user is on a paid plan
         setIsPaidUser(data.planType !== 'FREE');
+        
+        // Calculate credit cost for playground run
+        const cost = calculateCreditCost('PLAYGROUND_RUN', data.planType);
+        setCreditCost(cost);
+        
         // Check if user has exceeded their limit
-        const TIER_LIMITS: Record<string, number | null> = {
-          FREE: 20,
-          LITE: 300,
-          PRO: null, // unlimited
-        };
-        const limit = TIER_LIMITS[data.planType];
-        setIsOverLimit(limit !== null && data.playgroundRunsThisMonth >= limit);
+        const limits = PLAN_LIMITS[data.planType as keyof typeof PLAN_LIMITS];
+        const monthlyLimit = limits.playgroundRuns;
+        setIsOverLimit(monthlyLimit !== -1 && data.playgroundRunsThisMonth >= monthlyLimit);
       } catch (e) {
         console.error('Error fetching usage:', e);
       }
@@ -161,10 +164,15 @@ export default function Playground({
   };
 
   return (
-    <Card className={cn('w-full', className)}>
+    <Card className={cn('w-full border-0 shadow-xl bg-white/80 backdrop-blur-sm dark:bg-gray-900/80', className)}>
       <CardHeader className={cn('pb-2', !showTitle && 'hidden')}>
         <div className="flex items-center justify-between gap-x-3">
-          <CardTitle className="text-xl">Prompt Playground</CardTitle>
+          <CardTitle className="text-xl flex items-center gap-2">
+            <div className="p-2 rounded-lg bg-gradient-to-r from-purple-100 to-pink-100 dark:from-purple-900 dark:to-pink-900">
+              <Play className="h-5 w-5 text-purple-600" />
+            </div>
+            Prompt Playground
+          </CardTitle>
           {usage && (
             <Badge variant={usage.planType === 'PRO' ? 'default' : 'secondary'}>
               {usage.planType} Plan
@@ -233,7 +241,7 @@ export default function Playground({
                   </div>
 
                   <Button
-                    className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700"
+                    className="w-full h-12 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
                     onClick={runPrompt}
                     disabled={loading || !prompt.trim() || disabled || isOverLimit}
                   >
@@ -247,7 +255,7 @@ export default function Playground({
                     ) : (
                       <>
                         <Play className="mr-2 h-4 w-4" />
-                        Run Prompt
+                        Run Prompt ({creditCost} credits)
                       </>
                     )}
                   </Button>
