@@ -115,8 +115,6 @@ export class AIService {
       throw new ServiceError('Failed to generate text', 'AI_GENERATION_FAILED', 500);
     }
   }
-    }
-  }
 
   public async runPrompt(options: RunPromptOptions): Promise<{ text: string; tokensUsed: number; creditsDeducted: number }> {
     if (!options.userId) {
