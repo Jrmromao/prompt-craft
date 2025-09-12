@@ -2,6 +2,13 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { auth } from '@clerk/nextjs/server';
 import { CreditService } from '@/lib/services/creditService';
+import { Ratelimit } from '@upstash/ratelimit';
+import { Redis } from '@upstash/redis';
+
+const ratelimit = new Ratelimit({
+  redis: Redis.fromEnv(),
+  limiter: Ratelimit.slidingWindow(10, '1 m'),
+});
 
 export async function GET() {
   try {
@@ -9,8 +16,17 @@ export async function GET() {
 
     if (!userId) {
       return NextResponse.json(
-        { error: 'Unauthorized' },
+        { success: false, error: 'Unauthorized' },
         { status: 401 }
+      );
+    }
+
+    // Rate limiting
+    const { success } = await ratelimit.limit(userId);
+    if (!success) {
+      return NextResponse.json(
+        { success: false, error: 'Rate limit exceeded' },
+        { status: 429 }
       );
     }
 

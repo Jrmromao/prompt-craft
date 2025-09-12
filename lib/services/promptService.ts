@@ -2,6 +2,7 @@ import { prisma } from '@/lib/prisma';
 import { Role, PlanType } from '@/utils/constants';
 import { Prisma, Prompt as PrismaPrompt } from '@prisma/client';
 import { AIService } from '@/lib/services/aiService';
+import { ServiceError } from './types';
 
 // Use Prisma's generated type instead of custom interface
 type Prompt = Omit<PrismaPrompt, 'createdAt' | 'updatedAt' | 'lastUsedAt' | 'lastViewedAt'> & {

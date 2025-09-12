@@ -74,14 +74,12 @@ export async function POST(request: NextRequest) {
       });
 
       // Log the transaction
-      await tx.creditTransaction.create({
+      await tx.creditHistory.create({
         data: {
           userId: authResult.user.id,
           amount: -amount,
-          type: 'DEDUCTION',
-          reason,
-          metadata: metadata ? JSON.stringify(metadata) : null,
-          balanceAfter: updatedUser.monthlyCredits + updatedUser.purchasedCredits,
+          type: 'USAGE',
+          description: reason,
         }
       });
 
@@ -94,11 +92,13 @@ export async function POST(request: NextRequest) {
     });
 
     // Audit log
-    await AuditService.getInstance().logAction(
-      authResult.user.id,
-      AuditAction.CREDIT_DEDUCTION,
-      { amount, reason, metadata }
-    );
+    await AuditService.getInstance().logAudit({
+      userId: authResult.user.id,
+      action: AuditAction.CREDITS_DEDUCTED,
+      resource: 'credits',
+      details: { amount, reason, metadata },
+      status: 'success'
+    });
 
     return NextResponse.json({
       success: true,

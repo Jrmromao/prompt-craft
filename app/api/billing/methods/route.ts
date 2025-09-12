@@ -6,7 +6,7 @@ import { AuditService } from '@/lib/services/auditService';
 import { AuditAction } from '@/app/constants/audit';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2025-05-28.basil',
+  apiVersion: '2025-08-27.basil',
 });
 
 export async function GET(req: NextRequest) {

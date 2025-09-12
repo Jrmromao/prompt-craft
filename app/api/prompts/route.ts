@@ -19,7 +19,7 @@ export const GET = withPlanLimitsMiddleware(
     try {
       const { userId } = await auth();
       if (!userId) {
-        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
       }
 
       const prompts = await prisma.prompt.findMany({
@@ -27,11 +27,11 @@ export const GET = withPlanLimitsMiddleware(
         orderBy: { createdAt: 'desc' }
       });
 
-      return NextResponse.json(prompts);
+      return NextResponse.json({ success: true, data: prompts });
     } catch (error) {
       console.error('Error fetching prompts:', error);
       return NextResponse.json(
-        { error: 'Failed to fetch prompts' },
+        { success: false, error: 'Failed to fetch prompts' },
         { status: 500 }
       );
     }
@@ -44,7 +44,7 @@ export const POST = withPlanLimitsMiddleware(
     try {
       const { userId } = await auth();
       if (!userId) {
-        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
       }
 
       const body = await req.json();

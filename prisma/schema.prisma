@@ -121,6 +121,7 @@ model User {
   activityLogs              ActivityLog[]
   streakLogs                StreakLog[]
   levelProgressions         LevelProgression[]
+  webVitals                 WebVital[]
 
   @@index([clerkId])
   @@index([email])
@@ -276,6 +277,9 @@ model Prompt {
   @@index([difficultyLevel])
   @@index([isPremium])
   @@index([premiumTier])
+  @@index([isPublic, isFeatured])
+  @@index([userId, createdAt])
+  @@index([isPublic, createdAt])
 }
 
 model Tag {
@@ -428,6 +432,8 @@ model Comment {
   @@index([parentId])
   @@index([hidden])
   @@index([createdAt])
+  @@index([userId, createdAt])
+  @@index([promptId, createdAt])
 }
 
 model CommentLike {
@@ -1532,8 +1538,28 @@ enum ActivityType {
 }
 
 enum PremiumTier {
-  BASIC
-  PREMIUM
-  ELITE
-  EXCLUSIVE
+  FREE
+  PRO
+}
+
+model WebVital {
+  id        String   @id @default(cuid())
+  userId    String?
+  sessionId String?
+  name      String
+  value     Float
+  rating    String
+  delta     Float
+  metricId  String
+  url       String
+  userAgent String
+  timestamp DateTime
+  createdAt DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([name])
+  @@index([timestamp])
+  @@index([rating])
 }

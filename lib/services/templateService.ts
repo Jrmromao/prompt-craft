@@ -8,6 +8,17 @@ export interface TemplateFilters {
 }
 
 export class TemplateService {
+  private static instance: TemplateService;
+
+  private constructor() {}
+
+  public static getInstance(): TemplateService {
+    if (!TemplateService.instance) {
+      TemplateService.instance = new TemplateService();
+    }
+    return TemplateService.instance;
+  }
+
   async getTemplates(filters: TemplateFilters = {}) {
     const params = new URLSearchParams();
     if (filters.type) params.append('type', filters.type);

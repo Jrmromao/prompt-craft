@@ -11,7 +11,7 @@ const searchSchema = z.object({
 
 export async function GET(request: NextRequest) {
   try {
-    const { userId } = auth();
+    const { userId } = await auth();
     const { searchParams } = new URL(request.url);
     
     const { q, type, limit } = searchSchema.parse({
@@ -25,19 +25,21 @@ export async function GET(request: NextRequest) {
       type === 'all' || type === 'prompts' ? prisma.prompt.findMany({
         where: {
           OR: [
-            { title: { contains: q, mode: 'insensitive' } },
+            { name: { contains: q, mode: 'insensitive' } },
             { description: { contains: q, mode: 'insensitive' } },
             { content: { contains: q, mode: 'insensitive' } },
-            { tags: { hasSome: [q] } },
+            { tags: { some: { name: { contains: q, mode: 'insensitive' } } } },
           ],
           isPublic: true,
         },
         select: {
           id: true,
-          title: true,
+          name: true,
           description: true,
-          tags: true,
           createdAt: true,
+          usageCount: true,
+          upvotes: true,
+          downvotes: true,
           user: {
             select: {
               id: true,
@@ -45,16 +47,21 @@ export async function GET(request: NextRequest) {
               imageUrl: true,
             },
           },
+          tags: {
+            select: {
+              name: true,
+            },
+          },
           _count: {
             select: {
-              likes: true,
-              uses: true,
+              votes: true,
+              usages: true,
             },
           },
         },
         take: Math.floor(limit / (type === 'all' ? 2 : 1)),
         orderBy: [
-          { likes: { _count: 'desc' } },
+          { upvotes: 'desc' },
           { createdAt: 'desc' },
         ],
       }) : [],
@@ -93,12 +100,13 @@ export async function GET(request: NextRequest) {
       prompts: prompts.map(prompt => ({
         ...prompt,
         type: 'prompt' as const,
-        relevance: calculateRelevance(q, prompt.title, prompt.description),
+        relevance: calculateRelevance(q, prompt.name, prompt.description || ''),
+        tags: prompt.tags.map(tag => tag.name),
       })),
       users: users.map(user => ({
         ...user,
         type: 'user' as const,
-        relevance: calculateRelevance(q, user.name, user.email),
+        relevance: calculateRelevance(q, user.name || '', user.email),
       })),
       total: prompts.length + users.length,
     };

@@ -32,4 +32,4 @@ export const CREDIT_PACKAGES: CreditPackage[] = [
 
 export const CREDIT_PURCHASE_METADATA = 'credit_purchase' as const;
 
-export const STRIPE_API_VERSION = '2025-05-28.basil' as const; 
+export const STRIPE_API_VERSION = '2025-08-27.basil' as const; 

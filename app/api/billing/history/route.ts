@@ -4,9 +4,10 @@ import { prisma } from '@/lib/prisma';
 import Stripe from 'stripe';
 import { AuditService } from '@/lib/services/auditService';
 import { AuditAction } from '@/app/constants/audit';
+import { STRIPE_API_VERSION } from '@/app/constants/credits';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2025-05-28.basil',
+  apiVersion: STRIPE_API_VERSION as Stripe.LatestApiVersion,
 });
 
 export async function GET(req: NextRequest) {

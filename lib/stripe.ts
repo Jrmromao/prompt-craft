@@ -9,7 +9,7 @@ if (!secretKey) {
 }
 
 export const stripe = new Stripe(secretKey, {
-  apiVersion: '2025-05-28.basil', // Use the latest API version
+  apiVersion: '2025-08-27.basil', // Use the latest API version
   appInfo: {
     name: 'FonoSaaS',
   },

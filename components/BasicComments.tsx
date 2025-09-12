@@ -184,7 +184,7 @@ export function BasicComments({ promptId, initialComments = [], initialCommentCo
       createdAt: new Date().toISOString(),
       user: {
         name: [user.firstName, user.lastName].filter(Boolean).join(' ') || user.username || 'You',
-        imageUrl: user.imageUrl,
+        imageUrl: user.imageUrl || null,
       },
     };
 
