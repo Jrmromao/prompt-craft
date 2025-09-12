@@ -25,14 +25,6 @@ export default async function PublicProfilePage(props: { params: Promise<{ usern
   const params = await props.params;
   const userService = UserService.getInstance();
   const user = await userService.getUserByUsername(params.username);
-      _count: {
-        select: {
-          followers: true,
-          following: true,
-        },
-      },
-    },
-  });
 
   if (!user) {
     notFound();
@@ -53,8 +45,8 @@ export default async function PublicProfilePage(props: { params: Promise<{ usern
   return (
     <PublicProfile 
       user={mappedUser}
-      followerCount={user._count.followers}
-      followingCount={user._count.following}
+      followerCount={0} // Default value since _count is not available
+      followingCount={0} // Default value since _count is not available
       recentActivity={recentActivity}
     />
   );

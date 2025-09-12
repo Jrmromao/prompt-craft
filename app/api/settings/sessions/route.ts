@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { auth, clerkClient } from '@clerk/nextjs/server';
 import { AuditAction } from '@/app/constants/audit';
 import { AuditService } from '@/lib/services/auditService';
-import { UserService } from '@/lib/services/userService';
+import { UserService } from '@/lib/services/UserService';
 import { getDatabaseIdFromClerk } from '@/lib/utils/auth';
 
 // Prevent static generation of this route

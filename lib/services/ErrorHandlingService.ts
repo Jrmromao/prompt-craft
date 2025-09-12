@@ -25,14 +25,13 @@ export class ErrorHandlingService {
     
     try {
       // Use Prisma's safe query methods instead of raw SQL
-      await prisma.errorLog.create({
+      await prisma.error.create({
         data: {
           userId,
-          error: error.message,
-          stack: error.stack || '',
-          context: JSON.stringify(context),
-          severity,
-          timestamp: new Date(),
+          type: error.name || 'UnknownError',
+          message: error.message,
+          stack: error.stack || null,
+          metadata: JSON.stringify({ context, severity }),
         },
       });
     } catch (logError) {

@@ -29,7 +29,7 @@
     "build": "next build",
     "start": "next start",
     "format": "prettier --write .",
-    "prepare": "husky install",
+    "prepare": "husky",
     "prisma:generate": "npx prisma generate",
     "prisma:push": "npx prisma db push",
     "prisma:studio": "prisma studio",

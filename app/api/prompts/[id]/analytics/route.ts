@@ -4,7 +4,7 @@ import { AnalyticsService } from '@/lib/services/analyticsService';
 import { AnalyticsTrackingService } from '@/lib/services/analyticsTrackingService';
 import { PromptService } from '@/lib/services/promptService';
 import { prisma } from '@/lib/prisma';
-import { UserService } from '@/lib/services/userService';
+import { UserService } from '@/lib/services/UserService';
 
 // Use environment variable for API base URL, fallback to localhost
 const API_BASE_URL = process.env.API_BASE_URL || 'http://localhost:3000';

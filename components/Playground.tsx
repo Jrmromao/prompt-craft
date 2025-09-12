@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Loader2, Copy, Check, AlertCircle, Play, History, Settings } from 'lucide-react';
 import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { CREDIT_COSTS, calculateCreditCost } from '@/app/constants/creditCosts';
 import { PLAN_LIMITS } from '@/app/constants/planLimits';

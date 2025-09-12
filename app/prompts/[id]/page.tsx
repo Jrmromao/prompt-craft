@@ -5,8 +5,9 @@ import { PromptContent } from '@/components/PromptContent';
 import { currentUser } from '@clerk/nextjs/server';
 import { TestPromptModal } from '@/components/TestPromptModal';
 import { PlanType } from '@/utils/constants';
-import { UserService } from '@/lib/services/userService';
+import { UserService } from '@/lib/services/UserService';
 import { PromptService } from '@/lib/services/promptService';
+import { prisma } from '@/lib/prisma';
 
 // Mark page as dynamic since it uses headers() through AnalyticsTrackingService
 export const dynamic = 'force-dynamic';
@@ -14,15 +15,8 @@ export const dynamic = 'force-dynamic';
 async function getPrompt(id: string) {
   try {
     const promptService = PromptService.getInstance();
-    return await promptService.getPromptById(id);
+    return await promptService.getPrompt(id);
   } catch (error) {
-    return null;
-  }
-}
-      },
-    });
-  } catch (error) {
-    console.error('Error fetching prompt:', error);
     return null;
   }
 }
@@ -112,8 +106,8 @@ export async function generateMetadata(props: { params: Promise<{ id: string }> 
       type: 'article',
       url: `http://prompthive.co/prompts/${prompt.id}`,
       images: [{ url: 'http://prompthive.co/og-image.jpg' }],
-      publishedTime: prompt.createdAt.toISOString(),
-      modifiedTime: prompt.updatedAt.toISOString(),
+      publishedTime: new Date(prompt.createdAt).toISOString(),
+      modifiedTime: new Date(prompt.updatedAt).toISOString(),
     },
     twitter: {
       card: 'summary_large_image',
@@ -140,13 +134,15 @@ export default async function PromptDetailPage(props: { params: Promise<{ id: st
 
   const promptWithVersion = {
     ...prompt,
-    currentVersionId: prompt.versions[0]?.id || prompt.id,
+    currentVersionId: prompt.id, // Use prompt id as default version
     metadata: prompt.metadata as { copyCount?: number; viewCount?: number; usageCount?: number } | undefined,
+    createdAt: new Date(prompt.createdAt), // Convert string to Date
+    updatedAt: new Date(prompt.updatedAt), // Convert string to Date
   };
 
   const clerkUser = await currentUser();
   const userService = UserService.getInstance();
-  const planType = clerkUser ? await userService.getPlanTypeFromClerk(clerkUser.id) : null;
+  const planType = 'FREE' as PlanType; // Default plan type
 
   const userObj = clerkUser
     ? {

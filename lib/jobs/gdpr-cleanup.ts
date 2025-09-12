@@ -1,5 +1,6 @@
 import { GDPRService } from '@/lib/services/GDPRService';
 import { AuditService } from '@/lib/services/auditService';
+import { AuditAction } from '@/app/constants/audit';
 
 export class GDPRCleanupJob {
   private static instance: GDPRCleanupJob;
@@ -26,7 +27,7 @@ export class GDPRCleanupJob {
       
       await this.auditService.logAudit({
         userId: 'system',
-        action: 'GDPR_CLEANUP_COMPLETED',
+        action: AuditAction.GDPR_CLEANUP_COMPLETED,
         resource: 'system',
         details: JSON.stringify({
           timestamp: new Date().toISOString(),
@@ -40,7 +41,7 @@ export class GDPRCleanupJob {
       
       await this.auditService.logAudit({
         userId: 'system',
-        action: 'GDPR_CLEANUP_FAILED',
+        action: AuditAction.GDPR_CLEANUP_FAILED,
         resource: 'system',
         details: JSON.stringify({
           error: error instanceof Error ? error.message : 'Unknown error',

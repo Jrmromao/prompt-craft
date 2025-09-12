@@ -55,7 +55,7 @@ export function PublicNavBar() {
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                     <Avatar className="h-8 w-8">
-                      <AvatarImage src={user?.imageUrl} alt={user?.firstName || 'User'} />
+                      <AvatarImage src={user?.imageUrl || undefined} alt={user?.firstName || 'User'} />
                       <AvatarFallback>{userInitials}</AvatarFallback>
                     </Avatar>
                   </Button>
@@ -67,7 +67,7 @@ export function PublicNavBar() {
                         {user?.firstName} {user?.lastName}
                       </p>
                       <p className="text-xs leading-none text-muted-foreground">
-                        {user?.emailAddresses?.[0]?.emailAddress}
+                        No email
                       </p>
                     </div>
                   </DropdownMenuLabel>

@@ -1,8 +1,9 @@
 import { prisma } from '@/lib/prisma';
 import { ServiceError } from './types';
+import { AuditAction } from '@/app/constants/audit';
 
 interface SecurityEvent {
-  type: 'FAILED_LOGIN' | 'SUSPICIOUS_ACTIVITY' | 'RATE_LIMIT_EXCEEDED' | 'UNAUTHORIZED_ACCESS';
+  type: AuditAction.FAILED_LOGIN | AuditAction.SUSPICIOUS_ACTIVITY | AuditAction.RATE_LIMIT_EXCEEDED | AuditAction.UNAUTHORIZED_ACCESS;
   userId?: string;
   ipAddress: string;
   userAgent: string;
@@ -28,6 +29,7 @@ export class SecurityAuditService {
         data: {
           userId: event.userId,
           action: event.type,
+          resource: 'security',
           details: JSON.stringify({
             ipAddress: event.ipAddress,
             userAgent: event.userAgent,
@@ -65,7 +67,12 @@ export class SecurityAuditService {
       const differentIPs = new Set(
         recentEvents.map(e => {
           try {
-            return JSON.parse(e.details).ipAddress;
+            if (typeof e.details === 'string') {
+              return JSON.parse(e.details).ipAddress;
+            } else if (e.details && typeof e.details === 'object') {
+              return (e.details as any).ipAddress;
+            }
+            return null;
           } catch {
             return null;
           }
@@ -101,7 +108,12 @@ export class SecurityAuditService {
 
       const criticalEvents = events.filter(e => {
         try {
-          return JSON.parse(e.details).severity === 'CRITICAL';
+          if (typeof e.details === 'string') {
+            return JSON.parse(e.details).severity === 'CRITICAL';
+          } else if (e.details && typeof e.details === 'object') {
+            return (e.details as any).severity === 'CRITICAL';
+          }
+          return false;
         } catch {
           return false;
         }

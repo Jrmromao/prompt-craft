@@ -3,7 +3,7 @@ import { auth } from '@clerk/nextjs/server';
 import { BillingService } from '@/lib/services/billingService';
 import { AuditService } from '@/lib/services/auditService';
 import { AuditAction } from '@/app/constants/audit';
-import { UserService } from '@/lib/services/userService';
+import { UserService } from '@/lib/services/UserService';
 
 // Security headers for the response
 const securityHeaders = {

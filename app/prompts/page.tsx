@@ -19,5 +19,5 @@ export default async function PromptsPage() {
   const subscription = await validateSubscription();
 
   // Always show prompts page - let PromptsClient handle creation limits
-  return <PromptsClient mode={subscription.isPro ? "full" : "limited"} />;
+  return <PromptsClient mode={subscription.isPro ? "full" : "create"} />;
 }

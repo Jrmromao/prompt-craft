@@ -391,7 +391,7 @@ const PromptHiveLandingClient = ({ user }: PromptHiveLandingClientProps) => {
   const [plans, setPlans] = useState<Plan[]>([]);
   const [loadingPlans, setLoadingPlans] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated } = useAuth();
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {

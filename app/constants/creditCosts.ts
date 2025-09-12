@@ -25,6 +25,8 @@ export const CREDIT_COSTS = {
 export const PLAN_MULTIPLIERS = {
   FREE: 1.0, // Full cost
   PRO: 0.8,  // 20% discount on credit purchases
+  ELITE: 0.6, // 40% discount on credit purchases
+  ENTERPRISE: 0.5, // 50% discount on credit purchases
 } as const;
 
 export const CREDIT_EARNING_RATES = {
@@ -43,7 +45,7 @@ export const CREDIT_EARNING_RATES = {
 
 export function calculateCreditCost(
   operation: keyof typeof CREDIT_COSTS,
-  planType: 'FREE' | 'PRO' = 'FREE'
+  planType: 'FREE' | 'PRO' | 'ELITE' | 'ENTERPRISE' = 'FREE'
 ): number {
   const baseCost = CREDIT_COSTS[operation];
   const multiplier = PLAN_MULTIPLIERS[planType];

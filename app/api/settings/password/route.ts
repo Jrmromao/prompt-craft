@@ -6,7 +6,7 @@ import { Ratelimit } from '@upstash/ratelimit';
 import { Redis } from '@upstash/redis';
 import { AuditAction } from '@/app/constants/audit';
 import { AuditService } from '@/lib/services/auditService';
-import { UserService } from '@/lib/services/userService';
+import { UserService } from '@/lib/services/UserService';
 
 const ratelimit = new Ratelimit({
   redis: Redis.fromEnv(),

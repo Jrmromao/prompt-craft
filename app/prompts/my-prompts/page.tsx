@@ -2,7 +2,7 @@ import { redirect } from 'next/navigation';
 import { currentUser } from '@clerk/nextjs/server';
 import { PromptService } from '@/lib/services/promptService';
 import { MyPromptsClient } from '@/components/prompts/MyPromptsClient';
-import { UserService } from '@/lib/services/userService';
+import { UserService } from '@/lib/services/UserService';
 
 export default async function MyPromptsPage() {
   const clerkUser = await currentUser();

@@ -85,7 +85,7 @@ const promptTypes: PromptType[] = [
   }
 ];
 
-const templateService = new TemplateService();
+const templateService = TemplateService.getInstance();
 
 export default function TemplateLibrary() {
   const router = useRouter();

@@ -53,7 +53,7 @@ const nextConfig = {
           { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=(), interest-cohort=()' },
           {
             key: 'Content-Security-Policy',
-            value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.clerk.accounts.dev https://clerk.prompthive.co https://www.googletagmanager.com https://challenges.cloudflare.com; connect-src 'self' https://*.clerk.accounts.dev https://clerk.prompthive.co; img-src 'self' data: https: https://img.clerk.com; worker-src 'self' blob:; style-src 'self' 'unsafe-inline'; frame-src 'self' https://*.clerk.accounts.dev https://clerk.prompthive.co https://challenges.cloudflare.com; form-action 'self'; frame-ancestors 'self'",
+            value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.clerk.accounts.dev https://clerk.prompthive.co https://www.googletagmanager.com https://challenges.cloudflare.com; connect-src 'self' https://*.clerk.accounts.dev https://clerk.prompthive.co; img-src 'self' data: https: https://img.clerk.com; worker-src 'self' blob:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; frame-src 'self' https://*.clerk.accounts.dev https://clerk.prompthive.co https://challenges.cloudflare.com; form-action 'self'; frame-ancestors 'self'",
           },
         ],
       },

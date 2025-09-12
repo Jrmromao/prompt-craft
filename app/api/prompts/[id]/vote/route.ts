@@ -1,8 +1,11 @@
 import { NextResponse } from 'next/server';
+import { headers } from 'next/headers';
 import { auth } from '@clerk/nextjs/server';
 import { CommunityService } from '@/lib/services/communityService';
 import { VoteRewardService } from '@/lib/services/voteRewardService';
 import { UserService } from '@/lib/services/UserService';
+import { prisma } from '@/lib/prisma';
+import { Prisma } from '@prisma/client';
 import { z } from 'zod';
 import { Ratelimit } from '@upstash/ratelimit';
 import { Redis } from '@upstash/redis';
@@ -48,9 +51,6 @@ export async function GET(
     // Get the database user ID using service
     const userService = UserService.getInstance();
     const user = await userService.getUserByClerkId(clerkUserId);
-      where: { clerkId: clerkUserId },
-      select: { id: true }
-    });
 
     if (!user) {
       return NextResponse.json(
