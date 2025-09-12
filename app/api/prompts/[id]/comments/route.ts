@@ -1,9 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { CommunityService } from '@/lib/services/communityService';
-import { z } from 'zod';
-import { prisma } from '@/lib/prisma';
 import { CommentService } from '@/lib/services/commentService';
+import { UserService } from '@/lib/services/UserService';
+import { z } from 'zod';
+import { Ratelimit } from '@upstash/ratelimit';
+import { Redis } from '@upstash/redis';
+
+const ratelimit = new Ratelimit({
+  redis: Redis.fromEnv(),
+  limiter: Ratelimit.slidingWindow(15, '1 m'),
+});
 
 // Route configuration
 export const dynamic = 'force-dynamic';
@@ -14,7 +21,6 @@ const commentSchema = z.object({
   parentId: z.string().optional(),
 });
 
-
 export async function GET(
   request: Request,
   context: any
@@ -24,7 +30,7 @@ export async function GET(
     const promptId = params.id;
     
     if (!promptId) {
-      return NextResponse.json({ error: 'Prompt ID is required' }, { status: 400 });
+      return NextResponse.json({ success: false, error: 'Prompt ID is required' }, { status: 400 });
     }
 
     const { searchParams } = new URL(request.url);

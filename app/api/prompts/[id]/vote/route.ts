@@ -2,9 +2,19 @@ import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { CommunityService } from '@/lib/services/communityService';
 import { VoteRewardService } from '@/lib/services/voteRewardService';
-import { prisma } from '@/lib/prisma';
-import { Prisma } from '@prisma/client';
-import { headers } from 'next/headers';
+import { UserService } from '@/lib/services/UserService';
+import { z } from 'zod';
+import { Ratelimit } from '@upstash/ratelimit';
+import { Redis } from '@upstash/redis';
+
+const ratelimit = new Ratelimit({
+  redis: Redis.fromEnv(),
+  limiter: Ratelimit.slidingWindow(10, '1 m'),
+});
+
+const voteSchema = z.object({
+  value: z.number().int().min(-1).max(1),
+});
 
 // Export dynamic configuration
 export const dynamic = 'force-dynamic';
@@ -21,13 +31,23 @@ export async function GET(
 
     if (!clerkUserId) {
       return NextResponse.json(
-        { error: 'Unauthorized' },
+        { success: false, error: 'Unauthorized' },
         { status: 401 }
       );
     }
 
-    // Get the database user ID
-    const user = await prisma.user.findUnique({
+    // Rate limiting
+    const { success } = await ratelimit.limit(clerkUserId);
+    if (!success) {
+      return NextResponse.json(
+        { success: false, error: 'Rate limit exceeded' },
+        { status: 429 }
+      );
+    }
+
+    // Get the database user ID using service
+    const userService = UserService.getInstance();
+    const user = await userService.getUserByClerkId(clerkUserId);
       where: { clerkId: clerkUserId },
       select: { id: true }
     });

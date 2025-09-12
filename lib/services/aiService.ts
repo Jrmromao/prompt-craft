@@ -1,6 +1,7 @@
 import { Role } from '@/utils/constants';
 import { prisma } from '@/lib/prisma';
 import { PlanType } from '@/utils/constants';
+import { ServiceError } from './types';
 
 export type AIModel = 'deepseek' | 'gpt4' | 'claude';
 
@@ -91,22 +92,29 @@ export class AIService {
       presencePenalty?: number;
     } = {}
   ): Promise<GenerationResult> {
-    const model = options.model || 'deepseek';
-    const temperature = options.temperature || 0.7;
-    const maxTokens = options.maxTokens || 2000;
-    const topP = options.topP || 1;
-    const frequencyPenalty = options.frequencyPenalty || 0;
-    const presencePenalty = options.presencePenalty || 0;
+    try {
+      const model = options.model || 'deepseek';
+      const temperature = options.temperature || 0.7;
+      const maxTokens = options.maxTokens || 2000;
+      const topP = options.topP || 1;
+      const frequencyPenalty = options.frequencyPenalty || 0;
+      const presencePenalty = options.presencePenalty || 0;
 
-    switch (model) {
-      case 'deepseek':
-        return this.generateWithDeepseek(prompt, temperature, maxTokens, topP, frequencyPenalty, presencePenalty);
-      case 'gpt4':
-        return this.generateWithGPT4(prompt, temperature, maxTokens, topP, frequencyPenalty, presencePenalty);
-      case 'claude':
-        return this.generateWithClaude(prompt, temperature, maxTokens, topP, frequencyPenalty, presencePenalty);
-      default:
-        throw new Error(`Unsupported model: ${model}`);
+      switch (model) {
+        case 'deepseek':
+          return this.generateWithDeepseek(prompt, temperature, maxTokens, topP, frequencyPenalty, presencePenalty);
+        case 'gpt4':
+          return this.generateWithGPT4(prompt, temperature, maxTokens, topP, frequencyPenalty, presencePenalty);
+        case 'claude':
+          return this.generateWithClaude(prompt, temperature, maxTokens, topP, frequencyPenalty, presencePenalty);
+        default:
+          throw new ServiceError(`Unsupported model: ${model}`, 'UNSUPPORTED_MODEL', 400);
+      }
+    } catch (error) {
+      if (error instanceof ServiceError) throw error;
+      throw new ServiceError('Failed to generate text', 'AI_GENERATION_FAILED', 500);
+    }
+  }
     }
   }
 
