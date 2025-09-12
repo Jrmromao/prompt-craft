@@ -1,63 +1,69 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
-import { DeletionService } from '@/lib/services/deletionService';
-import { logger } from '@/lib/utils/logger';
+import { GDPRService } from '@/lib/services/GDPRService';
+import { z } from 'zod';
+import { Ratelimit } from '@upstash/ratelimit';
+import { Redis } from '@upstash/redis';
 
-export async function POST(req: Request) {
+const ratelimit = new Ratelimit({
+  redis: Redis.fromEnv(),
+  limiter: Ratelimit.slidingWindow(1, '24 h'), // 1 deletion request per day
+});
+
+const deletionSchema = z.object({
+  confirmationText: z.string().refine(
+    (text) => text === 'DELETE MY ACCOUNT',
+    'Must type "DELETE MY ACCOUNT" to confirm'
+  ),
+  reason: z.string().optional(),
+});
+
+export async function POST(req: NextRequest) {
   try {
-    const session = await auth();
-    if (!session?.userId) {
+    const { userId } = await auth();
+    if (!userId) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Rate limiting for deletion requests
+    const { success } = await ratelimit.limit(userId);
+    if (!success) {
       return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
+        { success: false, error: 'Deletion request already submitted today' },
+        { status: 429 }
       );
     }
 
-    const { reason } = await req.json();
-    const deletionService = DeletionService.getInstance();
+    const body = await req.json();
+    const validationResult = deletionSchema.safeParse(body);
+    if (!validationResult.success) {
+      return NextResponse.json(
+        { success: false, error: 'Invalid confirmation', details: validationResult.error.errors },
+        { status: 400 }
+      );
+    }
 
-    // Start the deletion process
-    await deletionService.handleDeletion(session.userId, reason);
+    const gdprService = GDPRService.getInstance();
+    
+    // Schedule deletion for 30 days from now (GDPR compliance)
+    const deletionDate = new Date();
+    deletionDate.setDate(deletionDate.getDate() + 30);
+    
+    await gdprService.scheduleDataDeletion(userId, deletionDate);
 
-    return NextResponse.json(
-      { message: 'Deletion request received. Your data will be permanently deleted after 30 days.' },
-      { status: 200 }
-    );
+    return NextResponse.json({
+      success: true,
+      data: {
+        message: 'Account deletion scheduled',
+        scheduledDeletion: deletionDate.toISOString(),
+        note: 'Your account will be permanently deleted in 30 days. Contact support to cancel this request.',
+      },
+    });
   } catch (error) {
-    logger.error('Failed to process deletion request', { error });
+    console.error('Error scheduling account deletion:', error);
     return NextResponse.json(
-      { error: 'Failed to process deletion request' },
+      { success: false, error: 'Failed to schedule account deletion' },
       { status: 500 }
     );
   }
 }
-
-// Admin endpoint to recover an account
-export async function PUT(req: Request) {
-  try {
-    const session = await auth();
-    if (!session?.userId) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
-
-    // TODO: Add admin role check
-    const { targetUserId } = await req.json();
-    const deletionService = DeletionService.getInstance();
-
-    await deletionService.recoverAccount(targetUserId);
-    
-    return NextResponse.json(
-      { message: 'Account recovered successfully' },
-      { status: 200 }
-    );
-  } catch (error) {
-    logger.error('Failed to recover account', { error });
-    return NextResponse.json(
-      { error: 'Failed to recover account' },
-      { status: 500 }
-    );
-  }
-} 

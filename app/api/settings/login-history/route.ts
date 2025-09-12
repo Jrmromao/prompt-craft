@@ -56,18 +56,55 @@ export async function GET(request: Request) {
   try {
     const { userId } = await auth();
     if (!userId) {
-      return new NextResponse('Unauthorized', { status: 401 });
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
+    
     // Ensure user exists in the database before logging, with Redis cache
     const userCacheKey = `user:${userId}`;
-
-    let user: CachedUser | null = null
+    let user: CachedUser | null = null;
 
     user = await redis.get(userCacheKey);
 
     if (!user) {
-      const dbUser = await import('@/lib/prisma').then(m => m.prisma.user.findUnique({ where: { clerkId: userId }, select: { id: true, name: true, email: true, imageUrl: true, role: true, planType: true } }));
+      const dbUser = await import('@/lib/prisma').then(m => m.prisma.user.findUnique({ 
+        where: { clerkId: userId }, 
+        select: { id: true, name: true, email: true, imageUrl: true, role: true, planType: true } 
+      }));
+      
       if (!dbUser) {
+        return NextResponse.json({ success: false, error: 'User not found' }, { status: 404 });
+      }
+
+      user = {
+        id: dbUser.id,
+        name: dbUser.name || '',
+        email: dbUser.email,
+        imageUrl: dbUser.imageUrl || undefined,
+        role: dbUser.role,
+        planType: dbUser.planType,
+      };
+
+      await redis.setex(userCacheKey, USER_CACHE_TTL, JSON.stringify(user));
+    }
+
+    // For now, return mock data since Clerk doesn't provide detailed session history
+    const sessions = mockLoginHistory;
+
+    return NextResponse.json({
+      success: true,
+      data: {
+        sessions,
+        total: sessions.length,
+      },
+    });
+  } catch (error) {
+    console.error('Error fetching login history:', error);
+    return NextResponse.json(
+      { success: false, error: 'Failed to fetch login history' },
+      { status: 500 }
+    );
+  }
+}
         console.log('User not found in database for clerkId:', userId);
         return new NextResponse('User not found in database', { status: 404 });
       }

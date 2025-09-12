@@ -1,31 +1,34 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
-import { prisma } from '@/lib/prisma';
+import { OnboardingService } from '@/lib/services/OnboardingService';
 import { z } from 'zod';
 
-const onboardingSchema = z.object({
+const trackStepSchema = z.object({
   step: z.string().min(1),
   completed: z.boolean(),
   metadata: z.record(z.any()).optional(),
 });
 
-export async function POST(request: NextRequest) {
+export async function POST(req: NextRequest) {
   try {
     const { userId } = await auth();
-    
     if (!userId) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const body = await req.json();
+    const validationResult = trackStepSchema.safeParse(body);
+    if (!validationResult.success) {
       return NextResponse.json(
-        { success: false, error: 'Unauthorized' },
-        { status: 401 }
+        { success: false, error: 'Invalid input', details: validationResult.error.errors },
+        { status: 400 }
       );
     }
 
-    const body = await request.json();
-    const { step, completed, metadata } = onboardingSchema.parse(body);
-
-    // For now, just return success since onboarding tracking is not implemented in the database
-    // TODO: Implement UserOnboarding model and onboarding fields in User model
-    console.log('Onboarding step tracked:', { userId, step, completed, metadata });
+    const { step, completed, metadata } = validationResult.data;
+    const onboardingService = OnboardingService.getInstance();
+    
+    await onboardingService.trackStep(userId, step, completed, metadata);
 
     return NextResponse.json({
       success: true,
@@ -35,40 +38,35 @@ export async function POST(request: NextRequest) {
         timestamp: new Date().toISOString(),
       },
     });
-
   } catch (error) {
-    console.error('Onboarding tracking error:', error);
+    console.error('Error tracking onboarding step:', error);
     return NextResponse.json(
-      { success: false, error: 'Failed to track onboarding progress' },
+      { success: false, error: 'Failed to track onboarding step' },
       { status: 500 }
     );
   }
 }
 
-export async function GET(request: NextRequest) {
+export async function GET(req: NextRequest) {
   try {
     const { userId } = await auth();
-    
     if (!userId) {
-      return NextResponse.json(
-        { success: false, error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
-    // For now, return empty onboarding progress since it's not implemented in the database
-    // TODO: Implement UserOnboarding model and onboarding fields in User model
+    const onboardingService = OnboardingService.getInstance();
+    const progress = await onboardingService.getProgress(userId);
+    const isCompleted = await onboardingService.isCompleted(userId);
+
     return NextResponse.json({
       success: true,
       data: {
-        steps: [],
-        isComplete: false,
-        completedAt: null,
+        progress,
+        isCompleted,
       },
     });
-
   } catch (error) {
-    console.error('Get onboarding progress error:', error);
+    console.error('Error getting onboarding progress:', error);
     return NextResponse.json(
       { success: false, error: 'Failed to get onboarding progress' },
       { status: 500 }

@@ -52,4 +52,28 @@ export class UserService {
       throw new ServiceError('Failed to get user', 'USER_NOT_FOUND', 404);
     }
   }
+
+  async getUserByUsername(username: string): Promise<User | null> {
+    try {
+      return await prisma.user.findUnique({
+        where: { username },
+        include: {
+          prompts: {
+            where: { isPublic: true },
+            orderBy: { createdAt: 'desc' },
+            take: 10,
+          },
+          _count: {
+            select: {
+              prompts: { where: { isPublic: true } },
+              followers: true,
+              following: true,
+            },
+          },
+        },
+      });
+    } catch (error) {
+      throw new ServiceError('Failed to get user by username', 'USER_NOT_FOUND', 404);
+    }
+  }
 }

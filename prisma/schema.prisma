@@ -85,6 +85,7 @@ model User {
   levelProgressions         LevelProgression[]
   messages                  Message[]
   notifications             Notification[]
+  onboardingSteps           UserOnboarding[]
   playgroundRuns            PlaygroundRun[]
   prompts                   Prompt[]
   promptCopies              PromptCopy[]
@@ -107,6 +108,8 @@ model User {
   userAchievements          UserAchievement[]
   userBadges                UserBadge[]
   userCollections           UserCollection[]
+  consents                  UserConsent[]
+  dataRetentionSchedules    DataRetentionSchedule[]
   settings                  UserSettings?
   versions                  Version[]
   votes                     Vote[]
@@ -792,6 +795,46 @@ model Notification {
   @@index([createdAt], map: "notification_created_at_idx")
   @@index([type], map: "notification_type_idx")
   @@index([userId], map: "notification_user_id_idx")
+}
+
+model DataRetentionSchedule {
+  id                String   @id @default(cuid())
+  userId            String
+  scheduledDeletion DateTime
+  status            String   @default("SCHEDULED") // SCHEDULED, COMPLETED, CANCELLED
+  requestedAt       DateTime @default(now())
+  completedAt       DateTime?
+  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([scheduledDeletion, status])
+}
+
+model UserConsent {
+  id          String   @id @default(cuid())
+  userId      String
+  consentType String   // MARKETING, ANALYTICS, COOKIES, etc.
+  granted     Boolean
+  grantedAt   DateTime @default(now())
+  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, consentType])
+}
+
+model UserOnboarding {
+  id        String   @id @default(cuid())
+  userId    String
+  step      String
+  completed Boolean  @default(false)
+  metadata  String?  // JSON string for additional data
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, step])
+  @@index([userId])
 }
 
 model UserSettings {

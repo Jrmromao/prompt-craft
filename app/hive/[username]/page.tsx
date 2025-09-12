@@ -1,15 +1,13 @@
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { PublicProfile } from "@/components/profile/public-profile";
-import { prisma } from "@/lib/prisma";
+import { UserService } from "@/lib/services/UserService";
 import { AuditService } from "@/lib/services/auditService";
 
 export async function generateMetadata(props: { params: Promise<{ username: string }> }): Promise<Metadata> {
   const params = await props.params;
-  const user = await prisma.user.findUnique({
-    where: { username: params.username },
-    select: { username: true, displayName: true, bio: true },
-  });
+  const userService = UserService.getInstance();
+  const user = await userService.getUserByUsername(params.username);
   
   if (!user) {
     return {
@@ -25,9 +23,8 @@ export async function generateMetadata(props: { params: Promise<{ username: stri
 
 export default async function PublicProfilePage(props: { params: Promise<{ username: string }> }) {
   const params = await props.params;
-  const user = await prisma.user.findUnique({
-    where: { username: params.username },
-    include: {
+  const userService = UserService.getInstance();
+  const user = await userService.getUserByUsername(params.username);
       _count: {
         select: {
           followers: true,
