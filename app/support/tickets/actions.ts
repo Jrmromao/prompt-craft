@@ -1,33 +1,19 @@
 'use server';
 
-import { prisma } from '@/lib/prisma';
+import { SupportTicketService } from '@/lib/services/SupportTicketService';
 import { revalidatePath } from 'next/cache';
 import { auth } from '@clerk/nextjs/server';
 
 export async function getTicket(ticketId: string) {
   try {
     console.log('Fetching ticket:', ticketId); // Debug log
-    const ticket = await prisma.supportTicket.findUnique({
-      where: { id: ticketId },
-      include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        },
-        messages: {
-          include: {
-            user: {
-              select: {
-                id: true,
-                name: true,
-                email: true,
-              },
-            },
-          },
-          orderBy: {
+    const supportTicketService = SupportTicketService.getInstance();
+    return await supportTicketService.getTicket(ticketId);
+  } catch (error) {
+    console.error('Error fetching ticket:', error);
+    return null;
+  }
+}
             createdAt: 'asc',
           },
         },

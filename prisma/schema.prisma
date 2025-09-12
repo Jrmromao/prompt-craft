@@ -9,18 +9,14 @@ datasource db {
 
 model User {
   id                        String                     @id @default(cuid())
-  email                     String                     @unique 
-  username                  String                     @unique @default(dbgenerated("'@user' || floor(random() * 1000000)::text"))
-  displayName               String?
+  email                     String                     @unique
   createdAt                 DateTime                   @default(now())
   updatedAt                 DateTime                   @updatedAt
   clerkId                   String                     @unique
-  monthlyCredits            Int                        @default(0)
-  purchasedCredits          Int                        @default(0)
-  lastCreditReset           DateTime?
   name                      String?
   role                      Role                       @default(USER)
   creditCap                 Int                        @default(100)
+  lastCreditReset           DateTime?
   stripeCustomerId          String?
   planType                  PlanType                   @default(FREE)
   imageUrl                  String?
@@ -31,8 +27,6 @@ model User {
   location                  String?
   twitter                   String?
   website                   String?
-  isPublic                  Boolean                    @default(true)
-  profileUrl                String?                    @unique
   emailPreferences          Json?                      @default("{\"productUpdates\": true, \"securityAlerts\": true, \"marketingEmails\": true}")
   languagePreferences       Json?                      @default("{\"language\": \"en\", \"dateFormat\": \"MM/DD/YYYY\", \"timeFormat\": \"12h\"}")
   notificationSettings      Json?                      @default("{\"pushNotifications\": true, \"emailNotifications\": true, \"browserNotifications\": true}")
@@ -46,29 +40,33 @@ model User {
   lastDataAccess            DateTime?
   dataRetentionPolicy       Json?                      @default("{\"autoDelete\": false, \"dataCategories\": [\"personal\", \"usage\", \"analytics\"], \"retentionPeriod\": 365}")
   dataProcessingConsent     Json?                      @default("{\"analytics\": false, \"marketing\": false, \"thirdParty\": false}")
-  
-  // Gamification Fields
-  level                     Int                        @default(1)
+  monthlyCredits            Int                        @default(0)
+  purchasedCredits          Int                        @default(0)
+  displayName               String?
+  isPublic                  Boolean                    @default(true)
+  profileUrl                String?                    @unique
+  username                  String                     @unique @default(dbgenerated("('@user'::text || (floor((random() * (1000000)::double precision)))::text)"))
   experience                Int                        @default(0)
-  totalExperience           Int                        @default(0)
-  reputation                Int                        @default(0)
-  streak                    Int                        @default(0)
-  longestStreak             Int                        @default(0)
   lastActivityDate          DateTime?
-  totalCreditsEarned        Int                        @default(0)
-  totalCreditsSpent         Int                        @default(0)
-  totalVotesCast            Int                        @default(0)
-  totalVotesReceived        Int                        @default(0)
-  totalPromptsCreated       Int                        @default(0)
-  totalPromptsShared        Int                        @default(0)
+  level                     Int                        @default(1)
+  longestStreak             Int                        @default(0)
   premiumCredits            Int                        @default(0)
+  reputation                Int                        @default(0)
   seasonalRank              Int?
   seasonalTier              SeasonalTier?
-  
-  // Relations
+  streak                    Int                        @default(0)
+  totalCreditsEarned        Int                        @default(0)
+  totalCreditsSpent         Int                        @default(0)
+  totalExperience           Int                        @default(0)
+  totalPromptsCreated       Int                        @default(0)
+  totalPromptsShared        Int                        @default(0)
+  totalVotesCast            Int                        @default(0)
+  totalVotesReceived        Int                        @default(0)
+  activityLogs              ActivityLog[]
   apiKeys                   ApiKey[]
   apiUsage                  ApiUsage[]
   auditLogs                 AuditLog[]
+  challengeParticipations   ChallengeParticipation[]
   comments                  Comment[]
   commentLikes              CommentLike[]
   consentHistory            ConsentRecord[]
@@ -77,51 +75,46 @@ model User {
   dataExportRequests        DataExportRequest[]
   dataProcessingRecords     DataProcessingRecord[]
   dataRectificationRequests DataRectificationRequest[]
+  deletionAuditLogs         DeletionAuditLog[]
   createdTemplates          EmailTemplate[]            @relation("CreatedTemplates")
   updatedTemplates          EmailTemplate[]            @relation("UpdatedTemplates")
   errors                    Error[]
   featureUsage              FeatureUsage[]
+  followers                 Follow[]                   @relation("Follower")
+  following                 Follow[]                   @relation("Following")
+  levelProgressions         LevelProgression[]
   messages                  Message[]
   notifications             Notification[]
   playgroundRuns            PlaygroundRun[]
   prompts                   Prompt[]
   promptCopies              PromptCopy[]
+  favoritedPrompts          PromptFavorite[]
+  followedPrompts           PromptFollow[]
   promptGenerations         PromptGeneration[]
+  promptRatings             PromptRating[]
   promptTemplates           PromptTemplate[]
   testHistory               PromptTestHistory[]
   promptUsages              PromptUsage[]
   reports                   Report[]
+  seasonalStats             SeasonalStats[]
+  streakLogs                StreakLog[]
   subscription              Subscription?
   assignedTickets           SupportTicket[]            @relation("AssignedTickets")
   supportTickets            SupportTicket[]
   ownedTeams                Team[]                     @relation("TeamOwner")
   teamMembers               TeamMember[]
   usages                    Usage[]
+  userAchievements          UserAchievement[]
+  userBadges                UserBadge[]
+  userCollections           UserCollection[]
   settings                  UserSettings?
   versions                  Version[]
   votes                     Vote[]
-  followers                 Follow[]                   @relation("Follower")
-  following                 Follow[]                   @relation("Following")
-  followedPrompts           PromptFollow[]
-  favoritedPrompts          PromptFavorite[]
-  deletionAuditLogs         DeletionAuditLog[]
-  promptRatings             PromptRating[]
-  voteRewardsGiven          VoteReward[]               @relation("VoteRewardsGiven")
-  voteRewardsReceived       VoteReward[]               @relation("VoteRewardsReceived")
-  voteAbuseDetections       VoteAbuseDetection[]
   abuseInvestigations       VoteAbuseDetection[]       @relation("AbuseInvestigator")
+  voteAbuseDetections       VoteAbuseDetection[]
   votePatterns              VotePattern[]
-  
-  // Gamification Relations
-  userAchievements          UserAchievement[]
-  userBadges                UserBadge[]
-  challengeParticipations   ChallengeParticipation[]
-  seasonalStats             SeasonalStats[]
-  userCollections           UserCollection[]
-  activityLogs              ActivityLog[]
-  streakLogs                StreakLog[]
-  levelProgressions         LevelProgression[]
-  webVitals                 WebVital[]
+  voteRewardsReceived       VoteReward[]               @relation("VoteRewardsReceived")
+  voteRewardsGiven          VoteReward[]               @relation("VoteRewardsGiven")
 
   @@index([clerkId])
   @@index([email])
@@ -205,61 +198,58 @@ model Usage {
 }
 
 model Prompt {
-  id                String             @id @default(cuid())
-  name              String
-  content           String
-  description       String?
-  isPublic          Boolean            @default(false)
-  userId            String
-  slug              String             @unique
-  upvotes           Int                @default(0)
-  downvotes         Int                @default(0)
-  lastUsedAt        DateTime?
-  lastViewedAt      DateTime?
-  usageCount        Int                @default(0)
-  viewCount         Int                @default(0)
-  copyCount         Int                @default(0)
-  shareCount        Int                @default(0)
-  createdAt         DateTime           @default(now())
-  updatedAt         DateTime           @updatedAt
-  metadata          Json?
-  model             String             @default("gpt-3.5-turbo")
-  promptType        String             @default("default")
-  responseTime      Float?
-  dataRetentionPolicy Json?            @default("{}")
-  isArchived        Boolean            @default(false)
-  archivedAt        DateTime?
-  isVerified        Boolean            @default(false)
-  isFeatured        Boolean            @default(false)
-  
-  // Gamification fields
-  qualityScore      Float              @default(0.0)
-  difficultyLevel   Int                @default(1)
-  isPremium         Boolean            @default(false)
-  premiumTier       PremiumTier?
-  
-     user              User               @relation(fields: [userId], references: [id])
-   comments          Comment[]
-   copies            PromptCopy[]
-   usages            PromptUsage[]
-   versions          Version[]
-   reports           Report[]
-   votes             Vote[]
-   tags              Tag[]              @relation("PromptToTag")
-   followerCount     Int                @default(0)
-   favoriteCount     Int                @default(0)
-   followers         PromptFollow[]
-   favorites         PromptFavorite[]
-   ratings           PromptRating[]
-   voteRewards       VoteReward[]
-   collectionItems   CollectionItem[]
-   likes             CommentLike[]
-   analytics         PromptAnalytics?
-   views             PromptView[]
-   branches          PromptBranch[]
-   playgroundRuns    PlaygroundRun[]
-   apiUsage          ApiUsage[]
-   testHistory       PromptTestHistory[]
+  id                  String              @id @default(cuid())
+  userId              String
+  createdAt           DateTime            @default(now())
+  content             String
+  description         String?
+  isPublic            Boolean             @default(false)
+  name                String
+  updatedAt           DateTime            @updatedAt
+  upvotes             Int                 @default(0)
+  slug                String              @unique
+  lastUsedAt          DateTime?
+  lastViewedAt        DateTime?
+  usageCount          Int                 @default(0)
+  viewCount           Int                 @default(0)
+  copyCount           Int                 @default(0)
+  promptType          String              @default("default")
+  metadata            Json?
+  responseTime        Float?
+  model               String              @default("gpt-3.5-turbo")
+  dataRetentionPolicy Json?               @default("{}")
+  isArchived          Boolean             @default(false)
+  archivedAt          DateTime?
+  favoriteCount       Int                 @default(0)
+  followerCount       Int                 @default(0)
+  isFeatured          Boolean             @default(false)
+  isVerified          Boolean             @default(false)
+  difficultyLevel     Int                 @default(1)
+  downvotes           Int                 @default(0)
+  isPremium           Boolean             @default(false)
+  premiumTier         PremiumTier?
+  qualityScore        Float               @default(0.0)
+  shareCount          Int                 @default(0)
+  apiUsage            ApiUsage[]
+  collectionItems     CollectionItem[]
+  comments            Comment[]
+  likes               CommentLike[]
+  playgroundRuns      PlaygroundRun[]
+  user                User                @relation(fields: [userId], references: [id])
+  analytics           PromptAnalytics?
+  branches            PromptBranch[]
+  copies              PromptCopy[]
+  favorites           PromptFavorite[]
+  followers           PromptFollow[]
+  ratings             PromptRating[]
+  testHistory         PromptTestHistory[]
+  usages              PromptUsage[]
+  views               PromptView[]
+  reports             Report[]
+  versions            Version[]
+  votes               Vote[]
+  voteRewards         VoteReward[]
+  tags                Tag[]               @relation("PromptToTag")
 
   @@index([userId])
   @@index([slug])
@@ -293,7 +283,6 @@ model Tag {
   @@index([slug])
 }
 
-
 model DeletionAuditLog {
   id        String   @id @default(cuid())
   userId    String
@@ -309,11 +298,11 @@ model DeletionAuditLog {
 
 model DeletedUser {
   id              String   @id @default(cuid())
-  originalUserId  String   // The ID of the user being deleted
+  originalUserId  String
   originalEmail   String
   originalName    String
   deletionDate    DateTime @default(now())
-  retentionPeriod Int      // In days
+  retentionPeriod Int
   dataSnapshot    Json?
 
   @@index([originalUserId])
@@ -334,23 +323,23 @@ model CreditHistory {
 }
 
 model PromptTemplate {
-  id            String   @id @default(cuid())
-  userId        String?
-  name          String
-  description   String
-  content       String
-  type          String?
-  complexity    String?
-  example       String?
-  bestPractices String[]
+  id             String   @id @default(cuid())
+  userId         String?
+  name           String
+  description    String
+  content        String
+  isPublic       Boolean  @default(true)
+  tags           String[]
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  usageCount     Int      @default(0)
+  rating         Float    @default(0)
+  bestPractices  String[]
+  complexity     String?
+  example        String?
   successMetrics Json?
-  isPublic      Boolean  @default(true)
-  tags          String[]
-  usageCount    Int      @default(0)
-  rating        Float    @default(0)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  user          User?    @relation(fields: [userId], references: [id])
+  type           String?
+  user           User?    @relation(fields: [userId], references: [id])
 
   @@index([userId])
   @@index([type])
@@ -627,8 +616,8 @@ model ApiUsage {
   isCacheHit   Boolean  @default(false)
   userId       String
   promptId     String?
-  prompt       Prompt?  @relation(fields: [promptId], references: [id])
-  user         User     @relation(fields: [userId], references: [id])
+  prompt       Prompt?  @relation(fields: [promptId], references: [id], onDelete: Cascade)
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([createdAt])
   @@index([userId])
@@ -680,39 +669,37 @@ model EmailTemplate {
 }
 
 model PromptRating {
-  id            String   @id @default(cuid())
-  userId        String
-  promptId      String
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  clarity       Float
-  specificity   Float
-  context       Float
-  overall       Float
-  feedback      String
-
-  // Relations
-  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  prompt        Prompt   @relation(fields: [promptId], references: [id], onDelete: Cascade)
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  clarity     Float
+  specificity Float
+  context     Float
+  overall     Float
+  feedback    String
+  promptId    String
+  userId      String
+  prompt      Prompt   @relation(fields: [promptId], references: [id], onDelete: Cascade)
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, promptId])
 }
 
 model PromptTestHistory {
-  id              String        @id @default(cuid())
+  id              String     @id @default(cuid())
   promptId        String
   userId          String
-  createdAt       DateTime      @default(now())
+  createdAt       DateTime   @default(now())
   tokensUsed      Int?
   duration        Int?
   input           String?
   output          String
   promptVersionId String
-  status          TestStatus    @default(SUCCESS)
-  updatedAt       DateTime      @updatedAt
-  prompt          Prompt        @relation(fields: [promptId], references: [id], onDelete: Cascade)
-  promptVersion   Version       @relation(fields: [promptVersionId], references: [id], onDelete: Cascade)
-  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  status          TestStatus @default(SUCCESS)
+  updatedAt       DateTime   @updatedAt
+  prompt          Prompt     @relation(fields: [promptId], references: [id], onDelete: Cascade)
+  promptVersion   Version    @relation(fields: [promptVersionId], references: [id], onDelete: Cascade)
+  user            User       @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([promptId])
   @@index([userId])
@@ -721,15 +708,15 @@ model PromptTestHistory {
 }
 
 model PromptTest {
-  id              String        @id
+  id              String   @id
   promptVersionId String
   input           String?
   output          String
   tokensUsed      Int?
   duration        Int?
-  createdAt       DateTime      @default(now())
+  createdAt       DateTime @default(now())
   updatedAt       DateTime
-  promptVersion   Version       @relation(fields: [promptVersionId], references: [id], onDelete: Cascade)
+  promptVersion   Version  @relation(fields: [promptVersionId], references: [id], onDelete: Cascade)
 
   @@index([promptVersionId])
 }
@@ -965,6 +952,361 @@ model CreditPackage {
   @@index([stripePriceId])
 }
 
+model Follow {
+  id          String   @id @default(cuid())
+  followerId  String
+  followingId String
+  createdAt   DateTime @default(now())
+  follower    User     @relation("Follower", fields: [followerId], references: [id], onDelete: Cascade)
+  following   User     @relation("Following", fields: [followingId], references: [id], onDelete: Cascade)
+
+  @@unique([followerId, followingId])
+  @@index([followerId])
+  @@index([followingId])
+  @@index([createdAt])
+}
+
+model PromptFollow {
+  id        String   @id @default(cuid())
+  userId    String
+  promptId  String
+  createdAt DateTime @default(now())
+  prompt    Prompt   @relation(fields: [promptId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, promptId])
+  @@index([userId])
+  @@index([promptId])
+  @@index([createdAt])
+}
+
+model PromptFavorite {
+  id        String   @id @default(cuid())
+  userId    String
+  promptId  String
+  createdAt DateTime @default(now())
+  prompt    Prompt   @relation(fields: [promptId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, promptId])
+  @@index([userId])
+  @@index([promptId])
+  @@index([createdAt])
+}
+
+model VoteReward {
+  id             String   @id @default(cuid())
+  voteId         String   @unique
+  voterId        String
+  promptAuthorId String
+  promptId       String
+  creditsAwarded Int
+  voterPlanType  PlanType
+  createdAt      DateTime @default(now())
+  ipAddress      String?
+  userAgent      String?
+  promptAuthor   User     @relation("VoteRewardsReceived", fields: [promptAuthorId], references: [id], onDelete: Cascade)
+  prompt         Prompt   @relation(fields: [promptId], references: [id], onDelete: Cascade)
+  vote           Vote     @relation(fields: [voteId], references: [id], onDelete: Cascade)
+  voter          User     @relation("VoteRewardsGiven", fields: [voterId], references: [id], onDelete: Cascade)
+
+  @@index([voterId])
+  @@index([promptAuthorId])
+  @@index([promptId])
+  @@index([createdAt])
+  @@index([voterPlanType])
+  @@index([ipAddress])
+}
+
+model VoteAbuseDetection {
+  id             String            @id @default(cuid())
+  userId         String
+  abuseType      VoteAbuseType
+  severity       VoteAbuseSeverity
+  details        Json
+  detectedAt     DateTime          @default(now())
+  resolvedAt     DateTime?
+  status         VoteAbuseStatus   @default(PENDING)
+  investigatedBy String?
+  resolution     String?
+  investigator   User?             @relation("AbuseInvestigator", fields: [investigatedBy], references: [id])
+  user           User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([abuseType])
+  @@index([severity])
+  @@index([status])
+  @@index([detectedAt])
+  @@index([investigatedBy])
+}
+
+model VotePattern {
+  id                 String   @id @default(cuid())
+  userId             String
+  timeWindow         String
+  votesCount         Int
+  upvotesCount       Int
+  downvotesCount     Int
+  uniquePromptsVoted Int
+  uniqueAuthorsVoted Int
+  creditsEarned      Int
+  suspiciousPatterns Json
+  riskScore          Float    @default(0.0)
+  lastUpdated        DateTime @default(now())
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, timeWindow])
+  @@index([userId])
+  @@index([riskScore])
+  @@index([lastUpdated])
+  @@index([timeWindow])
+}
+
+model Achievement {
+  id               String              @id @default(cuid())
+  name             String              @unique
+  description      String
+  icon             String
+  category         AchievementCategory
+  tier             AchievementTier     @default(BRONZE)
+  requirements     Json
+  rewards          Json
+  isActive         Boolean             @default(true)
+  isSecret         Boolean             @default(false)
+  isPremium        Boolean             @default(false)
+  sortOrder        Int                 @default(0)
+  createdAt        DateTime            @default(now())
+  updatedAt        DateTime            @updatedAt
+  userAchievements UserAchievement[]
+
+  @@index([category])
+  @@index([tier])
+  @@index([isActive])
+  @@index([isPremium])
+  @@index([sortOrder])
+}
+
+model UserAchievement {
+  id            String      @id @default(cuid())
+  userId        String
+  achievementId String
+  unlockedAt    DateTime    @default(now())
+  progress      Json?
+  achievement   Achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, achievementId])
+  @@index([userId])
+  @@index([achievementId])
+  @@index([unlockedAt])
+}
+
+model Badge {
+  id          String        @id @default(cuid())
+  name        String        @unique
+  description String
+  icon        String
+  color       String        @default("#6366f1")
+  rarity      BadgeRarity   @default(COMMON)
+  category    BadgeCategory
+  isPremium   Boolean       @default(false)
+  isActive    Boolean       @default(true)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  userBadges  UserBadge[]
+
+  @@index([category])
+  @@index([rarity])
+  @@index([isPremium])
+  @@index([isActive])
+}
+
+model UserBadge {
+  id        String   @id @default(cuid())
+  userId    String
+  badgeId   String
+  earnedAt  DateTime @default(now())
+  isVisible Boolean  @default(true)
+  badge     Badge    @relation(fields: [badgeId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, badgeId])
+  @@index([userId])
+  @@index([badgeId])
+  @@index([earnedAt])
+}
+
+model Challenge {
+  id              String                   @id @default(cuid())
+  name            String
+  description     String
+  icon            String
+  category        ChallengeCategory
+  type            ChallengeType
+  difficulty      ChallengeDifficulty
+  requirements    Json
+  rewards         Json
+  startDate       DateTime
+  endDate         DateTime
+  maxParticipants Int?
+  isPremium       Boolean                  @default(false)
+  isActive        Boolean                  @default(true)
+  createdAt       DateTime                 @default(now())
+  updatedAt       DateTime                 @updatedAt
+  participations  ChallengeParticipation[]
+
+  @@index([category])
+  @@index([type])
+  @@index([difficulty])
+  @@index([startDate])
+  @@index([endDate])
+  @@index([isPremium])
+  @@index([isActive])
+}
+
+model ChallengeParticipation {
+  id          String          @id @default(cuid())
+  userId      String
+  challengeId String
+  startedAt   DateTime        @default(now())
+  completedAt DateTime?
+  progress    Json
+  status      ChallengeStatus @default(ACTIVE)
+  rewards     Json?
+  challenge   Challenge       @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+  user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, challengeId])
+  @@index([userId])
+  @@index([challengeId])
+  @@index([status])
+  @@index([startedAt])
+  @@index([completedAt])
+}
+
+model SeasonalStats {
+  id                String       @id @default(cuid())
+  userId            String
+  season            String
+  tier              SeasonalTier @default(BRONZE)
+  rank              Int?
+  points            Int          @default(0)
+  promptsCreated    Int          @default(0)
+  votesCast         Int          @default(0)
+  creditsEarned     Int          @default(0)
+  achievementsCount Int          @default(0)
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+  user              User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, season])
+  @@index([userId])
+  @@index([season])
+  @@index([tier])
+  @@index([rank])
+  @@index([points])
+}
+
+model UserCollection {
+  id          String           @id @default(cuid())
+  userId      String
+  name        String
+  description String?
+  icon        String?
+  isPublic    Boolean          @default(false)
+  isPremium   Boolean          @default(false)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  items       CollectionItem[]
+  user        User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([isPublic])
+  @@index([isPremium])
+  @@index([createdAt])
+}
+
+model CollectionItem {
+  id           String         @id @default(cuid())
+  collectionId String
+  promptId     String
+  addedAt      DateTime       @default(now())
+  notes        String?
+  collection   UserCollection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+  prompt       Prompt         @relation(fields: [promptId], references: [id], onDelete: Cascade)
+
+  @@unique([collectionId, promptId])
+  @@index([collectionId])
+  @@index([promptId])
+  @@index([addedAt])
+}
+
+model ActivityLog {
+  id         String       @id @default(cuid())
+  userId     String
+  action     ActivityType
+  details    Json?
+  points     Int          @default(0)
+  multiplier Float        @default(1.0)
+  timestamp  DateTime     @default(now())
+  user       User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([action])
+  @@index([timestamp])
+  @@index([points])
+  @@index([userId, timestamp])
+  @@index([action, timestamp])
+}
+
+model StreakLog {
+  id         String    @id @default(cuid())
+  userId     String
+  streakType String
+  count      Int
+  startDate  DateTime
+  endDate    DateTime?
+  isActive   Boolean   @default(true)
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([streakType])
+  @@index([count])
+  @@index([isActive])
+}
+
+model LevelProgression {
+  id               String   @id @default(cuid())
+  userId           String
+  fromLevel        Int
+  toLevel          Int
+  experienceGained Int
+  rewards          Json?
+  timestamp        DateTime @default(now())
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([fromLevel])
+  @@index([toLevel])
+  @@index([timestamp])
+}
+
+model PremiumFeature {
+  id           String   @id @default(cuid())
+  name         String   @unique
+  description  String
+  category     String
+  requiredTier PlanType
+  isActive     Boolean  @default(true)
+  config       Json?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([category])
+  @@index([requiredTier])
+  @@index([isActive])
+}
+
 enum Role {
   USER
   ADMIN
@@ -974,6 +1316,8 @@ enum Role {
 enum PlanType {
   FREE
   PRO
+  ELITE
+  ENTERPRISE
 }
 
 enum Period {
@@ -1047,116 +1391,6 @@ enum TeamRole {
   MEMBER
 }
 
-model Follow {
-  id          String   @id @default(cuid())
-  followerId  String
-  followingId String
-  createdAt   DateTime @default(now())
-  follower    User     @relation("Follower", fields: [followerId], references: [id], onDelete: Cascade)
-  following   User     @relation("Following", fields: [followingId], references: [id], onDelete: Cascade)
-
-  @@unique([followerId, followingId])
-  @@index([followerId])
-  @@index([followingId])
-  @@index([createdAt])
-}
-
-model PromptFollow {
-  id        String   @id @default(cuid())
-  userId    String
-  promptId  String
-  createdAt DateTime @default(now())
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  prompt    Prompt   @relation(fields: [promptId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, promptId])
-  @@index([userId])
-  @@index([promptId])
-  @@index([createdAt])
-}
-
-model PromptFavorite {
-  id        String   @id @default(cuid())
-  userId    String
-  promptId  String
-  createdAt DateTime @default(now())
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  prompt    Prompt   @relation(fields: [promptId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, promptId])
-  @@index([userId])
-  @@index([promptId])
-  @@index([createdAt])
-}
-
-model VoteReward {
-  id             String   @id @default(cuid())
-  voteId         String   @unique
-  voterId        String   // User who voted
-  promptAuthorId String   // User who received the credits
-  promptId       String
-  creditsAwarded Int
-  voterPlanType  PlanType
-  createdAt      DateTime @default(now())
-  ipAddress      String?
-  userAgent      String?
-  vote           Vote     @relation(fields: [voteId], references: [id], onDelete: Cascade)
-  voter          User     @relation("VoteRewardsGiven", fields: [voterId], references: [id], onDelete: Cascade)
-  promptAuthor   User     @relation("VoteRewardsReceived", fields: [promptAuthorId], references: [id], onDelete: Cascade)
-  prompt         Prompt   @relation(fields: [promptId], references: [id], onDelete: Cascade)
-
-  @@index([voterId])
-  @@index([promptAuthorId])
-  @@index([promptId])
-  @@index([createdAt])
-  @@index([voterPlanType])
-  @@index([ipAddress])
-}
-
-model VoteAbuseDetection {
-  id               String              @id @default(cuid())
-  userId           String
-  abuseType        VoteAbuseType
-  severity         VoteAbuseSeverity
-  details          Json
-  detectedAt       DateTime            @default(now())
-  resolvedAt       DateTime?
-  status           VoteAbuseStatus     @default(PENDING)
-  investigatedBy   String?
-  resolution       String?
-  user             User                @relation(fields: [userId], references: [id], onDelete: Cascade)
-  investigator     User?               @relation("AbuseInvestigator", fields: [investigatedBy], references: [id])
-
-  @@index([userId])
-  @@index([abuseType])
-  @@index([severity])
-  @@index([status])
-  @@index([detectedAt])
-  @@index([investigatedBy])
-}
-
-model VotePattern {
-  id                    String   @id @default(cuid())
-  userId                String
-  timeWindow            String   // e.g., "1h", "24h", "7d"
-  votesCount            Int
-  upvotesCount          Int
-  downvotesCount        Int
-  uniquePromptsVoted    Int
-  uniqueAuthorsVoted    Int
-  creditsEarned         Int
-  suspiciousPatterns    Json     // Array of detected patterns
-  riskScore             Float    @default(0.0)
-  lastUpdated           DateTime @default(now())
-  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, timeWindow])
-  @@index([userId])
-  @@index([riskScore])
-  @@index([lastUpdated])
-  @@index([timeWindow])
-}
-
 enum VoteAbuseType {
   SOCKPUPPET_VOTING
   VOTE_MANIPULATION
@@ -1185,263 +1419,6 @@ enum VoteAbuseStatus {
   RESOLVED
 }
 
-// Gamification Models
-model Achievement {
-  id                String              @id @default(cuid())
-  name              String              @unique
-  description       String
-  icon              String
-  category          AchievementCategory
-  tier              AchievementTier     @default(BRONZE)
-  requirements      Json                // Flexible requirements system
-  rewards           Json                // Credits, badges, titles, etc.
-  isActive          Boolean             @default(true)
-  isSecret          Boolean             @default(false)
-  isPremium         Boolean             @default(false)
-  sortOrder         Int                 @default(0)
-  createdAt         DateTime            @default(now())
-  updatedAt         DateTime            @updatedAt
-  
-  userAchievements  UserAchievement[]
-
-  @@index([category])
-  @@index([tier])
-  @@index([isActive])
-  @@index([isPremium])
-  @@index([sortOrder])
-}
-
-model UserAchievement {
-  id              String      @id @default(cuid())
-  userId          String
-  achievementId   String
-  unlockedAt      DateTime    @default(now())
-  progress        Json?       // For tracking partial progress
-  
-  user            User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  achievement     Achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, achievementId])
-  @@index([userId])
-  @@index([achievementId])
-  @@index([unlockedAt])
-}
-
-model Badge {
-  id          String      @id @default(cuid())
-  name        String      @unique
-  description String
-  icon        String
-  color       String      @default("#6366f1")
-  rarity      BadgeRarity @default(COMMON)
-  category    BadgeCategory
-  isPremium   Boolean     @default(false)
-  isActive    Boolean     @default(true)
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-  
-  userBadges  UserBadge[]
-
-  @@index([category])
-  @@index([rarity])
-  @@index([isPremium])
-  @@index([isActive])
-}
-
-model UserBadge {
-  id        String   @id @default(cuid())
-  userId    String
-  badgeId   String
-  earnedAt  DateTime @default(now())
-  isVisible Boolean  @default(true)
-  
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  badge     Badge    @relation(fields: [badgeId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, badgeId])
-  @@index([userId])
-  @@index([badgeId])
-  @@index([earnedAt])
-}
-
-model Challenge {
-  id                  String                    @id @default(cuid())
-  name                String
-  description         String
-  icon                String
-  category            ChallengeCategory
-  type                ChallengeType
-  difficulty          ChallengeDifficulty
-  requirements        Json                      // Flexible requirements
-  rewards             Json                      // Credits, badges, XP
-  startDate           DateTime
-  endDate             DateTime
-  maxParticipants     Int?
-  isPremium           Boolean                   @default(false)
-  isActive            Boolean                   @default(true)
-  createdAt           DateTime                  @default(now())
-  updatedAt           DateTime                  @updatedAt
-  
-  participations      ChallengeParticipation[]
-
-  @@index([category])
-  @@index([type])
-  @@index([difficulty])
-  @@index([startDate])
-  @@index([endDate])
-  @@index([isPremium])
-  @@index([isActive])
-}
-
-model ChallengeParticipation {
-  id            String            @id @default(cuid())
-  userId        String
-  challengeId   String
-  startedAt     DateTime          @default(now())
-  completedAt   DateTime?
-  progress      Json              // Track progress
-  status        ChallengeStatus   @default(ACTIVE)
-  rewards       Json?             // Rewards earned
-  
-  user          User              @relation(fields: [userId], references: [id], onDelete: Cascade)
-  challenge     Challenge         @relation(fields: [challengeId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, challengeId])
-  @@index([userId])
-  @@index([challengeId])
-  @@index([status])
-  @@index([startedAt])
-  @@index([completedAt])
-}
-
-model SeasonalStats {
-  id                String       @id @default(cuid())
-  userId            String
-  season            String       // e.g., "2024-Q1", "Winter-2024"
-  tier              SeasonalTier @default(BRONZE)
-  rank              Int?
-  points            Int          @default(0)
-  promptsCreated    Int          @default(0)
-  votesCast         Int          @default(0)
-  creditsEarned     Int          @default(0)
-  achievementsCount Int          @default(0)
-  createdAt         DateTime     @default(now())
-  updatedAt         DateTime     @updatedAt
-  
-  user              User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, season])
-  @@index([userId])
-  @@index([season])
-  @@index([tier])
-  @@index([rank])
-  @@index([points])
-}
-
-model UserCollection {
-  id          String               @id @default(cuid())
-  userId      String
-  name        String
-  description String?
-  icon        String?
-  isPublic    Boolean              @default(false)
-  isPremium   Boolean              @default(false)
-  createdAt   DateTime             @default(now())
-  updatedAt   DateTime             @updatedAt
-  
-  user        User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
-  items       CollectionItem[]
-
-  @@index([userId])
-  @@index([isPublic])
-  @@index([isPremium])
-  @@index([createdAt])
-}
-
-model CollectionItem {
-  id           String         @id @default(cuid())
-  collectionId String
-  promptId     String
-  addedAt      DateTime       @default(now())
-  notes        String?
-  
-  collection   UserCollection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
-  prompt       Prompt         @relation(fields: [promptId], references: [id], onDelete: Cascade)
-
-  @@unique([collectionId, promptId])
-  @@index([collectionId])
-  @@index([promptId])
-  @@index([addedAt])
-}
-
-model ActivityLog {
-  id          String       @id @default(cuid())
-  userId      String
-  action      ActivityType
-  details     Json?
-  points      Int          @default(0)
-  multiplier  Float        @default(1.0)
-  timestamp   DateTime     @default(now())
-  
-  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-  @@index([action])
-  @@index([timestamp])
-  @@index([points])
-}
-
-model StreakLog {
-  id          String   @id @default(cuid())
-  userId      String
-  streakType  String   // "daily", "weekly", "voting", "creating"
-  count       Int
-  startDate   DateTime
-  endDate     DateTime?
-  isActive    Boolean  @default(true)
-  
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-  @@index([streakType])
-  @@index([count])
-  @@index([isActive])
-}
-
-model LevelProgression {
-  id            String   @id @default(cuid())
-  userId        String
-  fromLevel     Int
-  toLevel       Int
-  experienceGained Int
-  rewards       Json?    // Rewards for leveling up
-  timestamp     DateTime @default(now())
-  
-  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-  @@index([fromLevel])
-  @@index([toLevel])
-  @@index([timestamp])
-}
-
-model PremiumFeature {
-  id            String   @id @default(cuid())
-  name          String   @unique
-  description   String
-  category      String
-  requiredTier  PlanType
-  isActive      Boolean  @default(true)
-  config        Json?    // Feature configuration
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-
-  @@index([category])
-  @@index([requiredTier])
-  @@index([isActive])
-}
-
-// Enums for gamification
 enum AchievementCategory {
   CREATOR
   VOTER
@@ -1538,28 +1515,8 @@ enum ActivityType {
 }
 
 enum PremiumTier {
-  FREE
-  PRO
-}
-
-model WebVital {
-  id        String   @id @default(cuid())
-  userId    String?
-  sessionId String?
-  name      String
-  value     Float
-  rating    String
-  delta     Float
-  metricId  String
-  url       String
-  userAgent String
-  timestamp DateTime
-  createdAt DateTime @default(now())
-
-  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
-
-  @@index([userId])
-  @@index([name])
-  @@index([timestamp])
-  @@index([rating])
+  BASIC
+  PREMIUM
+  ELITE
+  EXCLUSIVE
 }

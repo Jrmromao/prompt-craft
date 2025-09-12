@@ -1,4 +1,3 @@
-import { prisma } from '@/lib/prisma';
 import { notFound } from 'next/navigation';
 import { Metadata } from 'next';
 import { Suspense } from 'react';
@@ -7,27 +6,19 @@ import { currentUser } from '@clerk/nextjs/server';
 import { TestPromptModal } from '@/components/TestPromptModal';
 import { PlanType } from '@/utils/constants';
 import { UserService } from '@/lib/services/userService';
+import { PromptService } from '@/lib/services/promptService';
 
 // Mark page as dynamic since it uses headers() through AnalyticsTrackingService
 export const dynamic = 'force-dynamic';
 
 async function getPrompt(id: string) {
   try {
-    return await prisma.prompt.findFirst({
-      where: { id },
-      include: { 
-        tags: true,
-        versions: {
-          orderBy: { createdAt: 'desc' },
-          take: 1,
-          select: { id: true }
-        },
-        user: {
-          select: {
-            name: true,
-            imageUrl: true
-          }
-        }
+    const promptService = PromptService.getInstance();
+    return await promptService.getPromptById(id);
+  } catch (error) {
+    return null;
+  }
+}
       },
     });
   } catch (error) {

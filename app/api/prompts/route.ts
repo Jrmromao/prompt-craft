@@ -8,6 +8,28 @@ import { Role, PlanType } from '@/utils/constants';
 import { PLANS } from '@/app/constants/plans';
 import { CreditService } from '@/lib/services/creditService';
 import { encode } from 'gpt-tokenizer';
+import { z } from 'zod';
+
+const createPromptSchema = z.object({
+  name: z.string().min(1).max(100),
+  description: z.string().max(500).optional(),
+  content: z.string().min(1).max(10000),
+  isPublic: z.boolean().default(false),
+  tags: z.array(z.string()).max(10).optional(),
+  promptType: z.string().optional(),
+  systemPrompt: z.string().max(2000).optional(),
+  context: z.string().max(1000).optional(),
+  examples: z.array(z.string()).max(5).optional(),
+  constraints: z.array(z.string()).max(10).optional(),
+  outputFormat: z.string().max(200).optional(),
+  temperature: z.number().min(0).max(2).optional(),
+  topP: z.number().min(0).max(1).optional(),
+  frequencyPenalty: z.number().min(-2).max(2).optional(),
+  presencePenalty: z.number().min(-2).max(2).optional(),
+  maxTokens: z.number().min(1).max(4000).optional(),
+  validationRules: z.array(z.string()).max(5).optional(),
+  fallbackStrategy: z.string().max(200).optional(),
+});
 
 // Export dynamic configuration
 export const dynamic = 'force-dynamic';
@@ -48,6 +70,16 @@ export const POST = withPlanLimitsMiddleware(
       }
 
       const body = await req.json();
+      
+      // Validate input
+      const validationResult = createPromptSchema.safeParse(body);
+      if (!validationResult.success) {
+        return NextResponse.json(
+          { success: false, error: 'Invalid input data', details: validationResult.error.errors },
+          { status: 400 }
+        );
+      }
+
       const { 
         name,
         description,
@@ -67,7 +99,7 @@ export const POST = withPlanLimitsMiddleware(
         maxTokens,
         validationRules,
         fallbackStrategy
-      } = body;
+      } = validationResult.data;
 
       if (!name || !content) {
         return NextResponse.json(

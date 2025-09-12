@@ -1,10 +1,24 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
-import { prisma } from '@/lib/prisma';
+import { UserService } from '@/lib/services/UserService';
 import Stripe from 'stripe';
+import { z } from 'zod';
 import { CREDIT_PURCHASE_METADATA, STRIPE_API_VERSION } from '@/app/constants/credits';
 import { AuditService } from '@/lib/services/auditService';
 import { AuditAction } from '@/app/constants/audit';
+import { Ratelimit } from '@upstash/ratelimit';
+import { Redis } from '@upstash/redis';
+
+const ratelimit = new Ratelimit({
+  redis: Redis.fromEnv(),
+  limiter: Ratelimit.slidingWindow(5, '1 m'),
+});
+
+const purchaseSchema = z.object({
+  packageId: z.string().min(1, 'Package ID is required'),
+  successUrl: z.string().url('Valid success URL required').optional(),
+  cancelUrl: z.string().url('Valid cancel URL required').optional(),
+});
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: STRIPE_API_VERSION as Stripe.LatestApiVersion,
@@ -17,17 +31,33 @@ export async function POST(req: NextRequest) {
     console.log("clerkId", clerkId);
 
     if (!clerkId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
-    // First, get the user from our database using the Clerk ID
-    const user = await prisma.user.findFirst({
-      where: { clerkId },
-      select: { id: true, email: true, stripeCustomerId: true },
-    });
+    // Rate limiting
+    const { success } = await ratelimit.limit(clerkId);
+    if (!success) {
+      return NextResponse.json({ success: false, error: 'Rate limit exceeded' }, { status: 429 });
+    }
+
+    // Validate input
+    const body = await req.json();
+    const validationResult = purchaseSchema.safeParse(body);
+    if (!validationResult.success) {
+      return NextResponse.json(
+        { success: false, error: 'Invalid input data', details: validationResult.error.errors },
+        { status: 400 }
+      );
+    }
+
+    // Get user using service
+    const userService = UserService.getInstance();
+    const user = await userService.getUserByClerkId(clerkId);
 
     if (!user) {
       console.error("No user found for Clerk ID:", clerkId);
+      return NextResponse.json({ success: false, error: 'User not found' }, { status: 404 });
+    }
       return NextResponse.json({ error: 'User not found in database' }, { status: 404 });
     }
 

@@ -1,33 +1,15 @@
-import { prisma } from '@/lib/prisma';
+import { EmailTemplateService } from '@/lib/services/EmailTemplateService';
 import { revalidatePath } from 'next/cache';
 
 export async function getEmailTemplates(searchParams: { search?: string; type?: string }) {
   try {
-    const search = searchParams.search;
-    const type = searchParams.type;
-
-    const templates = await prisma.emailTemplate.findMany({
-      where: {
-        AND: [
-          search
-            ? {
-                OR: [
-                  { name: { contains: search, mode: 'insensitive' } },
-                  { subject: { contains: search, mode: 'insensitive' } },
-                ],
-              }
-            : {},
-          type ? { type } : {},
-        ],
-      },
-      include: {
-        createdBy: {
-          select: {
-            name: true,
-          },
-        },
-        updatedBy: {
-          select: {
+    const emailTemplateService = EmailTemplateService.getInstance();
+    return await emailTemplateService.getEmailTemplates(searchParams);
+  } catch (error) {
+    console.error('Error fetching email templates:', error);
+    return [];
+  }
+} {
             name: true,
           },
         },

@@ -1,32 +1,22 @@
 'use server';
 
-import { clerkClient } from '@clerk/nextjs/server';
-import { prisma } from '@/lib/prisma';
+import { AdminUserService, UserData } from '@/lib/services/AdminUserService';
 import { revalidatePath } from 'next/cache';
-import { Prisma, UserStatus } from '@prisma/client';
-import { Role, hasRole, toPrismaRole, fromPrismaRole } from '@/utils/roles';
+import { UserStatus } from '@prisma/client';
+import { Role } from '@/utils/roles';
 import { requireRole } from '@/utils/roles.server';
 
-export type UserData = {
-  id: string;
-  name: string | null;
-  email: string;
-  role: Role;
-  planType: string;
-  status: UserStatus;
-  joinedAt: string;
-};
+export type { UserData };
 
-// Helper to safely convert string to Role enum
-function parseRole(roleStr: string): Role | undefined {
-  return Object.values(Role).includes(roleStr as any) ? (roleStr as unknown as Role) : undefined;
+export async function getUsers(searchParams: { search?: string; role?: string }): Promise<UserData[]> {
+  try {
+    const adminUserService = AdminUserService.getInstance();
+    return await adminUserService.getUsers(searchParams);
+  } catch (error) {
+    console.error('Error fetching users:', error);
+    return [];
+  }
 }
-
-export async function getUsers(searchParams: { search?: string; role?: string }) {
-  const search = searchParams.search;
-  const role = searchParams.role;
-
-  const parsedRole = role ? parseRole(role) : undefined;
 
   const where: Prisma.UserWhereInput = {
     AND: [

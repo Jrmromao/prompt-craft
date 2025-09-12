@@ -1,11 +1,17 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
-import { prisma } from '@/lib/prisma';
+import { AdminUserService } from '@/lib/services/AdminUserService';
 import { z } from 'zod';
-import { Prisma, UserStatus } from '@prisma/client';
+import { UserStatus } from '@prisma/client';
 import { AuditAction } from '@/app/constants/audit';
 import { AuditService } from '@/lib/services/auditService';
-import { UserService } from '@/lib/services/userService';
+import { Ratelimit } from '@upstash/ratelimit';
+import { Redis } from '@upstash/redis';
+
+const ratelimit = new Ratelimit({
+  redis: Redis.fromEnv(),
+  limiter: Ratelimit.slidingWindow(20, '1 m'),
+});
 
 const userQuerySchema = z.object({
   page: z.string().optional(),
@@ -20,14 +26,35 @@ export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
 export async function GET(request: Request, context: any) {
-  const { searchParams } = new URL(request.url);
-  const page = searchParams.get('page') || '1';
-  const limit = searchParams.get('limit') || '10';
-  const search = searchParams.get('search') || '';
-  const role = searchParams.get('role') as 'USER' | 'ADMIN' | null;
-  const isActive = searchParams.get('isActive');
+  try {
+    const { userId } = await auth();
+    
+    if (!userId) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+    }
 
-  const { userId } = await auth();
+    // Rate limiting
+    const { success } = await ratelimit.limit(userId);
+    if (!success) {
+      return NextResponse.json({ success: false, error: 'Rate limit exceeded' }, { status: 429 });
+    }
+
+    const { searchParams } = new URL(request.url);
+    const search = searchParams.get('search') || undefined;
+    const role = searchParams.get('role') || undefined;
+
+    const adminUserService = AdminUserService.getInstance();
+    const users = await adminUserService.getUsers({ search, role });
+
+    return NextResponse.json({ success: true, data: users });
+  } catch (error) {
+    console.error('Error fetching users:', error);
+    return NextResponse.json(
+      { success: false, error: 'Failed to fetch users' },
+      { status: 500 }
+    );
+  }
+}
   if (!userId) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
