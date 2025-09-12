@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { UserService } from '@/lib/services/UserService';
+import { prisma } from '@/lib/prisma';
 import Stripe from 'stripe';
 import { z } from 'zod';
 import { CREDIT_PURCHASE_METADATA, STRIPE_API_VERSION } from '@/app/constants/credits';
@@ -57,8 +58,6 @@ export async function POST(req: NextRequest) {
     if (!user) {
       console.error("No user found for Clerk ID:", clerkId);
       return NextResponse.json({ success: false, error: 'User not found' }, { status: 404 });
-    }
-      return NextResponse.json({ error: 'User not found in database' }, { status: 404 });
     }
 
     const { amount, price } = await req.json();
@@ -134,4 +133,4 @@ export async function POST(req: NextRequest) {
       { status: 500 }
     );
   }
-} 
+}

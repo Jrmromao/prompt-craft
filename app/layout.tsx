@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
 import { Footer } from '@/app/components/Footer';
-import { ClerkProvider } from '@clerk/nextjs';
+import { ClerkProviderWrapper } from '@/components/ClerkProviderWrapper';
 import Providers from '@/components/Providers';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import { TooltipProvider } from '@/components/ui/tooltip';
@@ -35,8 +35,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <body className={inter.className} suppressHydrationWarning>
-        <ErrorBoundary fallback={<div>Error</div>}>
-          <ClerkProvider dynamic>
+        <ClerkProviderWrapper>
+          <ErrorBoundary fallback={<div>Error</div>}>
             <Providers>
               <ThemeProvider>
                 <TooltipProvider>
@@ -49,9 +49,28 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 </TooltipProvider>
               </ThemeProvider>
             </Providers>
-          </ClerkProvider>
-        </ErrorBoundary>
+          </ErrorBoundary>
+        </ClerkProviderWrapper>
         <Toaster />
+        
+        {/* PWA Registration */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              if ('serviceWorker' in navigator) {
+                window.addEventListener('load', () => {
+                  navigator.serviceWorker.register('/sw.js')
+                    .then((registration) => {
+                      console.log('SW registered: ', registration);
+                    })
+                    .catch((registrationError) => {
+                      console.log('SW registration failed: ', registrationError);
+                    });
+                });
+              }
+            `,
+          }}
+        />
       </body>
     </html>
   );

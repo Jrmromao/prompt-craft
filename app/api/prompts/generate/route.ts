@@ -5,7 +5,7 @@ import { CreditService } from '@/lib/services/creditService';
 import { prisma } from '@/lib/prisma';
 import { PLANS, PlanType } from '@/app/constants/plans';
 import { CreditType } from '@prisma/client';
-import { UserService } from '@/lib/services/userService';
+import { UserService } from '@/lib/services/UserService';
 import { Redis } from '@upstash/redis';
 
 // Export dynamic configuration

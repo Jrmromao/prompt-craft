@@ -3,7 +3,7 @@ import { TemplateService } from '@/lib/services/templateService';
 import { prisma } from '@/lib/prisma';
 import { auth } from '@clerk/nextjs/server';
 
-const templateService = new TemplateService();
+const templateService = TemplateService.getInstance();
 
 export async function GET(request: Request, context: any) {
   try {

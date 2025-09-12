@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { prisma } from '@/lib/prisma';
-import { UserService } from '@/lib/services/userService';
+import { UserService } from '@/lib/services/UserService';
 
 // Route configuration
 export const dynamic = 'force-dynamic';

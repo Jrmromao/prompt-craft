@@ -97,18 +97,35 @@ async function migratePlanTypes() {
     console.log('✅ Created/updated plan limits for FREE and PRO tiers');
 
     // Update any subscriptions that reference old plan types
-    const subscriptions = await prisma.subscription.updateMany({
+    // Find subscriptions with ELITE or ENTERPRISE plans and update them to PRO
+    const eliteEnterprisePlans = await prisma.plan.findMany({
       where: {
-        planType: {
+        name: {
           in: ['ELITE', 'ENTERPRISE']
         }
-      },
-      data: {
-        planType: 'PRO'
       }
     });
 
-    console.log(`✅ Updated ${subscriptions.count} subscriptions to PRO tier`);
+    const proPlan = await prisma.plan.findFirst({
+      where: { name: 'PRO' }
+    });
+
+    let subscriptionCount = 0;
+    if (proPlan && eliteEnterprisePlans.length > 0) {
+      const subscriptions = await prisma.subscription.updateMany({
+        where: {
+          planId: {
+            in: eliteEnterprisePlans.map(p => p.id)
+          }
+        },
+        data: {
+          planId: proPlan.id
+        }
+      });
+      subscriptionCount = subscriptions.count;
+    }
+
+    console.log(`✅ Updated ${subscriptionCount} subscriptions to PRO tier`);
 
     console.log('🎉 Migration completed successfully!');
     

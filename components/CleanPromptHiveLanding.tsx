@@ -15,8 +15,6 @@ import {
   Users,
   Target,
 } from 'lucide-react';
-import { useAuth } from '@/hooks/useAuth';
-
 interface CleanPromptHiveLandingProps {
   user?: {
     id: string;
@@ -29,7 +27,7 @@ interface CleanPromptHiveLandingProps {
 const CleanPromptHiveLanding = ({ user }: CleanPromptHiveLandingProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { resolvedTheme, toggleTheme } = useTheme();
-  const { isAuthenticated } = useAuth();
+  const isAuthenticated = !!user;
 
   const handleSignOut = async () => {
     try {

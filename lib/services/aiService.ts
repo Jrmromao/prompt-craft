@@ -211,18 +211,12 @@ export class AIService {
       });
 
       // Log the transaction
-      await tx.creditTransaction.create({
+      await tx.creditHistory.create({
         data: {
           userId: user.id,
           amount: -actualCredits,
-          type: 'DEDUCTION',
-          reason: 'AI_GENERATION',
-          metadata: JSON.stringify({
-            promptId: options.promptId,
-            model: options.model || 'deepseek',
-            tokensUsed: result.tokenCount
-          }),
-          balanceAfter: newMonthlyCredits + newPurchasedCredits,
+          type: 'USAGE',
+          description: `AI Generation - ${options.model || 'deepseek'} - ${result.tokenCount} tokens`,
         }
       });
 

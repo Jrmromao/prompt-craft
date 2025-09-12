@@ -1,45 +1,52 @@
-'use server';
+import { prisma } from '@/lib/prisma';
+import { Role, UserStatus } from '@prisma/client';
 
-import { AdminUserService, UserData } from '@/lib/services/AdminUserService';
-import { revalidatePath } from 'next/cache';
-import { UserStatus } from '@prisma/client';
-import { Role } from '@/utils/roles';
-import { requireRole } from '@/utils/roles.server';
-
-export type { UserData };
-
-export async function getUsers(searchParams: { search?: string; role?: string }): Promise<UserData[]> {
-  try {
-    const adminUserService = AdminUserService.getInstance();
-    return await adminUserService.getUsers(searchParams);
-  } catch (error) {
-    console.error('Error fetching users:', error);
-    return [];
-  }
+// Helper function to convert Prisma role to display role
+function fromPrismaRole(role: Role): string {
+  return role;
 }
 
-  const where: Prisma.UserWhereInput = {
-    AND: [
-      search
-        ? {
-            OR: [
-              { name: { contains: search, mode: 'insensitive' } },
-              { email: { contains: search, mode: 'insensitive' } },
-            ],
-          }
-        : {},
-      parsedRole ? { role: toPrismaRole(parsedRole) } : {},
-    ],
-  };
+export interface UserData {
+  id: string;
+  name: string | null;
+  email: string;
+  role: Role;
+  status: UserStatus;
+  createdAt: Date;
+  joinedAt: string;
+}
+
+export async function getUsers(filters?: {
+  search?: string;
+  role?: string;
+  status?: string;
+}) {
+  const where: any = {};
+
+  if (filters?.search) {
+    where.OR = [
+      { name: { contains: filters.search, mode: 'insensitive' } },
+      { email: { contains: filters.search, mode: 'insensitive' } },
+    ];
+  }
+
+  if (filters?.role && filters.role !== 'all') {
+    where.role = filters.role;
+  }
+
+  if (filters?.status && filters.status !== 'all') {
+    where.isActive = filters.status === 'active';
+  }
 
   try {
     const users = await prisma.user.findMany({
       where,
       orderBy: { createdAt: 'desc' },
     });
+    
     return users.map(user => ({
       ...user,
-      role: fromPrismaRole(user.role),
+      role: user.role,
       joinedAt: user.createdAt.toISOString().split('T')[0],
     }));
   } catch (error) {
@@ -48,13 +55,12 @@ export async function getUsers(searchParams: { search?: string; role?: string })
   }
 }
 
-export async function updateUserStatus(userId: string, isActive: boolean) {
+export async function updateUserStatus(userId: string, status: 'ACTIVE' | 'SUSPENDED' | 'BANNED') {
   try {
     const user = await prisma.user.update({
       where: { id: userId },
-      data: { status: isActive ? UserStatus.ACTIVE : UserStatus.SUSPENDED },
+      data: { status },
     });
-    revalidatePath('/admin/users');
     return user;
   } catch (error) {
     console.error('Error updating user status:', error);
@@ -63,51 +69,17 @@ export async function updateUserStatus(userId: string, isActive: boolean) {
 }
 
 export async function updateUserRole(userId: string, role: Role) {
-  const currentUser = await requireRole(Role.ADMIN);
-  if (!currentUser) {
-    throw new Error('Unauthorized');
-  }
-
-  if ((role === Role.ADMIN || role === Role.SUPER_ADMIN) && !hasRole(currentUser.role, Role.SUPER_ADMIN)) {
-    throw new Error('Only SUPER_ADMIN can assign ADMIN or SUPER_ADMIN roles');
-  }
-
   try {
-    // Update role in Clerk metadata
-    const client = await clerkClient();
-    await client.users.updateUser(userId, {
-      publicMetadata: { role },
-    });
-
-    // Update role in database
     const user = await prisma.user.update({
       where: { id: userId },
-      data: { role: toPrismaRole(role) },
+      data: { role },
     });
-
-    // Log role change (audit trail)
-    console.log(`User ${currentUser.userId} changed role of ${userId} to ${role}`);
-    revalidatePath('/admin/users');
-    return { ...user, role: fromPrismaRole(user.role) };
+    return user;
   } catch (error) {
     console.error('Error updating user role:', error);
     throw new Error('Failed to update user role');
   }
 }
 
-export async function updateUser(userId: string, data: { name: string; role: Role }) {
-  try {
-    const user = await prisma.user.update({
-      where: { id: userId },
-      data: {
-        name: data.name,
-        role: toPrismaRole(data.role),
-      },
-    });
-    revalidatePath('/admin/users');
-    return { ...user, role: fromPrismaRole(user.role) };
-  } catch (error) {
-    console.error('Error updating user:', error);
-    throw new Error('Failed to update user');
-  }
-}
+// Alias for backward compatibility
+export const updateUser = updateUserRole;

@@ -3,6 +3,7 @@ import { auth } from '@clerk/nextjs/server';
 import { CommunityService } from '@/lib/services/communityService';
 import { CommentService } from '@/lib/services/commentService';
 import { UserService } from '@/lib/services/UserService';
+import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
 import { Ratelimit } from '@upstash/ratelimit';
 import { Redis } from '@upstash/redis';

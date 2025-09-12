@@ -21,19 +21,18 @@ export default async function DashboardPage() {
         id: user.id,
         name: user.name || 'User',
         email: user.email,
-        credits: user.monthlyCredits + user.purchasedCredits,
-        creditCap: user.creditCap,
-        planType: user.planType,
-      }} />
-      <DashboardClient user={{
-        id: user.id,
-        name: user.name || 'User',
-        email: user.email,
         createdAt: user.createdAt,
-        credits: user.monthlyCredits + user.purchasedCredits,
-        creditCap: user.creditCap,
-        planType: user.planType,
       }} />
+      <DashboardClient 
+        user={{
+          name: user.name || 'User',
+          email: user.email,
+          credits: 0, // Default value
+          creditCap: 100, // Default value
+          planType: 'FREE', // Default value
+        }}
+        recentPrompts={[]} // Empty array for now
+      />
     </>
   );
 }

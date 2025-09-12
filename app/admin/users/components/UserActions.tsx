@@ -18,7 +18,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { MoreHorizontal, Pencil, Trash2, UserX, UserCheck, Ban } from 'lucide-react';
-import { Role, fromPrismaRole } from '@/utils/roles';
+import { Role } from '@prisma/client';
 import { UserStatus } from '@prisma/client';
 import { updateUserRole, updateUserStatus } from '../actions';
 import { toast } from 'sonner';
@@ -38,8 +38,7 @@ export function UserActions({ userId, currentRole, currentStatus, onEdit }: User
 
   const handleRoleChange = async (newRoleFromPrisma: any) => {
     try {
-      const newRole = fromPrismaRole(newRoleFromPrisma);
-      await updateUserRole(userId, newRole);
+      await updateUserRole(userId, newRoleFromPrisma);
       toast.success('User role updated successfully');
     } catch (error) {
       toast.error('Failed to update user role');
@@ -48,7 +47,7 @@ export function UserActions({ userId, currentRole, currentStatus, onEdit }: User
 
   const handleStatusChange = async (newStatus: UserStatus) => {
     try {
-      await updateUserStatus(userId, newStatus === 'ACTIVE');
+      await updateUserStatus(userId, newStatus);
       toast.success('User status updated successfully');
     } catch (error) {
       toast.error('Failed to update user status');

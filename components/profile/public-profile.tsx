@@ -68,7 +68,7 @@ export function PublicProfile({ user, followerCount, followingCount, recentActiv
   const isVerified = user.isVerified || false;
 
   useEffect(() => {
-    const templateService = new TemplateService();
+    const templateService = TemplateService.getInstance();
     
     const fetchTemplates = async () => {
       try {

@@ -29,7 +29,10 @@ export interface NavBarUser {
 export function NavBar({ user, onMenuClick }: { user?: NavBarUser; onMenuClick?: () => void }) {
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const { isCommandPaletteOpen, setIsCommandPaletteOpen } = useKeyboardShortcuts();
+  const { isCommandPaletteOpen, setIsCommandPaletteOpen } = { 
+    isCommandPaletteOpen: false, 
+    setIsCommandPaletteOpen: () => {} 
+  };
   const userInitials =
     user?.name
       ?.split(' ')
@@ -135,10 +138,10 @@ export function NavBar({ user, onMenuClick }: { user?: NavBarUser; onMenuClick?:
         </div>
       </nav>
       <MobileMenu isOpen={isMobileMenuOpen} onClose={() => setIsMobileMenuOpen(false)} />
-      <CommandPalette 
+      {/* <CommandPalette 
         open={isCommandPaletteOpen} 
         onOpenChange={setIsCommandPaletteOpen} 
-      />
+      /> */}
     </>
   );
 }

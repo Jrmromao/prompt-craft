@@ -224,10 +224,7 @@ export function UsersTable({ initialUsers }: UsersTableProps) {
     if (!selectedUser) return;
 
     try {
-      await updateUser(selectedUser.id, {
-        ...data,
-        role: fromPrismaRole(data.role),
-      });
+      await updateUser(selectedUser.id, data.role);
       toast.success('User updated successfully');
       setShowEditDialog(false);
       router.refresh();
@@ -367,7 +364,7 @@ export function UsersTable({ initialUsers }: UsersTableProps) {
         <EditUserDialog
           user={{
             ...selectedUser,
-            role: toPrismaRole(selectedUser.role),
+            role: selectedUser.role,
           }}
           open={showEditDialog}
           onOpenChange={setShowEditDialog}

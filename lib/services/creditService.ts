@@ -31,11 +31,15 @@ export class CreditService {
   private static readonly CREDIT_CAPS = {
     FREE: 100,
     PRO: 1000,
+    ELITE: 2000,
+    ENTERPRISE: 5000,
   };
 
   private static readonly MONTHLY_CREDIT_ALLOCATIONS = {
     FREE: 100,
     PRO: 500,
+    ELITE: 1000,
+    ENTERPRISE: 2000,
   };
 
   private readonly TOKEN_COST_RATES = {

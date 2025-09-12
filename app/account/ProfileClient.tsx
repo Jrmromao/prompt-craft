@@ -84,8 +84,10 @@ const accountOptions = [
 const workspaceOptions = [{ label: 'My Prompts', icon: FileText, href: 'prompts' }];
 
 const PRIVATE_PROMPT_LIMITS = {
-  [PlanType.FREE]: 0,
-  [PlanType.PRO]: 5,
+  [PlanType.FREE]: 5,
+  [PlanType.PRO]: 50,
+  [PlanType.ELITE]: 200,
+  [PlanType.ENTERPRISE]: Infinity,
 };
 
 export interface ProfileClientProps {

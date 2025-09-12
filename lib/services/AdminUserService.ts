@@ -118,7 +118,8 @@ export class AdminUserService {
   async deleteUser(userId: string): Promise<void> {
     try {
       // Delete from Clerk first
-      await clerkClient.users.deleteUser(userId);
+      const client = await clerkClient();
+      await client.users.deleteUser(userId);
       
       // Then delete from database
       await prisma.user.delete({

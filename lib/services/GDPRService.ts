@@ -38,8 +38,8 @@ export class GDPRService {
           where: { id: userId },
           include: {
             settings: true,
-            achievements: true,
-            badges: true,
+            userAchievements: true,
+            userBadges: true,
           },
         }),
         prisma.prompt.findMany({
