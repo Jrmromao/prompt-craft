@@ -1,9 +1,19 @@
 import { NextResponse } from 'next/server';
+import { auth } from '@clerk/nextjs/server';
 import { prisma } from '@/lib/prisma';
 import { PLANS } from '@/app/constants/plans';
 
 export async function GET() {
   try {
+    const { userId } = await auth();
+    
+    if (!userId) {
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
     const plans = await prisma.plan.findMany({
       where: {
         isActive: true,

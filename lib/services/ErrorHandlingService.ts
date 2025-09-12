@@ -24,11 +24,17 @@ export class ErrorHandlingService {
     const severity = this.determineSeverity(error, context);
     
     try {
-      // Try to log to database if table exists
-      await prisma.$executeRaw`
-        INSERT INTO "ErrorLog" ("userId", "error", "stack", "context", "severity", "timestamp")
-        VALUES (${userId}, ${error.message}, ${error.stack}, ${JSON.stringify(context)}, ${severity}, NOW())
-      `;
+      // Use Prisma's safe query methods instead of raw SQL
+      await prisma.errorLog.create({
+        data: {
+          userId,
+          error: error.message,
+          stack: error.stack || '',
+          context: JSON.stringify(context),
+          severity,
+          timestamp: new Date(),
+        },
+      });
     } catch (logError) {
       // Fallback to console logging if database logging fails
       console.error('Failed to log error to database:', logError);
