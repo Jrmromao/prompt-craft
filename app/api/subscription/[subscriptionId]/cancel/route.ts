@@ -7,9 +7,7 @@ import Stripe from 'stripe';
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2025-08-27.basil',
-});
+import { stripe } from '@/lib/stripe';
 
 export async function POST(
   req: Request,

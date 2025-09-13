@@ -21,9 +21,7 @@ const purchaseSchema = z.object({
   cancelUrl: z.string().url('Valid cancel URL required').optional(),
 });
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: STRIPE_API_VERSION as Stripe.LatestApiVersion,
-});
+import { stripe } from '@/lib/stripe';
 
 export async function POST(req: NextRequest) {
   try {

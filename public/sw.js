@@ -66,6 +66,21 @@ self.addEventListener('fetch', (event) => {
 
 // Handle API requests with network-first strategy
 async function handleApiRequest(request) {
+  // Only cache GET requests
+  if (request.method !== 'GET') {
+    return fetch(request)
+  }
+
+  // Don't cache unsupported schemes
+  if (request.url.startsWith('chrome-extension:') || 
+      request.url.startsWith('moz-extension:') || 
+      request.url.startsWith('safari-extension:') ||
+      request.url.startsWith('chrome:') ||
+      request.url.startsWith('about:') ||
+      request.url.startsWith('data:')) {
+    return fetch(request)
+  }
+
   const shouldCache = API_CACHE_PATTERNS.some(pattern => 
     pattern.test(new URL(request.url).pathname)
   )
@@ -78,8 +93,13 @@ async function handleApiRequest(request) {
     const response = await fetch(request)
     
     if (response.ok) {
-      const cache = await caches.open(DYNAMIC_CACHE)
-      cache.put(request, response.clone())
+      try {
+        const cache = await caches.open(DYNAMIC_CACHE)
+        await cache.put(request, response.clone())
+      } catch (cacheError) {
+        console.warn('Failed to cache API response:', cacheError)
+        // Continue without caching
+      }
     }
     
     return response
@@ -102,12 +122,32 @@ async function handleApiRequest(request) {
 
 // Handle page requests with cache-first strategy
 async function handlePageRequest(request) {
+  // Only cache GET requests
+  if (request.method !== 'GET') {
+    return fetch(request)
+  }
+
+  // Don't cache unsupported schemes
+  if (request.url.startsWith('chrome-extension:') || 
+      request.url.startsWith('moz-extension:') || 
+      request.url.startsWith('safari-extension:') ||
+      request.url.startsWith('chrome:') ||
+      request.url.startsWith('about:') ||
+      request.url.startsWith('data:')) {
+    return fetch(request)
+  }
+
   try {
     const response = await fetch(request)
     
     if (response.ok) {
-      const cache = await caches.open(DYNAMIC_CACHE)
-      cache.put(request, response.clone())
+      try {
+        const cache = await caches.open(DYNAMIC_CACHE)
+        await cache.put(request, response.clone())
+      } catch (cacheError) {
+        console.warn('Failed to cache page response:', cacheError)
+        // Continue without caching
+      }
     }
     
     return response
@@ -124,6 +164,21 @@ async function handlePageRequest(request) {
 
 // Handle asset requests with cache-first strategy
 async function handleAssetRequest(request) {
+  // Only cache GET requests
+  if (request.method !== 'GET') {
+    return fetch(request)
+  }
+
+  // Don't cache unsupported schemes
+  if (request.url.startsWith('chrome-extension:') || 
+      request.url.startsWith('moz-extension:') || 
+      request.url.startsWith('safari-extension:') ||
+      request.url.startsWith('chrome:') ||
+      request.url.startsWith('about:') ||
+      request.url.startsWith('data:')) {
+    return fetch(request)
+  }
+
   const cachedResponse = await caches.match(request)
   if (cachedResponse) {
     return cachedResponse
@@ -133,8 +188,13 @@ async function handleAssetRequest(request) {
     const response = await fetch(request)
     
     if (response.ok) {
-      const cache = await caches.open(DYNAMIC_CACHE)
-      cache.put(request, response.clone())
+      try {
+        const cache = await caches.open(DYNAMIC_CACHE)
+        await cache.put(request, response.clone())
+      } catch (cacheError) {
+        console.warn('Failed to cache asset response:', cacheError)
+        // Continue without caching
+      }
     }
     
     return response
@@ -160,18 +220,15 @@ self.addEventListener('sync', (event) => {
 
 async function handleBackgroundSync() {
   // Handle queued actions when back online
+  // Note: We don't cache POST requests, so this is mainly for cleanup
   const cache = await caches.open(DYNAMIC_CACHE)
   const requests = await cache.keys()
   
-  // Process any queued API calls
+  // Clean up any stale cache entries
   for (const request of requests) {
     if (request.url.includes('/api/') && request.method === 'POST') {
-      try {
-        await fetch(request)
-        await cache.delete(request)
-      } catch (error) {
-        console.log('Background sync failed for:', request.url)
-      }
+      // Remove any POST requests that shouldn't be cached
+      await cache.delete(request)
     }
   }
 }

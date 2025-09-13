@@ -13,7 +13,7 @@ interface ClientWrapperProps {
 export default function ClientWrapper({ user }: ClientWrapperProps) {
   return (
     <QueryClientProvider client={queryClient}>
-      <ClientPromptCreate user={user} />
+      <ClientPromptCreate />
     </QueryClientProvider>
   );
 } 

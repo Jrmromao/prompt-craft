@@ -1,8 +1,6 @@
 'use client';
 
 import React, { Component, ErrorInfo } from 'react';
-import * as Sentry from '@sentry/nextjs';
-import { logError, isConstructorError } from '@/lib/error-handling';
 
 interface Props {
   children: React.ReactNode;
@@ -38,52 +36,12 @@ export default class ErrorBoundary extends Component<Props, State> {
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error('Uncaught error:', error, errorInfo);
 
-    // Log the error to Sentry
-    Sentry.withScope((scope) => {
-      scope.setExtras({
-        componentStack: errorInfo.componentStack,
-        url: window.location.href,
-        userAgent: navigator.userAgent,
-      });
-      Sentry.captureException(error);
-    });
-
-    // Log the error to our system
-    logError({
-      error,
-      errorInfo,
-      timestamp: new Date().toISOString(),
-      url: window.location.href,
-      userAgent: navigator.userAgent,
-      componentStack: errorInfo.componentStack ?? undefined,
-    });
-
-    // Handle constructor errors specifically
-    if (isConstructorError(error) && !this.state.recoveryAttempted) {
-      this.setState({ recoveryAttempted: true });
-      this.handleConstructorError(error);
-    }
-
     // Call the onError prop if provided
     if (this.props.onError) {
       this.props.onError(error, errorInfo);
     }
   }
 
-  private handleConstructorError(error: Error) {
-    try {
-      // Clear any cached data that might be causing the issue
-      localStorage.removeItem('cookie-preferences');
-      sessionStorage.clear();
-      
-      // Reload the page after a short delay
-      setTimeout(() => {
-        window.location.reload();
-      }, 1000);
-    } catch (e) {
-      console.error('Failed to handle constructor error:', e);
-    }
-  }
 
   public render() {
     if (this.state.hasError) {

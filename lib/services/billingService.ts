@@ -73,11 +73,11 @@ export class BillingService {
       this.logger.info('Fetched Stripe invoices', { 
         userId,
         invoiceCount: stripeInvoices.data.length,
-        invoiceIds: stripeInvoices.data.map(inv => inv.id)
+        invoiceIds: stripeInvoices.data.map((inv: any) => inv.id)
       });
 
       // Format Stripe invoices
-      const formattedInvoices = stripeInvoices.data.map(invoice => ({
+      const formattedInvoices = stripeInvoices.data.map((invoice: any) => ({
         id: invoice.id,
         amount: (invoice.amount_paid / 100).toFixed(2),
         date: new Date(invoice.created * 1000).toISOString(),

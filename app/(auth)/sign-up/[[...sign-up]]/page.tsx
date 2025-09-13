@@ -1,15 +1,16 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useSignUp } from '@clerk/nextjs';
+import { useSignUp, useUser } from '@clerk/nextjs';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Sparkles, ArrowLeft, Calendar } from 'lucide-react';
-import { useAuth } from '@/hooks/useAuth';
+import AuthErrorBoundary from '@/components/AuthErrorBoundary';
+import AuthLoading from '@/components/AuthLoading';
 
 export default function SignUpPage() {
   const { signUp, isLoaded } = useSignUp();
-  const { isAuthenticated, user, isLoading: authLoading, refreshAuth } = useAuth();
+  const { user, isLoaded: userLoaded } = useUser();
   const router = useRouter();
   
   const [email, setEmail] = useState('');
@@ -20,38 +21,22 @@ export default function SignUpPage() {
   const [success, setSuccess] = useState(false);
   const [oauthLoading, setOauthLoading] = useState(false);
 
-  // Simple server-side authentication check
+  // Redirect if user is already authenticated
   useEffect(() => {
-    if (!authLoading && isAuthenticated) {
+    if (userLoaded && user) {
       console.log('User is authenticated, redirecting to prompts');
-      const timer = setTimeout(() => {
-        router.push('/prompts');
-      }, 100);
-      return () => clearTimeout(timer);
+      router.push('/prompts');
     }
-  }, [isAuthenticated, authLoading, router]);
+  }, [user, userLoaded, router]);
 
-  if (authLoading || !isLoaded) {
-    return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-8 h-8 border-4 border-purple-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600 dark:text-gray-400">Loading...</p>
-        </div>
-      </div>
-    );
+  // Show loading while checking authentication state
+  if (!isLoaded || !userLoaded) {
+    return <AuthLoading message="Loading sign-up..." />;
   }
 
   // If user is authenticated, show loading while redirecting
-  if (isAuthenticated) {
-    return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-8 h-8 border-4 border-purple-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600 dark:text-gray-400">Redirecting...</p>
-        </div>
-      </div>
-    );
+  if (user) {
+    return <AuthLoading message="Redirecting..." />;
   }
 
   const handleSignUp = async (e: React.FormEvent) => {
@@ -85,16 +70,16 @@ export default function SignUpPage() {
 
   // OAuth handler is now implemented directly in handleOAuthClick
   
-  // Simplified OAuth handler using server-side authentication
+  // OAuth handler with proper error handling
   const handleOAuthClick = async (provider: 'oauth_google' | 'oauth_github') => {
-    // Check if user is already authenticated using server-side API
-    if (isAuthenticated) {
+    // Check if user is already authenticated
+    if (user) {
       console.log('User already authenticated, redirecting...');
       router.push('/prompts');
       return;
     }
     
-    if (oauthLoading || !isLoaded || authLoading) {
+    if (oauthLoading || !isLoaded || !userLoaded) {
       console.log('OAuth blocked: loading state or auth not ready');
       return;
     }
@@ -104,8 +89,6 @@ export default function SignUpPage() {
     
     try {
       console.log('Initiating OAuth with', provider);
-      // Use redirect authentication - this will redirect to OAuth provider
-      // but the user will return to our custom page after authentication
       await signUp.authenticateWithRedirect({
         strategy: provider,
         redirectUrl: '/sso-callback',
@@ -146,7 +129,8 @@ export default function SignUpPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+    <AuthErrorBoundary>
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
 
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <div className="text-center">
@@ -173,31 +157,31 @@ export default function SignUpPage() {
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white dark:bg-gray-800 py-8 px-4 shadow-lg sm:rounded-lg sm:px-10 border border-gray-200 dark:border-gray-700">
           <div className="space-y-3 mb-6">
-            <button
-              onClick={() => handleOAuthClick('oauth_google')}
-              disabled={isAuthenticated || oauthLoading || !isLoaded || authLoading}
-              className="w-full flex justify-center items-center gap-3 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {oauthLoading ? (
-                <div className="w-5 h-5 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
-              ) : (
-                <img src="/google.svg" alt="Google" className="w-5 h-5" />
-              )}
-              {oauthLoading ? 'Connecting...' : 'Continue with Google'}
-            </button>
-            
-            <button
-              onClick={() => handleOAuthClick('oauth_github')}
-              disabled={isAuthenticated || oauthLoading || !isLoaded || authLoading}
-              className="w-full flex justify-center items-center gap-3 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {oauthLoading ? (
-                <div className="w-5 h-5 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
-              ) : (
-                <img src="/github.svg" alt="GitHub" className="w-5 h-5" />
-              )}
-              {oauthLoading ? 'Connecting...' : 'Continue with GitHub'}
-            </button>
+              <button
+                onClick={() => handleOAuthClick('oauth_google')}
+                disabled={user || oauthLoading || !isLoaded || !userLoaded}
+                className="w-full flex justify-center items-center gap-3 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {oauthLoading ? (
+                  <div className="w-5 h-5 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
+                ) : (
+                  <img src="/google.svg" alt="Google" className="w-5 h-5" />
+                )}
+                {oauthLoading ? 'Connecting...' : 'Continue with Google'}
+              </button>
+              
+              <button
+                onClick={() => handleOAuthClick('oauth_github')}
+                disabled={user || oauthLoading || !isLoaded || !userLoaded}
+                className="w-full flex justify-center items-center gap-3 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {oauthLoading ? (
+                  <div className="w-5 h-5 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
+                ) : (
+                  <img src="/github.svg" alt="GitHub" className="w-5 h-5" />
+                )}
+                {oauthLoading ? 'Connecting...' : 'Continue with GitHub'}
+              </button>
           </div>
 
           <div className="relative mb-6">
@@ -285,5 +269,6 @@ export default function SignUpPage() {
         </div>
       </div>
     </div>
+    </AuthErrorBoundary>
   );
 }

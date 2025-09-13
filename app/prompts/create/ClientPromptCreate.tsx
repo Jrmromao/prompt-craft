@@ -184,3 +184,5 @@ export function CreatePromptClient() {
     </div>
   );
 }
+
+export default CreatePromptClient;

@@ -1,13 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { prisma } from '@/lib/prisma';
-import Stripe from 'stripe';
+import { stripe } from '@/lib/stripe';
 import { AuditService } from '@/lib/services/auditService';
 import { AuditAction } from '@/app/constants/audit';
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2025-08-27.basil',
-});
 
 export async function GET(req: NextRequest) {
   try {
@@ -38,7 +34,7 @@ export async function GET(req: NextRequest) {
     });
 
     // Format payment method data
-    const formattedMethods = paymentMethods.data.map((method) => ({
+    const formattedMethods = paymentMethods.data.map((method: any) => ({
       id: method.id,
       type: method.type,
       card: {

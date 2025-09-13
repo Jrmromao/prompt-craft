@@ -51,6 +51,10 @@ export async function POST(req: NextRequest) {
       });
       customerId = customer.id;
       
+      if (!customerId) {
+        return NextResponse.json({ error: 'Failed to create Stripe customer' }, { status: 500 });
+      }
+      
       // Update user with Stripe customer ID
       const plan = await prisma.plan.findUnique({
         where: { id: 'free' },

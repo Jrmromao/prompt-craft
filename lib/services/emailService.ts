@@ -2,8 +2,8 @@ import { Resend } from 'resend';
 import { Category, Priority, TicketStatus } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 
-// Initialize Resend with API key
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Initialize Resend with API key (optional for build)
+const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
 // Email templates
 const EMAIL_TEMPLATES = {
@@ -373,6 +373,11 @@ export class EmailService {
     try {
       if (!this.validateEmail(email)) {
         return { success: false, error: 'Invalid email format' };
+      }
+
+      if (!this.resend) {
+        console.warn('Resend not configured, skipping email send');
+        return { success: false, error: 'Email service not configured' };
       }
 
       await this.resend.emails.send({

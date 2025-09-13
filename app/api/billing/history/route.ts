@@ -1,14 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { prisma } from '@/lib/prisma';
-import Stripe from 'stripe';
+import { stripe } from '@/lib/stripe';
 import { AuditService } from '@/lib/services/auditService';
 import { AuditAction } from '@/app/constants/audit';
-import { STRIPE_API_VERSION } from '@/app/constants/credits';
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: STRIPE_API_VERSION as Stripe.LatestApiVersion,
-});
 
 export async function GET(req: NextRequest) {
   try {
@@ -39,7 +34,7 @@ export async function GET(req: NextRequest) {
     });
 
     // Format invoice data
-    const billingHistory = invoices.data.map((invoice) => ({
+    const billingHistory = invoices.data.map((invoice: any) => ({
       id: invoice.id,
       amount: invoice.amount_paid,
       currency: invoice.currency,
@@ -49,7 +44,7 @@ export async function GET(req: NextRequest) {
         start: new Date(invoice.period_start * 1000),
         end: new Date(invoice.period_end * 1000),
       },
-      items: invoice.lines.data.map((line) => ({
+      items: invoice.lines.data.map((line: any) => ({
         description: line.description,
         amount: line.amount,
         quantity: line.quantity,

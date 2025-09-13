@@ -19,7 +19,7 @@ interface State {
   retryCount: number
 }
 
-export class EnhancedErrorBoundary extends Component<Props, State> {
+export default class EnhancedErrorBoundary extends Component<Props, State> {
   private retryTimeoutId: NodeJS.Timeout | null = null
 
   constructor(props: Props) {
