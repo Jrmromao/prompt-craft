@@ -23,6 +23,7 @@ interface AIRequest {
   requirements: string;
   promptType: string;
   tone: string;
+  model: string;
 }
 
 export function SimplePromptEditor() {
@@ -37,7 +38,8 @@ export function SimplePromptEditor() {
     userIdea: '',
     requirements: '',
     promptType: 'conversational',
-    tone: 'professional'
+    tone: 'professional',
+    model: 'deepseek'
   });
   
   const [isLoading, setIsLoading] = useState(false);
@@ -139,30 +141,50 @@ export function SimplePromptEditor() {
 
             <div className="space-y-2">
               <Label htmlFor="promptType">Prompt Type</Label>
-              <Select value={aiRequest.promptType} onValueChange={(value) => setAiRequest(prev => ({ ...prev, promptType: value }))}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="creative">Creative</SelectItem>
-                  <SelectItem value="analytical">Analytical</SelectItem>
-                  <SelectItem value="conversational">Conversational</SelectItem>
-                  <SelectItem value="technical">Technical</SelectItem>
-                </SelectContent>
-              </Select>
+              <div suppressHydrationWarning>
+                <Select value={aiRequest.promptType} onValueChange={(value) => setAiRequest(prev => ({ ...prev, promptType: value }))}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="creative">Creative</SelectItem>
+                    <SelectItem value="analytical">Analytical</SelectItem>
+                    <SelectItem value="conversational">Conversational</SelectItem>
+                    <SelectItem value="technical">Technical</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="tone">Tone</Label>
-              <Select value={aiRequest.tone} onValueChange={(value) => setAiRequest(prev => ({ ...prev, tone: value }))}>
+              <div suppressHydrationWarning>
+                <Select value={aiRequest.tone} onValueChange={(value) => setAiRequest(prev => ({ ...prev, tone: value }))}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="professional">Professional</SelectItem>
+                    <SelectItem value="casual">Casual</SelectItem>
+                    <SelectItem value="friendly">Friendly</SelectItem>
+                    <SelectItem value="authoritative">Authoritative</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="model">AI Model</Label>
+            <div suppressHydrationWarning>
+              <Select value={aiRequest.model} onValueChange={(value) => setAiRequest(prev => ({ ...prev, model: value }))}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="professional">Professional</SelectItem>
-                  <SelectItem value="casual">Casual</SelectItem>
-                  <SelectItem value="friendly">Friendly</SelectItem>
-                  <SelectItem value="authoritative">Authoritative</SelectItem>
+                  <SelectItem value="deepseek">DeepSeek (Free)</SelectItem>
+                  <SelectItem value="gpt4">GPT-4 (PRO)</SelectItem>
+                  <SelectItem value="claude">Claude (PRO)</SelectItem>
                 </SelectContent>
               </Select>
             </div>

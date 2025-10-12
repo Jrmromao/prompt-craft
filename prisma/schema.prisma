@@ -578,7 +578,7 @@ model PremiumFeature {
 }
 
 model Prompt {
-  id                  String              @id
+  id                  String              @id @default(cuid())
   userId              String
   createdAt           DateTime            @default(now())
   content             String
