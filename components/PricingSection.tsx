@@ -30,45 +30,40 @@ function renderFeature(feature: string, isPostMVP: boolean, index: number) {
 // 1. Define core features for each plan (lean, conversion-focused)
 const coreFeatures = {
   FREE: [
-    '10 credits/month (resets monthly)',
-    'Buy extra credits (never expire)',
-    'Earn credits from upvotes (never expire)',
-    'Up to 3 private prompts',
-    'Create unlimited public prompts',
-    'Basic prompt testing',
+    '10 AI-generated prompts',
+    'Personal prompt library',
+    'Basic prompt editor',
+    'Export prompts',
     'Community support',
   ],
   PRO: [
-    '500 credits/month (resets monthly)',
-    'Buy extra credits at discounted rate (never expire)',
-    'Earn bonus credits from upvotes (never expire)',
-    'Unlimited private prompts',
-    'Create unlimited public prompts',
-    'Advanced prompt testing with AI optimization',
+    'Unlimited AI-generated prompts',
+    'Personal prompt library',
+    'Advanced prompt editor with AI optimization',
     'Prompt version control',
     'Advanced analytics dashboard',
     'Priority support',
-    'Access to premium AI models',
+    'Access to premium AI models (GPT-4, Claude)',
+    'Export & import prompts',
+    'Custom prompt templates',
   ],
 };
 
 // 2. Post-MVP features (for tooltip or coming soon note)
 const postMVPFeatures = [
-  'Team collaboration (up to 10 users)',
+  'Team collaboration',
   'Custom Integrations',
   'White-label Solutions',
   'Dedicated Account Manager',
   'Advanced Security',
   'Compliance Features',
-  'Custom Training',
-  'Custom Development',
 ];
 
 const subscriptionPlans = [
   {
     name: 'FREE',
     price: 0,
-    description: 'Perfect for getting started',
+    description: 'Perfect for trying AI prompt generation',
     features: coreFeatures.FREE,
     popular: false,
     isEnterprise: false,
@@ -76,7 +71,7 @@ const subscriptionPlans = [
   },
   {
     name: 'PRO',
-    price: 9.99,
+    price: 29.99,
     description: 'For professionals and power users',
     features: coreFeatures.PRO,
     popular: true,
@@ -95,9 +90,9 @@ export default function PricingSection() {
     <section className="py-24 bg-gradient-to-b from-white to-gray-50 dark:from-black dark:to-gray-900">
       <div className="container mx-auto px-4">
         <div className="text-center mb-16">
-          <h2 className="text-4xl font-bold mb-4">Simple, Credit-Based Pricing</h2>
+          <h2 className="text-4xl font-bold mb-4">Simple, Transparent Pricing</h2>
           <p className="text-xl text-gray-600 dark:text-gray-400">
-            Pay only for what you use. Credits never expire when purchased.
+            Start free with 10 AI-generated prompts. Upgrade for unlimited access.
           </p>
           <div className="flex items-center justify-center gap-4 mt-8">
             <span className={cn("text-sm", !isAnnual && "text-purple-600 font-semibold")}>Monthly</span>

@@ -279,9 +279,9 @@ const CleanPromptHiveLanding = ({ user }: CleanPromptHiveLandingProps) => {
               <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center mx-auto mb-4">
                 <Users className="w-6 h-6 text-purple-600 dark:text-purple-400" />
               </div>
-              <h3 className="text-xl font-semibold mb-3">Community Library</h3>
+              <h3 className="text-xl font-semibold mb-3">Personal Library</h3>
               <p className="text-gray-600 dark:text-gray-300">
-                Access thousands of community prompts and share your best creations
+                Organize and manage all your prompts in one secure, private workspace
               </p>
             </div>
           </div>
@@ -300,21 +300,25 @@ const CleanPromptHiveLanding = ({ user }: CleanPromptHiveLandingProps) => {
             {/* Free Plan */}
             <div className="bg-white dark:bg-gray-900 rounded-xl p-8 border border-gray-200 dark:border-gray-800">
               <h3 className="text-2xl font-bold mb-2">Free</h3>
-              <p className="text-gray-600 dark:text-gray-300 mb-6">Perfect for getting started</p>
-              <div className="text-3xl font-bold mb-6">$0<span className="text-lg text-gray-500">/month</span></div>
+              <p className="text-gray-600 dark:text-gray-300 mb-6">Perfect for trying AI prompt generation</p>
+              <div className="text-3xl font-bold mb-6">$0<span className="text-lg text-gray-500">/forever</span></div>
               
               <ul className="space-y-3 mb-8">
                 <li className="flex items-center gap-3">
                   <Check className="w-5 h-5 text-green-500" />
-                  <span>100 credits/month</span>
+                  <span>10 AI-generated prompts</span>
                 </li>
                 <li className="flex items-center gap-3">
                   <Check className="w-5 h-5 text-green-500" />
-                  <span>3 private prompts</span>
+                  <span>Personal prompt library</span>
                 </li>
                 <li className="flex items-center gap-3">
                   <Check className="w-5 h-5 text-green-500" />
-                  <span>Community access</span>
+                  <span>Basic prompt editor</span>
+                </li>
+                <li className="flex items-center gap-3">
+                  <Check className="w-5 h-5 text-green-500" />
+                  <span>Export prompts</span>
                 </li>
               </ul>
               
@@ -332,21 +336,25 @@ const CleanPromptHiveLanding = ({ user }: CleanPromptHiveLandingProps) => {
               </div>
               
               <h3 className="text-2xl font-bold mb-2">Pro</h3>
-              <p className="text-gray-600 dark:text-gray-300 mb-6">For serious prompt engineers</p>
-              <div className="text-3xl font-bold mb-6">$16<span className="text-lg text-gray-500">/month</span></div>
+              <p className="text-gray-600 dark:text-gray-300 mb-6">For professionals and power users</p>
+              <div className="text-3xl font-bold mb-6">$29<span className="text-lg text-gray-500">/month</span></div>
               
               <ul className="space-y-3 mb-8">
                 <li className="flex items-center gap-3">
                   <Check className="w-5 h-5 text-green-500" />
-                  <span>500 credits/month</span>
+                  <span>Unlimited AI-generated prompts</span>
                 </li>
                 <li className="flex items-center gap-3">
                   <Check className="w-5 h-5 text-green-500" />
-                  <span>20 private prompts</span>
+                  <span>Advanced prompt editor</span>
                 </li>
                 <li className="flex items-center gap-3">
                   <Check className="w-5 h-5 text-green-500" />
-                  <span>Version control</span>
+                  <span>Premium AI models (GPT-4, Claude)</span>
+                </li>
+                <li className="flex items-center gap-3">
+                  <Check className="w-5 h-5 text-green-500" />
+                  <span>Version control & analytics</span>
                 </li>
                 <li className="flex items-center gap-3">
                   <Check className="w-5 h-5 text-green-500" />
@@ -355,7 +363,7 @@ const CleanPromptHiveLanding = ({ user }: CleanPromptHiveLandingProps) => {
               </ul>
               
               <Link href="/sign-up" className="block w-full text-center bg-purple-600 text-white py-3 rounded-lg font-semibold hover:bg-purple-700 transition-colors">
-                Start Free Trial
+                Upgrade to Pro
               </Link>
             </div>
           </div>

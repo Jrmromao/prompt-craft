@@ -31,7 +31,6 @@ const PUBLIC_ROUTES = [
   '/legal/refund-policy',
   '/legal/dmca-policy',
   '/legal/copyright-policy',
-  '/community-prompts',
   '/account-test',
   '/account', // Temporary fix
 ];
