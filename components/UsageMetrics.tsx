@@ -165,8 +165,8 @@ export function UsageMetrics({ metrics, isLoading = false }: UsageMetricsProps) 
                         cx="50%"
                         cy="50%"
                         outerRadius={150}
-                        label={({ name, percent }) => 
-                          `${name} (${(percent * 100).toFixed(0)}%)`
+                        label={(props: any) => 
+                          `${props.name} (${(props.percent * 100).toFixed(0)}%)`
                         }
                       >
                         {metrics.usageByFeature.map((_, index) => (

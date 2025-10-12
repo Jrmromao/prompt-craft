@@ -5,7 +5,7 @@ import { clerkClient } from '@clerk/nextjs/server';
 
 export async function GET() {
   try {
-    const { userId, sessionClaims } = await auth();
+    const { userId } = await auth();
     
     if (!userId) {
       return NextResponse.json({
@@ -14,7 +14,7 @@ export async function GET() {
       }, { status: 401 });
     }
 
-    // Get user from database - this is the source of truth
+    // Get user from database
     let user = await prisma.user.findUnique({
       where: { clerkId: userId },
       select: {
@@ -31,7 +31,7 @@ export async function GET() {
       }
     });
 
-    // If user doesn't exist in database, create from Clerk data
+    // If user doesn't exist, try to find by email and update, or create new
     if (!user) {
       try {
         const client = await clerkClient();
@@ -44,41 +44,65 @@ export async function GET() {
 
         const fullName = `${clerkUser.firstName || ''} ${clerkUser.lastName || ''}`.trim() || 'User';
 
-        user = await prisma.user.create({
-          data: {
-            clerkId: userId,
-            email: primaryEmail,
-            name: fullName,
-            role: 'USER',
-            planType: 'FREE',
-            monthlyCredits: 10,
-            purchasedCredits: 0,
-            creditCap: 10,
-            lastCreditReset: new Date(),
-          },
-          select: {
-            id: true,
-            clerkId: true,
-            email: true,
-            name: true,
-            role: true,
-            planType: true,
-            monthlyCredits: true,
-            purchasedCredits: true,
-            createdAt: true,
-            updatedAt: true
-          }
+        // Try to find existing user by email and update their clerkId
+        const existingUser = await prisma.user.findUnique({
+          where: { email: primaryEmail }
         });
 
-        // Update Clerk metadata
-        await client.users.updateUserMetadata(userId, {
-          privateMetadata: {
-            databaseId: user.id,
-            planType: user.planType,
-          }
-        });
+        if (existingUser) {
+          // Update existing user with new clerkId
+          user = await prisma.user.update({
+            where: { email: primaryEmail },
+            data: {
+              clerkId: userId,
+              name: fullName,
+              updatedAt: new Date(),
+            },
+            select: {
+              id: true,
+              clerkId: true,
+              email: true,
+              name: true,
+              role: true,
+              planType: true,
+              monthlyCredits: true,
+              purchasedCredits: true,
+              createdAt: true,
+              updatedAt: true
+            }
+          });
+          console.log('✅ Updated existing user with new Clerk ID:', user.clerkId);
+        } else {
+          // Create new user
+          user = await prisma.user.create({
+            data: {
+              id: `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+              clerkId: userId,
+              email: primaryEmail,
+              name: fullName,
+              role: 'USER',
+              planType: 'FREE',
+              monthlyCredits: 100,
+              purchasedCredits: 0,
+              updatedAt: new Date(),
+            },
+            select: {
+              id: true,
+              clerkId: true,
+              email: true,
+              name: true,
+              role: true,
+              planType: true,
+              monthlyCredits: true,
+              purchasedCredits: true,
+              createdAt: true,
+              updatedAt: true
+            }
+          });
+          console.log('✅ Created new user:', user.clerkId);
+        }
       } catch (createError) {
-        console.error('Failed to create user from Clerk data:', createError);
+        console.error('❌ Failed to create/update user:', createError);
         return NextResponse.json({
           success: false,
           error: 'User creation failed'
@@ -108,7 +132,7 @@ export async function GET() {
       }
     });
   } catch (error) {
-    console.error('Auth user API error:', error);
+    console.error('❌ Auth API error:', error);
     return NextResponse.json({
       success: false,
       error: 'Authentication check failed'

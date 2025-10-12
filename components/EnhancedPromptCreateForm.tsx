@@ -23,8 +23,8 @@ const formSchema = z.object({
   targetAudience: z.string().optional(),
   promptType: z.enum(['creative', 'analytical', 'conversational', 'technical']).optional(),
   tone: z.enum(['professional', 'casual', 'friendly', 'authoritative']).optional(),
-  tags: z.array(z.string()).default([]),
-  isPublic: z.boolean().default(false)
+  tags: z.array(z.string()),
+  isPublic: z.boolean()
 });
 
 type FormData = z.infer<typeof formSchema>;

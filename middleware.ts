@@ -4,6 +4,9 @@ import type { NextRequest } from 'next/server';
 import { rateLimitMiddleware } from './middleware/rate-limit';
 import { quotaMiddleware } from './middleware/quota';
 
+// CSP with Google Fonts support
+const CSP_POLICY = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.clerk.accounts.dev; connect-src 'self' https://*.clerk.accounts.dev; img-src 'self' data: https: https://img.clerk.com; worker-src 'self' blob:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; frame-src 'self' https://*.clerk.accounts.dev; form-action 'self'; frame-ancestors 'self'";
+
 // Define routes that don't require authentication
 const PUBLIC_ROUTES = [
   '/',
@@ -29,6 +32,8 @@ const PUBLIC_ROUTES = [
   '/legal/dmca-policy',
   '/legal/copyright-policy',
   '/community-prompts',
+  '/account-test',
+  '/account', // Temporary fix
 ];
 
 // Create route matchers
@@ -96,7 +101,7 @@ async function securityMiddleware(request: NextRequest) {
         'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Date, X-Api-Version, X-Clerk-Token',
         'Access-Control-Allow-Credentials': 'true',
         'Access-Control-Max-Age': '86400',
-        'Content-Security-Policy': "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.clerk.accounts.dev; connect-src 'self' https://*.clerk.accounts.dev; img-src 'self' data: https: https://img.clerk.com; worker-src 'self' blob:; style-src 'self' 'unsafe-inline'; frame-src 'self' https://*.clerk.accounts.dev; form-action 'self'; frame-ancestors 'self'",
+        'Content-Security-Policy': CSP_POLICY,
       },
     });
   }
@@ -113,7 +118,7 @@ async function securityMiddleware(request: NextRequest) {
         'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
         'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Date, X-Api-Version, X-Clerk-Token',
         'Access-Control-Allow-Credentials': 'true',
-        'Content-Security-Policy': "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.clerk.accounts.dev; connect-src 'self' https://*.clerk.accounts.dev; img-src 'self' data: https: https://img.clerk.com; worker-src 'self' blob:; style-src 'self' 'unsafe-inline'; frame-src 'self' https://*.clerk.accounts.dev; form-action 'self'; frame-ancestors 'self'",
+        'Content-Security-Policy': CSP_POLICY,
       },
     });
   }
@@ -138,7 +143,7 @@ async function securityMiddleware(request: NextRequest) {
   response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Date, X-Api-Version, X-Clerk-Token');
   response.headers.set('Access-Control-Allow-Credentials', 'true');
-  response.headers.set('Content-Security-Policy', "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.clerk.accounts.dev; connect-src 'self' https://*.clerk.accounts.dev; img-src 'self' data: https: https://img.clerk.com; worker-src 'self' blob:; style-src 'self' 'unsafe-inline'; frame-src 'self' https://*.clerk.accounts.dev; form-action 'self'; frame-ancestors 'self'");
+  response.headers.set('Content-Security-Policy', CSP_POLICY);
 
   return response;
 }
@@ -146,11 +151,13 @@ async function securityMiddleware(request: NextRequest) {
 const isAdminRoute = createRouteMatcher(['/admin', '/admin/users', '/admin/analytics', '/admin/settings']);
 
 export default clerkMiddleware(async (auth, req: NextRequest) => {
-  const { userId } = await auth();
+  const authResult = await auth();
+  const { userId } = authResult;
   const { pathname } = req.nextUrl;
   
-  console.log(`🔍 Middleware: ${pathname}, userId: ${userId ? 'authenticated' : 'not authenticated'}`);
-
+  console.log(`🔍 Middleware: ${pathname}`);
+  console.log(`🔍 Auth result:`, { userId, sessionId: authResult.sessionId });
+  
   // Check if route is public
   if (isPublicRoute(req)) {
     console.log(`✅ Public route allowed: ${pathname}`);
@@ -173,7 +180,7 @@ export default clerkMiddleware(async (auth, req: NextRequest) => {
   const isPrivateRoute = PRIVATE_ROUTES.some(route => pathname.startsWith(route));
 
   if (isPrivateRoute && !userId) {
-    console.log(`🔒 Private route requires auth: ${pathname}`);
+    console.log(`🔒 Private route requires auth: ${pathname}, userId: ${userId}`);
     const signInUrl = new URL('/sign-in', req.url);
     signInUrl.searchParams.set('redirect_url', pathname);
     return NextResponse.redirect(signInUrl);
@@ -191,7 +198,6 @@ export default clerkMiddleware(async (auth, req: NextRequest) => {
 
   // Handle role-based access for admin routes
   if (pathname.startsWith('/admin')) {
-    const authResult = await auth();
     const userRole = (authResult.sessionClaims?.publicMetadata as any)?.role as string;
     const allowedRoles = ['ADMIN', 'SUPER_ADMIN'];
     
@@ -201,7 +207,7 @@ export default clerkMiddleware(async (auth, req: NextRequest) => {
     }
   }
 
-  console.log(`✅ Request allowed: ${pathname}`);
+  console.log(`✅ Request allowed: ${pathname}, userId: ${userId}`);
   return NextResponse.next();
 });
 
