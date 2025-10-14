@@ -453,9 +453,9 @@ function ProfileContent({ user, currentPath }: ProfileClientProps) {
                 data-testid={`sidebar-${opt.label.toLowerCase()}-button`}
               >
                 {activeTab === (opt.href.replace('/account', '') || 'overview') && (
-                  <span className="absolute left-0 top-1/2 h-6 w-1 -translate-y-1/2 rounded bg-purple-500" />
+                  <span className="absolute left-0 top-1/2 h-6 w-1 -translate-y-1/2 rounded bg-blue-500" />
                 )}
-                <opt.icon className="h-4 w-4 text-purple-400" />
+                <opt.icon className="h-4 w-4 text-blue-400" />
                 {opt.label}
               </button>
             ))}
@@ -470,9 +470,9 @@ function ProfileContent({ user, currentPath }: ProfileClientProps) {
                 className={`relative flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm font-medium transition ${activeTab === 'prompts' ? 'bg-accent text-foreground' : 'text-muted-foreground hover:bg-accent hover:text-foreground'}`}
               >
                 {activeTab === 'prompts' && (
-                  <span className="absolute left-0 top-1/2 h-6 w-1 -translate-y-1/2 rounded bg-purple-500" />
+                  <span className="absolute left-0 top-1/2 h-6 w-1 -translate-y-1/2 rounded bg-blue-500" />
                 )}
-                <opt.icon className="h-4 w-4 text-purple-400" />
+                <opt.icon className="h-4 w-4 text-blue-400" />
                 {opt.label}
               </button>
             ))}
@@ -613,10 +613,10 @@ function ProfileContent({ user, currentPath }: ProfileClientProps) {
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="Search prompts..."
-            className="w-full rounded border border-border bg-background px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 md:w-64"
+            className="w-full rounded border border-border bg-background px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 md:w-64"
           />
           <button
-            className="ml-auto rounded bg-gradient-to-r from-purple-600 to-pink-600 px-4 py-2 font-semibold text-white shadow transition hover:from-purple-700 hover:to-pink-700"
+            className="ml-auto rounded bg-gradient-to-r from-blue-600 to-blue-500 px-4 py-2 font-semibold text-white shadow transition hover:from-blue-700 hover:to-blue-700"
             onClick={() => {
               /* TODO: open create prompt dialog */
             }}
@@ -764,7 +764,7 @@ function ProfileContent({ user, currentPath }: ProfileClientProps) {
                         <span className="text-2xl font-bold text-foreground">{user.name || 'Unnamed User'}</span>
                         <span className="text-sm text-muted-foreground">{user.email}</span>
                         <span className="text-xs capitalize text-muted-foreground">{user.role}</span>
-                        <Badge className="mt-2 bg-gradient-to-r from-purple-500 to-pink-500 px-2 py-0.5 text-xs font-semibold text-white">
+                        <Badge className="mt-2 bg-gradient-to-r from-blue-500 to-blue-500 px-2 py-0.5 text-xs font-semibold text-white">
                           {user.planType}
                         </Badge>
                       </div>
@@ -776,7 +776,7 @@ function ProfileContent({ user, currentPath }: ProfileClientProps) {
                           <div className="flex items-center gap-2 w-full">
                             <Progress
                               value={(totalCredits / user.creditCap) * 100}
-                              className="h-2 flex-1 bg-muted [&>div]:bg-gradient-to-r [&>div]:from-purple-500 [&>div]:to-pink-500"
+                              className="h-2 flex-1 bg-muted [&>div]:bg-gradient-to-r [&>div]:from-blue-500 [&>div]:to-blue-500"
                               aria-label="Credits Progress"
                             />
                             <span className="ml-2 whitespace-nowrap text-xs font-semibold text-muted-foreground">
@@ -793,7 +793,7 @@ function ProfileContent({ user, currentPath }: ProfileClientProps) {
                         {user.planType === PlanType.FREE && (
                           <Button
                             size="sm"
-                            className="bg-gradient-to-r from-purple-600 to-pink-600 px-4 py-1 text-sm font-semibold text-white shadow transition hover:from-purple-700 hover:to-pink-700"
+                            className="bg-gradient-to-r from-blue-600 to-blue-500 px-4 py-1 text-sm font-semibold text-white shadow transition hover:from-blue-700 hover:to-blue-700"
                             onClick={() => setIsUpgradeDialogOpen(true)}
                             aria-label="Upgrade Plan"
                           >
@@ -804,7 +804,7 @@ function ProfileContent({ user, currentPath }: ProfileClientProps) {
                           <Button
                             size="sm"
                             variant="outline"
-                            className="bg-gradient-to-r from-purple-500/10 to-pink-500/10 text-purple-600 hover:from-purple-500/20 hover:to-pink-500/20 border-purple-200 hover:border-purple-300 shadow-sm hover:shadow-md transition-all duration-300"
+                            className="bg-gradient-to-r from-blue-500/10 to-blue-500/10 text-blue-600 hover:from-blue-500/20 hover:to-blue-500/20 border-blue-200 hover:border-blue-300 shadow-sm hover:shadow-md transition-all duration-300"
                             onClick={() => setIsCreditModalOpen(true)}
                             aria-label="Add Credits"
                           >
@@ -848,7 +848,7 @@ function ProfileContent({ user, currentPath }: ProfileClientProps) {
                     </div>
                     <Button
                       size="sm"
-                      className="bg-gradient-to-r from-purple-600 to-pink-600 px-4 py-1 text-sm font-semibold text-white shadow transition hover:from-purple-700 hover:to-pink-700"
+                      className="bg-gradient-to-r from-blue-600 to-blue-500 px-4 py-1 text-sm font-semibold text-white shadow transition hover:from-blue-700 hover:to-blue-700"
                       onClick={() => setIsCreditModalOpen(true)}
                       aria-label="Add Credits"
                     >
@@ -856,7 +856,7 @@ function ProfileContent({ user, currentPath }: ProfileClientProps) {
                     </Button>
                   </div>
                   <div className="mt-2 text-xs text-muted-foreground">
-                    <a href="#" className="underline hover:text-purple-600">View credit usage history</a>
+                    <a href="#" className="underline hover:text-blue-600">View credit usage history</a>
                   </div>
                 </Card>
                 <Card className="rounded-2xl border border-border bg-card p-8 shadow-lg">

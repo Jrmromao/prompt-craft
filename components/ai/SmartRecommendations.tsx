@@ -99,7 +99,7 @@ export function SmartRecommendations({
   const getReasonColor = (reason: RecommendedPrompt['reason']) => {
     switch (reason) {
       case 'similar_content':
-        return 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200'
+        return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
       case 'popular_with_users':
         return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
       case 'trending':
@@ -159,7 +159,7 @@ export function SmartRecommendations({
     <Card className={className}>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Sparkles className="h-5 w-5 text-purple-600" />
+          <Sparkles className="h-5 w-5 text-blue-600" />
           AI Recommendations
         </CardTitle>
         <p className="text-sm text-muted-foreground">
@@ -170,13 +170,13 @@ export function SmartRecommendations({
         {recommendations.map((prompt) => (
           <div
             key={prompt.id}
-            className="group p-4 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-purple-300 dark:hover:border-purple-600 transition-all duration-200 hover:shadow-md"
+            className="group p-4 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600 transition-all duration-200 hover:shadow-md"
           >
             <div className="space-y-3">
               {/* Header */}
               <div className="flex items-start justify-between">
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-medium text-sm leading-tight group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
+                  <h3 className="font-medium text-sm leading-tight group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                     {prompt.name}
                   </h3>
                   <p className="text-xs text-muted-foreground mt-1 line-clamp-2">

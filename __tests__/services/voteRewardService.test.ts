@@ -82,12 +82,41 @@ jest.mock('@/lib/prisma', () => ({
   },
 }));
 
-jest.mock('@/lib/services/creditService');
-jest.mock('@/lib/services/auditService');
+// Mock @prisma/client enums using jest.doMock to avoid hoisting issues
+jest.doMock('@prisma/client', () => ({
+  VoteAbuseType,
+  VoteAbuseSeverity,
+  VoteAbuseStatus,
+  CreditType,
+}));
+
+jest.mock('@/lib/services/creditService', () => ({
+  CreditService: {
+    getInstance: jest.fn(() => ({
+      addCredits: jest.fn(),
+    })),
+  },
+}));
+
+jest.mock('@/lib/services/auditService', () => ({
+  AuditService: {
+    getInstance: jest.fn(() => ({
+      logAudit: jest.fn(),
+    })),
+  },
+}));
 
 const mockPrisma = prisma as jest.Mocked<typeof prisma>;
-const mockCreditService = CreditService.getInstance() as jest.Mocked<CreditService>;
-const mockAuditService = AuditService.getInstance() as jest.Mocked<AuditService>;
+const mockCreditService = {
+  addCredits: jest.fn(),
+};
+const mockAuditService = {
+  logAudit: jest.fn(),
+};
+
+// Mock the service instances
+(CreditService.getInstance as jest.Mock).mockReturnValue(mockCreditService);
+(AuditService.getInstance as jest.Mock).mockReturnValue(mockAuditService);
 
 describe('VoteRewardService', () => {
   let voteRewardService: VoteRewardService;
@@ -106,6 +135,19 @@ describe('VoteRewardService', () => {
     mockCreditService.addCredits = jest.fn().mockResolvedValue(undefined);
     mockAuditService.logAudit = jest.fn().mockResolvedValue(undefined);
     mockPrisma.$transaction.mockImplementation((callback) => callback(mockPrisma));
+    
+    // Mock aggregate functions with default values
+    mockPrisma.voteReward.aggregate.mockResolvedValue({
+      _sum: { creditsAwarded: 0 }
+    } as any);
+    
+    mockPrisma.vote.count.mockResolvedValue(0);
+    mockPrisma.voteAbuseDetection.count.mockResolvedValue(0);
+    mockPrisma.vote.findMany.mockResolvedValue([]);
+    mockPrisma.voteReward.findMany.mockResolvedValue([]);
+    mockPrisma.votePattern.findMany.mockResolvedValue([]);
+    mockPrisma.voteAbuseDetection.findMany.mockResolvedValue([]);
+    mockPrisma.prompt.count.mockResolvedValue(0);
   });
 
   describe('processVoteReward', () => {

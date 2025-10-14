@@ -64,11 +64,11 @@ describe('CompetitiveDashboard', () => {
 
     expect(screen.getByText('Top Creators')).toBeInTheDocument();
     expect(screen.getByText('John Doe')).toBeInTheDocument();
-    expect(screen.getByText('1,000')).toBeInTheDocument(); // Just the number
+    expect(screen.getByText('1000 upvotes')).toBeInTheDocument();
     expect(screen.getByText('👑')).toBeInTheDocument();
 
     expect(screen.getByText('Jane Smith')).toBeInTheDocument();
-    expect(screen.getByText('800')).toBeInTheDocument(); // Just the number
+    expect(screen.getByText('800 upvotes')).toBeInTheDocument();
     expect(screen.getByText('🥈')).toBeInTheDocument();
   });
 

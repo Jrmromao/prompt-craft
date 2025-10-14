@@ -7,6 +7,7 @@ import { Redis } from '@upstash/redis';
 import { AuditAction } from '@/app/constants/audit';
 import { AuditService } from '@/lib/services/auditService';
 import { UserService } from '@/lib/services/UserService';
+import { validateCSRFToken } from '@/lib/csrf';
 
 const ratelimit = new Ratelimit({
   redis: Redis.fromEnv(),
@@ -28,9 +29,15 @@ export const revalidate = 0;
 
 export async function POST(request: Request) {
   try {
-    const { userId } = await auth();
-    if (!userId) {
+    const { userId, sessionId } = await auth();
+    if (!userId || !sessionId) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // CSRF Protection
+    const csrfToken = request.headers.get('X-CSRF-Token');
+    if (!validateCSRFToken(csrfToken, sessionId)) {
+      return NextResponse.json({ success: false, error: 'CSRF token invalid' }, { status: 403 });
     }
 
     // Rate limiting
@@ -86,7 +93,7 @@ export async function POST(request: Request) {
       userId: userDatabaseId,
       resource: 'password',
       status: 'success',
-      details: { currentPassword, newPassword },
+      details: { passwordChanged: true, timestamp: new Date().toISOString() },
     });
 
     return new NextResponse('Password updated successfully', { status: 200 });

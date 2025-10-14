@@ -58,7 +58,7 @@ async function createDummyUsers(count: number) {
           },
           themeSettings: {
             theme: faker.helpers.arrayElement(['light', 'dark', 'system']),
-            accentColor: faker.helpers.arrayElement(['purple', 'blue', 'green', 'red'])
+            accentColor: faker.helpers.arrayElement(['blue', 'teal', 'green', 'red'])
           }
         }
       });

@@ -114,7 +114,7 @@ export default function PrivacySettingsPage() {
   return (
     <div className="space-y-8 max-w-2xl mx-auto">
       <div className="flex items-center gap-3 mb-2">
-        <Shield className="h-8 w-8 text-purple-600" />
+        <Shield className="h-8 w-8 text-blue-600" />
         <div>
           <h1 className="text-3xl font-bold">Privacy Settings</h1>
           <p className="text-muted-foreground">Manage your data and privacy preferences</p>
@@ -124,7 +124,7 @@ export default function PrivacySettingsPage() {
       {/* Export Data Card */}
       <Card>
         <CardHeader className="flex flex-row items-center gap-3">
-          <Download className="h-6 w-6 text-purple-500" />
+          <Download className="h-6 w-6 text-blue-500" />
           <div>
             <CardTitle>Export My Data</CardTitle>
             <CardDescription>Download all your personal data as JSON.</CardDescription>
@@ -134,7 +134,7 @@ export default function PrivacySettingsPage() {
           <Button 
             onClick={handleExportData} 
             disabled={isLoading}
-            className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+            className="bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-700"
           >
             {isLoading ? (
               <>
@@ -174,7 +174,7 @@ export default function PrivacySettingsPage() {
       {/* Data Preferences Card */}
       <Card>
         <CardHeader className="flex flex-row items-center gap-3">
-          <Settings className="h-6 w-6 text-purple-500" />
+          <Settings className="h-6 w-6 text-blue-500" />
           <div>
             <CardTitle>Data Preferences</CardTitle>
             <CardDescription>Control how your data is used.</CardDescription>
@@ -208,7 +208,7 @@ export default function PrivacySettingsPage() {
 
       {/* Links */}
       <div className="flex gap-6 mt-4 text-sm">
-        <a href="/legal/privacy-policy" className="text-purple-600 hover:underline">Privacy Policy</a>
+        <a href="/legal/privacy-policy" className="text-blue-600 hover:underline">Privacy Policy</a>
         <a href="/contact" className="text-muted-foreground hover:underline">Contact Support</a>
       </div>
 

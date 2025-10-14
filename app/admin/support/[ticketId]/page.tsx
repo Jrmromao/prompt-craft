@@ -120,7 +120,7 @@ export default function TicketDetailsPage() {
   const statusColors = {
     OPEN: 'bg-green-500',
     IN_PROGRESS: 'bg-blue-500',
-    RESOLVED: 'bg-purple-500',
+    RESOLVED: 'bg-blue-500',
     CLOSED: 'bg-gray-500',
   };
 

@@ -18,7 +18,7 @@ const TabButton = ({ href, icon: Icon, label, isActive }: TabButtonProps) => (
     className={cn(
       "flex flex-col items-center justify-center min-h-[60px] min-w-[60px] px-2 py-1 rounded-lg transition-colors touch-manipulation",
       isActive 
-        ? "text-purple-600 bg-purple-50 dark:bg-purple-900/20 dark:text-purple-400" 
+        ? "text-blue-600 bg-blue-50 dark:bg-blue-900/20 dark:text-blue-400" 
         : "text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
     )}
   >

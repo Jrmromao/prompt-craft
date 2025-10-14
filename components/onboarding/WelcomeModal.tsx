@@ -120,14 +120,14 @@ export const WelcomeModal = ({ user }: WelcomeModalProps) => {
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogContent className="max-w-md p-0 overflow-hidden">
         {/* Header */}
-        <div className="bg-gradient-to-r from-purple-600 to-pink-600 p-6 text-white text-center">
+        <div className="bg-gradient-to-r from-blue-600 to-blue-500 p-6 text-white text-center">
           <div className="w-16 h-16 mx-auto mb-4 bg-white/20 rounded-full flex items-center justify-center">
             <Sparkles className="w-8 h-8" />
           </div>
           <h2 className="text-2xl font-bold mb-2">
             Welcome to PromptCraft, {user?.name?.split(' ')[0]}!
           </h2>
-          <p className="text-purple-100">
+          <p className="text-blue-100">
             Let's get you started with creating amazing AI prompts
           </p>
         </div>
@@ -141,7 +141,7 @@ export const WelcomeModal = ({ user }: WelcomeModalProps) => {
                 className={cn(
                   "w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors",
                   index <= currentStep
-                    ? "bg-purple-600 text-white"
+                    ? "bg-blue-600 text-white"
                     : "bg-gray-200 text-gray-500"
                 )}
               >
@@ -155,7 +155,7 @@ export const WelcomeModal = ({ user }: WelcomeModalProps) => {
           </div>
           <div className="w-full bg-gray-200 rounded-full h-2 mb-6">
             <div
-              className="bg-gradient-to-r from-purple-600 to-pink-600 h-2 rounded-full transition-all duration-300"
+              className="bg-gradient-to-r from-blue-600 to-blue-500 h-2 rounded-full transition-all duration-300"
               style={{ width: `${((currentStep + 1) / onboardingSteps.length) * 100}%` }}
             />
           </div>
@@ -164,8 +164,8 @@ export const WelcomeModal = ({ user }: WelcomeModalProps) => {
         {/* Step Content */}
         <div className="px-6 pb-6">
           <div className="text-center mb-6">
-            <div className="w-12 h-12 mx-auto mb-4 bg-purple-100 dark:bg-purple-900/20 rounded-full flex items-center justify-center">
-              <currentStepData.icon className="w-6 h-6 text-purple-600" />
+            <div className="w-12 h-12 mx-auto mb-4 bg-blue-100 dark:bg-blue-900/20 rounded-full flex items-center justify-center">
+              <currentStepData.icon className="w-6 h-6 text-blue-600" />
             </div>
             <h3 className="text-xl font-semibold mb-2">{currentStepData.title}</h3>
             <p className="text-gray-600 dark:text-gray-400">
@@ -177,7 +177,7 @@ export const WelcomeModal = ({ user }: WelcomeModalProps) => {
           <div className="space-y-3">
             <Button
               onClick={() => handleStepAction(currentStepData)}
-              className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 min-h-[44px]"
+              className="w-full bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-700 min-h-[44px]"
             >
               {currentStepData.action}
               <ArrowRight className="w-4 h-4 ml-2" />

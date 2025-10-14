@@ -585,7 +585,7 @@ model Prompt {
   description         String?
   isPublic            Boolean             @default(false)
   name                String
-  updatedAt           DateTime
+  updatedAt           DateTime            @updatedAt
   upvotes             Int                 @default(0)
   slug                String              @unique
   lastUsedAt          DateTime?
@@ -1029,10 +1029,10 @@ model UsageMetrics {
 }
 
 model User {
-  id                                                         String                     @id
+  id                                                         String                     @id @default(cuid())
   email                                                      String                     @unique
   createdAt                                                  DateTime                   @default(now())
-  updatedAt                                                  DateTime
+  updatedAt                                                  DateTime                   @updatedAt
   clerkId                                                    String                     @unique
   name                                                       String?
   role                                                       Role                       @default(USER)
@@ -1083,6 +1083,8 @@ model User {
   totalPromptsShared                                         Int                        @default(0)
   totalVotesCast                                             Int                        @default(0)
   totalVotesReceived                                         Int                        @default(0)
+  versionsUsed                                               Int                        @default(0)
+  maxVersionsPerPrompt                                       Int                        @default(3)
   ActivityLog                                                ActivityLog[]
   ApiKey                                                     ApiKey[]
   ApiUsage                                                   ApiUsage[]
@@ -1247,9 +1249,10 @@ model UserSettings {
 }
 
 model Version {
-  id                String              @id
+  id                String              @id @default(cuid())
+  version           Int                 @default(1)
   createdAt         DateTime            @default(now())
-  updatedAt         DateTime
+  updatedAt         DateTime            @updatedAt
   content           String
   convertedToPrompt Boolean             @default(false)
   userId            String
@@ -1259,6 +1262,7 @@ model Version {
   Prompt            Prompt?             @relation(fields: [promptId], references: [id])
   User              User                @relation(fields: [userId], references: [id])
 
+  @@unique([promptId, version])
   @@index([promptId])
   @@index([userId])
 }

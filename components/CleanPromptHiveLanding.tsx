@@ -51,26 +51,26 @@ const CleanPromptHiveLanding = ({ user }: CleanPromptHiveLandingProps) => {
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
             <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg flex items-center justify-center">
+              <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-blue-500 rounded-lg flex items-center justify-center">
                 <Sparkles className="w-5 h-5 text-white" />
               </div>
-              <span className="text-xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+              <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-blue-500 bg-clip-text text-transparent">
                 PromptHive
               </span>
             </div>
 
             {/* Desktop Navigation */}
             <div className="hidden md:flex items-center space-x-8">
-              <a href="#features" className="text-gray-600 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400 transition-colors">
+              <a href="#features" className="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
                 Features
               </a>
-              <a href="#pricing" className="text-gray-600 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400 transition-colors">
+              <a href="#pricing" className="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
                 Pricing
               </a>
               
               {user ? (
                 <div className="flex items-center space-x-4">
-                  <Link href="/prompts" className="text-purple-600 dark:text-purple-400 font-medium hover:text-purple-700 dark:hover:text-purple-300">
+                  <Link href="/prompts" className="text-blue-600 dark:text-blue-400 font-medium hover:text-blue-700 dark:hover:text-blue-300">
                     Dashboard
                   </Link>
                   <button
@@ -82,10 +82,10 @@ const CleanPromptHiveLanding = ({ user }: CleanPromptHiveLandingProps) => {
                 </div>
               ) : (
                 <div className="flex items-center space-x-4">
-                  <Link href="/sign-in" className="text-gray-600 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400">
+                  <Link href="/sign-in" className="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400">
                     Sign In
                   </Link>
-                  <Link href="/sign-up" className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors">
+                  <Link href="/sign-up" className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
                     Get Started
                   </Link>
                 </div>
@@ -112,15 +112,15 @@ const CleanPromptHiveLanding = ({ user }: CleanPromptHiveLandingProps) => {
           {isMenuOpen && (
             <div className="md:hidden border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
               <div className="px-4 py-6 space-y-4">
-                <a href="#features" className="block text-gray-600 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400">
+                <a href="#features" className="block text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400">
                   Features
                 </a>
-                <a href="#pricing" className="block text-gray-600 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400">
+                <a href="#pricing" className="block text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400">
                   Pricing
                 </a>
                 {user ? (
                   <>
-                    <Link href="/prompts" className="block text-purple-600 dark:text-purple-400 font-medium">
+                    <Link href="/prompts" className="block text-blue-600 dark:text-blue-400 font-medium">
                       Dashboard
                     </Link>
                     <button onClick={handleSignOut} className="block text-gray-600 dark:text-gray-300">
@@ -132,7 +132,7 @@ const CleanPromptHiveLanding = ({ user }: CleanPromptHiveLandingProps) => {
                     <Link href="/sign-in" className="block text-gray-600 dark:text-gray-300">
                       Sign In
                     </Link>
-                    <Link href="/sign-up" className="block bg-purple-600 text-white px-4 py-2 rounded-lg text-center">
+                    <Link href="/sign-up" className="block bg-blue-600 text-white px-4 py-2 rounded-lg text-center">
                       Get Started
                     </Link>
                   </>
@@ -154,14 +154,14 @@ const CleanPromptHiveLanding = ({ user }: CleanPromptHiveLandingProps) => {
       <section className="pt-24 pb-16 px-4 sm:px-6 lg:px-8">
         <div className="max-w-6xl mx-auto">
           <div className="text-center max-w-3xl mx-auto">
-            <div className="inline-flex items-center gap-2 bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 px-4 py-2 rounded-full text-sm font-medium mb-8">
+            <div className="inline-flex items-center gap-2 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 px-4 py-2 rounded-full text-sm font-medium mb-8">
               <Sparkles className="w-4 h-4" />
               AI-Powered Prompt Engineering
             </div>
             
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
               Transform Ideas Into
-              <span className="block bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+              <span className="block bg-gradient-to-r from-blue-600 to-blue-500 bg-clip-text text-transparent">
                 Perfect Prompts
               </span>
             </h1>
@@ -173,17 +173,17 @@ const CleanPromptHiveLanding = ({ user }: CleanPromptHiveLandingProps) => {
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
               {user ? (
-                <Link href="/prompts" className="bg-purple-600 text-white px-8 py-4 rounded-lg font-semibold hover:bg-purple-700 transition-colors flex items-center gap-2">
+                <Link href="/prompts" className="bg-blue-600 text-white px-8 py-4 rounded-lg font-semibold hover:bg-blue-700 transition-colors flex items-center gap-2">
                   Create Your First Prompt
                   <ArrowRight className="w-5 h-5" />
                 </Link>
               ) : (
                 <>
-                  <Link href="/sign-up" className="bg-purple-600 text-white px-8 py-4 rounded-lg font-semibold hover:bg-purple-700 transition-colors flex items-center gap-2">
+                  <Link href="/sign-up" className="bg-blue-600 text-white px-8 py-4 rounded-lg font-semibold hover:bg-blue-700 transition-colors flex items-center gap-2">
                     Start Free
                     <ArrowRight className="w-5 h-5" />
                   </Link>
-                  <Link href="#demo" className="text-purple-600 dark:text-purple-400 font-semibold hover:text-purple-700 dark:hover:text-purple-300 flex items-center gap-2">
+                  <Link href="#demo" className="text-blue-600 dark:text-blue-400 font-semibold hover:text-blue-700 dark:hover:text-blue-300 flex items-center gap-2">
                     See How It Works
                   </Link>
                 </>
@@ -193,15 +193,15 @@ const CleanPromptHiveLanding = ({ user }: CleanPromptHiveLandingProps) => {
             {/* Simple Stats */}
             <div className="grid grid-cols-3 gap-8 max-w-md mx-auto">
               <div className="text-center">
-                <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">10K+</div>
+                <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">10K+</div>
                 <div className="text-sm text-gray-600 dark:text-gray-400">Prompts Created</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">5K+</div>
+                <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">5K+</div>
                 <div className="text-sm text-gray-600 dark:text-gray-400">Happy Users</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">99%</div>
+                <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">99%</div>
                 <div className="text-sm text-gray-600 dark:text-gray-400">Success Rate</div>
               </div>
             </div>
@@ -229,8 +229,8 @@ const CleanPromptHiveLanding = ({ user }: CleanPromptHiveLandingProps) => {
               </div>
               
               <div>
-                <h3 className="text-lg font-semibold mb-4 text-purple-600 dark:text-purple-400">AI-Optimized Prompt:</h3>
-                <div className="bg-purple-50 dark:bg-purple-900/20 p-4 rounded-lg border border-purple-200 dark:border-purple-800">
+                <h3 className="text-lg font-semibold mb-4 text-blue-600 dark:text-blue-400">AI-Optimized Prompt:</h3>
+                <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
                   <p className="text-gray-700 dark:text-gray-300 text-sm">
                     "Create compelling product descriptions that highlight key features, benefits, and unique selling points. 
                     Use persuasive language, include technical specifications when relevant, and optimize for both 
@@ -256,8 +256,8 @@ const CleanPromptHiveLanding = ({ user }: CleanPromptHiveLandingProps) => {
           
           <div className="grid md:grid-cols-3 gap-8">
             <div className="text-center p-6">
-              <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center mx-auto mb-4">
-                <Sparkles className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+              <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center mx-auto mb-4">
+                <Sparkles className="w-6 h-6 text-blue-600 dark:text-blue-400" />
               </div>
               <h3 className="text-xl font-semibold mb-3">AI-Powered Optimization</h3>
               <p className="text-gray-600 dark:text-gray-300">
@@ -266,8 +266,8 @@ const CleanPromptHiveLanding = ({ user }: CleanPromptHiveLandingProps) => {
             </div>
             
             <div className="text-center p-6">
-              <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center mx-auto mb-4">
-                <Target className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+              <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center mx-auto mb-4">
+                <Target className="w-6 h-6 text-blue-600 dark:text-blue-400" />
               </div>
               <h3 className="text-xl font-semibold mb-3">Version Control</h3>
               <p className="text-gray-600 dark:text-gray-300">
@@ -276,8 +276,8 @@ const CleanPromptHiveLanding = ({ user }: CleanPromptHiveLandingProps) => {
             </div>
             
             <div className="text-center p-6">
-              <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center mx-auto mb-4">
-                <Users className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+              <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center mx-auto mb-4">
+                <Users className="w-6 h-6 text-blue-600 dark:text-blue-400" />
               </div>
               <h3 className="text-xl font-semibold mb-3">Personal Library</h3>
               <p className="text-gray-600 dark:text-gray-300">
@@ -328,9 +328,9 @@ const CleanPromptHiveLanding = ({ user }: CleanPromptHiveLandingProps) => {
             </div>
             
             {/* Pro Plan */}
-            <div className="bg-white dark:bg-gray-900 rounded-xl p-8 border-2 border-purple-500 relative">
+            <div className="bg-white dark:bg-gray-900 rounded-xl p-8 border-2 border-blue-500 relative">
               <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                <span className="bg-purple-500 text-white px-4 py-1 rounded-full text-sm font-medium">
+                <span className="bg-blue-500 text-white px-4 py-1 rounded-full text-sm font-medium">
                   Most Popular
                 </span>
               </div>
@@ -362,7 +362,7 @@ const CleanPromptHiveLanding = ({ user }: CleanPromptHiveLandingProps) => {
                 </li>
               </ul>
               
-              <Link href="/sign-up" className="block w-full text-center bg-purple-600 text-white py-3 rounded-lg font-semibold hover:bg-purple-700 transition-colors">
+              <Link href="/sign-up" className="block w-full text-center bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors">
                 Upgrade to Pro
               </Link>
             </div>
@@ -378,7 +378,7 @@ const CleanPromptHiveLanding = ({ user }: CleanPromptHiveLandingProps) => {
             Join thousands of creators using AI to optimize their prompts
           </p>
           
-          <Link href="/sign-up" className="inline-flex items-center gap-2 bg-purple-600 text-white px-8 py-4 rounded-lg font-semibold hover:bg-purple-700 transition-colors">
+          <Link href="/sign-up" className="inline-flex items-center gap-2 bg-blue-600 text-white px-8 py-4 rounded-lg font-semibold hover:bg-blue-700 transition-colors">
             Get Started Free
             <ArrowRight className="w-5 h-5" />
           </Link>
@@ -388,38 +388,6 @@ const CleanPromptHiveLanding = ({ user }: CleanPromptHiveLandingProps) => {
           </p>
         </div>
       </section>
-
-      {/* Simple Footer */}
-      <footer className="border-t border-gray-200 dark:border-gray-800 py-8 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-6xl mx-auto">
-          <div className="flex flex-col md:flex-row justify-between items-center">
-            <div className="flex items-center space-x-2 mb-4 md:mb-0">
-              <div className="w-6 h-6 bg-gradient-to-r from-purple-600 to-pink-600 rounded flex items-center justify-center">
-                <Sparkles className="w-4 h-4 text-white" />
-              </div>
-              <span className="font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-                PromptHive
-              </span>
-            </div>
-            
-            <div className="flex space-x-6 text-sm text-gray-600 dark:text-gray-400">
-              <Link href="/legal/privacy-policy" className="hover:text-purple-600 dark:hover:text-purple-400">
-                Privacy
-              </Link>
-              <Link href="/legal/terms-of-service" className="hover:text-purple-600 dark:hover:text-purple-400">
-                Terms
-              </Link>
-              <Link href="/support" className="hover:text-purple-600 dark:hover:text-purple-400">
-                Support
-              </Link>
-            </div>
-          </div>
-          
-          <div className="text-center text-sm text-gray-500 dark:text-gray-400 mt-4">
-            © 2024 PromptHive. All rights reserved.
-          </div>
-        </div>
-      </footer>
     </div>
   );
 };

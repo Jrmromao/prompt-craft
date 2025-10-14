@@ -317,7 +317,7 @@ export function PremiumPromptEditor({ initialPrompt = '', onSave, onTest }: Prom
         <div className="mb-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-blue-500 bg-clip-text text-transparent">
                 Prompt Editor
               </h1>
               <p className="text-muted-foreground mt-1">
@@ -408,7 +408,7 @@ export function PremiumPromptEditor({ initialPrompt = '', onSave, onTest }: Prom
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <CardTitle className="flex items-center gap-2">
-                    <Code className="w-5 h-5 text-purple-600" />
+                    <Code className="w-5 h-5 text-blue-600" />
                     Prompt Editor
                   </CardTitle>
                   <div className="flex gap-2">
@@ -513,14 +513,14 @@ export function PremiumPromptEditor({ initialPrompt = '', onSave, onTest }: Prom
                   {aiSuggestions.length > 0 && (
                     <div className="space-y-3">
                       <div className="flex items-center gap-2">
-                        <Sparkles className="w-4 h-4 text-purple-600" />
+                        <Sparkles className="w-4 h-4 text-blue-600" />
                         <h4 className="text-sm font-medium">AI Suggestions</h4>
                       </div>
                       <div className="space-y-2">
                         {aiSuggestions.map((suggestion, index) => (
                           <div 
                             key={index}
-                            className="p-3 bg-purple-50 dark:bg-purple-950/20 rounded-lg border border-purple-200 dark:border-purple-800"
+                            className="p-3 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-800"
                           >
                             <p className="text-sm">{suggestion}</p>
                           </div>
@@ -579,7 +579,7 @@ export function PremiumPromptEditor({ initialPrompt = '', onSave, onTest }: Prom
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <Settings2 className="w-5 h-5 text-purple-600" />
+                    <Settings2 className="w-5 h-5 text-blue-600" />
                     Editor Settings
                   </CardTitle>
                 </CardHeader>
@@ -758,10 +758,10 @@ export function PremiumPromptEditor({ initialPrompt = '', onSave, onTest }: Prom
             </Card>
 
             {/* AI Assistant */}
-            <Card className="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-950/20 dark:to-pink-950/20">
+            <Card className="bg-gradient-to-br from-blue-50 to-blue-50 dark:from-blue-950/20 dark:to-blue-950/20">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Sparkles className="w-5 h-5 text-purple-600" />
+                  <Sparkles className="w-5 h-5 text-blue-600" />
                   AI Assistant
                 </CardTitle>
               </CardHeader>
@@ -801,7 +801,7 @@ export function PremiumPromptEditor({ initialPrompt = '', onSave, onTest }: Prom
               <CardContent>
                 <div className="space-y-4">
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-purple-600">
+                    <div className="text-2xl font-bold text-blue-600">
                       {Math.round((performanceMetrics.clarity + performanceMetrics.specificity + performanceMetrics.effectiveness) / 3)}%
                     </div>
                     <div className="text-sm text-muted-foreground">Overall Score</div>
@@ -859,7 +859,7 @@ export function PremiumPromptEditor({ initialPrompt = '', onSave, onTest }: Prom
                   )}
                   {performanceMetrics.clarity > 0 && (
                     <div className="flex items-center gap-3">
-                      <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
                       <div className="flex-1">
                         <p className="text-sm font-medium">Performance analyzed</p>
                         <p className="text-xs text-muted-foreground">

@@ -153,13 +153,13 @@ export default function AboutPage() {
         style={{ y }}
         className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-4"
       >
-        <div className="absolute inset-0 bg-gradient-to-b from-purple-600/20 to-pink-600/20 dark:from-purple-900/20 dark:to-pink-900/20" />
+        <div className="absolute inset-0 bg-gradient-to-b from-blue-600/20 to-blue-500/20 dark:from-blue-900/20 dark:to-blue-900/20" />
         <div className="relative z-10 mx-auto flex w-full max-w-5xl flex-col items-center justify-center text-center">
           <motion.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
-            className="font-playfair mb-6 bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text px-2 text-4xl font-bold tracking-tight text-transparent sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl"
+            className="font-playfair mb-6 bg-gradient-to-r from-blue-600 to-blue-500 bg-clip-text px-2 text-4xl font-bold tracking-tight text-transparent sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl"
           >
             Crafting the Future of AI
           </motion.h1>
@@ -177,14 +177,14 @@ export default function AboutPage() {
           <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
             <a
               href="/"
-              className="inline-flex items-center gap-2 rounded-full border-2 border-purple-600 bg-transparent px-8 py-3 font-semibold text-purple-700 shadow transition hover:scale-105 hover:bg-purple-50 focus:outline-none focus:ring-2 focus:ring-purple-400 dark:text-purple-300 dark:hover:bg-purple-900/30"
+              className="inline-flex items-center gap-2 rounded-full border-2 border-blue-600 bg-transparent px-8 py-3 font-semibold text-blue-700 shadow transition hover:scale-105 hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-400 dark:text-blue-300 dark:hover:bg-blue-900/30"
             >
               <FaHome className="text-lg" />
               Go Home
             </a>
             <a
               href="/pricing"
-              className="relative inline-flex transform items-center gap-2 overflow-hidden rounded-full bg-gradient-to-r from-purple-600 to-pink-600 px-8 py-3 font-semibold text-white shadow-lg transition hover:scale-105 hover:brightness-110 focus:outline-none focus:ring-2 focus:ring-pink-400"
+              className="relative inline-flex transform items-center gap-2 overflow-hidden rounded-full bg-gradient-to-r from-blue-600 to-blue-500 px-8 py-3 font-semibold text-white shadow-lg transition hover:scale-105 hover:brightness-110 focus:outline-none focus:ring-2 focus:ring-blue-400"
               style={{ position: 'relative' }}
             >
               <FaRocket className="text-lg" />
@@ -285,7 +285,7 @@ export default function AboutPage() {
             Our Journey
           </motion.h2>
           <div className="relative">
-            <div className="absolute left-1/2 h-full w-1 -translate-x-1/2 transform bg-gradient-to-b from-purple-600 to-pink-600" />
+            <div className="absolute left-1/2 h-full w-1 -translate-x-1/2 transform bg-gradient-to-b from-blue-600 to-blue-500" />
             <div className="space-y-12">
               {timeline.map((item, index) => (
                 <motion.div
@@ -295,7 +295,7 @@ export default function AboutPage() {
                 >
                   <div className={`w-1/2 ${index % 2 === 0 ? 'pr-12' : 'pl-12'}`}>
                     <div className="rounded-2xl bg-white p-6 shadow-xl dark:bg-gray-800">
-                      <div className="mb-2 font-bold text-purple-600 dark:text-purple-400">
+                      <div className="mb-2 font-bold text-blue-600 dark:text-blue-400">
                         {item.year}
                       </div>
                       <h3 className="font-playfair mb-2 text-2xl font-bold">{item.title}</h3>
@@ -323,7 +323,7 @@ export default function AboutPage() {
               variants={itemVariants}
               className="rounded-2xl bg-white p-8 shadow-xl transition-shadow hover:shadow-2xl dark:bg-gray-800"
             >
-              <div className="mb-4 text-purple-600 dark:text-purple-400">{feature.icon}</div>
+              <div className="mb-4 text-blue-600 dark:text-blue-400">{feature.icon}</div>
               <h3 className="font-playfair mb-4 text-2xl font-bold tracking-tight">
                 {feature.title}
               </h3>
@@ -352,7 +352,7 @@ export default function AboutPage() {
                   key={index}
                   onClick={() => setActiveTestimonial(index)}
                   className={`mx-2 h-3 w-3 rounded-full transition-colors ${
-                    activeTestimonial === index ? 'bg-purple-600' : 'bg-gray-300 dark:bg-gray-700'
+                    activeTestimonial === index ? 'bg-blue-600' : 'bg-gray-300 dark:bg-gray-700'
                   }`}
                 />
               ))}
@@ -364,7 +364,7 @@ export default function AboutPage() {
               exit={{ opacity: 0, y: -20 }}
               className="mx-auto max-w-3xl rounded-2xl bg-white p-8 shadow-xl dark:bg-gray-800"
             >
-              <FaQuoteLeft className="mb-6 text-4xl text-purple-600 dark:text-purple-400" />
+              <FaQuoteLeft className="mb-6 text-4xl text-blue-600 dark:text-blue-400" />
               <p className="font-inter mb-6 text-xl text-gray-600 dark:text-gray-300">
                 {testimonials[activeTestimonial].quote}
               </p>
@@ -470,7 +470,7 @@ export default function AboutPage() {
               variants={itemVariants}
               className="rounded-2xl bg-white p-8 text-center shadow-xl dark:bg-gray-800"
             >
-              <div className="font-playfair mb-2 bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-5xl font-bold text-transparent">
+              <div className="font-playfair mb-2 bg-gradient-to-r from-blue-600 to-blue-500 bg-clip-text text-5xl font-bold text-transparent">
                 {stat.number}
               </div>
               <div className="font-inter text-lg text-gray-600 dark:text-gray-300">

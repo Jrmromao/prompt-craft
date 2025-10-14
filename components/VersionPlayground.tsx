@@ -41,10 +41,10 @@ interface VersionPlaygroundProps {
 }
 
 const LoadingDots = () => (
-  <div className="flex items-center justify-center space-x-1 text-sm text-purple-600 dark:text-purple-400">
-    <div className="w-1.5 h-1.5 bg-purple-600 dark:bg-purple-400 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
-    <div className="w-1.5 h-1.5 bg-purple-600 dark:bg-purple-400 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
-    <div className="w-1.5 h-1.5 bg-purple-600 dark:bg-purple-400 rounded-full animate-bounce"></div>
+  <div className="flex items-center justify-center space-x-1 text-sm text-blue-600 dark:text-blue-400">
+    <div className="w-1.5 h-1.5 bg-blue-600 dark:bg-blue-400 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+    <div className="w-1.5 h-1.5 bg-blue-600 dark:bg-blue-400 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+    <div className="w-1.5 h-1.5 bg-blue-600 dark:bg-blue-400 rounded-full animate-bounce"></div>
   </div>
 );
 
@@ -78,7 +78,7 @@ const FunLoadingMessage = () => {
   }, [currentIndex, message]);
 
   return (
-    <p className="text-xs text-purple-600 dark:text-purple-400 font-medium text-center max-w-xs min-h-[1.5rem] hover:text-purple-700 dark:hover:text-purple-300 transition-colors duration-200">
+    <p className="text-xs text-blue-600 dark:text-blue-400 font-medium text-center max-w-xs min-h-[1.5rem] hover:text-blue-700 dark:hover:text-blue-300 transition-colors duration-200">
       {displayedMessage}
       <span className="animate-pulse">|</span>
     </p>
@@ -255,7 +255,7 @@ export function VersionPlayground({
 
   const GradientButton = ({ children, className = '', ...props }: any) => (
     <button
-      className={`group relative transform overflow-hidden rounded-md bg-gradient-to-r from-purple-600 to-purple-700 px-6 py-2 text-sm font-medium text-white transition-all duration-300 hover:from-purple-700 hover:to-purple-800 hover:shadow-md active:scale-95 ${className}`}
+      className={`group relative transform overflow-hidden rounded-md bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-2 text-sm font-medium text-white transition-all duration-300 hover:from-blue-700 hover:to-blue-800 hover:shadow-md active:scale-95 ${className}`}
       {...props}
     >
       <div className="relative flex items-center gap-2">
@@ -271,14 +271,14 @@ export function VersionPlayground({
         <TabsList className="grid w-full grid-cols-2 bg-gray-100/50 dark:bg-gray-900/50 backdrop-blur-sm sticky top-0 z-10">
           <TabsTrigger 
             value="playground"
-            className="data-[state=active]:bg-purple-600 data-[state=active]:text-white"
+            className="data-[state=active]:bg-blue-600 data-[state=active]:text-white"
           >
             <Sparkles className="h-4 w-4 mr-2" />
             Playground
           </TabsTrigger>
           <TabsTrigger 
             value="history"
-            className="data-[state=active]:bg-purple-600 data-[state=active]:text-white"
+            className="data-[state=active]:bg-blue-600 data-[state=active]:text-white"
           >
             <History className="h-4 w-4 mr-2" />
             Version History
@@ -299,20 +299,20 @@ export function VersionPlayground({
                 </div>
               </div>
             )}
-            <div className="group rounded-2xl border border-gray-200 bg-white/50 p-6 backdrop-blur-sm transition-all duration-300 hover:border-purple-500/50 dark:border-gray-800 dark:bg-gray-900/50">
-              <h2 className="mb-4 text-xl font-semibold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">Prompt Content</h2>
+            <div className="group rounded-2xl border border-gray-200 bg-white/50 p-6 backdrop-blur-sm transition-all duration-300 hover:border-blue-500/50 dark:border-gray-800 dark:bg-gray-900/50">
+              <h2 className="mb-4 text-xl font-semibold bg-gradient-to-r from-blue-400 to-blue-400 bg-clip-text text-transparent">Prompt Content</h2>
               {isLoading && <LoadingDots />}
               <Label htmlFor="content" className="text-gray-700 dark:text-gray-200">Content</Label>
               <Textarea
                 id="content"
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
-                className="mt-2 min-h-[200px] font-mono text-sm bg-white/50 dark:bg-gray-900/50 border-gray-200 dark:border-gray-800 focus:border-purple-500 dark:focus:border-purple-500"
+                className="mt-2 min-h-[200px] font-mono text-sm bg-white/50 dark:bg-gray-900/50 border-gray-200 dark:border-gray-800 focus:border-blue-500 dark:focus:border-blue-500"
               />
             </div>
 
-            <div className="group rounded-2xl border border-gray-200 bg-white/50 p-6 backdrop-blur-sm transition-all duration-300 hover:border-purple-500/50 dark:border-gray-800 dark:bg-gray-900/50">
-              <h2 className="mb-4 text-xl font-semibold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">Description</h2>
+            <div className="group rounded-2xl border border-gray-200 bg-white/50 p-6 backdrop-blur-sm transition-all duration-300 hover:border-blue-500/50 dark:border-gray-800 dark:bg-gray-900/50">
+              <h2 className="mb-4 text-xl font-semibold bg-gradient-to-r from-blue-400 to-blue-400 bg-clip-text text-transparent">Description</h2>
               {isLoading && <LoadingDots />}
               <Label htmlFor="description" className="text-gray-700 dark:text-gray-200">Description</Label>
               <Textarea
@@ -320,12 +320,12 @@ export function VersionPlayground({
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Describe the changes in this version..."
-                className="mt-2 min-h-[100px] bg-white/50 dark:bg-gray-900/50 border-gray-200 dark:border-gray-800 focus:border-purple-500 dark:focus:border-purple-500"
+                className="mt-2 min-h-[100px] bg-white/50 dark:bg-gray-900/50 border-gray-200 dark:border-gray-800 focus:border-blue-500 dark:focus:border-blue-500"
               />
             </div>
 
-            <div className="group rounded-2xl border border-gray-200 bg-white/50 p-6 backdrop-blur-sm transition-all duration-300 hover:border-purple-500/50 dark:border-gray-800 dark:bg-gray-900/50">
-              <h2 className="mb-4 text-xl font-semibold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">Commit Message</h2>
+            <div className="group rounded-2xl border border-gray-200 bg-white/50 p-6 backdrop-blur-sm transition-all duration-300 hover:border-blue-500/50 dark:border-gray-800 dark:bg-gray-900/50">
+              <h2 className="mb-4 text-xl font-semibold bg-gradient-to-r from-blue-400 to-blue-400 bg-clip-text text-transparent">Commit Message</h2>
               {isLoading && <LoadingDots />}
               <Label htmlFor="commitMessage" className="text-gray-700 dark:text-gray-200">Commit Message</Label>
               <Input
@@ -333,19 +333,19 @@ export function VersionPlayground({
                 value={commitMessage}
                 onChange={(e) => setCommitMessage(e.target.value)}
                 placeholder="Enter a commit message..."
-                className="mt-2 bg-white/50 dark:bg-gray-900/50 border-gray-200 dark:border-gray-800 focus:border-purple-500 dark:focus:border-purple-500"
+                className="mt-2 bg-white/50 dark:bg-gray-900/50 border-gray-200 dark:border-gray-800 focus:border-blue-500 dark:focus:border-blue-500"
                 required
               />
             </div>
 
-            <div className="group rounded-2xl border border-gray-200 bg-white/50 p-6 backdrop-blur-sm transition-all duration-300 hover:border-purple-500/50 dark:border-gray-800 dark:bg-gray-900/50">
-              <h2 className="mb-4 text-xl font-semibold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">Tags</h2>
+            <div className="group rounded-2xl border border-gray-200 bg-white/50 p-6 backdrop-blur-sm transition-all duration-300 hover:border-blue-500/50 dark:border-gray-800 dark:bg-gray-900/50">
+              <h2 className="mb-4 text-xl font-semibold bg-gradient-to-r from-blue-400 to-blue-400 bg-clip-text text-transparent">Tags</h2>
               {isLoading && <LoadingDots />}
               <div className="flex flex-wrap gap-2 mb-4">
                 {tags.map((tag) => (
                   <Badge 
                     key={tag} 
-                    className="bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:from-purple-600 hover:to-pink-600 transition-all duration-300"
+                    className="bg-gradient-to-r from-blue-500 to-blue-500 text-white hover:from-blue-600 hover:to-blue-500 transition-all duration-300"
                   >
                     {tag}
                     <button
@@ -373,7 +373,7 @@ export function VersionPlayground({
                       }
                     }
                   }}
-                  className="bg-white/50 dark:bg-gray-900/50 border-gray-200 dark:border-gray-800 focus:border-purple-500 dark:focus:border-purple-500"
+                  className="bg-white/50 dark:bg-gray-900/50 border-gray-200 dark:border-gray-800 focus:border-blue-500 dark:focus:border-blue-500"
                 />
                 <GradientButton
                   type="button"
@@ -389,8 +389,8 @@ export function VersionPlayground({
               </div>
             </div>
 
-            <div className="group rounded-2xl border border-gray-200 bg-white/50 p-6 backdrop-blur-sm transition-all duration-300 hover:border-purple-500/50 dark:border-gray-800 dark:bg-gray-900/50">
-              <h2 className="mb-4 text-xl font-semibold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">Test Prompt</h2>
+            <div className="group rounded-2xl border border-gray-200 bg-white/50 p-6 backdrop-blur-sm transition-all duration-300 hover:border-blue-500/50 dark:border-gray-800 dark:bg-gray-900/50">
+              <h2 className="mb-4 text-xl font-semibold bg-gradient-to-r from-blue-400 to-blue-400 bg-clip-text text-transparent">Test Prompt</h2>
               {isTesting && <LoadingDots />}
               <Label htmlFor="testInput" className="text-gray-700 dark:text-gray-200">Test Input</Label>
               <Textarea
@@ -398,7 +398,7 @@ export function VersionPlayground({
                 value={testInput}
                 onChange={(e) => setTestInput(e.target.value)}
                 placeholder="Enter test input (optional, defaults to prompt content)"
-                className="mt-2 min-h-[100px] font-mono text-sm bg-white/50 dark:bg-gray-900/50 border-gray-200 dark:border-gray-800 focus:border-purple-500 dark:focus:border-purple-500"
+                className="mt-2 min-h-[100px] font-mono text-sm bg-white/50 dark:bg-gray-900/50 border-gray-200 dark:border-gray-800 focus:border-blue-500 dark:focus:border-blue-500"
               />
               <div className="flex justify-end">
                 <GradientButton
@@ -420,7 +420,7 @@ export function VersionPlayground({
               </div>
               {testOutput && (
                 <div className="mt-6 space-y-4">
-                  <h2 className="text-xl font-semibold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">Test Output</h2>
+                  <h2 className="text-xl font-semibold bg-gradient-to-r from-blue-400 to-blue-400 bg-clip-text text-transparent">Test Output</h2>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="testOutput" className="text-sm font-medium">Raw Markdown</Label>
@@ -444,11 +444,11 @@ export function VersionPlayground({
                 <div className="flex flex-col items-center w-full py-4">
                   <div className="flex flex-col items-center w-full">
                     <div className="flex items-center gap-3 mb-6">
-                      <span className="text-lg font-semibold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">Overall Rating</span>
+                      <span className="text-lg font-semibold bg-gradient-to-r from-blue-400 to-blue-400 bg-clip-text text-transparent">Overall Rating</span>
                       {renderStars(rating?.overall || 0)}
                     </div>
                     <div className="flex flex-col gap-4 w-full max-w-xl">
-                      <div className="group rounded-xl border border-gray-200 bg-white/50 p-4 backdrop-blur-sm transition-all duration-300 hover:border-purple-500/50 dark:border-gray-800 dark:bg-gray-900/50">
+                      <div className="group rounded-xl border border-gray-200 bg-white/50 p-4 backdrop-blur-sm transition-all duration-300 hover:border-blue-500/50 dark:border-gray-800 dark:bg-gray-900/50">
                         <div className="flex items-center justify-between w-full">
                           <span className="text-sm font-medium text-gray-700 dark:text-gray-200">Clarity</span>
                           <div className="flex items-center gap-2">
@@ -456,7 +456,7 @@ export function VersionPlayground({
                           </div>
                         </div>
                       </div>
-                      <div className="group rounded-xl border border-gray-200 bg-white/50 p-4 backdrop-blur-sm transition-all duration-300 hover:border-purple-500/50 dark:border-gray-800 dark:bg-gray-900/50">
+                      <div className="group rounded-xl border border-gray-200 bg-white/50 p-4 backdrop-blur-sm transition-all duration-300 hover:border-blue-500/50 dark:border-gray-800 dark:bg-gray-900/50">
                         <div className="flex items-center justify-between w-full">
                           <span className="text-sm font-medium text-gray-700 dark:text-gray-200">Specificity</span>
                           <div className="flex items-center gap-2">
@@ -464,7 +464,7 @@ export function VersionPlayground({
                           </div>
                         </div>
                       </div>
-                      <div className="group rounded-xl border border-gray-200 bg-white/50 p-4 backdrop-blur-sm transition-all duration-300 hover:border-purple-500/50 dark:border-gray-800 dark:bg-gray-900/50">
+                      <div className="group rounded-xl border border-gray-200 bg-white/50 p-4 backdrop-blur-sm transition-all duration-300 hover:border-blue-500/50 dark:border-gray-800 dark:bg-gray-900/50">
                         <div className="flex items-center justify-between w-full">
                           <span className="text-sm font-medium text-gray-700 dark:text-gray-200">Context</span>
                           <div className="flex items-center gap-2">

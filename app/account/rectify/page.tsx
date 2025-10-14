@@ -49,7 +49,7 @@ export default function DataRectificationPage() {
   return (
     <div className="space-y-8 max-w-2xl mx-auto">
       <div className="flex items-center gap-3 mb-2">
-        <Shield className="h-8 w-8 text-purple-600" />
+        <Shield className="h-8 w-8 text-blue-600" />
         <div>
           <h1 className="text-3xl font-bold">Update Your Information</h1>
           <p className="text-muted-foreground">Review and update your personal information</p>

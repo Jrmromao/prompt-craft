@@ -10,12 +10,12 @@ export function Footer() {
         {/* Left: Logo & Brand */}
         <div className="flex flex-col items-center gap-2 md:items-start">
           <div
-            className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-r from-purple-500 to-pink-500"
+            className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-r from-blue-500 to-blue-500"
             aria-label="PromptHive Logo"
           >
             <Sparkles className="h-5 w-5 text-white" aria-hidden="true" />
           </div>
-          <span className="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-xl font-bold text-transparent">
+          <span className="bg-gradient-to-r from-blue-400 to-blue-400 bg-clip-text text-xl font-bold text-transparent">
             PromptHive
           </span>
           <span className="text-xs text-muted-foreground">Create & share AI prompts</span>
@@ -58,7 +58,7 @@ export function Footer() {
               target="_blank"
               rel="noopener"
               aria-label="Twitter"
-              className="transition-colors hover:text-purple-500"
+              className="transition-colors hover:text-blue-500"
             >
               <FaTwitter />
             </a>
@@ -67,7 +67,7 @@ export function Footer() {
               target="_blank"
               rel="noopener"
               aria-label="LinkedIn"
-              className="transition-colors hover:text-purple-500"
+              className="transition-colors hover:text-blue-500"
             >
               <FaLinkedin />
             </a>
@@ -76,7 +76,7 @@ export function Footer() {
               target="_blank"
               rel="noopener"
               aria-label="GitHub"
-              className="transition-colors hover:text-purple-500"
+              className="transition-colors hover:text-blue-500"
             >
               <FaGithub />
             </a>
@@ -84,7 +84,7 @@ export function Footer() {
           <div className="text-xs">
             Legal:{' '}
             <a href="mailto:egal@PromptHive.co" className="underline">
-              egal@PromptHive.co
+              legal@PromptHive.co
             </a>
           </div>
         </div>

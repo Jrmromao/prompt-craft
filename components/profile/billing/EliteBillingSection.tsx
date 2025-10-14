@@ -82,7 +82,7 @@ export default function EliteBillingSection({ billingData }: EliteBillingSection
           <Button 
             onClick={handleManageSubscription} 
             disabled={isLoading}
-            className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-inter"
+            className="bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-700 text-white font-inter"
             aria-label="Manage Subscription"
           >
             {isLoading ? (
@@ -94,17 +94,17 @@ export default function EliteBillingSection({ billingData }: EliteBillingSection
           </Button>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="p-4 bg-purple-50/40 dark:bg-purple-950/20 rounded-lg">
+          <div className="p-4 bg-blue-50/40 dark:bg-blue-950/20 rounded-lg">
             <p className="text-sm text-gray-600 font-inter">Current Plan</p>
-            <p className="text-2xl font-bold font-inter bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">{plan}</p>
+            <p className="text-2xl font-bold font-inter bg-gradient-to-r from-blue-600 to-blue-500 bg-clip-text text-transparent">{plan}</p>
           </div>
-          <div className="p-4 bg-purple-50/40 dark:bg-purple-950/20 rounded-lg">
+          <div className="p-4 bg-blue-50/40 dark:bg-blue-950/20 rounded-lg">
             <p className="text-sm text-gray-600 font-inter">Monthly Price</p>
-            <p className="text-2xl font-bold font-inter bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">${price}</p>
+            <p className="text-2xl font-bold font-inter bg-gradient-to-r from-blue-600 to-blue-500 bg-clip-text text-transparent">${price}</p>
           </div>
-          <div className="p-4 bg-purple-50/40 dark:bg-purple-950/20 rounded-lg">
+          <div className="p-4 bg-blue-50/40 dark:bg-blue-950/20 rounded-lg">
             <p className="text-sm text-gray-600 font-inter">Next Billing Date</p>
-            <p className="text-2xl font-bold font-inter bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">{renewal}</p>
+            <p className="text-2xl font-bold font-inter bg-gradient-to-r from-blue-600 to-blue-500 bg-clip-text text-transparent">{renewal}</p>
           </div>
         </div>
       </Card>
@@ -114,13 +114,13 @@ export default function EliteBillingSection({ billingData }: EliteBillingSection
       <Card className="p-6">
         <h2 className="text-xl font-semibold mb-4 font-inter">Elite Features</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="p-4 bg-purple-50/40 dark:bg-purple-950/20 rounded-lg">
-            <Crown className="h-6 w-6 text-purple-600 mb-2" />
+          <div className="p-4 bg-blue-50/40 dark:bg-blue-950/20 rounded-lg">
+            <Crown className="h-6 w-6 text-blue-600 mb-2" />
             <h3 className="font-semibold mb-2 font-inter">Premium Support</h3>
             <p className="text-sm text-gray-600 font-inter">Priority support with dedicated account manager</p>
           </div>
-          <div className="p-4 bg-purple-50/40 dark:bg-purple-950/20 rounded-lg">
-            <Shield className="h-6 w-6 text-purple-600 mb-2" />
+          <div className="p-4 bg-blue-50/40 dark:bg-blue-950/20 rounded-lg">
+            <Shield className="h-6 w-6 text-blue-600 mb-2" />
             <h3 className="font-semibold mb-2 font-inter">Advanced Security</h3>
             <p className="text-sm text-gray-600 font-inter">Enhanced security features and compliance</p>
           </div>
@@ -133,7 +133,7 @@ export default function EliteBillingSection({ billingData }: EliteBillingSection
         {billingData.invoices.length > 0 ? (
           <div className="space-y-4" role="list" aria-label="Billing history">
             {billingData.invoices.map((invoice) => (
-              <div key={invoice.id} className="flex items-center justify-between p-4 bg-purple-50/40 dark:bg-purple-950/20 rounded-lg" role="listitem">
+              <div key={invoice.id} className="flex items-center justify-between p-4 bg-blue-50/40 dark:bg-blue-950/20 rounded-lg" role="listitem">
                 <div>
                   <p className="font-medium font-inter">
                     {invoice.type === 'credit_purchase' ? 'Credit Purchase' : 'Subscription Payment'}
@@ -141,7 +141,7 @@ export default function EliteBillingSection({ billingData }: EliteBillingSection
                   <p className="text-sm text-gray-600 font-inter">{new Date(invoice.date).toLocaleDateString()}</p>
                 </div>
                 <div className="text-right">
-                  <p className="font-medium font-inter bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">${invoice.amount}</p>
+                  <p className="font-medium font-inter bg-gradient-to-r from-blue-600 to-blue-500 bg-clip-text text-transparent">${invoice.amount}</p>
                   <p className="text-sm text-gray-600 font-inter capitalize">{invoice.status}</p>
                 </div>
               </div>

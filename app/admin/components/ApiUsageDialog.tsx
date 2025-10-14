@@ -131,7 +131,7 @@ export function ApiUsageDialog({ open, onOpenChange }: ApiUsageDialogProps) {
                   }))}
                   index="date"
                   categories={['Input Tokens', 'Output Tokens', 'Cost']}
-                  colors={['blue', 'green', 'purple']}
+                  colors={['blue', 'green', 'teal']}
                   valueFormatter={value =>
                     typeof value === 'number' ? value.toLocaleString() : value.toString()
                   }

@@ -74,11 +74,11 @@ export function Dropzone({
     <div className="space-y-4">
       <div
         {...getRootProps()}
-        className={`rounded-lg border-2 border-dashed p-6 transition-colors ${isDragActive ? 'border-purple-500 bg-purple-50' : 'border-gray-300 hover:bg-gray-50'} ${error ? 'border-red-500 bg-red-50' : ''} cursor-pointer ${className}`}
+        className={`rounded-lg border-2 border-dashed p-6 transition-colors ${isDragActive ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:bg-gray-50'} ${error ? 'border-red-500 bg-red-50' : ''} cursor-pointer ${className}`}
       >
         <input {...getInputProps()} />
         <div className="flex flex-col items-center">
-          <Upload className={`h-8 w-8 ${isDragActive ? 'text-purple-500' : 'text-gray-400'}`} />
+          <Upload className={`h-8 w-8 ${isDragActive ? 'text-blue-500' : 'text-gray-400'}`} />
           <p className="mt-2 text-center text-sm text-gray-600">
             {isDragActive ? (
               'Solte os arquivos aqui'

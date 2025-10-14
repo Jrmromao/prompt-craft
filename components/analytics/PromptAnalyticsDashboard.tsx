@@ -110,7 +110,7 @@ export function PromptAnalyticsDashboard({ promptId, className }: PromptAnalytic
     </Card>
   )
 
-  const SimpleChart = ({ data, color = "purple" }: { 
+  const SimpleChart = ({ data, color = "blue" }: { 
     data: Array<{ date: string; count: number }>
     color?: string 
   }) => {
@@ -123,7 +123,7 @@ export function PromptAnalyticsDashboard({ promptId, className }: PromptAnalytic
             key={index}
             className={cn(
               "flex-1 rounded-t transition-all duration-200 hover:opacity-80",
-              color === "purple" && "bg-purple-500",
+              color === "blue" && "bg-blue-500",
               color === "blue" && "bg-blue-500",
               color === "green" && "bg-green-500"
             )}
@@ -197,7 +197,7 @@ export function PromptAnalyticsDashboard({ promptId, className }: PromptAnalytic
                 className={cn(
                   "px-3 py-1 text-xs rounded-md transition-colors",
                   timeRange === range 
-                    ? "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200"
+                    ? "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
                     : "hover:bg-muted"
                 )}
               >
@@ -308,7 +308,7 @@ export function PromptAnalyticsDashboard({ promptId, className }: PromptAnalytic
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <Card>
                 <CardContent className="p-4 text-center">
-                  <div className="text-2xl font-bold text-purple-600">#{analytics.performance.rank}</div>
+                  <div className="text-2xl font-bold text-blue-600">#{analytics.performance.rank}</div>
                   <div className="text-sm text-muted-foreground">Overall Rank</div>
                 </CardContent>
               </Card>

@@ -133,8 +133,8 @@ const categoryColors: Record<Category, ColorScheme> = {
     text: 'text-red-700 dark:text-red-300',
   },
   FEATURE_REQUEST: {
-    bg: 'bg-purple-50 dark:bg-purple-900/20',
-    text: 'text-purple-700 dark:text-purple-300',
+    bg: 'bg-blue-50 dark:bg-blue-900/20',
+    text: 'text-blue-700 dark:text-blue-300',
   },
   GENERAL_INQUIRY: {
     bg: 'bg-blue-50 dark:bg-blue-900/20',

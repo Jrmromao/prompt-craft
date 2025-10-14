@@ -97,7 +97,7 @@ export function TableWithPagination<T>({
               table.getRowModel().rows.map((row, idx) => (
                 <TableRow
                   key={row.id}
-                  className={`transition-colors ${idx % 2 === 0 ? 'bg-white dark:bg-[#18122B]' : 'bg-gray-50 dark:bg-[#221c3a]'} hover:bg-purple-50 dark:hover:bg-purple-900/30`}
+                  className={`transition-colors ${idx % 2 === 0 ? 'bg-white dark:bg-[#18122B]' : 'bg-gray-50 dark:bg-[#221c3a]'} hover:bg-blue-50 dark:hover:bg-blue-900/30`}
                 >
                   {row.getVisibleCells().map(cell => (
                     <TableCell key={cell.id} className="px-4 py-2 align-middle">

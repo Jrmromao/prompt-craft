@@ -53,7 +53,7 @@ export function FolderTree({ folders, selectedFolderId, onFolderSelect, onCreate
         <div
           className={cn(
             "flex items-center gap-2 px-2 py-1.5 rounded-md cursor-pointer hover:bg-muted transition-colors",
-            isSelected && "bg-purple-100 dark:bg-purple-900/20",
+            isSelected && "bg-blue-100 dark:bg-blue-900/20",
             level > 0 && "ml-4"
           )}
           onClick={() => onFolderSelect(folder.id)}

@@ -44,20 +44,20 @@ export async function getReportedContent() {
   const [reportedPrompts, reportedComments] = await Promise.all([
     prisma.prompt.findMany({
       where: {
-        reports: {
+        Report: {
           some: {},
         },
       },
       include: {
-        user: {
+        User: {
           select: {
             name: true,
             email: true,
           },
         },
-        reports: {
+        Report: {
           include: {
-            user: {
+            User: {
               select: {
                 name: true,
                 email: true,
@@ -70,27 +70,27 @@ export async function getReportedContent() {
         },
       },
       orderBy: {
-        reports: {
+        Report: {
           _count: 'desc',
         },
       },
     }),
     prisma.comment.findMany({
       where: {
-        reports: {
+        Report: {
           some: {},
         },
       },
       include: {
-        user: {
+        User: {
           select: {
             name: true,
             email: true,
           },
         },
-        reports: {
+        Report: {
           include: {
-            user: {
+            User: {
               select: {
                 name: true,
                 email: true,
@@ -103,7 +103,7 @@ export async function getReportedContent() {
         },
       },
       orderBy: {
-        reports: {
+        Report: {
           _count: 'desc',
         },
       },
@@ -115,18 +115,18 @@ export async function getReportedContent() {
       id: prompt.id,
       name: prompt.name,
       author: {
-        name: prompt.user.name,
-        email: prompt.user.email,
+        name: prompt.User.name,
+        email: prompt.User.email,
       },
-      reportCount: prompt.reports.length,
-      lastReportedAt: prompt.reports[0]?.createdAt || new Date(),
-      reports: prompt.reports.map(report => ({
+      reportCount: prompt.Report.length,
+      lastReportedAt: prompt.Report[0]?.createdAt || new Date(),
+      reports: prompt.Report.map(report => ({
         id: report.id,
         reason: report.reason,
         createdAt: report.createdAt,
         user: {
-          name: report.user.name,
-          email: report.user.email,
+          name: report.User.name,
+          email: report.User.email,
         },
       })),
     })),
@@ -134,18 +134,18 @@ export async function getReportedContent() {
       id: comment.id,
       content: comment.content,
       author: {
-        name: comment.user.name,
-        email: comment.user.email,
+        name: comment.User.name,
+        email: comment.User.email,
       },
-      reportCount: comment.reports.length,
-      lastReportedAt: comment.reports[0]?.createdAt || new Date(),
-      reports: comment.reports.map(report => ({
+      reportCount: comment.Report.length,
+      lastReportedAt: comment.Report[0]?.createdAt || new Date(),
+      reports: comment.Report.map(report => ({
         id: report.id,
         reason: report.reason,
         createdAt: report.createdAt,
         user: {
-          name: report.user.name,
-          email: report.user.email,
+          name: report.User.name,
+          email: report.User.email,
         },
       })),
     })),

@@ -93,12 +93,12 @@ export function VersionTimeline({ promptId, onVersionSelect, selectedVersionId, 
             <div
               key={version.id}
               className={`border rounded-lg p-4 ${
-                selectedVersionId === version.id ? 'border-purple-500' : 'border-border'
+                selectedVersionId === version.id ? 'border-blue-500' : 'border-border'
               }`}
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <GitBranch className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+                  <GitBranch className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                   <span className="font-medium">Version {version.version}</span>
                 </div>
                 <div className="flex items-center gap-2">

@@ -15,6 +15,7 @@ interface Prompt {
   isPublic: boolean;
   createdAt: string;
   updatedAt: string;
+  slug: string;
 }
 
 export function SimplePromptList() {
@@ -62,26 +63,30 @@ export function SimplePromptList() {
   };
 
   const exportPrompts = () => {
-    const exportData = {
-      exported_at: new Date().toISOString(),
-      prompts: prompts.map(prompt => ({
-        name: prompt.name,
-        description: prompt.description,
-        created_at: prompt.createdAt,
-        is_public: prompt.isPublic
-      }))
-    };
+    // Export all prompts as a single markdown file
+    const markdownContent = `# My Prompts Collection
+
+*Exported on ${new Date().toLocaleDateString()}*
+
+${prompts.map(prompt => `
+## ${prompt.name}
+
+${prompt.description ? `**Description:** ${prompt.description}\n\n` : ''}**Created:** ${new Date(prompt.createdAt).toLocaleDateString()}  
+**Status:** ${prompt.isPublic ? 'Public' : 'Private'}
+
+---
+`).join('\n')}`;
     
-    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+    const blob = new Blob([markdownContent], { type: 'text/markdown' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `prompts-${new Date().toISOString().split('T')[0]}.json`;
+    a.download = `my-prompts-${new Date().toISOString().split('T')[0]}.md`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    toast.success('Prompts exported successfully!');
+    toast.success('Prompts exported as markdown!');
   };
 
   return (
@@ -156,10 +161,12 @@ export function SimplePromptList() {
                   <span className="text-sm text-muted-foreground">
                     Created {new Date(prompt.createdAt).toLocaleDateString()}
                   </span>
-                  <Button variant="outline" size="sm" className="flex items-center gap-2">
-                    <Eye className="w-4 h-4" />
-                    View
-                  </Button>
+                  <Link href={`/prompts/${prompt.slug}`}>
+                    <Button variant="outline" size="sm" className="flex items-center gap-2">
+                      <Eye className="w-4 h-4" />
+                      View
+                    </Button>
+                  </Link>
                 </div>
               </CardContent>
             </Card>

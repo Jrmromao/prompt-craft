@@ -257,8 +257,32 @@ export function PromptManager({
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold">Saved Prompts</h2>
-        <Button onClick={() => setIsDialogOpen(true)}>New Prompt</Button>
+        <div className="flex gap-2">
+          <Button onClick={() => setIsDialogOpen(true)}>New Prompt</Button>
+        </div>
       </div>
+
+      {/* Conversion teaser for users with few prompts */}
+      {(prompts || []).length <= 2 && (
+        <div className="bg-gradient-to-r from-blue-50 to-blue-50 border border-blue-200 rounded-lg p-4 dark:from-blue-900/20 dark:to-blue-900/20">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="font-semibold text-blue-800 dark:text-blue-200">💡 Pro Tip</h3>
+              <p className="text-sm text-blue-700 dark:text-blue-300">
+                PRO users save 10+ hours/week with unlimited prompts, versions & playground access
+              </p>
+            </div>
+            <Button 
+              size="sm" 
+              variant="outline"
+              className="border-blue-300 text-blue-700 hover:bg-blue-100"
+              onClick={() => window.location.href = '/pricing'}
+            >
+              See PRO
+            </Button>
+          </div>
+        </div>
+      )}
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {(prompts || []).map(prompt => (
@@ -271,7 +295,7 @@ export function PromptManager({
               {currentUserId === prompt.userId && (
                 <div className="flex gap-2">
                   <Button variant="ghost" size="sm" onClick={() => handleEdit(prompt)}>
-                    Edit
+                    New Version
                   </Button>
                   <Button variant="ghost" size="sm" onClick={() => handleDelete(prompt.id)}>
                     Delete

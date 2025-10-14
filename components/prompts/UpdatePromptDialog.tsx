@@ -89,14 +89,14 @@ const TYPE_OPTIONS = [
     label: 'Image',
     icon: Image,
     description: 'Generate prompts for image creation and visual content',
-    color: 'from-purple-500 to-purple-600',
+    color: 'from-blue-500 to-blue-600',
   },
   {
     value: 'video',
     label: 'Video',
     icon: Video,
     description: 'Create prompts for video content and motion graphics',
-    color: 'from-pink-500 to-pink-600',
+    color: 'from-blue-500 to-blue-500',
   },
   {
     value: 'music',
@@ -256,7 +256,7 @@ export function UpdatePromptDialog({
                     key={option.value}
                     className={cn(
                       'flex cursor-pointer flex-col items-center rounded-lg border p-4 transition-colors hover:bg-gray-50 dark:hover:bg-gray-800',
-                      type === option.value && 'border-purple-500 bg-purple-50 dark:bg-purple-900/20'
+                      type === option.value && 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
                     )}
                     onClick={() => setType(option.value)}
                   >

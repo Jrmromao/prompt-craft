@@ -81,15 +81,15 @@ export function CreditPurchaseModal({ open, onOpenChange, currentBalance = 1200 
             >
               <div className="mb-4 flex items-center justify-between">
                 <span className="text-xs text-muted-foreground">Your Balance:</span>
-                <span className="font-semibold text-base text-purple-700 dark:text-purple-300">{currentBalance.toLocaleString()} credits</span>
+                <span className="font-semibold text-base text-blue-700 dark:text-blue-300">{currentBalance.toLocaleString()} credits</span>
               </div>
               <div className="grid gap-3" role="radiogroup" aria-label="Credit packages">
                 {CREDIT_PACKAGES.map((pkg, idx) => (
                   <motion.button
                     key={pkg.amount}
-                    className={`relative flex items-center justify-between w-full rounded-lg border p-4 transition-all focus:outline-none focus:ring-2 focus:ring-purple-400 ${
+                    className={`relative flex items-center justify-between w-full rounded-lg border p-4 transition-all focus:outline-none focus:ring-2 focus:ring-blue-400 ${
                       selectedPackage.amount === pkg.amount
-                        ? 'border-purple-600 bg-purple-50 dark:bg-purple-900/30 shadow-lg scale-[1.02]' : 'hover:bg-muted/50 border-gray-200'
+                        ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/30 shadow-lg scale-[1.02]' : 'hover:bg-muted/50 border-gray-200'
                     }`}
                     onClick={() => setSelectedPackage(pkg)}
                     aria-pressed={selectedPackage.amount === pkg.amount}
@@ -109,7 +109,7 @@ export function CreditPurchaseModal({ open, onOpenChange, currentBalance = 1200 
                           </span>
                         )}
                         {pkg.popular && (
-                          <span className="ml-2 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 px-2 py-0.5 text-xs font-semibold text-white">Popular</span>
+                          <span className="ml-2 rounded-full bg-gradient-to-r from-blue-500 to-blue-500 px-2 py-0.5 text-xs font-semibold text-white">Popular</span>
                         )}
                         {pkg.popular && selectedPackage.amount === pkg.amount && (
                           <span className="ml-2 rounded-full bg-yellow-400/80 px-2 py-0.5 text-xs font-semibold text-yellow-900">Recommended for you</span>
@@ -126,7 +126,7 @@ export function CreditPurchaseModal({ open, onOpenChange, currentBalance = 1200 
                           initial={{ scale: 0 }}
                           animate={{ scale: 1 }}
                           exit={{ scale: 0 }}
-                          className="inline-flex items-center justify-center h-6 w-6 rounded-full bg-purple-600 text-white shadow-lg"
+                          className="inline-flex items-center justify-center h-6 w-6 rounded-full bg-blue-600 text-white shadow-lg"
                         >
                           <Check className="h-4 w-4" />
                         </motion.span>
@@ -136,7 +136,7 @@ export function CreditPurchaseModal({ open, onOpenChange, currentBalance = 1200 
                 ))}
               </div>
               <DialogFooter className="mt-6 flex justify-end gap-2">
-                <Button onClick={handleNext} className="bg-gradient-to-r from-purple-600 to-pink-500 text-white px-6 py-2 text-base font-semibold shadow-md" disabled={!selectedPackage}>
+                <Button onClick={handleNext} className="bg-gradient-to-r from-blue-600 to-blue-500 text-white px-6 py-2 text-base font-semibold shadow-md" disabled={!selectedPackage}>
                   Next
                 </Button>
               </DialogFooter>
@@ -167,7 +167,7 @@ export function CreditPurchaseModal({ open, onOpenChange, currentBalance = 1200 
                 </div>
               </div>
               <div className="flex flex-col items-center gap-2 mb-2">
-                <CreditCard className="h-8 w-8 text-purple-600 mb-1" aria-label="Stripe payment" />
+                <CreditCard className="h-8 w-8 text-blue-600 mb-1" aria-label="Stripe payment" />
                 <div className="flex items-center gap-2 mt-1">
                   <ShieldCheck className="h-5 w-5 text-green-600" aria-label="100% Secure" />
                   <span className="text-xs font-semibold text-green-700">100% Secure</span>
@@ -182,7 +182,7 @@ export function CreditPurchaseModal({ open, onOpenChange, currentBalance = 1200 
                   Back
                 </Button>
                 <Button
-                  className="bg-gradient-to-r from-purple-600 to-pink-500 text-white px-6 py-2 text-base font-semibold shadow-md"
+                  className="bg-gradient-to-r from-blue-600 to-blue-500 text-white px-6 py-2 text-base font-semibold shadow-md"
                   onClick={handlePurchase}
                   disabled={isLoading}
                   aria-busy={isLoading}
@@ -221,8 +221,8 @@ export function CreditPurchaseModal({ open, onOpenChange, currentBalance = 1200 
               <div className="text-base text-muted-foreground text-center">
                 Your credits have been added to your account.<br />Thank you for your purchase!
               </div>
-              <div className="text-sm text-purple-700 dark:text-purple-300 font-semibold">New Balance: {(currentBalance + selectedPackage.amount + selectedPackage.bonus).toLocaleString()} credits</div>
-              <Button className="mt-4 bg-gradient-to-r from-purple-600 to-pink-500 text-white px-6 py-2 text-base font-semibold shadow-md" onClick={handleClose}>
+              <div className="text-sm text-blue-700 dark:text-blue-300 font-semibold">New Balance: {(currentBalance + selectedPackage.amount + selectedPackage.bonus).toLocaleString()} credits</div>
+              <Button className="mt-4 bg-gradient-to-r from-blue-600 to-blue-500 text-white px-6 py-2 text-base font-semibold shadow-md" onClick={handleClose}>
                 Close
               </Button>
             </motion.div>

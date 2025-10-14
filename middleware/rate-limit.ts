@@ -20,16 +20,26 @@ try {
 
 // Rate limit configuration
 const RATE_LIMIT_WINDOW = 60 * 1000; // 1 minute in milliseconds
-const MAX_REQUESTS = 60; // Maximum requests per window (1 request per second)
 const MAX_REQUEST_SIZE = 1024 * 1024; // 1MB in bytes
 
-// Different rate limits for different routes
+// Secure rate limits for different routes
 const ROUTE_LIMITS = {
-  default: 100,
-  comments: 50,
-  votes: 30,
-  cookies: 20,
+  default: 30,
+  auth: 5,      // 5 attempts per hour for auth
+  comments: 10,
+  votes: 20,
+  password: 3,  // 3 attempts per hour for password changes
+  cookies: 10,
 } satisfies Record<string, number>;
+
+// Progressive penalties for violations
+const PROGRESSIVE_PENALTIES = {
+  1: 60,    // 1 minute
+  2: 300,   // 5 minutes  
+  3: 900,   // 15 minutes
+  4: 3600,  // 1 hour
+  5: 86400, // 24 hours
+};
 
 export async function rateLimitMiddleware(request: NextRequest) {
   // Check request size
@@ -54,12 +64,48 @@ export async function rateLimitMiddleware(request: NextRequest) {
 
   // Determine rate limit based on route
   let maxRequests = ROUTE_LIMITS.default;
+  let windowSeconds = 60; // Default 1 minute window
+  
   if (request.nextUrl.pathname.includes('/comments')) {
     maxRequests = ROUTE_LIMITS.comments;
   } else if (request.nextUrl.pathname.includes('/vote')) {
     maxRequests = ROUTE_LIMITS.votes;
   } else if (request.nextUrl.pathname.includes('/cookies')) {
     maxRequests = ROUTE_LIMITS.cookies;
+  } else if (request.nextUrl.pathname.includes('/password')) {
+    maxRequests = ROUTE_LIMITS.password;
+    windowSeconds = 3600; // 1 hour window for password changes
+  } else if (request.nextUrl.pathname.includes('/sign-in') || request.nextUrl.pathname.includes('/sign-up')) {
+    maxRequests = ROUTE_LIMITS.auth;
+    windowSeconds = 3600; // 1 hour window for auth
+  }
+
+  // Check for existing violations and apply progressive penalties
+  const violationKey = `violations:${ip}`;
+  const violations = parseInt(await redis.get(violationKey) || '0');
+  
+  if (violations > 0) {
+    const penalty = PROGRESSIVE_PENALTIES[Math.min(violations, 5)] || 86400;
+    const blockedKey = `blocked:${ip}`;
+    const isBlocked = await redis.get(blockedKey);
+    
+    if (isBlocked) {
+      const ttl = await redis.ttl(blockedKey);
+      return new NextResponse(
+        JSON.stringify({
+          error: 'IP Temporarily Blocked',
+          message: `Too many violations. Blocked for ${Math.ceil(ttl / 60)} minutes.`,
+          retryAfter: ttl,
+        }),
+        {
+          status: 429,
+          headers: {
+            'Content-Type': 'application/json',
+            'Retry-After': ttl.toString(),
+          },
+        }
+      );
+    }
   }
 
   // Use Redis for distributed rate limiting
@@ -72,17 +118,31 @@ export async function rateLimitMiddleware(request: NextRequest) {
 
     // Set expiry if this is the first request
     if (count === 1) {
-      await redis.expire(key, Math.ceil(RATE_LIMIT_WINDOW / 1000));
+      await redis.expire(key, windowSeconds);
     }
 
     // Check if rate limit exceeded
     if (count > maxRequests) {
+      // Increment violation count
+      await redis.incr(violationKey);
+      await redis.expire(violationKey, 86400); // Violations expire after 24 hours
+      
+      // Apply progressive penalty
+      const newViolations = violations + 1;
+      const penalty = PROGRESSIVE_PENALTIES[Math.min(newViolations, 5)] || 86400;
+      
+      if (newViolations >= 3) {
+        // Block IP after 3 violations
+        await redis.setex(`blocked:${ip}`, penalty, '1');
+      }
+      
       const ttl = await redis.ttl(key);
       return new NextResponse(
         JSON.stringify({
           error: 'Too Many Requests',
           message: 'Rate limit exceeded. Please try again later.',
           retryAfter: ttl,
+          violations: newViolations,
         }),
         {
           status: 429,
@@ -101,7 +161,7 @@ export async function rateLimitMiddleware(request: NextRequest) {
     const response = NextResponse.next();
     response.headers.set('X-RateLimit-Limit', maxRequests.toString());
     response.headers.set('X-RateLimit-Remaining', (maxRequests - count).toString());
-    response.headers.set('X-RateLimit-Reset', (now + RATE_LIMIT_WINDOW).toString());
+    response.headers.set('X-RateLimit-Reset', (now + windowSeconds * 1000).toString());
 
     return response;
   } catch (error) {

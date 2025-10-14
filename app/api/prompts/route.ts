@@ -11,7 +11,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check user's plan and prompt count
-    const user = await prisma.user.findUnique({
+    let user = await prisma.user.findUnique({
       where: { clerkId: clerkUserId },
       include: {
         Subscription: true,
@@ -19,8 +19,21 @@ export async function POST(request: NextRequest) {
       }
     });
 
+    // Auto-create user if not found
     if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+      const { user: clerkUser } = await auth();
+      user = await prisma.user.create({
+        data: {
+          clerkId: clerkUserId,
+          email: clerkUser?.emailAddresses?.[0]?.emailAddress || '',
+          name: clerkUser?.fullName || '',
+          planType: 'FREE'
+        },
+        include: {
+          Subscription: true,
+          Prompt: { select: { id: true } }
+        }
+      });
     }
 
     const isPro = user.Subscription?.status === 'ACTIVE' || user.planType === 'PRO';
@@ -40,18 +53,46 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Name and content are required' }, { status: 400 });
     }
 
-    const prompt = await prisma.prompt.create({
-      data: {
-        name,
-        content,
-        description: description || '',
-        isPublic: isPublic || false,
-        userId: user.id, // Use database user ID, not Clerk ID
-        slug: name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''),
-      }
+    // Generate unique slug
+    const baseSlug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    const timestamp = Date.now().toString().slice(-6); // Last 6 digits of timestamp
+    const uniqueSlug = `${baseSlug}-${timestamp}`;
+
+    // Create prompt and initial version in a transaction
+    const result = await prisma.$transaction(async (tx) => {
+      const prompt = await tx.prompt.create({
+        data: {
+          name,
+          content,
+          description: description || '',
+          isPublic: isPublic || false,
+          userId: user.id, // Use database user ID, not Clerk ID
+          slug: uniqueSlug,
+        }
+      });
+
+      // Create initial version (version 1)
+      const version = await tx.version.create({
+        data: {
+          content,
+          userId: user.id,
+          promptId: prompt.id
+        }
+      });
+
+      // Update user's version usage
+      await tx.user.update({
+        where: { id: user.id },
+        data: { versionsUsed: { increment: 1 } }
+      });
+
+      return { prompt, version };
     });
 
-    return NextResponse.json(prompt);
+    return NextResponse.json({
+      ...result.prompt,
+      initialVersion: result.version
+    });
   } catch (error) {
     console.error('Error creating prompt:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
@@ -66,10 +107,8 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Get the database user ID from Clerk ID
     const user = await prisma.user.findUnique({
-      where: { clerkId: clerkUserId },
-      select: { id: true }
+      where: { clerkId: clerkUserId }
     });
 
     if (!user) {
@@ -77,19 +116,28 @@ export async function GET() {
     }
 
     const prompts = await prisma.prompt.findMany({
-      where: { userId: user.id }, // Use database user ID
-      orderBy: { createdAt: 'desc' },
-      select: {
-        id: true,
-        name: true,
-        description: true,
-        isPublic: true,
-        createdAt: true,
-        updatedAt: true,
-      }
+      where: { userId: user.id },
+      include: {
+        Version: {
+          select: { id: true, createdAt: true },
+          orderBy: { createdAt: 'desc' },
+          take: 1
+        },
+        _count: {
+          select: { Version: true }
+        }
+      },
+      orderBy: { updatedAt: 'desc' }
     });
 
-    return NextResponse.json(prompts);
+    // Add version count and latest version info
+    const promptsWithVersionInfo = prompts.map(prompt => ({
+      ...prompt,
+      versionCount: prompt._count.Version,
+      latestVersion: prompt.Version[0] || null
+    }));
+
+    return NextResponse.json(promptsWithVersionInfo);
   } catch (error) {
     console.error('Error fetching prompts:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

@@ -18,7 +18,7 @@ export default async function TicketsPage() {
   const statusColors = {
     OPEN: 'bg-green-500',
     IN_PROGRESS: 'bg-blue-500',
-    RESOLVED: 'bg-purple-500',
+    RESOLVED: 'bg-blue-500',
     CLOSED: 'bg-gray-500',
   };
 
@@ -69,7 +69,7 @@ export default async function TicketsPage() {
                         : ticket.status === 'IN_PROGRESS'
                           ? 'bg-blue-100 text-blue-700'
                           : ticket.status === 'RESOLVED'
-                            ? 'bg-purple-100 text-purple-700'
+                            ? 'bg-blue-100 text-blue-700'
                             : 'bg-gray-200 text-gray-700'
                     }`}
                   >

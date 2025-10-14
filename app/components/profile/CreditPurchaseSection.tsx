@@ -61,15 +61,15 @@ export function CreditPurchaseSection({ isFreePlan = false }: { isFreePlan?: boo
     <Card className="relative overflow-visible max-w-xl mx-auto shadow-xl rounded-2xl border border-gray-100">
       <CardHeader className="pb-2">
         <div className="flex items-center gap-3 mb-1">
-          <div className="p-2 rounded-full bg-purple-50">
-            <Sparkles className="h-6 w-6 text-purple-500" />
+          <div className="p-2 rounded-full bg-blue-50">
+            <Sparkles className="h-6 w-6 text-blue-500" />
           </div>
           <CardTitle className="text-2xl font-bold tracking-tight flex items-center gap-2">
             Purchase Credits
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Info className="h-4 w-4 text-muted-foreground cursor-pointer hover:text-purple-500 transition-colors" />
+                  <Info className="h-4 w-4 text-muted-foreground cursor-pointer hover:text-blue-500 transition-colors" />
                 </TooltipTrigger>
                 <TooltipContent className="max-w-[300px] p-3">
                   <p className="text-sm">Credits are used to power our AI models. Each model uses a different amount of credits per request.</p>
@@ -97,11 +97,11 @@ export function CreditPurchaseSection({ isFreePlan = false }: { isFreePlan?: boo
               key={pkg.amount}
               whileHover={{ scale: 1.01 }}
               whileTap={{ scale: 0.99 }}
-              className={`relative flex items-center justify-between w-full rounded-xl border p-4 transition-all focus:outline-none focus:ring-2 focus:ring-purple-400
+              className={`relative flex items-center justify-between w-full rounded-xl border p-4 transition-all focus:outline-none focus:ring-2 focus:ring-blue-400
                 ${selectedPackage.amount === pkg.amount 
-                  ? 'border-purple-600 bg-gradient-to-r from-purple-50 to-pink-50 shadow-lg scale-[1.01]' 
+                  ? 'border-blue-600 bg-gradient-to-r from-blue-50 to-blue-50 shadow-lg scale-[1.01]' 
                   : 'hover:bg-muted/50 border-gray-200'}
-                ${pkg.popular ? 'ring-2 ring-pink-400/40' : ''}
+                ${pkg.popular ? 'ring-2 ring-blue-400/40' : ''}
               `}
               onClick={() => setSelectedPackage(pkg)}
               aria-pressed={selectedPackage.amount === pkg.amount}
@@ -114,7 +114,7 @@ export function CreditPurchaseSection({ isFreePlan = false }: { isFreePlan?: boo
             >
               <div className="space-y-1.5 text-left">
                 <div className="flex items-center gap-2">
-                  <span className="font-semibold text-lg bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                  <span className="font-semibold text-lg bg-gradient-to-r from-blue-600 to-blue-500 bg-clip-text text-transparent">
                     {pkg.amount.toLocaleString()} Credits
                   </span>
                   {pkg.bonus > 0 && (
@@ -123,7 +123,7 @@ export function CreditPurchaseSection({ isFreePlan = false }: { isFreePlan?: boo
                     </span>
                   )}
                   {pkg.popular && (
-                    <span className="ml-2 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 px-2 py-0.5 text-xs font-semibold text-white shadow">Popular</span>
+                    <span className="ml-2 rounded-full bg-gradient-to-r from-blue-500 to-blue-500 px-2 py-0.5 text-xs font-semibold text-white shadow">Popular</span>
                   )}
                 </div>
                 <div className="text-sm text-muted-foreground">
@@ -135,7 +135,7 @@ export function CreditPurchaseSection({ isFreePlan = false }: { isFreePlan?: boo
                 <div
                   className={`h-5 w-5 rounded-full border-2 flex items-center justify-center transition-all
                     ${selectedPackage.amount === pkg.amount 
-                      ? 'border-purple-600 bg-purple-600 shadow-[0_0_0_4px_rgba(168,85,247,0.1)]' 
+                      ? 'border-blue-600 bg-blue-600 shadow-[0_0_0_4px_rgba(168,85,247,0.1)]' 
                       : 'border-gray-300 bg-white'}
                   `}
                 >
@@ -146,7 +146,7 @@ export function CreditPurchaseSection({ isFreePlan = false }: { isFreePlan?: boo
           ))}
         </div>
         {/* Summary Section */}
-        <div className="rounded-xl bg-gradient-to-r from-purple-50/50 to-pink-50/50 p-4 flex flex-col md:flex-row items-center justify-between gap-4 border border-purple-100">
+        <div className="rounded-xl bg-gradient-to-r from-blue-50/50 to-blue-50/50 p-4 flex flex-col md:flex-row items-center justify-between gap-4 border border-blue-100">
           <div className="flex flex-col items-center md:items-start">
             <div className="font-medium text-sm text-muted-foreground">Total Credits</div>
             <div className="text-xl font-bold text-foreground">
@@ -155,10 +155,10 @@ export function CreditPurchaseSection({ isFreePlan = false }: { isFreePlan?: boo
             </div>
             <div className="text-xs text-muted-foreground">(including bonus)</div>
           </div>
-          <div className="w-px h-8 bg-purple-200 hidden md:block" />
+          <div className="w-px h-8 bg-blue-200 hidden md:block" />
           <div className="flex flex-col items-center md:items-end">
             <div className="font-medium text-sm text-muted-foreground">Total Price</div>
-            <div className="text-xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+            <div className="text-xl font-bold bg-gradient-to-r from-blue-600 to-blue-500 bg-clip-text text-transparent">
               ${selectedPackage.price.toFixed(2)}
             </div>
             <div className="text-xs text-muted-foreground">VAT may apply</div>
@@ -194,12 +194,12 @@ export function CreditPurchaseSection({ isFreePlan = false }: { isFreePlan?: boo
             <div className="w-full max-w-xl flex flex-col items-center gap-2">
               <div className="flex items-center justify-between w-full mb-1">
                 <span className="font-semibold text-lg">{selectedPackage.amount.toLocaleString()} Credits</span>
-                <span className="font-bold text-xl bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                <span className="font-bold text-xl bg-gradient-to-r from-blue-600 to-blue-500 bg-clip-text text-transparent">
                   ${selectedPackage.price.toFixed(2)}
                 </span>
               </div>
               <Button
-                className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-lg font-bold py-3 rounded-xl flex items-center justify-center gap-2 shadow-xl hover:shadow-2xl transition-all duration-300"
+                className="w-full bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-700 text-lg font-bold py-3 rounded-xl flex items-center justify-center gap-2 shadow-xl hover:shadow-2xl transition-all duration-300"
                 onClick={handlePurchase}
                 disabled={isLoading}
                 aria-label="Buy Credits (No Subscription Required)"

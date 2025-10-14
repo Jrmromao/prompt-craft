@@ -76,8 +76,8 @@ export default function EmailTemplatesPage() {
         text: 'text-blue-700 dark:text-blue-300',
       },
       notification: {
-        bg: 'bg-purple-50 dark:bg-purple-950',
-        text: 'text-purple-700 dark:text-purple-300',
+        bg: 'bg-blue-50 dark:bg-blue-950',
+        text: 'text-blue-700 dark:text-blue-300',
       },
       alert: {
         bg: 'bg-red-50 dark:bg-red-950',
@@ -377,18 +377,18 @@ export default function EmailTemplatesPage() {
           </CardContent>
         </Card>
 
-        <Card className="border-purple-200 bg-purple-50 dark:border-purple-900 dark:bg-purple-950">
+        <Card className="border-blue-200 bg-blue-50 dark:border-blue-900 dark:bg-blue-950">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-purple-700 dark:text-purple-300">
+            <CardTitle className="text-sm font-medium text-blue-700 dark:text-blue-300">
               New This Week
             </CardTitle>
-            <Clock className="h-5 w-5 text-purple-700 dark:text-purple-300" />
+            <Clock className="h-5 w-5 text-blue-700 dark:text-blue-300" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-purple-900 dark:text-purple-100">
+            <div className="text-2xl font-bold text-blue-900 dark:text-blue-100">
               {stats.newThisWeek}
             </div>
-            <p className="text-xs text-purple-700 dark:text-purple-300">
+            <p className="text-xs text-blue-700 dark:text-blue-300">
               Templates created in last 7 days
             </p>
           </CardContent>

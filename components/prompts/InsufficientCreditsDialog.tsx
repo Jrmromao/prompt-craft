@@ -61,7 +61,7 @@ export function InsufficientCreditsDialog({
       <DialogContent className="border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900 sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-2xl font-bold text-gray-900 dark:text-white">
-            <Sparkles className="h-6 w-6 text-purple-500" />
+            <Sparkles className="h-6 w-6 text-blue-500" />
             Insufficient Credits
           </DialogTitle>
           <DialogDescription className="text-gray-500 dark:text-gray-400">
@@ -88,7 +88,7 @@ export function InsufficientCreditsDialog({
           <div className="space-y-4">
             <Button
               onClick={handlePurchase}
-              className="flex w-full items-center justify-center gap-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700"
+              className="flex w-full items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-blue-500 text-white hover:from-blue-700 hover:to-blue-700"
             >
               <CreditCard className="h-5 w-5" />
               Purchase Credits

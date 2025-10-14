@@ -202,12 +202,12 @@ export default function PricingContent() {
     if (feature.includes('Analytics')) return <BarChart3 className="h-4 w-4 text-indigo-500" />;
     
     // Security and Access
-    if (feature.includes('Private')) return <Lock className="h-4 w-4 text-purple-500" />;
+    if (feature.includes('Private')) return <Lock className="h-4 w-4 text-blue-500" />;
     if (feature.includes('Security')) return <Shield className="h-4 w-4 text-green-500" />;
     if (feature.includes('API Key')) return <Key className="h-4 w-4 text-orange-500" />;
     
     // Community and Support
-    if (feature.includes('Community')) return <Users className="h-4 w-4 text-pink-500" />;
+    if (feature.includes('Community')) return <Users className="h-4 w-4 text-blue-500" />;
     if (feature.includes('Support')) return <MessageSquare className="h-4 w-4 text-cyan-500" />;
     
     // Enterprise features
@@ -217,7 +217,7 @@ export default function PricingContent() {
     if (feature.includes('Model')) return <Server className="h-4 w-4 text-rose-500" />;
     
     // Default
-    return <Check className="h-4 w-4 text-purple-500" />;
+    return <Check className="h-4 w-4 text-blue-500" />;
   };
 
   return (
@@ -225,7 +225,7 @@ export default function PricingContent() {
       <div className="container mx-auto px-4 py-16">
         <Button
           variant="ghost"
-          className="mb-8 text-gray-600 hover:text-purple-600 dark:text-gray-300 dark:hover:text-purple-400"
+          className="mb-8 text-gray-600 hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400"
           onClick={() => router.back()}
         >
           <ArrowLeft className="mr-2 h-4 w-4" />
@@ -234,8 +234,8 @@ export default function PricingContent() {
 
         <div className="mb-16 text-center">
           <div className="mb-4 flex items-center justify-center gap-2">
-            <Sparkles className="h-8 w-8 text-purple-500" />
-            <h1 className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-4xl font-bold text-transparent">
+            <Sparkles className="h-8 w-8 text-blue-500" />
+            <h1 className="bg-gradient-to-r from-blue-600 to-blue-500 bg-clip-text text-4xl font-bold text-transparent">
               Simple, Transparent Pricing
             </h1>
           </div>
@@ -243,7 +243,7 @@ export default function PricingContent() {
             Choose the plan that's right for you
           </p>
           {currentPlan && (
-            <div className="mt-4 inline-flex items-center gap-2 rounded-full bg-purple-100 px-4 py-2 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300">
+            <div className="mt-4 inline-flex items-center gap-2 rounded-full bg-blue-100 px-4 py-2 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
               <CheckCircle2 className="h-5 w-5" />
               <span>
                 Current Plan: {currentPlan.name}
@@ -263,7 +263,7 @@ export default function PricingContent() {
             <Switch
               checked={isAnnual}
               onCheckedChange={setIsAnnual}
-              className="data-[state=checked]:bg-purple-600"
+              className="data-[state=checked]:bg-blue-600"
             />
             <div className="flex items-center gap-2">
               <span className={`text-sm ${isAnnual ? 'text-gray-900 dark:text-gray-100' : 'text-gray-500 dark:text-gray-400'}`}>
@@ -295,12 +295,12 @@ export default function PricingContent() {
             </DialogHeader>
             {comparison && (
               <div className="space-y-6 py-4">
-                <div className="rounded-lg border border-purple-200 bg-purple-50 p-4 dark:border-purple-800 dark:bg-purple-900/20">
-                  <h4 className="mb-3 font-medium text-purple-700 dark:text-purple-300">Why Upgrade to {selectedPlan}?</h4>
+                <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-900/20">
+                  <h4 className="mb-3 font-medium text-blue-700 dark:text-blue-300">Why Upgrade to {selectedPlan}?</h4>
                   <ul className="space-y-2">
                     {comparison.benefits.map((benefit, index) => (
-                      <li key={index} className="flex items-start text-sm text-purple-600 dark:text-purple-400">
-                        <Sparkles className="mr-2 h-4 w-4 flex-shrink-0 text-purple-500" />
+                      <li key={index} className="flex items-start text-sm text-blue-600 dark:text-blue-400">
+                        <Sparkles className="mr-2 h-4 w-4 flex-shrink-0 text-blue-500" />
                         <span>{benefit}</span>
                       </li>
                     ))}
@@ -355,7 +355,7 @@ export default function PricingContent() {
               <Button
                 onClick={() => handleSubscribe(selectedPlan!)}
                 disabled={isLoading === selectedPlan?.toString()}
-                className="bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700"
+                className="bg-gradient-to-r from-blue-600 to-blue-500 text-white hover:from-blue-700 hover:to-blue-700"
               >
                 {isLoading === selectedPlan?.toString() ? (
                   <>
@@ -373,7 +373,7 @@ export default function PricingContent() {
         <div className="mx-auto grid max-w-7xl gap-8 md:grid-cols-3">
           {isLoadingPlans ? (
             <div className="col-span-3 flex justify-center">
-              <Loader2 className="h-8 w-8 animate-spin text-purple-500" />
+              <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
             </div>
           ) : (
             plans.map(plan => {
@@ -387,13 +387,13 @@ export default function PricingContent() {
                   key={plan.id}
                   className={`group relative flex flex-col transition-all duration-300 hover:scale-105 ${
                     plan.id === PlanType.PRO
-                      ? 'border-purple-500 shadow-lg shadow-purple-500/20 dark:shadow-purple-500/10'
+                      ? 'border-blue-500 shadow-lg shadow-blue-500/20 dark:shadow-blue-500/10'
                       : 'border-gray-200 dark:border-gray-800'
-                  } ${isCurrentPlan ? 'ring-2 ring-purple-500' : ''}`}
+                  } ${isCurrentPlan ? 'ring-2 ring-blue-500' : ''}`}
                 >
                   {plan.id === PlanType.PRO && (
                     <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-                      <Badge className="bg-gradient-to-r from-purple-600 to-pink-600 px-4 py-1 text-white">
+                      <Badge className="bg-gradient-to-r from-blue-600 to-blue-500 px-4 py-1 text-white">
                         Most Popular
                       </Badge>
                     </div>
@@ -407,7 +407,7 @@ export default function PricingContent() {
                   <CardContent className="flex-grow">
                     <div className="mb-6">
                       <div className="flex items-baseline gap-1">
-                        <span className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-4xl font-bold text-transparent">
+                        <span className="bg-gradient-to-r from-blue-600 to-blue-500 bg-clip-text text-4xl font-bold text-transparent">
                           {displayPrice}
                         </span>
                         {!plan.isEnterprise && plan.id !== PlanType.FREE && (
@@ -422,7 +422,7 @@ export default function PricingContent() {
                         </p>
                       )}
                       <div className="mt-2 flex items-center gap-2">
-                        <Sparkles className="h-4 w-4 text-purple-500" />
+                        <Sparkles className="h-4 w-4 text-blue-500" />
                         <span className="text-sm text-gray-600 dark:text-gray-300">
                           {tokenDisplay}
                         </span>
@@ -448,8 +448,8 @@ export default function PricingContent() {
                       disabled={isLoading === plan.id.toString()}
                       className={`w-full ${
                         plan.id === PlanType.PRO
-                          ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700'
-                          : 'border-2 border-purple-600 bg-white text-purple-600 hover:bg-purple-50'
+                          ? 'bg-gradient-to-r from-blue-600 to-blue-500 text-white hover:from-blue-700 hover:to-blue-700'
+                          : 'border-2 border-blue-600 bg-white text-blue-600 hover:bg-blue-50'
                       }`}
                     >
                       {isLoading === plan.id.toString() ? (

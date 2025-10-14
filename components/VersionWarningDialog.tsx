@@ -63,7 +63,7 @@ export function VersionWarningDialog({
     <AlertDialog open={isOpen} onOpenChange={onClose}>
       <AlertDialogContent className="w-[90vw] max-w-[500px] p-6">
         <AlertDialogHeader className="space-y-4">
-          <AlertDialogTitle className="text-xl font-semibold text-purple-900 dark:text-purple-100">
+          <AlertDialogTitle className="text-xl font-semibold text-blue-900 dark:text-blue-100">
             {content.title}
           </AlertDialogTitle>
           <AlertDialogDescription className="text-base text-gray-600 dark:text-gray-300">
@@ -79,7 +79,7 @@ export function VersionWarningDialog({
           </AlertDialogCancel>
           <AlertDialogAction 
             onClick={action === 'create' ? onCreate : onCompare} 
-            className="w-full sm:w-auto order-1 sm:order-2 bg-purple-600 hover:bg-purple-700 text-white"
+            className="w-full sm:w-auto order-1 sm:order-2 bg-blue-600 hover:bg-blue-700 text-white"
           >
             {content.primaryAction}
           </AlertDialogAction>

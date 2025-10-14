@@ -87,7 +87,7 @@ const BreadcrumbLink = React.forwardRef<
   
   const variantClasses = {
     default: "hover:text-foreground",
-    modern: "hover:text-purple-600 dark:hover:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-950/20 px-2 py-1 rounded-md -mx-2 -my-1",
+    modern: "hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/20 px-2 py-1 rounded-md -mx-2 -my-1",
     minimal: "hover:text-gray-900 dark:hover:text-gray-100"
   }
 
@@ -116,7 +116,7 @@ const BreadcrumbPage = React.forwardRef<
   
   const variantClasses = {
     default: "font-normal text-foreground",
-    modern: "font-medium text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-950/20 px-2 py-1 rounded-md",
+    modern: "font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/20 px-2 py-1 rounded-md",
     minimal: "font-medium text-gray-900 dark:text-gray-100"
   }
 
@@ -194,7 +194,7 @@ const ModernBreadcrumb = React.forwardRef<
             {item.href ? (
               <Link
                 href={item.href}
-                className="flex items-center gap-1.5 transition-all duration-200 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-950/20 px-2 py-1 rounded-md -mx-2 -my-1 group"
+                className="flex items-center gap-1.5 transition-all duration-200 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/20 px-2 py-1 rounded-md -mx-2 -my-1 group"
               >
                 {item.icon && <item.icon className="h-4 w-4 flex-shrink-0" />}
                 <span className="group-hover:translate-x-0.5 transition-transform duration-200">
@@ -206,7 +206,7 @@ const ModernBreadcrumb = React.forwardRef<
                 className={cn(
                   "flex items-center gap-1.5 font-medium",
                   item.current
-                    ? "text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-950/20 px-2 py-1 rounded-md"
+                    ? "text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/20 px-2 py-1 rounded-md"
                     : "text-gray-600 dark:text-gray-400"
                 )}
               >

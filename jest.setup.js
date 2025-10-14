@@ -1,5 +1,27 @@
 import '@testing-library/jest-dom'
 
+// Mock problematic ES modules
+jest.mock('@upstash/redis', () => ({
+  Redis: jest.fn().mockImplementation(() => ({
+    get: jest.fn(),
+    set: jest.fn(),
+    del: jest.fn(),
+    incr: jest.fn(),
+    expire: jest.fn(),
+  })),
+}));
+
+jest.mock('uncrypto', () => ({
+  randomUUID: jest.fn(() => 'mock-uuid'),
+  getRandomValues: jest.fn(),
+}));
+
+jest.mock('react-markdown', () => {
+  return function MockReactMarkdown({ children }) {
+    return children;
+  };
+});
+
 // Mock Next.js router
 jest.mock('next/navigation', () => ({
   useRouter() {

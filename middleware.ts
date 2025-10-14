@@ -52,33 +52,18 @@ const dynamicPaths = [
 // Function to validate request origin
 function validateOrigin(request: NextRequest): boolean {
   const origin = request.headers.get('origin');
-  const referer = request.headers.get('referer');
   
   // Allow requests with no origin (like mobile apps or curl requests)
   if (!origin) return true;
   
-  // Allow localhost during development
-  if (process.env.NODE_ENV === 'development') {
-    if (origin.startsWith('http://localhost') || origin.startsWith('http://127.0.0.1')) {
-      return true;
-    }
-  }
+  const allowedOrigins = [
+    process.env.NEXT_PUBLIC_APP_URL,
+    'https://prompthive.co',
+    'https://www.prompthive.co',
+    ...(process.env.NODE_ENV === 'development' ? ['http://localhost:3000', 'http://127.0.0.1:3000'] : [])
+  ].filter(Boolean);
 
-  // In production, allow requests from your domain and Clerk domains
-  if (process.env.NODE_ENV === 'production') {
-    const allowedDomains = [
-      process.env.NEXT_PUBLIC_APP_URL || '',
-      'https://*.clerk.accounts.dev',
-      'https://*.clerk.com'
-    ].filter(Boolean);
-    
-    return allowedDomains.some(domain => 
-      origin === domain || 
-      (domain.includes('*') && origin.match(new RegExp(domain.replace('*', '.*'))))
-    );
-  }
-
-  return false;
+  return allowedOrigins.includes(origin);
 }
 
 // Security middleware
@@ -91,11 +76,12 @@ async function securityMiddleware(request: NextRequest) {
   // Handle preflight requests
   if (request.method === 'OPTIONS') {
     const origin = request.headers.get('origin');
+    const isValidOrigin = validateOrigin(request);
     
     return new NextResponse(null, {
       status: 204,
       headers: {
-        'Access-Control-Allow-Origin': origin || '*',
+        'Access-Control-Allow-Origin': isValidOrigin && origin ? origin : 'null',
         'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
         'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Date, X-Api-Version, X-Clerk-Token',
         'Access-Control-Allow-Credentials': 'true',
@@ -113,7 +99,7 @@ async function securityMiddleware(request: NextRequest) {
       status: 403,
       headers: {
         'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': origin || '*',
+        'Access-Control-Allow-Origin': 'null',
         'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
         'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Date, X-Api-Version, X-Clerk-Token',
         'Access-Control-Allow-Credentials': 'true',
@@ -138,7 +124,8 @@ async function securityMiddleware(request: NextRequest) {
   
   // Add CORS headers to all responses
   const origin = request.headers.get('origin');
-  response.headers.set('Access-Control-Allow-Origin', origin || '*');
+  const isValidOrigin = validateOrigin(request);
+  response.headers.set('Access-Control-Allow-Origin', isValidOrigin && origin ? origin : 'null');
   response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Date, X-Api-Version, X-Clerk-Token');
   response.headers.set('Access-Control-Allow-Credentials', 'true');
@@ -150,21 +137,15 @@ async function securityMiddleware(request: NextRequest) {
 const isAdminRoute = createRouteMatcher(['/admin', '/admin/users', '/admin/analytics', '/admin/settings']);
 
 export default clerkMiddleware(async (auth, req: NextRequest) => {
-  const authResult = await auth();
-  const { userId } = authResult;
   const { pathname } = req.nextUrl;
   
-  console.log(`🔍 Middleware: ${pathname}`);
-  console.log(`🔍 Auth result:`, { userId, sessionId: authResult.sessionId });
-  
-  // Check if route is public
+  // Allow public routes
   if (isPublicRoute(req)) {
-    console.log(`✅ Public route allowed: ${pathname}`);
     return NextResponse.next();
   }
 
-  // Check if route requires authentication
-  const PRIVATE_ROUTES = [
+  // Protected routes that require authentication
+  const PROTECTED_ROUTES = [
     '/dashboard',
     '/prompts',
     '/playground', 
@@ -176,37 +157,24 @@ export default clerkMiddleware(async (auth, req: NextRequest) => {
     '/complete-signup'
   ];
 
-  const isPrivateRoute = PRIVATE_ROUTES.some(route => pathname.startsWith(route));
+  const isProtectedRoute = PROTECTED_ROUTES.some(route => pathname.startsWith(route));
 
-  if (isPrivateRoute && !userId) {
-    console.log(`🔒 Private route requires auth: ${pathname}, userId: ${userId}`);
-    const signInUrl = new URL('/sign-in', req.url);
-    signInUrl.searchParams.set('redirect_url', pathname);
-    return NextResponse.redirect(signInUrl);
-  }
-
-  // Handle authenticated users on auth routes
-  const AUTH_ROUTES = ['/sign-in', '/sign-up'];
-  const isAuthRoute = AUTH_ROUTES.some(route => pathname.startsWith(route));
-  
-  if (isAuthRoute && userId) {
-    console.log(`✅ Authenticated user on auth route, redirecting: ${pathname}`);
-    const redirectUrl = req.nextUrl.searchParams.get('redirect_url') || '/prompts';
-    return NextResponse.redirect(new URL(redirectUrl, req.url));
-  }
-
-  // Handle role-based access for admin routes
-  if (pathname.startsWith('/admin')) {
-    const userRole = (authResult.sessionClaims?.publicMetadata as any)?.role as string;
-    const allowedRoles = ['ADMIN', 'SUPER_ADMIN'];
+  if (isProtectedRoute) {
+    // Use auth().protect() for better session handling
+    await auth.protect();
     
-    if (!allowedRoles.includes(userRole)) {
-      console.log(`🚫 Access denied for role ${userRole} to ${pathname}`);
-      return NextResponse.redirect(new URL('/unauthorized', req.url));
+    // Handle admin role-based access
+    if (pathname.startsWith('/admin')) {
+      const { sessionClaims } = await auth();
+      const userRole = (sessionClaims?.publicMetadata as any)?.role as string;
+      const allowedRoles = ['ADMIN', 'SUPER_ADMIN'];
+      
+      if (!allowedRoles.includes(userRole)) {
+        return NextResponse.redirect(new URL('/unauthorized', req.url));
+      }
     }
   }
 
-  console.log(`✅ Request allowed: ${pathname}, userId: ${userId}`);
   return NextResponse.next();
 });
 

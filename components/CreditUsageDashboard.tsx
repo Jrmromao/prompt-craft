@@ -136,7 +136,7 @@ export default function CreditUsageDashboard() {
                 <div className="font-semibold text-sm">
                   {operation.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, l => l.toUpperCase())}
                 </div>
-                <div className="text-lg font-bold text-purple-600">
+                <div className="text-lg font-bold text-blue-600">
                   {cost} {usage.planType === 'PRO' && cost > 1 && (
                     <span className="text-sm text-green-600">
                       ({Math.ceil(cost * 0.8)})
@@ -189,7 +189,7 @@ export default function CreditUsageDashboard() {
                   You have {remainingCredits} credits remaining. Consider purchasing more to continue using premium features.
                 </p>
               </div>
-              <Button className="bg-purple-600 hover:bg-purple-700">
+              <Button className="bg-blue-600 hover:bg-blue-700">
                 <ShoppingCart className="h-4 w-4 mr-2" />
                 Buy Credits
               </Button>

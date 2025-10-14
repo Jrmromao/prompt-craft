@@ -253,13 +253,13 @@ const PricingSection = ({
             Choose the plan that best fits your needs
           </p>
           <div className="flex items-center justify-center gap-4 mt-8">
-            <span className={cn("text-sm", !isAnnual && "text-purple-600 font-semibold")}>Monthly</span>
+            <span className={cn("text-sm", !isAnnual && "text-blue-600 font-semibold")}>Monthly</span>
             <Switch
               checked={isAnnual}
               onCheckedChange={setIsAnnual}
-              className="data-[state=checked]:bg-purple-600"
+              className="data-[state=checked]:bg-blue-600"
             />
-            <span className={cn("text-sm", isAnnual && "text-purple-600 font-semibold")}>Annual <span className="text-green-500">(Save 15%)</span></span>
+            <span className={cn("text-sm", isAnnual && "text-blue-600 font-semibold")}>Annual <span className="text-green-500">(Save 15%)</span></span>
           </div>
         </div>
 
@@ -271,13 +271,13 @@ const PricingSection = ({
               className={cn(
                 "relative rounded-2xl p-8 border transition-all duration-300 h-full flex flex-col",
                 plan.popular
-                  ? "ring-2 ring-purple-500 shadow-lg border-purple-400 bg-white/90"
-                  : "border-gray-200 dark:border-gray-800 hover:border-purple-500 dark:hover:border-purple-500 bg-white/80"
+                  ? "ring-2 ring-blue-500 shadow-lg border-blue-400 bg-white/90"
+                  : "border-gray-200 dark:border-gray-800 hover:border-blue-500 dark:hover:border-blue-500 bg-white/80"
               )}
             >
               {plan.popular && (
                 <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-10">
-                  <span className="inline-block rounded-full bg-purple-100 px-3 py-1 text-sm font-semibold text-purple-700 dark:bg-purple-900/50 dark:text-purple-300 shadow-md border border-purple-200 dark:border-purple-800">
+                  <span className="inline-block rounded-full bg-blue-100 px-3 py-1 text-sm font-semibold text-blue-700 dark:bg-blue-900/50 dark:text-blue-300 shadow-md border border-blue-200 dark:border-blue-800">
                     Most Popular
                   </span>
                 </div>
@@ -348,10 +348,10 @@ const PricingSection = ({
                 className={cn(
                   "w-full py-3 px-6 rounded-lg font-semibold transition-all duration-300 mt-auto",
                   plan.isEnterprise
-                    ? "bg-purple-600 text-white hover:bg-purple-700"
+                    ? "bg-blue-600 text-white hover:bg-blue-700"
                     : plan.name === 'FREE'
-                    ? "bg-white text-purple-600 border-2 border-purple-600 hover:bg-purple-50 dark:bg-black dark:hover:bg-purple-950/20"
-                    : "bg-purple-600 text-white hover:bg-purple-700"
+                    ? "bg-white text-blue-600 border-2 border-blue-600 hover:bg-blue-50 dark:bg-black dark:hover:bg-blue-950/20"
+                    : "bg-blue-600 text-white hover:bg-blue-700"
                 )}
               >
                 {plan.isEnterprise 
@@ -528,14 +528,14 @@ const PromptHiveLandingClient = ({ user }: PromptHiveLandingClientProps) => {
   const AnimatedBackground = () => (
     <div className="pointer-events-none fixed inset-0 overflow-hidden">
       <div
-        className="absolute h-96 w-96 animate-pulse rounded-full bg-purple-500/10 blur-3xl"
+        className="absolute h-96 w-96 animate-pulse rounded-full bg-blue-500/10 blur-3xl"
         style={{
           left: mousePosition.x - 200,
           top: mousePosition.y - 200,
           transition: 'all 0.3s ease-out',
         }}
       />
-      <div className="animate-bounce-slow absolute left-1/4 top-1/4 h-64 w-64 rounded-full bg-pink-500/5 blur-2xl" />
+      <div className="animate-bounce-slow absolute left-1/4 top-1/4 h-64 w-64 rounded-full bg-blue-500/5 blur-2xl" />
       <div className="animate-pulse-slow absolute bottom-1/4 right-1/4 h-80 w-80 rounded-full bg-blue-500/5 blur-3xl" />
     </div>
   );
@@ -548,10 +548,10 @@ const PromptHiveLandingClient = ({ user }: PromptHiveLandingClientProps) => {
 
   const GradientButton = ({ children, className = '', ...props }: any) => (
     <button
-      className={`group relative transform overflow-hidden rounded-full bg-gradient-to-r from-purple-600 to-pink-600 px-8 py-3 font-semibold text-white transition-all duration-300 hover:scale-105 hover:from-purple-700 hover:to-pink-700 ${className}`}
+      className={`group relative transform overflow-hidden rounded-full bg-gradient-to-r from-blue-600 to-blue-500 px-8 py-3 font-semibold text-white transition-all duration-300 hover:scale-105 hover:from-blue-700 hover:to-blue-700 ${className}`}
       {...props}
     >
-      <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-pink-600 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+      <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-blue-500 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
       <div className="relative flex items-center gap-2">{children}</div>
     </button>
   );
@@ -718,12 +718,12 @@ const PromptHiveLandingClient = ({ user }: PromptHiveLandingClientProps) => {
             <div className="flex items-center justify-between py-4">
               <div className="flex items-center space-x-3">
                 <div
-                  className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-r from-purple-500 to-pink-500"
+                  className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-r from-blue-500 to-blue-500"
                   aria-label="PromptHive Logo"
                 >
                   <Sparkles className="h-6 w-6 text-white" aria-hidden="true" />
                 </div>
-                <span className="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-2xl font-bold text-transparent">
+                <span className="bg-gradient-to-r from-blue-400 to-blue-400 bg-clip-text text-2xl font-bold text-transparent">
                   PromptHive
                 </span>
               </div>
@@ -731,21 +731,21 @@ const PromptHiveLandingClient = ({ user }: PromptHiveLandingClientProps) => {
                 <div className="flex items-center space-x-6">
                   <a
                     href="#features"
-                    className="text-sm font-medium text-gray-700 transition-colors hover:text-purple-600 dark:text-gray-200 dark:hover:text-purple-300"
+                    className="text-sm font-medium text-gray-700 transition-colors hover:text-blue-600 dark:text-gray-200 dark:hover:text-blue-300"
                     aria-label="Features section"
                   >
                     Features
                   </a>
                   <a
                     href="#pricing"
-                    className="text-sm font-medium text-gray-700 transition-colors hover:text-purple-600 dark:text-gray-200 dark:hover:text-purple-300"
+                    className="text-sm font-medium text-gray-700 transition-colors hover:text-blue-600 dark:text-gray-200 dark:hover:text-blue-300"
                     aria-label="Pricing section"
                   >
                     Pricing
                   </a>
                   <a
                     href="#testimonials"
-                    className="text-sm font-medium text-gray-700 transition-colors hover:text-purple-600 dark:text-gray-200 dark:hover:text-purple-300"
+                    className="text-sm font-medium text-gray-700 transition-colors hover:text-blue-600 dark:text-gray-200 dark:hover:text-blue-300"
                     aria-label="Customer reviews"
                   >
                     Reviews
@@ -756,7 +756,7 @@ const PromptHiveLandingClient = ({ user }: PromptHiveLandingClientProps) => {
                     <>
                       <a 
                         href="/account" 
-                        className="group flex items-center gap-2 text-sm font-medium text-gray-700 transition-colors hover:text-purple-600 dark:text-gray-200 dark:hover:text-purple-300"
+                        className="group flex items-center gap-2 text-sm font-medium text-gray-700 transition-colors hover:text-blue-600 dark:text-gray-200 dark:hover:text-blue-300"
                       >
                         <span>Go to App</span>
                         <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
@@ -765,11 +765,11 @@ const PromptHiveLandingClient = ({ user }: PromptHiveLandingClientProps) => {
                         <img
                           src={user.imageUrl}
                           alt={user.name}
-                          className="h-8 w-8 rounded-full border-2 border-purple-500/20"
+                          className="h-8 w-8 rounded-full border-2 border-blue-500/20"
                         />
                         <button
                           onClick={handleSignOut}
-                          className="text-sm font-medium text-gray-700 transition-colors hover:text-purple-600 dark:text-gray-200 dark:hover:text-purple-300"
+                          className="text-sm font-medium text-gray-700 transition-colors hover:text-blue-600 dark:text-gray-200 dark:hover:text-blue-300"
                           aria-label="Sign out"
                         >
                           Sign Out
@@ -780,7 +780,7 @@ const PromptHiveLandingClient = ({ user }: PromptHiveLandingClientProps) => {
                     <>
                       <a
                         href="/sign-in"
-                        className="text-sm font-medium text-gray-700 transition-colors hover:text-purple-600 dark:text-gray-200 dark:hover:text-purple-300"
+                        className="text-sm font-medium text-gray-700 transition-colors hover:text-blue-600 dark:text-gray-200 dark:hover:text-blue-300"
                         aria-label="Sign in to your account"
                       >
                         Sign In
@@ -819,21 +819,21 @@ const PromptHiveLandingClient = ({ user }: PromptHiveLandingClientProps) => {
                 <div className="space-y-3">
                   <a
                     href="#features"
-                    className="block text-sm font-medium text-gray-700 transition-colors hover:text-purple-600 dark:text-gray-200 dark:hover:text-purple-300"
+                    className="block text-sm font-medium text-gray-700 transition-colors hover:text-blue-600 dark:text-gray-200 dark:hover:text-blue-300"
                     aria-label="Features section"
                   >
                     Features
                   </a>
                   <a
                     href="#pricing"
-                    className="block text-sm font-medium text-gray-700 transition-colors hover:text-purple-600 dark:text-gray-200 dark:hover:text-purple-300"
+                    className="block text-sm font-medium text-gray-700 transition-colors hover:text-blue-600 dark:text-gray-200 dark:hover:text-blue-300"
                     aria-label="Pricing section"
                   >
                     Pricing
                   </a>
                   <a
                     href="#testimonials"
-                    className="block text-sm font-medium text-gray-700 transition-colors hover:text-purple-600 dark:text-gray-200 dark:hover:text-purple-300"
+                    className="block text-sm font-medium text-gray-700 transition-colors hover:text-blue-600 dark:text-gray-200 dark:hover:text-blue-300"
                     aria-label="Customer reviews"
                   >
                     Reviews
@@ -844,7 +844,7 @@ const PromptHiveLandingClient = ({ user }: PromptHiveLandingClientProps) => {
                     <>
                       <a 
                         href="/account" 
-                        className="group mb-4 flex items-center gap-2 text-sm font-medium text-gray-700 transition-colors hover:text-purple-600 dark:text-gray-200 dark:hover:text-purple-300"
+                        className="group mb-4 flex items-center gap-2 text-sm font-medium text-gray-700 transition-colors hover:text-blue-600 dark:text-gray-200 dark:hover:text-blue-300"
                       >
                         <span>Go to App</span>
                         <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
@@ -853,11 +853,11 @@ const PromptHiveLandingClient = ({ user }: PromptHiveLandingClientProps) => {
                         <img
                           src={user.imageUrl}
                           alt={user.name}
-                          className="h-8 w-8 rounded-full border-2 border-purple-500/20"
+                          className="h-8 w-8 rounded-full border-2 border-blue-500/20"
                         />
                         <button
                           onClick={handleSignOut}
-                          className="text-sm font-medium text-gray-700 transition-colors hover:text-purple-600 dark:text-gray-200 dark:hover:text-purple-300"
+                          className="text-sm font-medium text-gray-700 transition-colors hover:text-blue-600 dark:text-gray-200 dark:hover:text-blue-300"
                           aria-label="Sign out"
                         >
                           Sign Out
@@ -868,7 +868,7 @@ const PromptHiveLandingClient = ({ user }: PromptHiveLandingClientProps) => {
                     <>
                       <a
                         href="/sign-in"
-                        className="mb-4 block text-sm font-medium text-gray-700 transition-colors hover:text-purple-600 dark:text-gray-200 dark:hover:text-purple-300"
+                        className="mb-4 block text-sm font-medium text-gray-700 transition-colors hover:text-blue-600 dark:text-gray-200 dark:hover:text-blue-300"
                         aria-label="Sign in to your account"
                       >
                         Sign In
@@ -894,9 +894,9 @@ const PromptHiveLandingClient = ({ user }: PromptHiveLandingClientProps) => {
                 {/* Left Column - Hero Content */}
                 <div className="flex flex-col justify-center">
                   <FloatingCard>
-                    <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-purple-200 bg-purple-100/40 px-4 py-2 dark:border-purple-500/20 dark:bg-purple-500/10">
-                      <Sparkles className="h-4 w-4 text-purple-400" aria-hidden="true" />
-                      <span className="text-sm text-purple-700 dark:text-purple-300">
+                    <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-100/40 px-4 py-2 dark:border-blue-500/20 dark:bg-blue-500/10">
+                      <Sparkles className="h-4 w-4 text-blue-400" aria-hidden="true" />
+                      <span className="text-sm text-blue-700 dark:text-blue-300">
                         AI-Powered Prompt Engineering
                       </span>
                     </div>
@@ -905,7 +905,7 @@ const PromptHiveLandingClient = ({ user }: PromptHiveLandingClientProps) => {
                   <FloatingCard delay={0.2}>
                     <h1 id="hero-heading" className="mb-6 text-5xl font-bold leading-tight md:text-7xl">
                       Craft
-                      <span className="animate-gradient bg-300% ml-4 bg-gradient-to-r from-purple-400 via-pink-400 to-purple-400 bg-clip-text text-transparent">
+                      <span className="animate-gradient bg-300% ml-4 bg-gradient-to-r from-blue-400 via-blue-400 to-blue-400 bg-clip-text text-transparent">
                         Perfect Prompts
                       </span>
                       <br />
@@ -935,7 +935,7 @@ const PromptHiveLandingClient = ({ user }: PromptHiveLandingClientProps) => {
                               Get Started Free <ArrowRight className="ml-2 h-5 w-5" />
                             </GradientButton>
                           </a>
-                          <a href="#demo" className="group flex items-center gap-2 text-lg font-semibold text-purple-600 transition-colors hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300">
+                          <a href="#demo" className="group flex items-center gap-2 text-lg font-semibold text-blue-600 transition-colors hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300">
                             <Play className="h-5 w-5" />
                             Watch Demo
                           </a>
@@ -953,7 +953,7 @@ const PromptHiveLandingClient = ({ user }: PromptHiveLandingClientProps) => {
                         { number: '99.9%', label: 'Uptime' },
                       ].map((stat, index) => (
                         <div key={index} className="text-center">
-                          <div className="mb-2 bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-4xl font-bold text-transparent">
+                          <div className="mb-2 bg-gradient-to-r from-blue-400 to-blue-400 bg-clip-text text-4xl font-bold text-transparent">
                             {stat.number}
                           </div>
                           <div className="text-gray-600 dark:text-gray-400">{stat.label}</div>
@@ -969,7 +969,7 @@ const PromptHiveLandingClient = ({ user }: PromptHiveLandingClientProps) => {
                     <div className="rounded-2xl border border-gray-200 bg-white p-8 shadow-xl transition-all duration-300 hover:shadow-2xl dark:border-gray-800 dark:bg-gray-900">
                       <div className="mb-6 flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-r from-purple-600 to-pink-600">
+                          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-r from-blue-600 to-blue-500">
                             <Sparkles className="h-5 w-5 text-white" />
                           </div>
                           <div>
@@ -997,12 +997,12 @@ const PromptHiveLandingClient = ({ user }: PromptHiveLandingClientProps) => {
                             type="text"
                             value={livePreview.input}
                             onChange={(e) => setLivePreview(prev => ({ ...prev, input: e.target.value }))}
-                            className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-gray-900 placeholder-gray-400 transition-all duration-200 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:placeholder-gray-500"
+                            className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-gray-900 placeholder-gray-400 transition-all duration-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:placeholder-gray-500"
                             placeholder="Type your prompt idea..."
                             maxLength={100}
                           />
                           <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                            <Sparkles className={`h-5 w-5 ${livePreview.isEnhancing ? 'animate-pulse text-purple-500' : 'text-purple-500'}`} />
+                            <Sparkles className={`h-5 w-5 ${livePreview.isEnhancing ? 'animate-pulse text-blue-500' : 'text-blue-500'}`} />
                           </div>
                         </div>
                       </div>
@@ -1013,7 +1013,7 @@ const PromptHiveLandingClient = ({ user }: PromptHiveLandingClientProps) => {
                             Enhanced Prompt
                           </label>
                           <button 
-                            className="text-xs font-medium text-purple-600 transition-colors hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300"
+                            className="text-xs font-medium text-blue-600 transition-colors hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
                             onClick={() => navigator.clipboard.writeText(livePreview.output)}
                           >
                             Copy to clipboard
@@ -1024,7 +1024,7 @@ const PromptHiveLandingClient = ({ user }: PromptHiveLandingClientProps) => {
                             {livePreview.output}
                           </div>
                           <div className="absolute bottom-2 right-2">
-                            <div className="flex items-center gap-1.5 rounded-full bg-purple-50 px-2.5 py-1 text-xs font-medium text-purple-700 dark:bg-purple-900/50 dark:text-purple-300">
+                            <div className="flex items-center gap-1.5 rounded-full bg-blue-50 px-2.5 py-1 text-xs font-medium text-blue-700 dark:bg-blue-900/50 dark:text-blue-300">
                               <Sparkles className={`h-3.5 w-3.5 ${livePreview.isEnhancing ? 'animate-pulse' : ''}`} />
                               {livePreview.isEnhancing ? 'Enhancing...' : 'AI-enhanced'}
                             </div>
@@ -1035,22 +1035,22 @@ const PromptHiveLandingClient = ({ user }: PromptHiveLandingClientProps) => {
                       <div className="mt-6 space-y-3">
                         <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
                           <div className="flex items-center gap-2">
-                            <div className={`h-2 w-2 rounded-full ${livePreview.isEnhancing ? 'animate-pulse bg-purple-500' : 'bg-purple-500'}`}></div>
+                            <div className={`h-2 w-2 rounded-full ${livePreview.isEnhancing ? 'animate-pulse bg-blue-500' : 'bg-blue-500'}`}></div>
                             <span>Real-time enhancement</span>
                           </div>
                           <div className="flex items-center gap-2">
-                            <div className="h-2 w-2 rounded-full bg-pink-500"></div>
+                            <div className="h-2 w-2 rounded-full bg-blue-500"></div>
                             <span>Context-aware</span>
                           </div>
                         </div>
                         <div className="flex flex-wrap gap-2">
-                          <div className="rounded-full bg-purple-50 px-3 py-1 text-xs font-medium text-purple-700 dark:bg-purple-900/50 dark:text-purple-300">
+                          <div className="rounded-full bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700 dark:bg-blue-900/50 dark:text-blue-300">
                             Type: {livePreview.context.type}
                           </div>
-                          <div className="rounded-full bg-purple-50 px-3 py-1 text-xs font-medium text-purple-700 dark:bg-purple-900/50 dark:text-purple-300">
+                          <div className="rounded-full bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700 dark:bg-blue-900/50 dark:text-blue-300">
                             Tone: {livePreview.context.tone}
                           </div>
-                          <div className="rounded-full bg-purple-50 px-3 py-1 text-xs font-medium text-purple-700 dark:bg-purple-900/50 dark:text-purple-300">
+                          <div className="rounded-full bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700 dark:bg-blue-900/50 dark:text-blue-300">
                             Style: {livePreview.context.style}
                           </div>
                         </div>
@@ -1073,7 +1073,7 @@ const PromptHiveLandingClient = ({ user }: PromptHiveLandingClientProps) => {
                 className="mb-4 flex items-center gap-2 text-2xl font-bold text-gray-900 dark:text-white"
               >
                 <Sparkles
-                  className="h-5 w-5 text-purple-700 dark:text-purple-300"
+                  className="h-5 w-5 text-blue-700 dark:text-blue-300"
                   aria-hidden="true"
                 />
                 Featured Community Prompts
@@ -1092,13 +1092,13 @@ const PromptHiveLandingClient = ({ user }: PromptHiveLandingClientProps) => {
                 <div className="grid gap-x-10 gap-y-8 md:grid-cols-3">
                   {featuredPrompts.map(prompt => (
                     <FloatingCard key={prompt.id}>
-                      <div className="group relative rounded-2xl border-2 border-gray-200 bg-white p-6 pt-10 shadow-lg transition-all duration-300 focus-within:ring-2 focus-within:ring-purple-500 hover:-translate-y-2 hover:shadow-xl dark:border-gray-800 dark:bg-gray-900">
+                      <div className="group relative rounded-2xl border-2 border-gray-200 bg-white p-6 pt-10 shadow-lg transition-all duration-300 focus-within:ring-2 focus-within:ring-blue-500 hover:-translate-y-2 hover:shadow-xl dark:border-gray-800 dark:bg-gray-900">
                         <div className="absolute -top-4 left-4 flex items-center gap-2">
-                          <Badge className="rounded-full border border-white bg-gradient-to-r from-purple-700 to-pink-600 px-3 py-1 font-semibold text-white shadow dark:border-gray-900">
+                          <Badge className="rounded-full border border-white bg-gradient-to-r from-blue-700 to-blue-500 px-3 py-1 font-semibold text-white shadow dark:border-gray-900">
                             Featured
                           </Badge>
                         </div>
-                        <h3 className="mb-2 bg-gradient-to-r from-purple-700 to-pink-600 bg-clip-text text-xl font-bold text-transparent dark:from-purple-300 dark:to-pink-300">
+                        <h3 className="mb-2 bg-gradient-to-r from-blue-700 to-blue-500 bg-clip-text text-xl font-bold text-transparent dark:from-blue-300 dark:to-blue-300">
                           <Link href={`/community-prompts/${prompt.slug}`}>{prompt.name}</Link>
                         </h3>
                         <p className="mb-3 line-clamp-3 text-gray-800 dark:text-gray-100">
@@ -1108,14 +1108,14 @@ const PromptHiveLandingClient = ({ user }: PromptHiveLandingClientProps) => {
                           {prompt.tags.map((tag: any) => (
                             <Badge
                               key={tag.id}
-                              className="border border-purple-300 bg-purple-200 font-medium text-purple-900 dark:border-purple-700 dark:bg-purple-800 dark:text-purple-100"
+                              className="border border-blue-300 bg-blue-200 font-medium text-blue-900 dark:border-blue-700 dark:bg-blue-800 dark:text-blue-100"
                             >
                               {tag.name}
                             </Badge>
                           ))}
                         </div>
                         <div className="mt-2 flex items-center gap-2">
-                          <span className="inline-flex items-center gap-1 text-base font-bold text-purple-800 dark:text-purple-200">
+                          <span className="inline-flex items-center gap-1 text-base font-bold text-blue-800 dark:text-blue-200">
                             <Star className="h-4 w-4 fill-current text-yellow-400" />
                             {prompt.upvotes}
                           </span>
@@ -1131,7 +1131,7 @@ const PromptHiveLandingClient = ({ user }: PromptHiveLandingClientProps) => {
               <div className="mt-8 text-center">
                 <Link
                   href="/community-prompts"
-                  className="inline-block text-lg font-semibold text-purple-800 hover:underline dark:text-purple-200"
+                  className="inline-block text-lg font-semibold text-blue-800 hover:underline dark:text-blue-200"
                 >
                   See all community prompts &rarr;
                 </Link>
@@ -1145,7 +1145,7 @@ const PromptHiveLandingClient = ({ user }: PromptHiveLandingClientProps) => {
               <div className="mb-12 text-center">
                 <h2 id="features-heading" className="mb-4 text-3xl font-bold md:text-4xl">
                   Everything you need for
-                  <span className="ml-3 bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                  <span className="ml-3 bg-gradient-to-r from-blue-600 to-blue-500 bg-clip-text text-transparent">
                     Prompt Engineering
                   </span>
                 </h2>
@@ -1180,13 +1180,13 @@ const PromptHiveLandingClient = ({ user }: PromptHiveLandingClientProps) => {
                     highlight: 'Earn credits & collaborate',
                   },
                 ].map((feature, index) => (
-                  <div key={index} className="rounded-xl border border-gray-200 bg-white p-6 shadow-md transition-all duration-300 hover:-translate-y-1 hover:border-purple-500/50 hover:shadow-lg dark:border-gray-800 dark:bg-gray-900">
-                    <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-r from-purple-600 to-pink-600">
+                  <div key={index} className="rounded-xl border border-gray-200 bg-white p-6 shadow-md transition-all duration-300 hover:-translate-y-1 hover:border-blue-500/50 hover:shadow-lg dark:border-gray-800 dark:bg-gray-900">
+                    <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-r from-blue-600 to-blue-500">
                       {feature.icon}
                     </div>
                     <h3 className="mb-2 text-lg font-semibold">{feature.title}</h3>
                     <p className="mb-2 text-gray-600 dark:text-gray-300 text-sm">{feature.description}</p>
-                    <span className="inline-block rounded-full bg-purple-100 px-3 py-1 text-xs font-semibold text-purple-700 dark:bg-purple-900/50 dark:text-purple-300">
+                    <span className="inline-block rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-700 dark:bg-blue-900/50 dark:text-blue-300">
                       {feature.highlight}
                     </span>
                   </div>
@@ -1211,7 +1211,7 @@ const PromptHiveLandingClient = ({ user }: PromptHiveLandingClientProps) => {
               <div className="mb-12 text-center">
                 <h2 id="testimonials-heading" className="mb-4 text-3xl font-bold md:text-4xl">
                   Loved by
-                  <span className="ml-3 bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                  <span className="ml-3 bg-gradient-to-r from-blue-600 to-blue-500 bg-clip-text text-transparent">
                     Industry Leaders
                   </span>
                 </h2>
@@ -1226,7 +1226,7 @@ const PromptHiveLandingClient = ({ user }: PromptHiveLandingClientProps) => {
                     className="rounded-xl border border-gray-200 bg-white p-6 shadow-md transition-all duration-300 hover:-translate-y-1 hover:shadow-lg dark:border-gray-800 dark:bg-gray-900"
                   >
                     <div className="mb-4 flex items-center gap-4">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-r from-purple-600 to-pink-600 font-bold text-white">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-r from-blue-600 to-blue-500 font-bold text-white">
                         {testimonial.avatar}
                       </div>
                       <div>
@@ -1253,16 +1253,16 @@ const PromptHiveLandingClient = ({ user }: PromptHiveLandingClientProps) => {
           {/* CTA Section */}
           <section className="px-4 py-20 sm:px-6 lg:px-8" aria-labelledby="cta-heading">
             <div className="mx-auto max-w-3xl text-center">
-              <div className="rounded-3xl border border-purple-200 bg-white p-10 shadow-xl dark:border-gray-800 dark:bg-gray-900">
-                <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-purple-200 bg-purple-50 px-4 py-2 dark:border-purple-500/20 dark:bg-purple-500/10">
-                  <Sparkles className="h-4 w-4 text-purple-500" />
-                  <span className="text-sm text-purple-700 dark:text-purple-300">
+              <div className="rounded-3xl border border-blue-200 bg-white p-10 shadow-xl dark:border-gray-800 dark:bg-gray-900">
+                <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-4 py-2 dark:border-blue-500/20 dark:bg-blue-500/10">
+                  <Sparkles className="h-4 w-4 text-blue-500" />
+                  <span className="text-sm text-blue-700 dark:text-blue-300">
                     Start Building Better Prompts Today
                   </span>
                 </div>
                 <h2 id="cta-heading" className="mb-4 text-3xl font-bold md:text-4xl">
                   Get Started Free
-                  <span className="ml-3 bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                  <span className="ml-3 bg-gradient-to-r from-blue-600 to-blue-500 bg-clip-text text-transparent">
                     with PromptHive
                   </span>
                 </h2>
@@ -1275,7 +1275,7 @@ const PromptHiveLandingClient = ({ user }: PromptHiveLandingClientProps) => {
                       Try Free Plan <ArrowRight className="ml-2 h-5 w-5" />
                     </GradientButton>
                   </a>
-                  <a href="#demo" className="group flex w-full items-center justify-center gap-2 text-lg font-semibold text-purple-600 transition-colors hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300 sm:w-auto">
+                  <a href="#demo" className="group flex w-full items-center justify-center gap-2 text-lg font-semibold text-blue-600 transition-colors hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 sm:w-auto">
                     <Play className="h-5 w-5" />
                     Watch Demo
                   </a>

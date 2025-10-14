@@ -24,26 +24,26 @@ export function PublicNavBar() {
         <div className="flex h-16 items-center justify-between">
           {/* Logo and Brand */}
           <Link href="/" className="flex items-center gap-2">
-            <Sparkles className="h-6 w-6 text-purple-500" />
-            <span className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-xl font-bold text-transparent">
+            <Sparkles className="h-6 w-6 text-blue-500" />
+            <span className="bg-gradient-to-r from-blue-600 to-blue-500 bg-clip-text text-xl font-bold text-transparent">
               PromptHive
             </span>
           </Link>
           {/* Navigation Links */}
           <div className="hidden items-center gap-6 text-sm font-medium md:flex">
-            <Link href="/" className="transition-colors hover:text-purple-600">
+            <Link href="/" className="transition-colors hover:text-blue-600">
               Home
             </Link>
-            <Link href="/blog" className="transition-colors hover:text-purple-600">
+            <Link href="/blog" className="transition-colors hover:text-blue-600">
               Blog
             </Link>
-            <Link href="/about" className="transition-colors hover:text-purple-600">
+            <Link href="/about" className="transition-colors hover:text-blue-600">
               About
             </Link>
-            <Link href="/careers" className="transition-colors hover:text-purple-600">
+            <Link href="/careers" className="transition-colors hover:text-blue-600">
               Careers
             </Link>
-            <Link href="/contact" className="transition-colors hover:text-purple-600">
+            <Link href="/contact" className="transition-colors hover:text-blue-600">
               Contact
             </Link>
           </div>
@@ -110,19 +110,19 @@ export function PublicNavBar() {
         </div>
         {/* Mobile Nav */}
         <div className="flex justify-center gap-4 border-t border-border bg-white py-2 text-sm font-medium dark:bg-gray-900 md:hidden">
-          <Link href="/" className="transition-colors hover:text-purple-600">
+          <Link href="/" className="transition-colors hover:text-blue-600">
             Home
           </Link>
-          <Link href="/blog" className="transition-colors hover:text-purple-600">
+          <Link href="/blog" className="transition-colors hover:text-blue-600">
             Blog
           </Link>
-          <Link href="/about" className="transition-colors hover:text-purple-600">
+          <Link href="/about" className="transition-colors hover:text-blue-600">
             About
           </Link>
-          <Link href="/careers" className="transition-colors hover:text-purple-600">
+          <Link href="/careers" className="transition-colors hover:text-blue-600">
             Careers
           </Link>
-          <Link href="/contact" className="transition-colors hover:text-purple-600">
+          <Link href="/contact" className="transition-colors hover:text-blue-600">
             Contact
           </Link>
         </div>

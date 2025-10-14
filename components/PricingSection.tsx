@@ -95,13 +95,13 @@ export default function PricingSection() {
             Start free with 10 AI-generated prompts. Upgrade for unlimited access.
           </p>
           <div className="flex items-center justify-center gap-4 mt-8">
-            <span className={cn("text-sm", !isAnnual && "text-purple-600 font-semibold")}>Monthly</span>
+            <span className={cn("text-sm", !isAnnual && "text-blue-600 font-semibold")}>Monthly</span>
             <Switch
               checked={isAnnual}
               onCheckedChange={setIsAnnual}
-              className="data-[state=checked]:bg-purple-600"
+              className="data-[state=checked]:bg-blue-600"
             />
-            <span className={cn("text-sm", isAnnual && "text-purple-600 font-semibold")}>Annual <span className="text-green-500">(Save 15%)</span></span>
+            <span className={cn("text-sm", isAnnual && "text-blue-600 font-semibold")}>Annual <span className="text-green-500">(Save 15%)</span></span>
           </div>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-7xl mx-auto mb-32">
@@ -111,14 +111,14 @@ export default function PricingSection() {
               className={cn(
                 "relative rounded-2xl p-8 border transition-all duration-300 h-full flex flex-col shadow-lg hover:shadow-xl",
                 plan.isEnterprise
-                  ? "border-purple-500 bg-purple-50 dark:bg-purple-950/20"
-                  : "border-gray-200 dark:border-gray-800 hover:border-purple-500 dark:hover:border-purple-500 bg-white/80 backdrop-blur-sm dark:bg-gray-900/80",
-                plan.popular && "ring-2 ring-purple-500 scale-105"
+                  ? "border-blue-500 bg-blue-50 dark:bg-blue-950/20"
+                  : "border-gray-200 dark:border-gray-800 hover:border-blue-500 dark:hover:border-blue-500 bg-white/80 backdrop-blur-sm dark:bg-gray-900/80",
+                plan.popular && "ring-2 ring-blue-500 scale-105"
               )}
             >
               {plan.popular && (
                 <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-10">
-                  <span className="inline-block rounded-full bg-purple-100 px-3 py-1 text-sm font-semibold text-purple-700 dark:bg-purple-900/50 dark:text-purple-300 shadow-md border border-purple-200 dark:border-purple-800">
+                  <span className="inline-block rounded-full bg-blue-100 px-3 py-1 text-sm font-semibold text-blue-700 dark:bg-blue-900/50 dark:text-blue-300 shadow-md border border-blue-200 dark:border-blue-800">
                     Most Popular
                   </span>
                 </div>
@@ -161,8 +161,8 @@ export default function PricingSection() {
                 className={cn(
                   "w-full py-3 px-6 rounded-xl font-semibold transition-all duration-300 mt-auto shadow-lg hover:shadow-xl transform hover:scale-105",
                   plan.name === 'FREE'
-                    ? "bg-white text-purple-600 border-2 border-purple-600 hover:bg-purple-50 dark:bg-black dark:hover:bg-purple-950/20"
-                    : "bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700"
+                    ? "bg-white text-blue-600 border-2 border-blue-600 hover:bg-blue-50 dark:bg-black dark:hover:bg-blue-950/20"
+                    : "bg-gradient-to-r from-blue-600 to-blue-500 text-white hover:from-blue-700 hover:to-blue-700"
                 )}
               >
                 {plan.cta}
@@ -172,7 +172,7 @@ export default function PricingSection() {
         </div>
         {/* See all features link */}
         <div className="text-center mt-8">
-          <a href="#" className="text-purple-600 underline hover:text-purple-800 text-sm">See all features</a>
+          <a href="#" className="text-blue-600 underline hover:text-blue-800 text-sm">See all features</a>
         </div>
         
         {/* Credit Purchase Options */}
@@ -186,22 +186,22 @@ export default function PricingSection() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700 text-center">
               <h4 className="text-lg font-semibold mb-2">Starter Pack</h4>
-              <div className="text-3xl font-bold text-purple-600 mb-2">100 Credits</div>
+              <div className="text-3xl font-bold text-blue-600 mb-2">100 Credits</div>
               <div className="text-gray-600 dark:text-gray-400 mb-4">$4.99</div>
               <div className="text-sm text-gray-500">$0.05 per credit</div>
             </div>
-            <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border-2 border-purple-500 text-center relative">
+            <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border-2 border-blue-500 text-center relative">
               <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                <span className="bg-purple-500 text-white px-3 py-1 rounded-full text-xs font-semibold">Best Value</span>
+                <span className="bg-blue-500 text-white px-3 py-1 rounded-full text-xs font-semibold">Best Value</span>
               </div>
               <h4 className="text-lg font-semibold mb-2">Power Pack</h4>
-              <div className="text-3xl font-bold text-purple-600 mb-2">500 Credits</div>
+              <div className="text-3xl font-bold text-blue-600 mb-2">500 Credits</div>
               <div className="text-gray-600 dark:text-gray-400 mb-4">$19.99</div>
               <div className="text-sm text-gray-500">$0.04 per credit</div>
             </div>
             <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700 text-center">
               <h4 className="text-lg font-semibold mb-2">Pro Pack</h4>
-              <div className="text-3xl font-bold text-purple-600 mb-2">1000 Credits</div>
+              <div className="text-3xl font-bold text-blue-600 mb-2">1000 Credits</div>
               <div className="text-gray-600 dark:text-gray-400 mb-4">$34.99</div>
               <div className="text-sm text-gray-500">$0.035 per credit</div>
             </div>

@@ -144,7 +144,7 @@ export function CreateTemplateDialog({ open, onOpenChange, onSuccess }: CreateTe
             </Button>
             <Button
               type="submit"
-              className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+              className="bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-700"
               disabled={isLoading}
             >
               {isLoading ? 'Creating...' : 'Create Template'}

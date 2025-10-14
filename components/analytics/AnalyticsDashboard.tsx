@@ -68,7 +68,7 @@ export function AnalyticsDashboard({ data }: { data: AnalyticsData }) {
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center space-x-2">
-              <MessageSquare className="w-4 h-4 text-purple-500" />
+              <MessageSquare className="w-4 h-4 text-blue-500" />
               <div>
                 <p className="text-sm text-muted-foreground">Comments</p>
                 <p className="text-2xl font-bold">{data.totalComments}</p>

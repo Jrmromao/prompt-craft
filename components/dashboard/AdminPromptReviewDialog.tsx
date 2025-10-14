@@ -9,7 +9,7 @@ export function AdminPromptReviewDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="fixed bottom-8 right-8 z-50 bg-purple-600 text-white shadow-lg hover:bg-purple-700">
+        <Button className="fixed bottom-8 right-8 z-50 bg-blue-600 text-white shadow-lg hover:bg-blue-700">
           Review Prompts
         </Button>
       </DialogTrigger>

@@ -7,7 +7,7 @@ const creditTypeColors: { [key: string]: string } = {
   PURCHASE: 'bg-green-100 text-green-800',
   MONTHLY_RENEWAL: 'bg-blue-100 text-blue-800',
   USAGE: 'bg-red-100 text-red-800',
-  BONUS: 'bg-purple-100 text-purple-800',
+  BONUS: 'bg-blue-100 text-blue-800',
   REFUND: 'bg-yellow-100 text-yellow-800',
   INITIAL: 'bg-gray-100 text-gray-800',
 };

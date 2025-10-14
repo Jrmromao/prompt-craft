@@ -150,7 +150,7 @@ export function PromptTestingSuite({ prompt, onResults }: TestingSuiteProps) {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Target className="w-5 h-5 text-purple-600" />
+            <Target className="w-5 h-5 text-blue-600" />
             Test Configuration
           </CardTitle>
         </CardHeader>
@@ -242,7 +242,7 @@ export function PromptTestingSuite({ prompt, onResults }: TestingSuiteProps) {
           <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle className="flex items-center gap-2">
-                <BarChart3 className="w-5 h-5 text-purple-600" />
+                <BarChart3 className="w-5 h-5 text-blue-600" />
                 Test Results
               </CardTitle>
               <Button variant="outline" size="sm" onClick={clearResults}>
@@ -266,7 +266,7 @@ export function PromptTestingSuite({ prompt, onResults }: TestingSuiteProps) {
                 <div className="text-sm text-muted-foreground">Total Cost</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold text-purple-600">
+                <div className="text-2xl font-bold text-blue-600">
                   {results.length > 0 ? Math.round(results.reduce((sum, r) => sum + r.duration, 0) / results.length) : 0}ms
                 </div>
                 <div className="text-sm text-muted-foreground">Avg Duration</div>

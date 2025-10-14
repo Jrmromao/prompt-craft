@@ -1,98 +1,153 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
-import { VersionControlService } from '@/lib/services/versionControlService';
-import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
-import { PLANS } from '@/app/constants/plans';
-import { PlanType } from '@prisma/client';
-import { PlanLimitsService } from '@/lib/services/planLimitsService';
 
-// Export dynamic configuration
-export const dynamic = 'force-dynamic';
-export const revalidate = 0;
-
-
-
-export async function GET(request: Request, context: any) {
+export async function POST(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
-    const { userId } = await auth();
-    if (!userId) {
+    const { userId: clerkUserId } = await auth();
+    
+    if (!clerkUserId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const params = await context.params;
-    const versionControlService = VersionControlService.getInstance();
-    const versions = await versionControlService.getVersion(params.id);
+    const user = await prisma.user.findUnique({
+      where: { clerkId: clerkUserId },
+      include: { Subscription: true }
+    });
 
-    return NextResponse.json(versions);
+    if (!user) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+
+    const { id } = await params;
+
+    const prompt = await prisma.prompt.findFirst({
+      where: { 
+        OR: [
+          { slug: id, userId: user.id },
+          { id: id, userId: user.id }
+        ]
+      },
+      include: { Version: { orderBy: { createdAt: 'desc' } } }
+    });
+
+    if (!prompt) {
+      return NextResponse.json({ error: 'Prompt not found' }, { status: 404 });
+    }
+
+    const isPro = user.Subscription?.status === 'ACTIVE' || user.planType === 'PRO';
+    
+    // FREE users: 3 versions per prompt max
+    if (!isPro && prompt.Version.length >= (user.maxVersionsPerPrompt || 3)) {
+      return NextResponse.json({ 
+        error: `Free users can create up to ${user.maxVersionsPerPrompt || 3} versions per prompt. Upgrade to PRO for unlimited versions.`,
+        code: 'VERSION_LIMIT_REACHED',
+        upgradeRequired: true
+      }, { status: 402 });
+    }
+
+    const { content, description } = await request.json();
+
+    if (!content) {
+      return NextResponse.json({ error: 'Content is required' }, { status: 400 });
+    }
+
+    // Check if content is different from latest version
+    const latestVersion = prompt.Version[0];
+    if (latestVersion && latestVersion.content === content) {
+      return NextResponse.json({ 
+        error: 'Content is identical to the latest version',
+        code: 'NO_CHANGES'
+      }, { status: 400 });
+    }
+
+    const version = await prisma.version.create({
+      data: {
+        content,
+        userId: user.id,
+        promptId: prompt.id
+      }
+    });
+
+    // Update the main prompt content to match latest version
+    await prisma.prompt.update({
+      where: { id: prompt.id },
+      data: { content }
+    });
+
+    // Update user's version usage
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { versionsUsed: { increment: 1 } }
+    });
+
+    return NextResponse.json({
+      ...version,
+      versionNumber: prompt.Version.length + 1
+    });
+  } catch (error) {
+    console.error('Error creating version:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
+}
+
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { userId: clerkUserId } = await auth();
+    
+    if (!clerkUserId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { clerkId: clerkUserId }
+    });
+
+    if (!user) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+
+    const { id } = await params;
+
+    const prompt = await prisma.prompt.findFirst({
+      where: { 
+        OR: [
+          { slug: id, userId: user.id },
+          { id: id, userId: user.id }
+        ]
+      }
+    });
+
+    if (!prompt) {
+      return NextResponse.json({ error: 'Prompt not found' }, { status: 404 });
+    }
+
+    const versions = await prisma.version.findMany({
+      where: { promptId: prompt.id },
+      orderBy: { createdAt: 'desc' },
+      select: {
+        id: true,
+        content: true,
+        createdAt: true,
+        updatedAt: true
+      }
+    });
+
+    // Add version numbers (latest = highest number)
+    const versionsWithNumbers = versions.map((version, index) => ({
+      ...version,
+      versionNumber: versions.length - index
+    }));
+
+    return NextResponse.json(versionsWithNumbers);
   } catch (error) {
     console.error('Error fetching versions:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
-
-export async function POST(request: Request, context: any) {
-  try {
-    const { userId } = await auth();
-    if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    const params = await context.params;
-    const body = await request.json();
-    const validationResult = versionSchema.safeParse(body);
-    
-    if (!validationResult.success) {
-      return NextResponse.json(
-        { error: 'Invalid request body', details: validationResult.error.format() },
-        { status: 400 }
-      );
-    }
-
-    const { content, description, commitMessage, tags, baseVersionId, tests } = validationResult.data;
-    const versionControlService = VersionControlService.getInstance();
-    const version = await versionControlService.createVersion(
-      params.id,
-      content,
-      description ?? null,
-      commitMessage,
-      tags ?? [],
-      baseVersionId,
-      tests
-    );
-
-    return NextResponse.json(version);
-  } catch (error) {
-    console.error('Error creating version:', error);
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { error: 'Invalid request data', details: error.errors },
-        { status: 400 }
-      );
-    }
-    return NextResponse.json(
-      { error: 'Failed to create version' },
-      { status: 500 }
-    );
-  }
-}
-
-// Validation schema for version creation
-const versionSchema = z.object({
-  content: z.string().min(1, 'Content is required'),
-  description: z.string().nullable().optional(),
-  commitMessage: z.string().min(1, 'Commit message is required'),
-  tags: z.array(z.string()).optional(),
-  baseVersionId: z.string().optional(),
-  tests: z.array(z.object({
-    input: z.string().optional(),
-    output: z.string(),
-    rating: z.object({
-      clarity: z.number().min(1).max(10),
-      specificity: z.number().min(1).max(10),
-      context: z.number().min(1).max(10),
-      overall: z.number().min(1).max(10),
-      feedback: z.string()
-    }).optional()
-  })).optional()
-});

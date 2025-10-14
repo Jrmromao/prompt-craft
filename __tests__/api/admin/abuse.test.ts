@@ -4,6 +4,16 @@ jest.mock('@clerk/nextjs/server', () => ({
   auth: mockAdminAuth,
 }));
 
+const mockPrisma = {
+  user: {
+    findUnique: jest.fn(),
+  },
+};
+
+jest.mock('@/lib/prisma', () => ({
+  prisma: mockPrisma,
+}));
+
 const mockAdminVoteAbuseMonitoringService = {
   getSystemHealth: jest.fn(),
   getAbuseStatistics: jest.fn(),
@@ -42,6 +52,11 @@ describe('Admin Abuse API Tests', () => {
       actor: null,
       isAuthenticated: true
     });
+
+    // Mock admin user in database
+    mockPrisma.user.findUnique.mockResolvedValue({
+      role: 'ADMIN'
+    });
   });
 
   describe('System Health Endpoint', () => {
@@ -73,7 +88,7 @@ describe('Admin Abuse API Tests', () => {
     });
 
     it('should return 401 for unauthenticated users', async () => {
-      mockAuth.mockResolvedValue({ 
+      mockAdminAuth.mockResolvedValue({ 
         userId: null,
         sessionClaims: null,
         sessionId: null,
@@ -93,7 +108,7 @@ describe('Admin Abuse API Tests', () => {
     });
 
     it('should return 403 for non-admin users', async () => {
-      mockAuth.mockResolvedValue({ 
+      mockAdminAuth.mockResolvedValue({ 
         userId: 'regular-user-id',
         sessionClaims: { metadata: { role: 'user' } },
         sessionId: 'session-123',

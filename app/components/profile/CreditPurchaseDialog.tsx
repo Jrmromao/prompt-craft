@@ -83,11 +83,11 @@ export function CreditPurchaseDialog({ isOpen, onClose, isFreePlan = false, curr
         <div className="relative overflow-visible">
           {/* Header */}
           <div className="p-4 pb-2 border-b border-gray-100 flex items-center gap-3 mb-1">
-            <div className="p-2 rounded-full bg-purple-50">
-              <Sparkles className="h-5 w-5 text-purple-500" />
+            <div className="p-2 rounded-full bg-blue-50">
+              <Sparkles className="h-5 w-5 text-blue-500" />
             </div>
-            <h2 className="text-xl font-bold tracking-tight flex items-center gap-2 bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">Add Credits</h2>
-            <a href="/support" className="ml-auto text-xs text-purple-600 underline hover:text-pink-600">Need help?</a>
+            <h2 className="text-xl font-bold tracking-tight flex items-center gap-2 bg-gradient-to-r from-blue-600 to-blue-500 bg-clip-text text-transparent">Add Credits</h2>
+            <a href="/support" className="ml-auto text-xs text-blue-600 underline hover:text-blue-500">Need help?</a>
           </div>
 
           {/* Success State */}
@@ -98,8 +98,8 @@ export function CreditPurchaseDialog({ isOpen, onClose, isFreePlan = false, curr
               </div>
               <div className="text-2xl font-bold text-green-700 mb-2">Purchase Successful!</div>
               <div className="text-base text-muted-foreground mb-2 text-center">Your credits will be added after payment.<br />Thank you for your purchase!</div>
-              <Button className="mt-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-2 text-base font-semibold shadow-md" onClick={onClose}>Close</Button>
-              <a href="/account?tab=usage" className="mt-2 text-purple-600 underline hover:text-pink-600 text-sm">View Usage</a>
+              <Button className="mt-4 bg-gradient-to-r from-blue-600 to-blue-500 text-white px-6 py-2 text-base font-semibold shadow-md" onClick={onClose}>Close</Button>
+              <a href="/account?tab=usage" className="mt-2 text-blue-600 underline hover:text-blue-500 text-sm">View Usage</a>
             </div>
           ) : (
             <>
@@ -119,11 +119,11 @@ export function CreditPurchaseDialog({ isOpen, onClose, isFreePlan = false, curr
                       key={pkg.amount}
                       whileHover={{ scale: 1.01 }}
                       whileTap={{ scale: 0.99 }}
-                      className={`relative flex items-center justify-between w-full rounded-xl border p-3 transition-all focus:outline-none focus:ring-2 focus:ring-purple-400
+                      className={`relative flex items-center justify-between w-full rounded-xl border p-3 transition-all focus:outline-none focus:ring-2 focus:ring-blue-400
                         ${selectedPackage.amount === pkg.amount 
-                          ? 'border-purple-600 bg-gradient-to-r from-purple-50 to-pink-50 shadow-lg scale-[1.01]' 
+                          ? 'border-blue-600 bg-gradient-to-r from-blue-50 to-blue-50 shadow-lg scale-[1.01]' 
                           : 'hover:bg-muted/50 border-gray-200'}
-                        ${pkg.popular ? 'ring-2 ring-pink-400/40' : ''}
+                        ${pkg.popular ? 'ring-2 ring-blue-400/40' : ''}
                       `}
                       onClick={() => setSelectedPackage(pkg)}
                       aria-pressed={selectedPackage.amount === pkg.amount}
@@ -136,7 +136,7 @@ export function CreditPurchaseDialog({ isOpen, onClose, isFreePlan = false, curr
                     >
                       <div className="space-y-1 text-left">
                         <div className="flex items-center gap-2">
-                          <span className="font-semibold text-base bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                          <span className="font-semibold text-base bg-gradient-to-r from-blue-600 to-blue-500 bg-clip-text text-transparent">
                             {pkg.amount.toLocaleString()} Credits
                           </span>
                           {pkg.bonus > 0 && (
@@ -145,7 +145,7 @@ export function CreditPurchaseDialog({ isOpen, onClose, isFreePlan = false, curr
                             </span>
                           )}
                           {pkg.popular && (
-                            <span className="ml-2 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 px-2 py-0.5 text-xs font-semibold text-white shadow">Popular</span>
+                            <span className="ml-2 rounded-full bg-gradient-to-r from-blue-500 to-blue-500 px-2 py-0.5 text-xs font-semibold text-white shadow">Popular</span>
                           )}
                         </div>
                         <div className="text-sm text-muted-foreground">
@@ -156,7 +156,7 @@ export function CreditPurchaseDialog({ isOpen, onClose, isFreePlan = false, curr
                         <div
                           className={`h-5 w-5 rounded-full border-2 flex items-center justify-center transition-all
                             ${selectedPackage.amount === pkg.amount 
-                              ? 'border-purple-600 bg-purple-600 shadow-[0_0_0_4px_rgba(168,85,247,0.1)]' 
+                              ? 'border-blue-600 bg-blue-600 shadow-[0_0_0_4px_rgba(168,85,247,0.1)]' 
                               : 'border-gray-300 bg-white'}
                           `}
                         >
@@ -167,7 +167,7 @@ export function CreditPurchaseDialog({ isOpen, onClose, isFreePlan = false, curr
                   ))}
                 </div>
                 {/* Summary Section */}
-                <div className="rounded-xl bg-gradient-to-r from-purple-50/50 to-pink-50/50 p-3 flex flex-col md:flex-row items-center justify-between gap-3 border border-purple-100">
+                <div className="rounded-xl bg-gradient-to-r from-blue-50/50 to-blue-50/50 p-3 flex flex-col md:flex-row items-center justify-between gap-3 border border-blue-100">
                   <div className="flex flex-col items-center md:items-start">
                     <div className="font-medium text-sm text-muted-foreground">Total Credits</div>
                     <div className="text-lg font-bold text-foreground">
@@ -175,10 +175,10 @@ export function CreditPurchaseDialog({ isOpen, onClose, isFreePlan = false, curr
                       <span className="text-green-600 font-semibold ml-1">+ {selectedPackage.bonus.toLocaleString()}</span>
                     </div>
                   </div>
-                  <div className="w-px h-8 bg-purple-200 hidden md:block" />
+                  <div className="w-px h-8 bg-blue-200 hidden md:block" />
                   <div className="flex flex-col items-center md:items-end">
                     <div className="font-medium text-sm text-muted-foreground">Total Price</div>
-                    <div className="text-lg font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                    <div className="text-lg font-bold bg-gradient-to-r from-blue-600 to-blue-500 bg-clip-text text-transparent">
                       ${selectedPackage.price.toFixed(2)}
                     </div>
                   </div>
@@ -197,7 +197,7 @@ export function CreditPurchaseDialog({ isOpen, onClose, isFreePlan = false, curr
               {/* Footer */}
               <div className="p-4 pt-2 border-t border-gray-100 bg-gray-50/50 flex flex-col gap-3 sm:flex-row sm:justify-end">
                 <Button
-                  className="w-full sm:w-auto bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-base font-bold py-2.5 rounded-xl flex items-center justify-center gap-2 shadow-xl hover:shadow-2xl transition-all duration-300"
+                  className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-700 text-base font-bold py-2.5 rounded-xl flex items-center justify-center gap-2 shadow-xl hover:shadow-2xl transition-all duration-300"
                   onClick={handlePurchase}
                   disabled={isLoading}
                   aria-label="Buy Credits (No Subscription Required)"

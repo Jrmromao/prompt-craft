@@ -161,7 +161,7 @@ export const GlobalSearch = () => {
                         className="w-full justify-start p-3 h-auto min-h-[44px]"
                         onClick={() => handleResultClick(prompt)}
                       >
-                        <FileText className="w-4 h-4 mr-3 text-purple-600" />
+                        <FileText className="w-4 h-4 mr-3 text-blue-600" />
                         <div className="text-left">
                           <div className="font-medium">{prompt.title}</div>
                           {prompt.description && (

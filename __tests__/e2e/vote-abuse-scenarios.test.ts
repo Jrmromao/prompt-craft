@@ -1,47 +1,46 @@
 // Mock all dependencies before imports
-const mockPrisma = {
-  user: {
-    findUnique: jest.fn(),
-    createMany: jest.fn(),
-    deleteMany: jest.fn(),
+// Use jest.doMock to avoid hoisting issues
+jest.doMock('@/lib/prisma', () => ({
+  prisma: {
+    user: {
+      findUnique: jest.fn(),
+      createMany: jest.fn(),
+      deleteMany: jest.fn(),
+    },
+    prompt: {
+      findUnique: jest.fn(),
+      createMany: jest.fn(),
+      deleteMany: jest.fn(),
+    },
+    vote: {
+      create: jest.fn(),
+      findMany: jest.fn(),
+      count: jest.fn(),
+      deleteMany: jest.fn(),
+    },
+    voteReward: {
+      findFirst: jest.fn(),
+      create: jest.fn(),
+      deleteMany: jest.fn(),
+    },
+    voteAbuseDetection: {
+      create: jest.fn(),
+      findMany: jest.fn(),
+      count: jest.fn(),
+      deleteMany: jest.fn(),
+    },
+    votePattern: {
+      create: jest.fn(),
+      findMany: jest.fn(),
+      deleteMany: jest.fn(),
+    },
+    creditTransaction: {
+      create: jest.fn(),
+      findMany: jest.fn(),
+      deleteMany: jest.fn(),
+    },
+    $transaction: jest.fn(),
   },
-  prompt: {
-    findUnique: jest.fn(),
-    createMany: jest.fn(),
-    deleteMany: jest.fn(),
-  },
-  vote: {
-    create: jest.fn(),
-    findMany: jest.fn(),
-    count: jest.fn(),
-    deleteMany: jest.fn(),
-  },
-  voteReward: {
-    findFirst: jest.fn(),
-    create: jest.fn(),
-    deleteMany: jest.fn(),
-  },
-  voteAbuseDetection: {
-    create: jest.fn(),
-    findMany: jest.fn(),
-    count: jest.fn(),
-    deleteMany: jest.fn(),
-  },
-  votePattern: {
-    create: jest.fn(),
-    findMany: jest.fn(),
-    deleteMany: jest.fn(),
-  },
-  creditTransaction: {
-    create: jest.fn(),
-    findMany: jest.fn(),
-    deleteMany: jest.fn(),
-  },
-  $transaction: jest.fn(),
-};
-
-jest.mock('@/lib/prisma', () => ({
-  prisma: mockPrisma,
 }));
 
 // Mock services
@@ -75,6 +74,10 @@ jest.mock('@/lib/services/auditService', () => ({
     getInstance: () => mockAuditService,
   },
 }));
+
+// Import the mocked prisma
+import { prisma } from '@/lib/prisma';
+const mockPrisma = prisma as jest.Mocked<typeof prisma>;
 
 // Define enums locally to avoid import issues
 const PlanType = {
