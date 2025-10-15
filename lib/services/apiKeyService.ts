@@ -42,6 +42,26 @@ export class ApiKeyService {
     return this.decrypt(record.encryptedKey);
   }
 
+  static async deleteApiKey(userId: string, provider: string): Promise<void> {
+    await prisma.apiKey.delete({
+      where: {
+        userId_provider: { userId, provider },
+      },
+    });
+  }
+
+  static async listApiKeys(userId: string) {
+    return prisma.apiKey.findMany({
+      where: { userId, isActive: true },
+      select: {
+        id: true,
+        provider: true,
+        lastUsed: true,
+        createdAt: true,
+      },
+    });
+  }
+
   private static encrypt(text: string): string {
     const iv = crypto.randomBytes(16);
     const cipher = crypto.createCipheriv(this.ALGORITHM, this.KEY, iv);
