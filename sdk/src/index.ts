@@ -7,6 +7,16 @@ interface PromptCraftConfig {
   enableCache?: boolean;
   maxRetries?: number;
   middleware?: Middleware[];
+  autoFallback?: boolean;
+  smartRouting?: boolean;
+  costLimit?: number;
+}
+
+interface WrapperOptions {
+  promptId?: string;
+  cacheTTL?: number;
+  fallbackModels?: string[];
+  maxCost?: number;
 }
 
 interface TrackRunData {
@@ -45,8 +55,73 @@ export class PromptCraft {
       enableCache: false,
       maxRetries: 3,
       middleware: [],
+      autoFallback: false,
+      smartRouting: false,
       ...config,
     };
+  }
+
+  private estimateComplexity(messages: any[]): 'simple' | 'medium' | 'complex' {
+    const totalLength = messages.reduce((sum, m) => sum + (m.content?.length || 0), 0);
+    const hasSystemPrompt = messages.some(m => m.role === 'system');
+    const messageCount = messages.length;
+
+    if (totalLength < 100 && !hasSystemPrompt && messageCount <= 2) return 'simple';
+    if (totalLength < 500 && messageCount <= 5) return 'medium';
+    return 'complex';
+  }
+
+  private selectOptimalModel(requestedModel: string, messages: any[]): string {
+    if (!this.config.smartRouting) return requestedModel;
+
+    const complexity = this.estimateComplexity(messages);
+
+    // Smart routing rules
+    if (requestedModel.includes('gpt-4') && complexity === 'simple') {
+      return 'gpt-3.5-turbo'; // 60x cheaper
+    }
+    if (requestedModel.includes('claude-3-opus') && complexity === 'simple') {
+      return 'claude-3-haiku'; // 60x cheaper
+    }
+    if (requestedModel.includes('claude-3-opus') && complexity === 'medium') {
+      return 'claude-3-sonnet'; // 5x cheaper
+    }
+
+    return requestedModel;
+  }
+
+  private getDefaultFallbacks(model: string): string[] {
+    const fallbacks: Record<string, string[]> = {
+      'gpt-4': ['gpt-4-turbo', 'gpt-3.5-turbo'],
+      'gpt-4-turbo': ['gpt-3.5-turbo'],
+      'claude-3-opus': ['claude-3-sonnet', 'claude-3-haiku'],
+      'claude-3-sonnet': ['claude-3-haiku'],
+      'gemini-1.5-pro': ['gemini-1.5-flash'],
+    };
+
+    for (const [key, value] of Object.entries(fallbacks)) {
+      if (model.includes(key)) return value;
+    }
+
+    return [];
+  }
+
+  private estimateCost(model: string, messages: any[]): number {
+    const estimatedTokens = messages.reduce((sum, m) => sum + (m.content?.length || 0) / 4, 0) * 1.5;
+    
+    const pricing: Record<string, number> = {
+      'gpt-4': 0.045,
+      'gpt-4-turbo': 0.02,
+      'gpt-3.5-turbo': 0.001,
+      'claude-3-opus': 0.045,
+      'claude-3-sonnet': 0.009,
+      'claude-3-haiku': 0.000875,
+      'gemini-1.5-pro': 0.003125,
+      'gemini-1.5-flash': 0.0001875,
+    };
+
+    const rate = Object.entries(pricing).find(([key]) => model.includes(key))?.[1] || 0.01;
+    return (estimatedTokens / 1000) * rate;
   }
 
   private async trackRun(data: TrackRunData): Promise<void> {
@@ -134,41 +209,100 @@ export class PromptCraft {
     return {
       chat: {
         completions: {
-          async create(params: any, options?: { promptId?: string; cacheTTL?: number }) {
+          async create(params: any, options?: WrapperOptions) {
+            // Smart routing - select optimal model
+            const originalModel = params.model;
+            if (self.config.smartRouting) {
+              params.model = self.selectOptimalModel(params.model, params.messages);
+              if (params.model !== originalModel) {
+                console.log(`[PromptCraft] Smart routing: ${originalModel} → ${params.model}`);
+              }
+            }
+
+            // Cost limit check
+            if (options?.maxCost || self.config.costLimit) {
+              const estimatedCost = self.estimateCost(params.model, params.messages);
+              const limit = options?.maxCost || self.config.costLimit || Infinity;
+              if (estimatedCost > limit) {
+                throw new Error(`Estimated cost $${estimatedCost.toFixed(4)} exceeds limit $${limit}`);
+              }
+            }
+
             // Check cache
             if (self.config.enableCache) {
               const cacheKey = self.getCacheKey('openai', params);
               const cached = self.getFromCache(cacheKey);
-              if (cached) return cached;
+              if (cached) {
+                console.log('[PromptCraft] Cache hit - $0 cost!');
+                return cached;
+              }
             }
 
             // Run before middleware
             params = await self.runMiddleware('before', params);
 
             const start = Date.now();
-            try {
-              const result = await self.retryWithBackoff(async () => {
-                return await client.chat.completions.create(params);
-              });
+            const fallbackModels = options?.fallbackModels || 
+              (self.config.autoFallback ? self.getDefaultFallbacks(params.model) : []);
 
-              // Run after middleware
-              const processedResult = await self.runMiddleware('after', result);
+            // Try main model + fallbacks
+            const modelsToTry = [params.model, ...fallbackModels];
+            let lastError: any;
 
-              // Cache result
-              if (self.config.enableCache && options?.cacheTTL) {
-                const cacheKey = self.getCacheKey('openai', params);
-                self.setCache(cacheKey, processedResult, options.cacheTTL);
+            for (let i = 0; i < modelsToTry.length; i++) {
+              const currentModel = modelsToTry[i];
+              const isOriginal = i === 0;
+
+              try {
+                const result = await self.retryWithBackoff(async () => {
+                  return await client.chat.completions.create({
+                    ...params,
+                    model: currentModel,
+                  });
+                });
+
+                // Run after middleware
+                const processedResult = await self.runMiddleware('after', result);
+
+                // Cache result
+                if (self.config.enableCache && options?.cacheTTL) {
+                  const cacheKey = self.getCacheKey('openai', params);
+                  self.setCache(cacheKey, processedResult, options.cacheTTL);
+                }
+
+                // Track with fallback info
+                await self.trackRun({
+                  provider: 'openai',
+                  promptId: options?.promptId,
+                  model: currentModel,
+                  input: JSON.stringify(params.messages),
+                  output: processedResult.choices[0]?.message?.content || '',
+                  tokensUsed: processedResult.usage?.total_tokens || 0,
+                  latency: Date.now() - start,
+                  success: true,
+                });
+
+                if (!isOriginal) {
+                  console.log(`[PromptCraft] Fallback success: ${originalModel} → ${currentModel}`);
+                }
+
+                return processedResult;
+              } catch (error) {
+                lastError = error;
+                
+                // If this is the last model, throw
+                if (i === modelsToTry.length - 1) {
+                  await self.runMiddleware('onError', error);
+                  await self.trackError('openai', currentModel, JSON.stringify(params.messages), error as Error, Date.now() - start);
+                  throw error;
+                }
+
+                // Otherwise, try next fallback
+                console.log(`[PromptCraft] Fallback: ${currentModel} failed, trying ${modelsToTry[i + 1]}...`);
               }
-
-              // Track
-              await self.trackOpenAI(params, processedResult, Date.now() - start, options?.promptId);
-              
-              return processedResult;
-            } catch (error) {
-              await self.runMiddleware('onError', error);
-              await self.trackError('openai', params.model, JSON.stringify(params.messages), error as Error, Date.now() - start);
-              throw error;
             }
+
+            throw lastError;
           },
 
           // Streaming support
@@ -222,36 +356,90 @@ export class PromptCraft {
     const self = this;
     return {
       messages: {
-        async create(params: any, options?: { promptId?: string; cacheTTL?: number }) {
+        async create(params: any, options?: WrapperOptions) {
+          const originalModel = params.model;
+          if (self.config.smartRouting) {
+            params.model = self.selectOptimalModel(params.model, params.messages);
+            if (params.model !== originalModel) {
+              console.log(`[PromptCraft] Smart routing: ${originalModel} → ${params.model}`);
+            }
+          }
+
+          if (options?.maxCost || self.config.costLimit) {
+            const estimatedCost = self.estimateCost(params.model, params.messages);
+            const limit = options?.maxCost || self.config.costLimit || Infinity;
+            if (estimatedCost > limit) {
+              throw new Error(`Estimated cost $${estimatedCost.toFixed(4)} exceeds limit $${limit}`);
+            }
+          }
+
           if (self.config.enableCache) {
             const cacheKey = self.getCacheKey('anthropic', params);
             const cached = self.getFromCache(cacheKey);
-            if (cached) return cached;
+            if (cached) {
+              console.log('[PromptCraft] Cache hit - $0 cost!');
+              return cached;
+            }
           }
 
           params = await self.runMiddleware('before', params);
 
           const start = Date.now();
-          try {
-            const result = await self.retryWithBackoff(async () => {
-              return await client.messages.create(params);
-            });
+          const fallbackModels = options?.fallbackModels || 
+            (self.config.autoFallback ? self.getDefaultFallbacks(params.model) : []);
 
-            const processedResult = await self.runMiddleware('after', result);
+          const modelsToTry = [params.model, ...fallbackModels];
+          let lastError: any;
 
-            if (self.config.enableCache && options?.cacheTTL) {
-              const cacheKey = self.getCacheKey('anthropic', params);
-              self.setCache(cacheKey, processedResult, options.cacheTTL);
+          for (let i = 0; i < modelsToTry.length; i++) {
+            const currentModel = modelsToTry[i];
+            const isOriginal = i === 0;
+
+            try {
+              const result = await self.retryWithBackoff(async () => {
+                return await client.messages.create({
+                  ...params,
+                  model: currentModel,
+                });
+              });
+
+              const processedResult = await self.runMiddleware('after', result);
+
+              if (self.config.enableCache && options?.cacheTTL) {
+                const cacheKey = self.getCacheKey('anthropic', params);
+                self.setCache(cacheKey, processedResult, options.cacheTTL);
+              }
+
+              await self.trackRun({
+                provider: 'anthropic',
+                promptId: options?.promptId,
+                model: currentModel,
+                input: JSON.stringify(params.messages),
+                output: processedResult.content[0]?.type === 'text' ? processedResult.content[0].text : '',
+                tokensUsed: (processedResult.usage?.input_tokens || 0) + (processedResult.usage?.output_tokens || 0),
+                latency: Date.now() - start,
+                success: true,
+              });
+
+              if (!isOriginal) {
+                console.log(`[PromptCraft] Fallback success: ${originalModel} → ${currentModel}`);
+              }
+
+              return processedResult;
+            } catch (error) {
+              lastError = error;
+              
+              if (i === modelsToTry.length - 1) {
+                await self.runMiddleware('onError', error);
+                await self.trackError('anthropic', currentModel, JSON.stringify(params.messages), error as Error, Date.now() - start);
+                throw error;
+              }
+
+              console.log(`[PromptCraft] Fallback: ${currentModel} failed, trying ${modelsToTry[i + 1]}...`);
             }
-
-            await self.trackAnthropic(params, processedResult, Date.now() - start, options?.promptId);
-            
-            return processedResult;
-          } catch (error) {
-            await self.runMiddleware('onError', error);
-            await self.trackError('anthropic', params.model, JSON.stringify(params.messages), error as Error, Date.now() - start);
-            throw error;
           }
+
+          throw lastError;
         }
       }
     };

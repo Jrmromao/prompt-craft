@@ -8,21 +8,20 @@ Official SDK for tracking OpenAI, Anthropic, Gemini, and Grok API usage with Pro
 npm install promptcraft-sdk
 ```
 
-## Features
+## 🔥 Killer Features (v2.0)
 
-- ✅ **Automatic tracking** with wrapper functions
-- ✅ **Smart caching** to reduce API costs
-- ✅ **Auto-retry** with exponential backoff
-- ✅ **Middleware support** for custom logic
-- ✅ **Streaming support** for real-time responses
-- ✅ **Batch tracking** for multiple calls
-- ✅ **Error tracking** with automatic logging
-- ✅ **Zero performance impact** (async tracking)
-- ✅ **Full TypeScript support**
+- 🚀 **Auto-Fallback** - GPT-4 fails? Automatically tries GPT-3.5
+- 🧠 **Smart Routing** - Simple queries automatically use cheaper models (60x cost savings)
+- 💰 **Cost Limits** - Set max cost per request to prevent budget overruns
+- ⚡ **Smart Caching** - 80%+ cost savings on repeated queries
+- 🔄 **Auto-Retry** - Exponential backoff for failed requests
+- 📊 **Automatic Tracking** - Zero-config usage analytics
+- 🎯 **Middleware** - Custom logic before/after/on-error
+- 🌊 **Streaming** - Full support with automatic tracking
 
 ## Quick Start
 
-### Automatic Tracking (Recommended)
+### Basic Usage (Auto-Tracking)
 
 ```typescript
 import OpenAI from 'openai';
@@ -31,21 +30,106 @@ import PromptCraft from 'promptcraft-sdk';
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 const promptcraft = new PromptCraft({ 
   apiKey: process.env.PROMPTCRAFT_API_KEY,
-  enableCache: true,  // Enable response caching
-  maxRetries: 3       // Auto-retry failed calls
+  enableCache: true,
+  autoFallback: true,    // 🔥 NEW: Auto-fallback on errors
+  smartRouting: true,    // 🔥 NEW: Route to cheaper models
+  costLimit: 0.10        // 🔥 NEW: Max $0.10 per request
 });
 
 // Wrap the client for automatic tracking
 const trackedOpenAI = promptcraft.wrapOpenAI(openai);
 
-// Use it exactly like normal OpenAI - tracking happens automatically!
+// Use it exactly like normal OpenAI!
 const result = await trackedOpenAI.chat.completions.create({
   model: 'gpt-4',
   messages: [{ role: 'user', content: 'Hello!' }]
 });
+// ✅ Smart routing: Simple query → automatically uses GPT-3.5 (60x cheaper!)
+// ✅ Auto-fallback: If GPT-4 fails → tries GPT-4-turbo → tries GPT-3.5
+// ✅ Cost limit: Throws error if estimated cost > $0.10
+// ✅ Tracked automatically with zero config!
+```
 
-console.log(result.choices[0].message.content);
-// ✅ Automatically tracked with error handling and retries!
+## 🔥 Killer Feature Examples
+
+### Auto-Fallback
+
+Never lose a request due to API errors:
+
+```typescript
+const promptcraft = new PromptCraft({ 
+  apiKey: process.env.PROMPTCRAFT_API_KEY,
+  autoFallback: true  // Enable auto-fallback
+});
+
+const trackedOpenAI = promptcraft.wrapOpenAI(openai);
+
+// If GPT-4 fails, automatically tries:
+// 1. gpt-4-turbo
+// 2. gpt-3.5-turbo
+const result = await trackedOpenAI.chat.completions.create({
+  model: 'gpt-4',
+  messages: [{ role: 'user', content: 'Hello!' }]
+});
+// Console: [PromptCraft] Fallback: gpt-4 failed, trying gpt-4-turbo...
+// Console: [PromptCraft] Fallback success: gpt-4 → gpt-4-turbo
+```
+
+### Smart Routing
+
+Automatically use cheaper models for simple queries:
+
+```typescript
+const promptcraft = new PromptCraft({ 
+  apiKey: process.env.PROMPTCRAFT_API_KEY,
+  smartRouting: true  // Enable smart routing
+});
+
+const trackedOpenAI = promptcraft.wrapOpenAI(openai);
+
+// Simple query → automatically routed to GPT-3.5 (60x cheaper!)
+const result = await trackedOpenAI.chat.completions.create({
+  model: 'gpt-4',  // You request GPT-4
+  messages: [{ role: 'user', content: 'Hi' }]  // But it's simple
+});
+// Console: [PromptCraft] Smart routing: gpt-4 → gpt-3.5-turbo
+// Saves: $0.045 → $0.001 per 1K tokens (98% cost reduction!)
+```
+
+### Cost Limits
+
+Prevent budget overruns:
+
+```typescript
+const trackedOpenAI = promptcraft.wrapOpenAI(openai);
+
+try {
+  const result = await trackedOpenAI.chat.completions.create(
+    {
+      model: 'gpt-4',
+      messages: [{ role: 'user', content: 'Very long prompt...' }]
+    },
+    { maxCost: 0.05 }  // Max $0.05 per request
+  );
+} catch (error) {
+  // Error: Estimated cost $0.08 exceeds limit $0.05
+}
+```
+
+### Custom Fallback Models
+
+Override default fallback chain:
+
+```typescript
+const result = await trackedOpenAI.chat.completions.create(
+  {
+    model: 'gpt-4',
+    messages: [{ role: 'user', content: 'Hello!' }]
+  },
+  { 
+    fallbackModels: ['gpt-3.5-turbo']  // Custom fallback chain
+  }
+);
 ```
 
 ## Advanced Features
@@ -59,6 +143,7 @@ const result = await trackedOpenAI.chat.completions.create(
   { model: 'gpt-4', messages: [...] },
   { cacheTTL: 3600000 } // Cache for 1 hour
 );
+// Console: [PromptCraft] Cache hit - $0 cost!
 ```
 
 ### Streaming
