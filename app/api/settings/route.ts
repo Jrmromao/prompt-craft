@@ -3,7 +3,7 @@ import { auth } from '@clerk/nextjs/server';
 import { SettingsService } from '@/lib/services/settingsService';
 import { AuditService } from '@/lib/services/auditService';
 import { AuditAction } from '@/app/constants/audit';
-import { UserService } from '@/lib/services/UserService';
+import { UserService } from '@/lib/services/userService';
 
 // Export dynamic configuration 
 export const dynamic = 'force-dynamic';

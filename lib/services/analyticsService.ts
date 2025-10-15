@@ -4,6 +4,7 @@
  */
 
 import { prisma } from '@/lib/prisma';
+import { CacheService } from './cacheService';
 
 export interface AnalyticsOverview {
   totalRuns: number;
@@ -37,6 +38,7 @@ export interface TimeSeriesData {
 
 export class AnalyticsService {
   private static instance: AnalyticsService;
+  private cache = CacheService.getInstance();
 
   static getInstance(): AnalyticsService {
     if (!this.instance) {
@@ -45,11 +47,42 @@ export class AnalyticsService {
     return this.instance;
   }
 
+  async getAnalytics(params: { period: string; type: string }) {
+    const endDate = new Date();
+    const startDate = new Date();
+    
+    if (params.period === 'weekly') {
+      startDate.setDate(startDate.getDate() - 7);
+    } else if (params.period === 'monthly') {
+      startDate.setMonth(startDate.getMonth() - 1);
+    }
+
+    const runs = await prisma.promptRun.findMany({
+      where: {
+        createdAt: {
+          gte: startDate,
+          lte: endDate,
+        },
+      },
+    });
+
+    return {
+      totalRuns: runs.length,
+      totalCost: runs.reduce((sum, run) => sum + run.cost, 0),
+      totalTokens: runs.reduce((sum, run) => sum + run.totalTokens, 0),
+    };
+  }
+
   async getOverview(
     userId: string,
     startDate: Date,
     endDate: Date
   ): Promise<AnalyticsOverview> {
+    // Check cache
+    const cacheKey = this.cache.getUserAnalytics(userId, `${startDate.getTime()}-${endDate.getTime()}`);
+    const cached = await this.cache.get<AnalyticsOverview>(cacheKey);
+    if (cached) return cached;
+
     const runs = await prisma.promptRun.findMany({
       where: {
         userId,
@@ -100,7 +133,7 @@ export class AnalyticsService {
       },
     });
 
-    return {
+    const result = {
       totalRuns,
       totalCost,
       totalTokens,
@@ -112,6 +145,11 @@ export class AnalyticsService {
         cost: totalCost - (prevCost._sum.cost || 0),
       },
     };
+
+    // Cache result
+    await this.cache.set(cacheKey, result, 300);
+
+    return result;
   }
 
   async getModelBreakdown(

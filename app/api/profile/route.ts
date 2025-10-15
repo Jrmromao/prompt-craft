@@ -7,7 +7,7 @@ import { dynamicRouteConfig } from '@/lib/utils/dynamicRoute';
 import { trackUserFlowError, trackUserFlowEvent } from '@/lib/error-tracking';
 import { AuditAction } from '@/app/constants/audit';
 import { AuditService } from '@/lib/services/auditService';
-import { UserService } from '@/lib/services/UserService';
+import { UserService } from '@/lib/services/userService';
 
 // Export dynamic configuration
 export const { dynamic, revalidate, runtime } = dynamicRouteConfig;

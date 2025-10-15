@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { prisma } from '@/lib/prisma';
-import { UserService } from '@/lib/services/UserService';
+import { UserService } from '@/lib/services/userService';
 
 export async function GET() {
   try {

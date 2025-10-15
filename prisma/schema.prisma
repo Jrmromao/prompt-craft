@@ -1039,6 +1039,7 @@ model User {
   creditCap                                                  Int                        @default(100)
   lastCreditReset                                            DateTime?
   stripeCustomerId                                           String?
+  stripeSubscriptionId                                       String?
   planType                                                   PlanType                   @default(FREE)
   imageUrl                                                   String?
   bio                                                        String?
@@ -1141,6 +1142,8 @@ model User {
   VotePattern                                                VotePattern[]
   VoteReward_VoteReward_promptAuthorIdToUser                 VoteReward[]               @relation("VoteReward_promptAuthorIdToUser")
   VoteReward_VoteReward_voterIdToUser                        VoteReward[]               @relation("VoteReward_voterIdToUser")
+  PromptRuns                                                 PromptRun[]                @relation("UserPromptRuns")
+  Alerts                                                     Alert[]                    @relation("UserAlerts")
 
   @@index([clerkId])
   @@index([dataRetentionPeriod])
@@ -1489,6 +1492,47 @@ enum Role {
   USER
   ADMIN
   SUPER_ADMIN
+}
+
+// Analytics Platform Models
+model PromptRun {
+  id          String   @id @default(cuid())
+  userId      String
+  promptId    String
+  provider    String
+  model       String
+  input       String   @db.Text
+  output      String   @db.Text
+  tokensUsed  Int
+  totalTokens Int      @default(0)
+  cost        Float
+  latency     Int
+  success     Boolean
+  error       String?
+  createdAt   DateTime @default(now())
+  
+  user        User     @relation("UserPromptRuns", fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId, createdAt])
+  @@index([promptId])
+  @@index([provider])
+  @@index([model])
+  @@index([success])
+}
+
+model Alert {
+  id        String    @id @default(cuid())
+  userId    String
+  type      String
+  threshold Float
+  enabled   Boolean   @default(true)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  
+  user      User      @relation("UserAlerts", fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+  @@index([enabled])
 }
 
 enum SeasonalTier {

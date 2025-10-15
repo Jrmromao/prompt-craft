@@ -33,23 +33,6 @@ export function ClientLayout({ children }: ClientLayoutProps) {
         </Providers>
       </ErrorBoundary>
       <Toaster />
-      
-      {/* PWA Registration */}
-      <script
-        dangerouslySetInnerHTML={{
-          __html: `
-            if ('serviceWorker' in navigator) {
-              window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js')
-                  .then((registration) => {
-                  })
-                  .catch((registrationError) => {
-                  });
-              });
-            }
-          `,
-        }}
-      />
     </ClerkProviderWrapper>
   );
 }

@@ -117,7 +117,7 @@ function BillingContent() {
       <div className="mx-auto max-w-3xl">
         <h1 className="mb-8 text-3xl font-bold">Billing & Subscription</h1>
 
-        {subscription ? (
+        {subscription && subscription.plan ? (
           <>
             <Card>
               <CardHeader>

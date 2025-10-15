@@ -1,70 +1,34 @@
 import { prisma } from '@/lib/prisma';
 import crypto from 'crypto';
 
-const ENCRYPTION_KEY = process.env.API_KEY_ENCRYPTION_KEY || 'default-key-change-in-production';
-const ALGORITHM = 'aes-256-cbc';
-
 export class ApiKeyService {
-  private static encrypt(text: string): string {
-    const iv = crypto.randomBytes(16);
-    const key = crypto.scryptSync(ENCRYPTION_KEY, 'salt', 32);
-    const cipher = crypto.createCipheriv(ALGORITHM, key, iv);
-    
-    let encrypted = cipher.update(text, 'utf8', 'hex');
-    encrypted += cipher.final('hex');
-    
-    return iv.toString('hex') + ':' + encrypted;
-  }
+  private static readonly ALGORITHM = 'aes-256-cbc';
+  private static readonly KEY = crypto.scryptSync(process.env.ENCRYPTION_KEY || 'default-key', 'salt', 32);
 
-  private static decrypt(text: string): string {
-    const parts = text.split(':');
-    const iv = Buffer.from(parts[0], 'hex');
-    const encrypted = parts[1];
-    const key = crypto.scryptSync(ENCRYPTION_KEY, 'salt', 32);
-    const decipher = crypto.createDecipheriv(ALGORITHM, key, iv);
-    
-    let decrypted = decipher.update(encrypted, 'hex', 'utf8');
-    decrypted += decipher.final('utf8');
-    
-    return decrypted;
-  }
-
-  static async saveApiKey(
-    userId: string,
-    provider: 'openai' | 'anthropic',
-    apiKey: string
-  ): Promise<void> {
+  static async saveApiKey(userId: string, provider: string, apiKey: string): Promise<void> {
     const encrypted = this.encrypt(apiKey);
-    const preview = apiKey.slice(-4);
-
+    
     await prisma.apiKey.upsert({
       where: {
         userId_provider: { userId, provider },
       },
       update: {
         encryptedKey: encrypted,
-        keyPreview: preview,
-        isActive: true,
-        updatedAt: new Date(),
+        lastUsed: new Date(),
       },
       create: {
         userId,
         provider,
         encryptedKey: encrypted,
-        keyPreview: preview,
-        isActive: true,
+        lastUsed: new Date(),
       },
     });
   }
 
-  static async getApiKey(
-    userId: string,
-    provider: 'openai' | 'anthropic'
-  ): Promise<string | null> {
+  static async getApiKey(userId: string, provider: string): Promise<string | null> {
     const record = await prisma.apiKey.findUnique({
       where: {
         userId_provider: { userId, provider },
-        isActive: true,
       },
     });
 
@@ -72,25 +36,16 @@ export class ApiKeyService {
 
     await prisma.apiKey.update({
       where: { id: record.id },
-      data: {
-        lastUsed: new Date(),
-        usageCount: { increment: 1 },
-      },
+      data: { lastUsed: new Date() },
     });
 
     return this.decrypt(record.encryptedKey);
   }
 
-  static async deleteApiKey(
-    userId: string,
-    provider: 'openai' | 'anthropic'
-  ): Promise<void> {
-    await prisma.apiKey.update({
+  static async deleteApiKey(userId: string, provider: string): Promise<void> {
+    await prisma.apiKey.delete({
       where: {
         userId_provider: { userId, provider },
-      },
-      data: {
-        isActive: false,
       },
     });
   }
@@ -101,11 +56,25 @@ export class ApiKeyService {
       select: {
         id: true,
         provider: true,
-        keyPreview: true,
         lastUsed: true,
-        usageCount: true,
         createdAt: true,
       },
     });
+  }
+
+  private static encrypt(text: string): string {
+    const iv = crypto.randomBytes(16);
+    const cipher = crypto.createCipheriv(this.ALGORITHM, this.KEY, iv);
+    const encrypted = Buffer.concat([cipher.update(text), cipher.final()]);
+    return `${iv.toString('hex')}:${encrypted.toString('hex')}`;
+  }
+
+  private static decrypt(text: string): string {
+    const [ivHex, encryptedHex] = text.split(':');
+    const iv = Buffer.from(ivHex, 'hex');
+    const encrypted = Buffer.from(encryptedHex, 'hex');
+    const decipher = crypto.createDecipheriv(this.ALGORITHM, this.KEY, iv);
+    const decrypted = Buffer.concat([decipher.update(encrypted), decipher.final()]);
+    return decrypted.toString();
   }
 }

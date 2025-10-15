@@ -1,8 +1,8 @@
 {
-  "name": "PromptHive",
-  "version": "0.1.0",
+  "name": "promptcraft-analytics",
+  "version": "1.0.0",
   "private": true,
-  "license": "UNLICENSED",
+  "license": "MIT",
   "scripts": {
     "build:check": "yarn tsc --noEmit",
     "test": "jest --config jest.config.js",
@@ -15,7 +15,7 @@
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:debug": "playwright test --debug",
     "test:e2e:report": "playwright show-report",
-    "dev": "next dev",
+    "dev": "next dev --turbo",
     "dev:debug:turbo": "next dev --turbopack --turbo",
     "dev:debug:ui": "next dev --turbopack --turbo --experimental-https",
     "dev:ngrok": "ngrok http 3000",

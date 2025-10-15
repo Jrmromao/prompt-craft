@@ -1,112 +1,151 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
-import { z } from 'zod';
-import { generateApiKey, rotateApiKey, listApiKeys, deleteApiKey } from '@/utils/api-keys';
-import { AuditService } from '@/lib/services/auditService';
-import { AuditAction } from '@/app/constants/audit';
-import { getDatabaseIdFromClerk } from '@/lib/utils/auth';
+import { prisma } from '@/lib/prisma';
+import crypto from 'crypto';
 
-// Export dynamic configuration
 export const dynamic = 'force-dynamic';
-export const revalidate = 0;
 
-// Schema for creating a new API key
-const createApiKeySchema = z.object({
-  name: z.string().min(3).max(50),
-  expiresIn: z.number().min(1).max(365).optional(), // Days until expiration
-  scopes: z.array(z.string()).optional(),
-});
-
-// GET: List API keys
-export async function GET(request: Request, context: any) {
-  const { userId } = await auth();
-  if (!userId) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
-  const apiKeys = await listApiKeys(userId);
-  return NextResponse.json(apiKeys);
+function hashApiKey(key: string): string {
+  return crypto.createHash('sha256').update(key).digest('hex');
 }
 
-// POST: Create a new API key
-export async function POST(request: Request, context: any) {
+// GET: List API keys
+export async function GET() {
   try {
-    const { userId } = await auth();
-    if (!userId) {
+    const { userId: clerkUserId } = await auth();
+    if (!clerkUserId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const body = await request.json();
-    const data = createApiKeySchema.parse(body);
-
-    // Calculate expiration date if provided
-    const expiresAt = data.expiresIn
-      ? new Date(Date.now() + data.expiresIn * 24 * 60 * 60 * 1000)
-      : undefined;
-
-    const apiKey = await generateApiKey(userId, {
-      name: data.name,
-      expiresAt,
-      scopes: data.scopes,
+    const user = await prisma.user.findUnique({
+      where: { clerkId: clerkUserId },
+      include: {
+        apiKeys: {
+          orderBy: { createdAt: 'desc' },
+          select: {
+            id: true,
+            name: true,
+            hashedKey: true,
+            createdAt: true,
+          },
+        },
+      },
     });
 
-    const { userDatabaseId, error } = await getDatabaseIdFromClerk(userId);
-    if (error) {
+    if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    // Audit log for API key creation
-    await AuditService.getInstance().logAudit({
-      action: AuditAction.API_KEY_CREATED,
-      userId: userDatabaseId,
-      resource: 'apiKey',
-      details: { name: data.name, expiresAt, scopes: data.scopes },
-    });
+    // Return masked keys (we can't unmask hashed keys)
+    const maskedKeys = user.apiKeys.map(key => ({
+      id: key.id,
+      name: key.name,
+      maskedKey: `pc_${'*'.repeat(56)}`, // Show format but hide actual key
+      createdAt: key.createdAt,
+    }));
 
-    return NextResponse.json(apiKey);
+    return NextResponse.json({ keys: maskedKeys });
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        {
-          error: 'Validation Error',
-          details: error.errors,
-        },
-        { status: 400 }
-      );
-    }
-
-    console.error('Error creating API key:', error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    console.error('Failed to fetch API keys:', error);
+    return NextResponse.json({ error: 'Failed to fetch API keys' }, { status: 500 });
   }
 }
 
-export async function DELETE(req: Request) {
+// POST: Create new API key
+export async function POST(request: Request) {
   try {
-    const { userId } = await auth();
-    if (!userId) {
-      return new NextResponse('Unauthorized', { status: 401 });
+    const { userId: clerkUserId } = await auth();
+    if (!clerkUserId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { searchParams } = new URL(req.url);
-    const keyId = searchParams.get('id');
-
-    if (!keyId) {
-      return new NextResponse('Missing key ID', { status: 400 });
-    }
-
-    await deleteApiKey(userId, keyId);
-
-    // Audit log for API key deletion
-    await AuditService.getInstance().logAudit({
-      action: AuditAction.API_KEY_REVOKED,
-      userId,
-      resource: 'apiKey',
-      details: { keyId },
+    const user = await prisma.user.findUnique({
+      where: { clerkId: clerkUserId },
     });
 
-    return new NextResponse(null, { status: 204 });
+    if (!user) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+
+    const { name } = await request.json();
+
+    if (!name || name.trim().length < 3) {
+      return NextResponse.json({ error: 'Name must be at least 3 characters' }, { status: 400 });
+    }
+
+    // Generate secure API key
+    const apiKey = `pc_${crypto.randomBytes(32).toString('hex')}`;
+    const hashedKey = hashApiKey(apiKey);
+
+    const newKey = await prisma.apiKey.create({
+      data: {
+        id: crypto.randomUUID(),
+        userId: user.id,
+        name: name.trim(),
+        hashedKey: hashedKey,
+        lastRotatedAt: new Date(),
+        updatedAt: new Date(),
+        scopes: [],
+      },
+    });
+
+    // Return the full key only once (on creation)
+    return NextResponse.json({
+      key: {
+        id: newKey.id,
+        name: newKey.name,
+        key: apiKey, // Full key shown only once!
+        createdAt: newKey.createdAt,
+      },
+    });
   } catch (error) {
-    console.error('Error deleting API key:', error);
-    return new NextResponse('Internal Server Error', { status: 500 });
+    console.error('Failed to create API key:', error);
+    return NextResponse.json({ error: 'Failed to create API key' }, { status: 500 });
+  }
+}
+
+// DELETE: Delete API key
+export async function DELETE(request: Request) {
+  try {
+    const { userId: clerkUserId } = await auth();
+    if (!clerkUserId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { clerkId: clerkUserId },
+    });
+
+    if (!user) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+
+    const { searchParams } = new URL(request.url);
+    const keyId = searchParams.get('keyId');
+
+    if (!keyId) {
+      return NextResponse.json({ error: 'Key ID required' }, { status: 400 });
+    }
+
+    // Verify the key belongs to the user before deleting
+    const apiKey = await prisma.apiKey.findFirst({
+      where: {
+        id: keyId,
+        userId: user.id,
+      },
+    });
+
+    if (!apiKey) {
+      return NextResponse.json({ error: 'API key not found' }, { status: 404 });
+    }
+
+    await prisma.apiKey.delete({
+      where: { id: keyId },
+    });
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error('Failed to delete API key:', error);
+    return NextResponse.json({ error: 'Failed to delete API key' }, { status: 500 });
   }
 }

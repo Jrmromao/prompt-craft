@@ -1,0 +1,48 @@
+{
+  "name": "promptcraft-sdk",
+  "version": "0.1.0",
+  "description": "Official SDK for PromptCraft - Track and optimize your AI costs",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "prepublishOnly": "npm run build",
+    "test": "echo \"No tests yet\" && exit 0"
+  },
+  "keywords": [
+    "ai",
+    "openai",
+    "anthropic",
+    "cost-tracking",
+    "analytics",
+    "llm",
+    "gpt",
+    "claude",
+    "monitoring",
+    "observability"
+  ],
+  "author": "PromptCraft",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/promptcraft/sdk"
+  },
+  "bugs": {
+    "url": "https://github.com/promptcraft/sdk/issues"
+  },
+  "homepage": "https://promptcraft.app",
+  "peerDependencies": {
+    "openai": ">=4.0.0",
+    "@anthropic-ai/sdk": ">=0.20.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0",
+    "@types/node": "^20.0.0",
+    "openai": "^4.0.0",
+    "@anthropic-ai/sdk": "^0.20.0"
+  }
+}

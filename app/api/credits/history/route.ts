@@ -1,4 +1,4 @@
-import { UserService } from '@/lib/services/UserService';
+import { UserService } from '@/lib/services/userService';
 import { currentUser } from '@clerk/nextjs/server';
 import { NextResponse } from 'next/server';
 
