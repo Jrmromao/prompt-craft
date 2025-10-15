@@ -4,7 +4,7 @@ import { useUser } from '@clerk/nextjs';
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Crown, Zap, DollarSign, TrendingUp, BarChart3, AlertCircle, Activity, Clock, Settings } from 'lucide-react';
+import { Crown, Zap, DollarSign, TrendingUp, BarChart3, AlertCircle, Activity, Clock, Settings, Copy, Check, Key } from 'lucide-react';
 import Link from 'next/link';
 
 interface DashboardStats {
@@ -30,6 +30,9 @@ export default function DashboardPage() {
   const { user } = useUser();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [apiKey, setApiKey] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+  const [generatingKey, setGeneratingKey] = useState(false);
 
   useEffect(() => {
     fetch('/api/dashboard/stats')
@@ -42,7 +45,37 @@ export default function DashboardPage() {
         console.error('Failed to fetch stats:', err);
         setLoading(false);
       });
+
+    // Fetch API key
+    fetch('/api/keys')
+      .then(res => res.json())
+      .then(data => {
+        if (data.apiKeys && data.apiKeys.length > 0) {
+          setApiKey(data.apiKeys[0].key);
+        }
+      });
   }, []);
+
+  const generateApiKey = async () => {
+    setGeneratingKey(true);
+    try {
+      const res = await fetch('/api/keys/generate', { method: 'POST' });
+      const data = await res.json();
+      if (data.apiKey) {
+        setApiKey(data.apiKey);
+      }
+    } catch (error) {
+      console.error('Failed to generate API key:', error);
+    } finally {
+      setGeneratingKey(false);
+    }
+  };
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   const percentUsed = stats ? (stats.monthlyRuns / stats.monthlyLimit) * 100 : 0;
   const isNearLimit = percentUsed > 80;
@@ -69,6 +102,90 @@ export default function DashboardPage() {
           </Link>
         </div>
       </div>
+
+      {/* Quick Start Widget */}
+      {!apiKey ? (
+        <Card className="bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-950/20 dark:to-blue-950/20 border-purple-200 dark:border-purple-800">
+          <CardContent className="p-6">
+            <div className="flex items-start gap-4">
+              <Key className="w-8 h-8 text-purple-600 flex-shrink-0" />
+              <div className="flex-1">
+                <h3 className="text-lg font-semibold mb-2">🚀 Get Started in 2 Minutes</h3>
+                <p className="text-muted-foreground mb-4">
+                  Generate your API key and start saving 30-60% on AI costs automatically.
+                </p>
+                <Button onClick={generateApiKey} disabled={generatingKey} size="lg">
+                  {generatingKey ? 'Generating...' : 'Generate API Key'}
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      ) : (
+        <Card className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20 border-green-200 dark:border-green-800">
+          <CardContent className="p-6">
+            <h3 className="text-lg font-semibold mb-4">🎉 Quick Start - Copy & Run</h3>
+            
+            {/* API Key */}
+            <div className="mb-4">
+              <label className="text-sm font-medium mb-2 block">Your API Key</label>
+              <div className="flex gap-2">
+                <code className="flex-1 px-4 py-2 bg-white dark:bg-gray-900 border rounded-lg text-sm font-mono">
+                  {apiKey}
+                </code>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => copyToClipboard(apiKey)}
+                >
+                  {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                </Button>
+              </div>
+            </div>
+
+            {/* Code Example */}
+            <div>
+              <label className="text-sm font-medium mb-2 block">Install & Use</label>
+              <div className="bg-gray-900 text-gray-100 p-4 rounded-lg text-sm font-mono space-y-2">
+                <div className="text-gray-400"># Install SDK</div>
+                <div>npm install promptcraft-sdk</div>
+                <div className="text-gray-400 mt-4"># Use in your code</div>
+                <div>import OpenAI from 'openai';</div>
+                <div>import PromptCraft from 'promptcraft-sdk';</div>
+                <div className="mt-2">const openai = new OpenAI();</div>
+                <div>const promptcraft = new PromptCraft({'{'}</div>
+                <div>  apiKey: '{apiKey}'</div>
+                <div>{'}'});</div>
+                <div className="mt-2">const tracked = promptcraft.wrapOpenAI(openai);</div>
+                <div className="mt-2 text-gray-400">// Use exactly like normal OpenAI!</div>
+                <div>const result = await tracked.chat.completions.create({'{'}</div>
+                <div>  model: 'gpt-4',</div>
+                <div>  messages: [{'{'} role: 'user', content: 'Hello!' {'}'}]</div>
+                <div>{'}'});</div>
+                <div className="mt-2 text-green-400">// ✅ Smart routing saves 30-60% automatically!</div>
+              </div>
+              <Button
+                className="w-full mt-4"
+                onClick={() => copyToClipboard(`npm install promptcraft-sdk
+
+import OpenAI from 'openai';
+import PromptCraft from 'promptcraft-sdk';
+
+const openai = new OpenAI();
+const promptcraft = new PromptCraft({ apiKey: '${apiKey}' });
+const tracked = promptcraft.wrapOpenAI(openai);
+
+const result = await tracked.chat.completions.create({
+  model: 'gpt-4',
+  messages: [{ role: 'user', content: 'Hello!' }]
+});`)}
+              >
+                {copied ? 'Copied!' : 'Copy Code'}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Savings Banner */}
       {stats && stats.savings.total > 0 && (
