@@ -278,25 +278,25 @@ const result = await tracked.chat.completions.create({
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <StatCard
             title="Tracked Runs"
-            value={`${stats.monthlyRuns.toLocaleString()}/${stats.monthlyLimit === -1 ? '∞' : stats.monthlyLimit.toLocaleString()}`}
+            value={`${(stats.monthlyRuns || 0).toLocaleString()}/${stats.monthlyLimit === -1 ? '∞' : (stats.monthlyLimit || 0).toLocaleString()}`}
             icon={<Activity className="w-4 h-4 text-blue-600" />}
             subtitle="This month"
           />
           <StatCard
             title="Total Cost"
-            value={`$${stats.totalCost.toFixed(2)}`}
+            value={`$${(stats.totalCost || 0).toFixed(2)}`}
             icon={<DollarSign className="w-4 h-4 text-green-600" />}
             subtitle="All time"
           />
           <StatCard
             title="Avg Cost/Run"
-            value={`$${stats.avgCostPerRun.toFixed(4)}`}
+            value={`$${(stats.avgCostPerRun || 0).toFixed(4)}`}
             icon={<TrendingUp className="w-4 h-4 text-purple-600" />}
             subtitle="Per API call"
           />
           <StatCard
             title="Success Rate"
-            value={`${stats.successRate}%`}
+            value={`${(stats.successRate || 0).toFixed(1)}%`}
             icon={<BarChart3 className="w-4 h-4 text-orange-600" />}
             subtitle={`${stats.totalRuns} total runs`}
           />
