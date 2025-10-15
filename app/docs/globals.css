@@ -1,0 +1,76 @@
+/* Documentation Styles */
+.prose {
+  @apply text-gray-700;
+}
+
+.prose h1 {
+  @apply text-4xl font-bold text-gray-900 mb-4 pb-4 border-b;
+}
+
+.prose h2 {
+  @apply text-2xl font-bold text-gray-900 mt-12 mb-4;
+}
+
+.prose h3 {
+  @apply text-xl font-semibold text-gray-900 mt-8 mb-3;
+}
+
+.prose h4 {
+  @apply text-lg font-semibold text-gray-900 mt-6 mb-2;
+}
+
+.prose p {
+  @apply text-base text-gray-700 leading-7 mb-4;
+}
+
+.prose .lead {
+  @apply text-xl text-gray-600 mb-8;
+}
+
+.prose ul {
+  @apply list-disc pl-6 mb-4 space-y-2;
+}
+
+.prose ol {
+  @apply list-decimal pl-6 mb-4 space-y-2;
+}
+
+.prose li {
+  @apply text-gray-700;
+}
+
+.prose code {
+  @apply bg-gray-100 text-gray-900 px-1.5 py-0.5 rounded text-sm font-mono;
+}
+
+.prose pre {
+  @apply bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto mb-6 text-sm;
+}
+
+.prose pre code {
+  @apply bg-transparent text-gray-100 p-0;
+}
+
+.prose a {
+  @apply text-blue-600 hover:text-blue-700 underline;
+}
+
+.prose table {
+  @apply w-full border-collapse mb-6;
+}
+
+.prose thead {
+  @apply bg-gray-50;
+}
+
+.prose th {
+  @apply border border-gray-300 px-4 py-2 text-left font-semibold text-gray-900;
+}
+
+.prose td {
+  @apply border border-gray-300 px-4 py-2 text-gray-700;
+}
+
+.prose strong {
+  @apply font-semibold text-gray-900;
+}
