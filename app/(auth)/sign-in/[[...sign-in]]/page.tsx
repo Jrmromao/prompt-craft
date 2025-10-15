@@ -1,20 +1,23 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useSignIn } from '@clerk/nextjs';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Sparkles, ArrowLeft, Eye, EyeOff } from 'lucide-react';
 
 export default function SignInPage() {
   const { signIn, isLoaded } = useSignIn();
   const router = useRouter();
+  const searchParams = useSearchParams();
   
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  const redirectUrl = searchParams.get('redirect_url') || '/dashboard';
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,7 +33,8 @@ export default function SignInPage() {
       });
       
       if (result.status === 'complete') {
-        router.push('/dashboard');
+        await signIn.setActive({ session: result.createdSessionId });
+        router.push(redirectUrl);
       }
     } catch (err: any) {
       setError(err?.errors?.[0]?.message || 'Sign in failed. Please try again.');
@@ -46,7 +50,7 @@ export default function SignInPage() {
       await signIn.authenticateWithRedirect({
         strategy: provider,
         redirectUrl: '/sso-callback',
-        redirectUrlComplete: '/dashboard',
+        redirectUrlComplete: redirectUrl,
       });
     } catch (error) {
       setError('Authentication failed. Please try again.');
