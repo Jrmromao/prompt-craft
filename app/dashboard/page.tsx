@@ -188,7 +188,7 @@ const result = await tracked.chat.completions.create({
       )}
 
       {/* Savings Banner */}
-      {stats && stats.savings.total > 0 && (
+      {stats && stats.savings?.total > 0 && (
         <Card className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20 border-green-200 dark:border-green-800">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
