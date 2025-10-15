@@ -4,7 +4,7 @@ import { useUser } from '@clerk/nextjs';
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Crown, Zap, DollarSign, TrendingUp, BarChart3, AlertCircle, Activity, Clock } from 'lucide-react';
+import { Crown, Zap, DollarSign, TrendingUp, BarChart3, AlertCircle, Activity, Clock, Settings } from 'lucide-react';
 import Link from 'next/link';
 
 interface DashboardStats {
@@ -47,12 +47,20 @@ export default function DashboardPage() {
           <h1 className="text-3xl font-bold">Welcome back, {user?.firstName}!</h1>
           <p className="text-gray-600">Track your AI costs and optimize spending</p>
         </div>
-        <Link href="/analytics">
-          <Button>
-            <BarChart3 className="w-4 h-4 mr-2" />
-            View Analytics
-          </Button>
-        </Link>
+        <div className="flex gap-2">
+          <Link href="/settings">
+            <Button variant="outline">
+              <Settings className="w-4 h-4 mr-2" />
+              Settings
+            </Button>
+          </Link>
+          <Link href="/analytics">
+            <Button>
+              <BarChart3 className="w-4 h-4 mr-2" />
+              View Analytics
+            </Button>
+          </Link>
+        </div>
       </div>
 
       {/* Upgrade Banner - Show if near limit or on free plan */}
