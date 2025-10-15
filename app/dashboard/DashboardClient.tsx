@@ -115,50 +115,14 @@ export function DashboardClient({ user, recentPrompts }: DashboardClientProps) {
       {/* Recent Prompts */}
       <div className="mb-8">
         <div className="mb-6 flex items-center justify-between">
-          <h2 className="text-2xl font-semibold">Recent Prompts</h2>
+          <h2 className="text-2xl font-semibold">Quick Actions</h2>
           <Button asChild>
-            <Link href="/prompts">
+            <Link href="/analytics">
               <PlusCircle className="mr-2 h-4 w-4" />
-              Create Prompt
+              View Analytics
             </Link>
           </Button>
         </div>
-
-        {recentPrompts.length === 0 ? (
-          <EmptyState
-            icon={PlusCircle}
-            title="No prompts yet"
-            description="Create your first prompt to get started with PromptHive."
-            action={
-              <Button onClick={() => (window.location.href = '/prompts/new')}>
-                <PlusCircle className="mr-2 h-4 w-4" />
-                Create Prompt
-              </Button>
-            }
-          />
-        ) : (
-          <div className="space-y-4">
-            {recentPrompts.map(prompt => (
-              <Card key={prompt.id} className="p-6">
-                <div className="flex flex-col justify-between gap-4 md:flex-row">
-                  <div>
-                    <h3 className="mb-2 text-lg font-semibold">{prompt.title}</h3>
-                    <p className="mb-2 text-sm text-muted-foreground">{prompt.description}</p>
-                    <div className="text-sm text-muted-foreground">
-                      {new Date(prompt.createdAt).toLocaleDateString()}
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <Badge variant="secondary">{prompt.creditsUsed} credits</Badge>
-                    <Button variant="outline" size="sm" asChild>
-                      <Link href={`/prompts/${prompt.id}`}>View</Link>
-                    </Button>
-                  </div>
-                </div>
-              </Card>
-            ))}
-          </div>
-        )}
       </div>
 
       {/* Recent Credit Activity */}
