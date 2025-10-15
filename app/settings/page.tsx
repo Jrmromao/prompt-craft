@@ -3,36 +3,218 @@
 import { useUser } from '@clerk/nextjs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Key, Bell, CreditCard, Shield, Users } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Key, Bell, CreditCard, Shield, Users, Copy, Check, Plus, Trash2 } from 'lucide-react';
 import Link from 'next/link';
+import { useState, useEffect } from 'react';
+import { useToast } from '@/hooks/use-toast';
 
 export default function SettingsPage() {
   const { user } = useUser();
+  const { toast } = useToast();
+  const [apiKeys, setApiKeys] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [copiedKey, setCopiedKey] = useState<string | null>(null);
+  const [newKeyName, setNewKeyName] = useState('');
+  const [creatingKey, setCreatingKey] = useState(false);
+
+  useEffect(() => {
+    fetchApiKeys();
+  }, []);
+
+  const fetchApiKeys = async () => {
+    try {
+      const res = await fetch('/api/settings/api-keys');
+      if (res.ok) {
+        const data = await res.json();
+        setApiKeys(data.keys || []);
+      }
+    } catch (error) {
+      console.error('Failed to fetch API keys:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const createApiKey = async () => {
+    if (!newKeyName.trim()) {
+      toast({
+        title: 'Error',
+        description: 'Please enter a key name',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setCreatingKey(true);
+    try {
+      const res = await fetch('/api/settings/api-keys', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: newKeyName }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        toast({
+          title: 'API Key Created',
+          description: 'Copy your key now - you won\'t see it again!',
+        });
+        setApiKeys([...apiKeys, data.key]);
+        setNewKeyName('');
+      } else {
+        throw new Error('Failed to create key');
+      }
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to create API key',
+        variant: 'destructive',
+      });
+    } finally {
+      setCreatingKey(false);
+    }
+  };
+
+  const deleteApiKey = async (keyId: string) => {
+    if (!confirm('Are you sure you want to delete this API key? This cannot be undone.')) {
+      return;
+    }
+
+    try {
+      const res = await fetch(`/api/settings/api-keys?keyId=${keyId}`, {
+        method: 'DELETE',
+      });
+
+      if (res.ok) {
+        setApiKeys(apiKeys.filter(k => k.id !== keyId));
+        toast({
+          title: 'API Key Deleted',
+          description: 'The API key has been removed',
+        });
+      }
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to delete API key',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const copyToClipboard = (text: string, keyId: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedKey(keyId);
+    setTimeout(() => setCopiedKey(null), 2000);
+    toast({
+      title: 'Copied!',
+      description: 'API key copied to clipboard',
+    });
+  };
+
+  const maskKey = (key: string) => {
+    if (!key) return '';
+    return `${key.substring(0, 8)}...${key.substring(key.length - 4)}`;
+  };
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
+    <div className="container mx-auto px-4 py-8 max-w-5xl">
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-2">Settings</h1>
-        <p className="text-gray-600">Manage your account and preferences</p>
+        <p className="text-gray-600">Manage your account and API integration</p>
       </div>
 
-      <div className="space-y-4">
-        {/* API Keys */}
+      <div className="space-y-6">
+        {/* API Keys Section */}
         <Card>
           <CardHeader>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-blue-100 rounded-lg">
-                  <Key className="w-5 h-5 text-blue-600" />
-                </div>
-                <div>
-                  <CardTitle>API Keys</CardTitle>
-                  <CardDescription>Manage your PromptCraft API keys for SDK integration</CardDescription>
-                </div>
+            <div className="flex items-center gap-3 mb-2">
+              <div className="p-2 bg-blue-100 rounded-lg">
+                <Key className="w-5 h-5 text-blue-600" />
               </div>
-              <Button variant="outline">Manage Keys</Button>
+              <div>
+                <CardTitle>API Keys</CardTitle>
+                <CardDescription>Use these keys to authenticate SDK requests</CardDescription>
+              </div>
             </div>
           </CardHeader>
+          <CardContent className="space-y-4">
+            {/* Create New Key */}
+            <div className="flex gap-2">
+              <Input
+                placeholder="Key name (e.g., Production, Development)"
+                value={newKeyName}
+                onChange={(e) => setNewKeyName(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && createApiKey()}
+              />
+              <Button onClick={createApiKey} disabled={creatingKey}>
+                <Plus className="w-4 h-4 mr-2" />
+                Create Key
+              </Button>
+            </div>
+
+            {/* API Keys List */}
+            {loading ? (
+              <div className="text-center py-4 text-gray-500">Loading keys...</div>
+            ) : apiKeys.length === 0 ? (
+              <div className="text-center py-8 border-2 border-dashed rounded-lg">
+                <Key className="w-12 h-12 mx-auto text-gray-400 mb-2" />
+                <p className="text-gray-600 mb-1">No API keys yet</p>
+                <p className="text-sm text-gray-500">Create your first key to start tracking</p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {apiKeys.map((key) => (
+                  <div key={key.id} className="flex items-center justify-between p-3 border rounded-lg">
+                    <div className="flex-1">
+                      <div className="font-medium">{key.name}</div>
+                      <div className="text-sm text-gray-500 font-mono">
+                        {key.key ? key.key : maskKey(key.maskedKey || '')}
+                      </div>
+                      <div className="text-xs text-gray-400 mt-1">
+                        Created {new Date(key.createdAt).toLocaleDateString()}
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      {key.key && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => copyToClipboard(key.key, key.id)}
+                        >
+                          {copiedKey === key.id ? (
+                            <Check className="w-4 h-4" />
+                          ) : (
+                            <Copy className="w-4 h-4" />
+                          )}
+                        </Button>
+                      )}
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => deleteApiKey(key.id)}
+                      >
+                        <Trash2 className="w-4 h-4 text-red-600" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* SDK Integration Example */}
+            <div className="bg-gray-50 p-4 rounded-lg border">
+              <div className="text-sm font-medium mb-2">SDK Integration</div>
+              <pre className="text-xs bg-gray-900 text-gray-100 p-3 rounded overflow-x-auto">
+{`import PromptCraft from 'promptcraft-sdk';
+
+const promptcraft = new PromptCraft({
+  apiKey: 'your-api-key-here'
+});`}
+              </pre>
+            </div>
+          </CardContent>
         </Card>
 
         {/* Billing */}
@@ -46,94 +228,60 @@ export default function SettingsPage() {
                   </div>
                   <div>
                     <CardTitle>Billing & Subscription</CardTitle>
-                    <CardDescription>Manage your plan, payment methods, and invoices</CardDescription>
+                    <CardDescription>Current plan: Free (1,000 runs/month)</CardDescription>
                   </div>
                 </div>
-                <Button variant="ghost">View →</Button>
+                <Button variant="ghost">Manage →</Button>
               </div>
             </CardHeader>
           </Card>
         </Link>
 
-        {/* Alerts */}
+        {/* Account Info */}
         <Card>
           <CardHeader>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-orange-100 rounded-lg">
-                  <Bell className="w-5 h-5 text-orange-600" />
-                </div>
-                <div>
-                  <CardTitle>Budget Alerts</CardTitle>
-                  <CardDescription>Set spending limits and get notified before you exceed them</CardDescription>
+            <CardTitle>Account Information</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label className="text-gray-600">Email</Label>
+                <div className="font-medium">{user?.primaryEmailAddress?.emailAddress}</div>
+              </div>
+              <div>
+                <Label className="text-gray-600">Plan</Label>
+                <div className="font-medium">Free</div>
+              </div>
+              <div>
+                <Label className="text-gray-600">Member Since</Label>
+                <div className="font-medium">
+                  {user?.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A'}
                 </div>
               </div>
-              <Button variant="outline">Configure</Button>
+              <div>
+                <Label className="text-gray-600">Usage This Month</Label>
+                <div className="font-medium">0 / 1,000 runs</div>
+              </div>
             </div>
-          </CardHeader>
+          </CardContent>
         </Card>
 
-        {/* Team */}
-        <Card>
+        {/* Danger Zone */}
+        <Card className="border-red-200">
           <CardHeader>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-purple-100 rounded-lg">
-                  <Users className="w-5 h-5 text-purple-600" />
-                </div>
-                <div>
-                  <CardTitle>Team Members</CardTitle>
-                  <CardDescription>Invite team members and manage permissions</CardDescription>
-                </div>
-              </div>
-              <Button variant="outline">Manage Team</Button>
-            </div>
+            <CardTitle className="text-red-600">Danger Zone</CardTitle>
+            <CardDescription>Irreversible actions</CardDescription>
           </CardHeader>
+          <CardContent>
+            <Button variant="destructive" disabled>
+              Delete Account
+            </Button>
+            <p className="text-xs text-gray-500 mt-2">
+              Contact support to delete your account
+            </p>
+          </CardContent>
         </Card>
-
-        {/* Privacy */}
-        <Link href="/settings/privacy">
-          <Card className="hover:shadow-md transition-shadow cursor-pointer">
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-gray-100 rounded-lg">
-                    <Shield className="w-5 h-5 text-gray-600" />
-                  </div>
-                  <div>
-                    <CardTitle>Privacy & Security</CardTitle>
-                    <CardDescription>Manage your privacy settings and data retention</CardDescription>
-                  </div>
-                </div>
-                <Button variant="ghost">View →</Button>
-              </div>
-            </CardHeader>
-          </Card>
-        </Link>
       </div>
-
-      {/* Account Info */}
-      <Card className="mt-8">
-        <CardHeader>
-          <CardTitle>Account Information</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-2">
-          <div className="flex justify-between py-2 border-b">
-            <span className="text-gray-600">Email</span>
-            <span className="font-medium">{user?.primaryEmailAddress?.emailAddress}</span>
-          </div>
-          <div className="flex justify-between py-2 border-b">
-            <span className="text-gray-600">Plan</span>
-            <span className="font-medium">Free</span>
-          </div>
-          <div className="flex justify-between py-2">
-            <span className="text-gray-600">Member since</span>
-            <span className="font-medium">
-              {user?.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A'}
-            </span>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 }
