@@ -10,40 +10,41 @@ export default function PricingPage() {
         <div className="text-center mb-16">
           <h1 className="text-4xl font-bold mb-4">Simple, Transparent Pricing</h1>
           <p className="text-xl text-gray-600">
-            Save 30-60% on AI costs automatically
+            Start with 14-day free trial. Save 30-60% on AI costs automatically.
           </p>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-          {/* Free */}
+        <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+          {/* Free Trial */}
           <Card className="border-2">
             <CardHeader className="text-center pb-4">
-              <CardTitle className="text-2xl mb-2">Free</CardTitle>
+              <CardTitle className="text-2xl mb-2">Free Trial</CardTitle>
               <div className="text-4xl font-bold mb-2">$0</div>
-              <p className="text-gray-600 text-sm">Forever free</p>
+              <p className="text-gray-600 text-sm">14 days, no credit card</p>
             </CardHeader>
             <CardContent>
               <ul className="space-y-3 mb-6">
+                <Feature>✅ All Pro features</Feature>
+                <Feature>✅ Unlimited requests</Feature>
                 <Feature>✅ Smart routing (saves 30-60%)</Feature>
-                <Feature>1,000 requests/month</Feature>
-                <Feature>Basic tracking</Feature>
-                <Feature>7 days data retention</Feature>
-                <Feature>Community support</Feature>
+                <Feature>✅ Prompt optimization</Feature>
+                <Feature>✅ Smart caching</Feature>
+                <Feature>✅ Priority support</Feature>
               </ul>
               <Link href="/sign-up">
-                <Button className="w-full" variant="outline">Get Started Free</Button>
+                <Button className="w-full" size="lg">Start Free Trial</Button>
               </Link>
               <p className="text-center text-sm text-muted-foreground mt-4">
-                Try it free, see the savings
+                No credit card required
               </p>
             </CardContent>
           </Card>
 
-          {/* Pro - Most Popular */}
+          {/* Pro - After Trial */}
           <Card className="border-2 border-blue-600 relative shadow-lg">
             <div className="absolute -top-4 left-1/2 -translate-x-1/2">
               <span className="bg-blue-600 text-white px-4 py-1 rounded-full text-sm font-semibold">
-                Most Popular
+                After Trial
               </span>
             </div>
             <CardHeader className="text-center pb-4">
@@ -53,13 +54,12 @@ export default function PricingPage() {
             </CardHeader>
             <CardContent>
               <ul className="space-y-3 mb-6">
-                <Feature>✅ Everything in Free</Feature>
-                <Feature>✅ Unlimited requests</Feature>
-                <Feature>✅ Prompt optimization (50-80% savings)</Feature>
-                <Feature>✅ Smart caching</Feature>
-                <Feature>30 days data retention</Feature>
-                <Feature>Advanced analytics</Feature>
-                <Feature>Priority support</Feature>
+                <Feature>✅ Everything in trial</Feature>
+                <Feature>✅ Unlimited requests forever</Feature>
+                <Feature>✅ 30 days data retention</Feature>
+                <Feature>✅ Advanced analytics</Feature>
+                <Feature>✅ Priority support</Feature>
+                <Feature>✅ Cancel anytime</Feature>
               </ul>
               <Link href="/sign-up">
                 <Button className="w-full" size="lg">Start Free Trial</Button>
@@ -69,31 +69,26 @@ export default function PricingPage() {
               </p>
             </CardContent>
           </Card>
+        </div>
 
-          {/* Enterprise */}
+        {/* Enterprise */}
+        <div className="max-w-2xl mx-auto mt-8">
           <Card className="border-2">
-            <CardHeader className="text-center pb-4">
-              <CardTitle className="text-2xl mb-2">Enterprise</CardTitle>
-              <div className="text-4xl font-bold mb-2">$99</div>
-              <p className="text-gray-600 text-sm">per month</p>
-            </CardHeader>
-            <CardContent>
-              <ul className="space-y-3 mb-6">
-                <Feature>✅ Everything in Pro</Feature>
-                <Feature>✅ Team collaboration</Feature>
-                <Feature>✅ Custom limits</Feature>
-                <Feature>90 days data retention</Feature>
-                <Feature>Budget controls</Feature>
-                <Feature>SSO & SAML</Feature>
-                <Feature>Dedicated support</Feature>
-                <Feature>SLA guarantee</Feature>
-              </ul>
-              <Link href="/sign-up">
-                <Button className="w-full" variant="outline">Contact Sales</Button>
-              </Link>
-              <p className="text-center text-sm text-muted-foreground mt-4">
-                For teams and companies
-              </p>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-xl font-bold mb-2">Enterprise</h3>
+                  <p className="text-muted-foreground">
+                    Team collaboration, custom limits, dedicated support, SLA
+                  </p>
+                </div>
+                <div className="text-right">
+                  <div className="text-3xl font-bold mb-2">$99/mo</div>
+                  <Link href="/sign-up">
+                    <Button variant="outline">Contact Sales</Button>
+                  </Link>
+                </div>
+              </div>
             </CardContent>
           </Card>
         </div>
@@ -129,27 +124,39 @@ export default function PricingPage() {
           <h3 className="text-2xl font-bold text-center mb-8">Frequently Asked Questions</h3>
           <div className="space-y-6">
             <div>
+              <h4 className="font-semibold mb-2">How does the 14-day trial work?</h4>
+              <p className="text-gray-600">
+                Sign up and get full access to all Pro features for 14 days. No credit card required. After 14 days, you'll be prompted to upgrade to Pro ($9/month) to continue.
+              </p>
+            </div>
+            <div>
+              <h4 className="font-semibold mb-2">Do I need a credit card for the trial?</h4>
+              <p className="text-gray-600">
+                No! Start your trial with just an email. Add payment details only when you're ready to continue after the trial.
+              </p>
+            </div>
+            <div>
               <h4 className="font-semibold mb-2">How does smart routing save money?</h4>
               <p className="text-gray-600">
                 We automatically route simple queries to cheaper models (GPT-3.5) while keeping complex queries on expensive models (GPT-4). This saves 30-60% without sacrificing quality.
               </p>
             </div>
             <div>
-              <h4 className="font-semibold mb-2">Can I try Pro for free?</h4>
+              <h4 className="font-semibold mb-2">What happens after the trial ends?</h4>
               <p className="text-gray-600">
-                Yes! Start with the Free plan to see savings, then upgrade to Pro when you're ready for unlimited requests and prompt optimization.
-              </p>
-            </div>
-            <div>
-              <h4 className="font-semibold mb-2">What if I don't save money?</h4>
-              <p className="text-gray-600">
-                If you don't see at least $20/month in savings within 30 days, we'll refund your Pro subscription. No questions asked.
+                After 14 days, you'll be prompted to upgrade to Pro ($9/month). If you don't upgrade, your account will be paused but your data is retained for 30 days.
               </p>
             </div>
             <div>
               <h4 className="font-semibold mb-2">Can I cancel anytime?</h4>
               <p className="text-gray-600">
                 Yes, cancel anytime. No long-term contracts. Your data is retained for 30 days after cancellation.
+              </p>
+            </div>
+            <div>
+              <h4 className="font-semibold mb-2">What if I don't save money?</h4>
+              <p className="text-gray-600">
+                If you don't see at least $20/month in savings within 30 days of upgrading to Pro, we'll refund your subscription. No questions asked.
               </p>
             </div>
           </div>
