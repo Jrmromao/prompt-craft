@@ -1497,20 +1497,24 @@ enum Role {
 
 // Analytics Platform Models
 model PromptRun {
-  id          String   @id @default(cuid())
-  userId      String
-  promptId    String
-  provider    String
-  model       String
-  input       String   @db.Text
-  output      String   @db.Text
-  tokensUsed  Int
-  totalTokens Int      @default(0)
-  cost        Float
-  latency     Int
-  success     Boolean
-  error       String?
-  createdAt   DateTime @default(now())
+  id             String   @id @default(cuid())
+  userId         String
+  promptId       String
+  provider       String
+  model          String
+  requestedModel String?
+  input          String   @db.Text
+  output         String   @db.Text
+  tokensUsed     Int
+  totalTokens    Int      @default(0)
+  inputTokens    Int      @default(0)
+  outputTokens   Int      @default(0)
+  cost           Float
+  savings        Float    @default(0)
+  latency        Int
+  success        Boolean
+  error          String?
+  createdAt      DateTime @default(now())
   
   user        User     @relation("UserPromptRuns", fields: [userId], references: [id], onDelete: Cascade)
   

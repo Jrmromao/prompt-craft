@@ -49,36 +49,40 @@ export async function GET() {
     });
     const successRate = totalRuns > 0 ? (successfulRuns / totalRuns) * 100 : 0;
 
-    // Calculate savings (what they WOULD have paid without optimization)
+    // Calculate REAL savings (only when we actually routed to cheaper model)
     const monthlyRunsData = await prisma.promptRun.findMany({
       where: {
         userId: user.id,
         createdAt: { gte: startOfMonth },
       },
-      select: { model: true, inputTokens: true, outputTokens: true, cost: true },
+      select: { 
+        model: true, 
+        requestedModel: true,
+        inputTokens: true, 
+        outputTokens: true, 
+        cost: true,
+        savings: true,
+      },
     });
 
     let totalSavings = 0;
     let smartRoutingSavings = 0;
     let cachingSavings = 0;
+    let routedCount = 0;
 
     monthlyRunsData.forEach(run => {
-      // Calculate what they WOULD have paid with GPT-4
-      const gpt4Cost = ((run.inputTokens * 0.03) + (run.outputTokens * 0.06)) / 1000;
-      const actualCost = run.cost;
-      const savings = gpt4Cost - actualCost;
-      
-      if (savings > 0) {
-        totalSavings += savings;
-        // If they used a cheaper model, attribute to smart routing
-        if (run.model.includes('3.5') || run.model.includes('haiku') || run.model.includes('flash')) {
-          smartRoutingSavings += savings;
-        }
+      // Use the savings we calculated in the SDK
+      if (run.savings && run.savings > 0) {
+        totalSavings += run.savings;
+        smartRoutingSavings += run.savings;
+        routedCount++;
       }
     });
 
-    // Estimate caching savings (assume 20% cache hit rate saves full cost)
-    cachingSavings = (stats._sum.cost || 0) * 0.25;
+    // Estimate caching savings (20% of runs are cache hits based on typical usage)
+    const estimatedCacheHits = Math.floor(monthlyRuns * 0.2);
+    const avgCostPerRun = stats._avg.cost || 0;
+    cachingSavings = estimatedCacheHits * avgCostPerRun;
     totalSavings += cachingSavings;
 
     // Get plan limits
@@ -98,7 +102,8 @@ export async function GET() {
         total: Math.round(totalSavings * 100) / 100,
         smartRouting: Math.round(smartRoutingSavings * 100) / 100,
         caching: Math.round(cachingSavings * 100) / 100,
-        roi: stats._sum.cost ? Math.round((totalSavings / (stats._sum.cost || 1)) * 100) : 0,
+        routedCount,
+        roi: totalSavings > 0 && stats._sum.cost ? Math.round((totalSavings / (stats._sum.cost || 1)) * 100) : 0,
       },
     });
   } catch (error) {

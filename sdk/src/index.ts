@@ -24,11 +24,15 @@ interface TrackRunData {
   provider: string;
   promptId?: string;
   model: string;
+  requestedModel?: string;
   input: string;
   output: string;
   tokensUsed: number;
+  inputTokens?: number;
+  outputTokens?: number;
   latency: number;
   success: boolean;
+  savings?: number;
   error?: string;
 }
 
@@ -272,15 +276,30 @@ export class PromptCraft {
                 }
 
                 // Track with fallback info
+                const inputTokens = processedResult.usage?.prompt_tokens || 0;
+                const outputTokens = processedResult.usage?.completion_tokens || 0;
+                
+                // Calculate savings if we routed to cheaper model
+                let savings = 0;
+                if (originalModel !== currentModel) {
+                  const requestedCost = self.estimateCost(originalModel, params.messages);
+                  const actualCost = self.estimateCost(currentModel, params.messages);
+                  savings = requestedCost - actualCost;
+                }
+                
                 await self.trackRun({
                   provider: 'openai',
                   promptId: options?.promptId,
                   model: currentModel,
+                  requestedModel: originalModel,
                   input: JSON.stringify(params.messages),
                   output: processedResult.choices[0]?.message?.content || '',
                   tokensUsed: processedResult.usage?.total_tokens || 0,
+                  inputTokens,
+                  outputTokens,
                   latency: Date.now() - start,
                   success: true,
+                  savings,
                 });
 
                 if (!isOriginal) {

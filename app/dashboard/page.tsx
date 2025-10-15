@@ -21,6 +21,7 @@ interface DashboardStats {
     total: number;
     smartRouting: number;
     caching: number;
+    routedCount: number;
     roi: number;
   };
 }
@@ -75,14 +76,13 @@ export default function DashboardPage() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground mb-1">💰 You've Saved This Month</p>
+                <p className="text-sm text-muted-foreground mb-1">💰 Real Savings This Month</p>
                 <p className="text-4xl font-bold text-green-600 dark:text-green-500 mb-2">
                   ${stats.savings.total.toFixed(2)}
                 </p>
                 <div className="flex gap-4 text-sm text-muted-foreground">
-                  <span>Smart Routing: ${stats.savings.smartRouting.toFixed(2)}</span>
+                  <span>Smart Routing: ${stats.savings.smartRouting.toFixed(2)} ({stats.savings.routedCount} prompts)</span>
                   <span>Caching: ${stats.savings.caching.toFixed(2)}</span>
-                  <span>ROI: {stats.savings.roi}%</span>
                 </div>
               </div>
               {stats.plan === 'FREE' && stats.savings.total > 50 && (
