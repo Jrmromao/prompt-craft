@@ -1,5 +1,6 @@
 import type OpenAI from 'openai';
 import type Anthropic from '@anthropic-ai/sdk';
+import { SmartCall } from './smartCall';
 
 interface PromptCraftConfig {
   apiKey: string;
@@ -464,6 +465,11 @@ export class PromptCraft {
   // Clear cache
   clearCache(): void {
     this.cache.clear();
+  }
+
+  // Smart Call: Automatically select cheapest model meeting quality threshold
+  smartCall(client: any) {
+    return new SmartCall(client, this.config.apiKey);
   }
 
   async trackOpenAI(
