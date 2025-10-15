@@ -1,7 +1,7 @@
 'use client';
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { Sparkles, User, Menu, BookOpen, Users, Layers } from 'lucide-react';
+import { Sparkles, User, Menu, BookOpen, Users, Layers, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
@@ -14,11 +14,12 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 import { ThemeToggle } from '../ThemeToggle';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { MobileMenu } from './MobileMenu';
 import { GlobalSearch } from '@/components/search/GlobalSearch';
 import { CommandPalette } from '@/components/ui/command-palette';
+import { useClerk } from '@clerk/nextjs';
 
 export interface NavBarUser {
   name: string;
@@ -28,6 +29,8 @@ export interface NavBarUser {
 
 export function NavBar({ user, onMenuClick }: { user?: NavBarUser; onMenuClick?: () => void }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const { signOut } = useClerk();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { isCommandPaletteOpen, setIsCommandPaletteOpen } = { 
     isCommandPaletteOpen: false, 
@@ -127,6 +130,14 @@ export function NavBar({ user, onMenuClick }: { user?: NavBarUser; onMenuClick?:
                         <User className="mr-2 h-4 w-4" />
                         Account
                       </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem 
+                      className="cursor-pointer text-red-600 focus:text-red-600"
+                      onClick={() => signOut(() => router.push('/'))}
+                    >
+                      <LogOut className="mr-2 h-4 w-4" />
+                      Sign Out
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
