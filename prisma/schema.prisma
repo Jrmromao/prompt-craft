@@ -1144,6 +1144,7 @@ model User {
   VoteReward_VoteReward_voterIdToUser                        VoteReward[]               @relation("VoteReward_voterIdToUser")
   PromptRuns                                                 PromptRun[]                @relation("UserPromptRuns")
   Alerts                                                     Alert[]                    @relation("UserAlerts")
+  PromptOptimizations                                        PromptOptimization[]
 
   @@index([clerkId])
   @@index([dataRetentionPeriod])
@@ -1607,4 +1608,20 @@ enum VoteAbuseType {
   SELF_VOTE_ATTEMPT
   EXCESSIVE_VOTING_RATE
   SUSPICIOUS_ACCOUNT_AGE
+}
+
+model PromptOptimization {
+  id               String   @id @default(cuid())
+  userId           String
+  originalPrompt   String   @db.Text
+  optimizedPrompt  String   @db.Text
+  tokenReduction   Int
+  estimatedSavings Float
+  targetModel      String
+  createdAt        DateTime @default(now())
+  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+  @@index([createdAt])
 }

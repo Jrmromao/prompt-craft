@@ -17,6 +17,12 @@ interface DashboardStats {
   totalTokens: number;
   successRate: number;
   plan: string;
+  savings: {
+    total: number;
+    smartRouting: number;
+    caching: number;
+    roi: number;
+  };
 }
 
 export default function DashboardPage() {
@@ -62,6 +68,37 @@ export default function DashboardPage() {
           </Link>
         </div>
       </div>
+
+      {/* Savings Banner */}
+      {stats && stats.savings.total > 0 && (
+        <Card className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20 border-green-200 dark:border-green-800">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground mb-1">💰 You've Saved This Month</p>
+                <p className="text-4xl font-bold text-green-600 dark:text-green-500 mb-2">
+                  ${stats.savings.total.toFixed(2)}
+                </p>
+                <div className="flex gap-4 text-sm text-muted-foreground">
+                  <span>Smart Routing: ${stats.savings.smartRouting.toFixed(2)}</span>
+                  <span>Caching: ${stats.savings.caching.toFixed(2)}</span>
+                  <span>ROI: {stats.savings.roi}%</span>
+                </div>
+              </div>
+              {stats.plan === 'FREE' && stats.savings.total > 50 && (
+                <div className="text-right">
+                  <p className="text-sm font-medium mb-2">Upgrade to Pro and save 2x more!</p>
+                  <Link href="/pricing">
+                    <Button size="lg" className="bg-green-600 hover:bg-green-700">
+                      Upgrade to Pro - Save $500+/month
+                    </Button>
+                  </Link>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Upgrade Banner - Show if near limit or on free plan */}
       {stats && (isNearLimit || stats.plan === 'FREE') && (

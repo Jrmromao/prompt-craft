@@ -49,6 +49,38 @@ export async function GET() {
     });
     const successRate = totalRuns > 0 ? (successfulRuns / totalRuns) * 100 : 0;
 
+    // Calculate savings (what they WOULD have paid without optimization)
+    const monthlyRunsData = await prisma.promptRun.findMany({
+      where: {
+        userId: user.id,
+        createdAt: { gte: startOfMonth },
+      },
+      select: { model: true, inputTokens: true, outputTokens: true, cost: true },
+    });
+
+    let totalSavings = 0;
+    let smartRoutingSavings = 0;
+    let cachingSavings = 0;
+
+    monthlyRunsData.forEach(run => {
+      // Calculate what they WOULD have paid with GPT-4
+      const gpt4Cost = ((run.inputTokens * 0.03) + (run.outputTokens * 0.06)) / 1000;
+      const actualCost = run.cost;
+      const savings = gpt4Cost - actualCost;
+      
+      if (savings > 0) {
+        totalSavings += savings;
+        // If they used a cheaper model, attribute to smart routing
+        if (run.model.includes('3.5') || run.model.includes('haiku') || run.model.includes('flash')) {
+          smartRoutingSavings += savings;
+        }
+      }
+    });
+
+    // Estimate caching savings (assume 20% cache hit rate saves full cost)
+    cachingSavings = (stats._sum.cost || 0) * 0.25;
+    totalSavings += cachingSavings;
+
     // Get plan limits
     const plan = PLANS[user.planType as keyof typeof PLANS] || PLANS.FREE;
 
@@ -62,6 +94,12 @@ export async function GET() {
       totalTokens: stats._sum.tokensUsed || 0,
       successRate: Math.round(successRate * 10) / 10,
       plan: user.planType,
+      savings: {
+        total: Math.round(totalSavings * 100) / 100,
+        smartRouting: Math.round(smartRoutingSavings * 100) / 100,
+        caching: Math.round(cachingSavings * 100) / 100,
+        roi: stats._sum.cost ? Math.round((totalSavings / (stats._sum.cost || 1)) * 100) : 0,
+      },
     });
   } catch (error) {
     console.error('Dashboard stats error:', error);
