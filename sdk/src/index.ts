@@ -61,7 +61,7 @@ export class PromptCraft {
       maxRetries: 3,
       middleware: [],
       autoFallback: false,
-      smartRouting: false,
+      smartRouting: true,  // ON by default
       ...config,
     };
   }
