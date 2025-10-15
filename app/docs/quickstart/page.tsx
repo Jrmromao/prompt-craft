@@ -1,151 +1,235 @@
+'use client';
+
 import Link from 'next/link';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, CheckCircle, Copy, Check } from 'lucide-react';
+import { useState } from 'react';
+
+function CodeBlock({ code, language = 'bash' }: { code: string; language?: string }) {
+  const [copied, setCopied] = useState(false);
+
+  const copy = () => {
+    navigator.clipboard.writeText(code);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <div className="relative group">
+      <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg text-sm overflow-x-auto">
+        <code>{code}</code>
+      </pre>
+      <button
+        onClick={copy}
+        className="absolute top-3 right-3 p-2 rounded-md bg-gray-800 hover:bg-gray-700 opacity-0 group-hover:opacity-100 transition-opacity"
+      >
+        {copied ? <Check className="w-4 h-4 text-green-400" /> : <Copy className="w-4 h-4 text-gray-400" />}
+      </button>
+    </div>
+  );
+}
 
 export default function QuickStartPage() {
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
-      <Link href="/docs" className="inline-flex items-center gap-2 text-blue-600 hover:underline mb-6">
+    <div className="max-w-4xl mx-auto px-6 py-12">
+      <Link href="/docs" className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 mb-8 text-sm font-medium">
         <ArrowLeft className="w-4 h-4" />
-        Back to Docs
+        Back to Documentation
       </Link>
 
-      <article className="prose prose-lg max-w-none">
-        <h1>Quick Start Guide</h1>
-        <p className="text-xl text-gray-600">Get started with PromptCraft in 5 minutes.</p>
+      <h1 className="text-4xl font-bold text-gray-900 mb-4">Quick Start Guide</h1>
+      <p className="text-xl text-gray-600 mb-8">Get started with PromptCraft in 5 minutes.</p>
 
-        <h2>Step 1: Sign Up (1 minute)</h2>
-        <ol>
-          <li>Go to <a href="/">promptcraft.app</a></li>
-          <li>Click "Start Free Trial"</li>
-          <li>Sign up with email or Google/GitHub</li>
-          <li>You're in! Free tier includes 1,000 runs/month</li>
-        </ol>
+      <div className="bg-blue-50 border border-blue-200 p-4 mb-12 rounded-lg">
+        <p className="text-blue-900 font-medium mb-1">⚡ Total time: 5 minutes</p>
+        <p className="text-blue-800 text-sm">Follow these 5 steps to start tracking your AI costs</p>
+      </div>
 
-        <h2>Step 2: Get Your API Key (1 minute)</h2>
-        <ol>
-          <li>Go to <Link href="/settings">Settings</Link></li>
-          <li>Click "Create Key"</li>
-          <li>Name it (e.g., "Production")</li>
-          <li><strong>Copy the key now</strong> - you won't see it again!</li>
-          <li>Save it to your <code>.env</code> file</li>
-        </ol>
+      <div className="space-y-16">
+        {/* Step 1 */}
+        <div>
+          <div className="flex items-center gap-3 mb-6">
+            <div className="flex items-center justify-center w-10 h-10 rounded-full bg-blue-600 text-white font-bold">
+              1
+            </div>
+            <h2 className="text-2xl font-bold text-gray-900">Sign Up</h2>
+            <span className="text-sm text-gray-500 ml-auto">1 minute</span>
+          </div>
+          <ol className="space-y-2 text-gray-700 ml-13">
+            <li>1. Go to <a href="/" className="text-blue-600 hover:underline">promptcraft.app</a></li>
+            <li>2. Click "Start Tracking Free"</li>
+            <li>3. Sign up with email or Google/GitHub</li>
+            <li>4. You're in! Free tier includes 1,000 runs/month</li>
+          </ol>
+        </div>
 
-        <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto">
-{`PROMPTCRAFT_API_KEY=pc_your_key_here`}
-        </pre>
+        {/* Step 2 */}
+        <div>
+          <div className="flex items-center gap-3 mb-6">
+            <div className="flex items-center justify-center w-10 h-10 rounded-full bg-blue-600 text-white font-bold">
+              2
+            </div>
+            <h2 className="text-2xl font-bold text-gray-900">Get Your API Key</h2>
+            <span className="text-sm text-gray-500 ml-auto">1 minute</span>
+          </div>
+          <ol className="space-y-2 text-gray-700 ml-13 mb-4">
+            <li>1. Go to <Link href="/settings" className="text-blue-600 hover:underline">Settings</Link></li>
+            <li>2. Click "Create Key"</li>
+            <li>3. Name it (e.g., "Production")</li>
+            <li>4. <strong>Copy the key now</strong> - you won't see it again!</li>
+            <li>5. Save it to your <code className="bg-gray-100 px-2 py-1 rounded text-sm">.env</code> file</li>
+          </ol>
+          <CodeBlock code="PROMPTCRAFT_API_KEY=pc_your_key_here" />
+        </div>
 
-        <h2>Step 3: Install SDK (30 seconds)</h2>
-        <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto">
-{`npm install promptcraft-sdk`}
-        </pre>
+        {/* Step 3 */}
+        <div>
+          <div className="flex items-center gap-3 mb-6">
+            <div className="flex items-center justify-center w-10 h-10 rounded-full bg-blue-600 text-white font-bold">
+              3
+            </div>
+            <h2 className="text-2xl font-bold text-gray-900">Install SDK</h2>
+            <span className="text-sm text-gray-500 ml-auto">30 seconds</span>
+          </div>
+          <CodeBlock code="npm install promptcraft-sdk" />
+        </div>
 
-        <h2>Step 4: Add 2 Lines of Code (2 minutes)</h2>
-        
-        <h3>For OpenAI:</h3>
-        <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto text-sm">
-{`import PromptCraft from 'promptcraft-sdk';
+        {/* Step 4 */}
+        <div>
+          <div className="flex items-center gap-3 mb-6">
+            <div className="flex items-center justify-center w-10 h-10 rounded-full bg-blue-600 text-white font-bold">
+              4
+            </div>
+            <h2 className="text-2xl font-bold text-gray-900">Add 2 Lines of Code</h2>
+            <span className="text-sm text-gray-500 ml-auto">2 minutes</span>
+          </div>
+          
+          <h3 className="text-lg font-semibold text-gray-900 mb-3 ml-13">For OpenAI (Recommended - Auto-tracking):</h3>
+          <CodeBlock 
+            language="typescript"
+            code={`import PromptCraft from 'promptcraft-sdk';
 import OpenAI from 'openai';
 
+const openai = new OpenAI();
 const promptcraft = new PromptCraft({ 
   apiKey: process.env.PROMPTCRAFT_API_KEY 
 });
-const openai = new OpenAI();
 
-// Your existing code:
-const params = {
+// Wrap your client - tracking happens automatically!
+const tracked = promptcraft.wrapOpenAI(openai);
+
+// Use it exactly like normal OpenAI
+const result = await tracked.chat.completions.create({
   model: 'gpt-4',
   messages: [{ role: 'user', content: 'Hello!' }]
-};
+});
+// ✅ Done! Automatically tracked with error handling!`}
+          />
 
-// Add these 2 lines:
-const start = Date.now();
-const result = await openai.chat.completions.create(params);
-await promptcraft.trackOpenAI(params, result, Date.now() - start);
-// Done!`}
-        </pre>
+          <div className="bg-blue-50 border-l-4 border-blue-400 p-4 mt-4 ml-13">
+            <p className="text-sm text-blue-900">
+              <strong>💡 Pro tip:</strong> The wrapper approach automatically handles tracking, errors, and retries. No timing code needed!
+            </p>
+          </div>
 
-        <h3>For Anthropic:</h3>
-        <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto text-sm">
-{`import PromptCraft from 'promptcraft-sdk';
+          <h3 className="text-lg font-semibold text-gray-900 mb-3 mt-8 ml-13">For Anthropic:</h3>
+          <CodeBlock 
+            language="typescript"
+            code={`import PromptCraft from 'promptcraft-sdk';
 import Anthropic from '@anthropic-ai/sdk';
 
+const anthropic = new Anthropic();
 const promptcraft = new PromptCraft({ 
   apiKey: process.env.PROMPTCRAFT_API_KEY 
 });
-const anthropic = new Anthropic();
 
-// Your existing code:
-const params = {
+// Wrap and use
+const tracked = promptcraft.wrapAnthropic(anthropic);
+
+const result = await tracked.messages.create({
   model: 'claude-3-opus-20240229',
   max_tokens: 1024,
   messages: [{ role: 'user', content: 'Hello!' }]
-};
+});
+// ✅ Done!`}
+          />
+        </div>
 
-// Add these 2 lines:
-const start = Date.now();
-const result = await anthropic.messages.create(params);
-await promptcraft.trackAnthropic(params, result, Date.now() - start);
-// Done!`}
-        </pre>
+        {/* Step 5 */}
+        <div>
+          <div className="flex items-center gap-3 mb-6">
+            <div className="flex items-center justify-center w-10 h-10 rounded-full bg-blue-600 text-white font-bold">
+              5
+            </div>
+            <h2 className="text-2xl font-bold text-gray-900">View Your Dashboard</h2>
+            <span className="text-sm text-gray-500 ml-auto">30 seconds</span>
+          </div>
+          <ol className="space-y-2 text-gray-700 ml-13">
+            <li>1. Make a few API calls</li>
+            <li>2. Go to <Link href="/dashboard" className="text-blue-600 hover:underline">Dashboard</Link></li>
+            <li>3. See your costs in real-time! 🎉</li>
+          </ol>
+        </div>
+      </div>
 
-        <h2>Step 5: View Your Dashboard (30 seconds)</h2>
-        <ol>
-          <li>Make a few API calls</li>
-          <li>Go to <Link href="/dashboard">Dashboard</Link></li>
-          <li>See your costs in real-time!</li>
-        </ol>
+      <div className="bg-green-50 border border-green-200 p-6 rounded-lg mt-16">
+        <div className="flex items-start gap-3">
+          <CheckCircle className="w-6 h-6 text-green-600 flex-shrink-0 mt-1" />
+          <div>
+            <h3 className="text-lg font-semibold text-green-900 mb-2">You're All Set!</h3>
+            <p className="text-green-800 mb-3">
+              Your AI costs are now being tracked. Check your dashboard to see:
+            </p>
+            <ul className="text-green-800 space-y-1 list-disc list-inside">
+              <li>Total runs and costs</li>
+              <li>Cost per API call</li>
+              <li>Success rates</li>
+              <li>Cost trends over time</li>
+            </ul>
+          </div>
+        </div>
+      </div>
 
-        <h2>What You'll See</h2>
-        <ul>
-          <li><strong>Total runs</strong> - Number of API calls tracked</li>
-          <li><strong>Total cost</strong> - How much you've spent</li>
-          <li><strong>Cost per run</strong> - Average cost per API call</li>
-          <li><strong>Success rate</strong> - Percentage of successful calls</li>
-          <li><strong>Charts</strong> - Cost trends over time</li>
-        </ul>
+      <h2 className="text-2xl font-bold text-gray-900 mt-16 mb-6">Next Steps</h2>
+      <div className="grid md:grid-cols-2 gap-4">
+        <Link href="/settings" className="border border-gray-200 rounded-lg p-5 hover:shadow-md hover:border-blue-300 transition-all">
+          <h3 className="font-semibold text-gray-900 mb-1">Set Budget Alerts</h3>
+          <p className="text-sm text-gray-600">Get notified before you overspend</p>
+        </Link>
+        <Link href="/docs/openai#tagging" className="border border-gray-200 rounded-lg p-5 hover:shadow-md hover:border-blue-300 transition-all">
+          <h3 className="font-semibold text-gray-900 mb-1">Tag Your Prompts</h3>
+          <p className="text-sm text-gray-600">Track costs by use case</p>
+        </Link>
+      </div>
 
-        <h2>Next Steps</h2>
-        
-        <h3>Set Budget Alerts</h3>
-        <ol>
-          <li>Go to <Link href="/settings">Settings</Link></li>
-          <li>Set a monthly budget (e.g., $100)</li>
-          <li>Get notified at 50%, 80%, 100%</li>
-        </ol>
+      <h2 className="text-2xl font-bold text-gray-900 mt-16 mb-6">Common Issues</h2>
+      
+      <div className="space-y-4">
+        <div className="border border-gray-200 rounded-lg p-5">
+          <h4 className="font-semibold text-gray-900 mb-3">API key not working</h4>
+          <ul className="space-y-1 text-sm text-gray-700 list-disc list-inside">
+            <li>Check it starts with <code className="bg-gray-100 px-2 py-1 rounded">pc_</code></li>
+            <li>Make sure you copied the whole key</li>
+            <li>Verify it wasn't deleted in Settings</li>
+          </ul>
+        </div>
+        <div className="border border-gray-200 rounded-lg p-5">
+          <h4 className="font-semibold text-gray-900 mb-3">Not seeing data</h4>
+          <ul className="space-y-1 text-sm text-gray-700 list-disc list-inside">
+            <li>Wait 1-2 minutes for sync</li>
+            <li>Check browser console for errors</li>
+            <li>Verify you're calling trackOpenAI() or trackAnthropic()</li>
+          </ul>
+        </div>
+      </div>
 
-        <h3>Tag Your Prompts</h3>
-        <p>Add <code>promptId</code> to track specific prompts:</p>
-        <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto text-sm">
-{`const params = {
-  model: 'gpt-4',
-  messages: [...],
-  promptId: 'customer-support-v1' // Track this prompt
-};`}
-        </pre>
-
-        <h2>Common Issues</h2>
-        
-        <h3>"API key not working"</h3>
-        <ul>
-          <li>Check it starts with <code>pc_</code></li>
-          <li>Make sure you copied the whole key</li>
-          <li>Verify it wasn't deleted in Settings</li>
-        </ul>
-
-        <h3>"Not seeing data"</h3>
-        <ul>
-          <li>Wait 1-2 minutes for sync</li>
-          <li>Check browser console for errors</li>
-          <li>Verify you're calling <code>trackOpenAI()</code> or <code>trackAnthropic()</code></li>
-        </ul>
-
-        <h2>Need Help?</h2>
-        <ul>
-          <li><strong>Full Guide</strong>: <Link href="/docs/guide">Developer Guide</Link></li>
-          <li><strong>API Docs</strong>: <Link href="/docs/api">API Reference</Link></li>
-          <li><strong>Email</strong>: support@promptcraft.app</li>
-        </ul>
-      </article>
+      <div className="bg-gray-50 border border-gray-200 p-6 rounded-lg mt-12">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Need Help?</h3>
+        <div className="space-y-2 text-sm text-gray-700">
+          <p><strong>Full Guide:</strong> <Link href="/docs/openai" className="text-blue-600 hover:underline">OpenAI Integration</Link></p>
+          <p><strong>API Docs:</strong> <Link href="/docs/api" className="text-blue-600 hover:underline">API Reference</Link></p>
+          <p><strong>Email:</strong> <a href="mailto:support@promptcraft.app" className="text-blue-600 hover:underline">support@promptcraft.app</a></p>
+        </div>
+      </div>
     </div>
   );
 }

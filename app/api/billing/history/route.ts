@@ -16,7 +16,7 @@ export async function GET(req: NextRequest) {
     const user = await prisma.user.findUnique({
       where: { clerkId: userId },
       include: {
-        subscription: true,
+        Subscription: true,
       },
     });
 
@@ -29,7 +29,7 @@ export async function GET(req: NextRequest) {
 
     // Get invoices from Stripe
     const invoices = await stripe.invoices.list({
-      customer: user.subscription.stripeCustomerId,
+      customer: user.Subscription.stripeCustomerId,
       limit: 10,
     });
 
@@ -64,9 +64,9 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({
       billingHistory,
       subscription: {
-        status: user.subscription.status,
-        currentPeriodEnd: user.subscription.currentPeriodEnd,
-        cancelAtPeriodEnd: user.subscription.cancelAtPeriodEnd,
+        status: user.Subscription.status,
+        currentPeriodEnd: user.Subscription.currentPeriodEnd,
+        cancelAtPeriodEnd: user.Subscription.cancelAtPeriodEnd,
       },
     });
   } catch (error) {

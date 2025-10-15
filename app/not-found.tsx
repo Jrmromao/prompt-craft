@@ -1,51 +1,55 @@
-'use client';
-import { Sparkles } from 'lucide-react';
-import { motion } from 'framer-motion';
+import Link from 'next/link';
+import { Home, ArrowLeft, Search } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 export default function NotFound() {
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-br from-blue-100 via-yellow-50 to-white">
-      <motion.div
-        initial={{ scale: 0.8, rotate: -10, opacity: 0 }}
-        animate={{ scale: 1, rotate: 0, opacity: 1 }}
-        transition={{ type: 'spring', stiffness: 200, damping: 10 }}
-        className="mb-6"
-      >
-        <Sparkles className="h-16 w-16 text-blue-500 drop-shadow-lg" />
-      </motion.div>
-      <motion.h1
-        initial={{ y: -40, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.2, type: 'spring', stiffness: 120 }}
-        className="text-5xl font-extrabold mb-4 bg-gradient-to-r from-blue-600 via-yellow-500 to-blue-500 bg-clip-text text-transparent"
-      >
-        404 - Prompt Not Found
-      </motion.h1>
-      <motion.p
-        initial={{ y: 20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.4 }}
-        className="mb-4 text-lg text-blue-900 text-center max-w-md"
-      >
-        Oops! Even our AI couldn't dream up this page. Maybe you were looking for a prompt that doesn't exist yet? 🤖✨
-      </motion.p>
-      <motion.a
-        href="/"
-        initial={{ scale: 0.9, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ delay: 0.6, type: 'spring', stiffness: 200 }}
-        className="text-lg font-semibold px-6 py-2 rounded-full bg-gradient-to-r from-blue-500 via-yellow-400 to-blue-400 text-white shadow-lg hover:from-blue-600 hover:to-blue-500 transition"
-      >
-        Return to PromptHive Home
-      </motion.a>
-      <motion.p
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.8 }}
-        className="mt-8 text-sm text-blue-700"
-      >
-        Tip: Try asking our AI for a new prompt idea!
-      </motion.p>
+    <div className="min-h-screen flex items-center justify-center px-4">
+      <div className="text-center max-w-2xl">
+        <div className="mb-8">
+          <h1 className="text-9xl font-bold text-gray-200">404</h1>
+          <h2 className="text-3xl font-bold text-gray-900 mt-4 mb-2">Page Not Found</h2>
+          <p className="text-gray-600 text-lg">
+            The page you're looking for doesn't exist or has been moved.
+          </p>
+        </div>
+
+        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <Link href="/">
+            <Button size="lg">
+              <Home className="w-4 h-4 mr-2" />
+              Go Home
+            </Button>
+          </Link>
+          <Link href="/docs">
+            <Button size="lg" variant="outline">
+              <Search className="w-4 h-4 mr-2" />
+              Browse Docs
+            </Button>
+          </Link>
+        </div>
+
+        <div className="mt-12 pt-8 border-t">
+          <p className="text-sm text-gray-600 mb-4">Popular pages:</p>
+          <div className="flex flex-wrap gap-3 justify-center">
+            <Link href="/dashboard" className="text-sm text-blue-600 hover:underline">
+              Dashboard
+            </Link>
+            <Link href="/analytics" className="text-sm text-blue-600 hover:underline">
+              Analytics
+            </Link>
+            <Link href="/settings" className="text-sm text-blue-600 hover:underline">
+              Settings
+            </Link>
+            <Link href="/pricing" className="text-sm text-blue-600 hover:underline">
+              Pricing
+            </Link>
+            <Link href="/docs/quickstart" className="text-sm text-blue-600 hover:underline">
+              Quick Start
+            </Link>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

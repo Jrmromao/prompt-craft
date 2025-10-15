@@ -3,7 +3,7 @@ import { z } from 'zod';
 export const trackRunSchema = z.object({
   promptId: z.string().min(1).max(100),
   model: z.string().min(1).max(50),
-  provider: z.enum(['openai', 'anthropic', 'deepseek']),
+  provider: z.enum(['openai', 'anthropic', 'deepseek', 'gemini', 'grok']),
   input: z.string().max(50000),
   output: z.string().max(50000),
   tokensUsed: z.number().int().min(0).max(1000000),

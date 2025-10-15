@@ -24,15 +24,15 @@ export default function AnalyticsLanding({ user }: { user: User | null }) {
             </div>
 
             <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6 leading-tight">
-              Stop Wasting Money on<br />
-              <span className="text-blue-600">OpenAI & Anthropic</span>
+              Track AI Costs with<br />
+              <span className="text-blue-600">2 Lines of Code</span>
             </h1>
             
             <p className="text-xl text-gray-600 mb-4 max-w-3xl mx-auto">
-              Most companies overspend 40% on AI because they can't see where the money goes.
+              Wrap your OpenAI/Anthropic client once. Get automatic tracking, caching, retries, and cost optimization.
             </p>
             <p className="text-xl font-semibold text-gray-900 mb-8 max-w-3xl mx-auto">
-              Get real-time cost tracking + AI-powered optimization in 2 minutes.
+              Save 30-40% on AI costs. Setup in 2 minutes.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-6">
@@ -120,19 +120,32 @@ export default function AnalyticsLanding({ user }: { user: User | null }) {
       {/* Features Section */}
       <div className="bg-gray-50 py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-center mb-12">Everything You Need to Control Costs</h2>
+          <h2 className="text-3xl font-bold text-center mb-4">Everything You Need to Control Costs</h2>
+          <p className="text-center text-gray-600 mb-12">Powered by our advanced SDK with automatic tracking</p>
           <div className="grid md:grid-cols-3 gap-8">
+            <FeatureCard
+              icon={<Zap className="w-8 h-8 text-blue-600" />}
+              title="Auto-Tracking"
+              description="Wrap your client once. Every API call tracked automatically with zero boilerplate."
+              benefit="No timing code needed"
+            />
+            <FeatureCard
+              icon={<DollarSign className="w-8 h-8 text-blue-600" />}
+              title="Smart Caching"
+              description="Cache identical requests. Reduce API costs by up to 80% for repeated queries."
+              benefit="Instant responses, huge savings"
+            />
+            <FeatureCard
+              icon={<TrendingDown className="w-8 h-8 text-blue-600" />}
+              title="Auto-Retry"
+              description="Built-in exponential backoff. Failed requests retry automatically with no code changes."
+              benefit="More reliable, less errors"
+            />
             <FeatureCard
               icon={<BarChart3 className="w-8 h-8 text-blue-600" />}
               title="Real-Time Dashboard"
               description="See costs by prompt, model, user, and project. Know exactly where every dollar goes."
               benefit="Stop guessing, start knowing"
-            />
-            <FeatureCard
-              icon={<DollarSign className="w-8 h-8 text-blue-600" />}
-              title="AI Cost Optimizer"
-              description="Get instant suggestions: 'Switch to GPT-3.5 here and save $200/month' with one click."
-              benefit="Reduce costs 30-40%"
             />
             <FeatureCard
               icon={<AlertCircle className="w-8 h-8 text-blue-600" />}
@@ -175,9 +188,9 @@ export default function AnalyticsLanding({ user }: { user: User | null }) {
       {/* Integration Section */}
       <div className="bg-gray-900 text-white py-16" id="demo">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-center mb-4">2-Line Integration. Seriously.</h2>
+          <h2 className="text-3xl font-bold text-center mb-4">Wrap Once. Track Everything.</h2>
           <p className="text-xl text-gray-400 text-center mb-12">
-            Add tracking to your existing code in under 2 minutes
+            No timing code. No boilerplate. Just wrap your client and you're done.
           </p>
           <div className="bg-gray-800 rounded-lg shadow-2xl p-8 max-w-3xl mx-auto">
             <div className="flex items-center gap-2 mb-4">
@@ -190,23 +203,43 @@ export default function AnalyticsLanding({ user }: { user: User | null }) {
               <code className="text-green-400">{`import PromptCraft from 'promptcraft-sdk';
 import OpenAI from 'openai';
 
+const openai = new OpenAI();
 const promptcraft = new PromptCraft({ 
-  apiKey: process.env.PROMPTCRAFT_API_KEY 
+  apiKey: process.env.PROMPTCRAFT_API_KEY,
+  enableCache: true,  // 80% cost savings
+  maxRetries: 3       // Auto-retry failures
 });
 
-const openai = new OpenAI();
-const params = { model: 'gpt-4', messages: [...] };
-
-const start = Date.now();
-const result = await openai.chat.completions.create(params);
 `}</code>
-              <code className="text-yellow-400">{`await promptcraft.trackOpenAI(params, result, Date.now() - start);`}</code>
-              <code className="text-green-400">{`
-// ✅ Done! All costs now tracked in real-time`}</code>
+              <code className="text-yellow-400">{`// Wrap once
+const tracked = promptcraft.wrapOpenAI(openai);
+
+`}</code>
+              <code className="text-green-400">{`// Use normally - tracking happens automatically!
+const result = await tracked.chat.completions.create({
+  model: 'gpt-4',
+  messages: [{ role: 'user', content: 'Hello!' }]
+});
+
+// ✅ Tracked + cached + retried automatically`}</code>
             </pre>
           </div>
+          <div className="grid grid-cols-3 gap-4 max-w-2xl mx-auto mt-8">
+            <div className="text-center">
+              <div className="text-3xl font-bold mb-1">0</div>
+              <div className="text-gray-400 text-sm">Timing code</div>
+            </div>
+            <div className="text-center">
+              <div className="text-3xl font-bold mb-1">&lt;50ms</div>
+              <div className="text-gray-400 text-sm">Overhead</div>
+            </div>
+            <div className="text-center">
+              <div className="text-3xl font-bold mb-1">4</div>
+              <div className="text-gray-400 text-sm">Providers</div>
+            </div>
+          </div>
           <p className="text-center text-gray-400 mt-6">
-            Works with OpenAI and Anthropic • Zero performance impact • TypeScript support
+            OpenAI • Anthropic • Gemini • Grok • TypeScript • Zero config
           </p>
         </div>
       </div>

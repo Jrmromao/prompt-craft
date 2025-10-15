@@ -117,7 +117,7 @@ export class SettingsService {
           ? JSON.parse(user.themeSettings)
           : user.themeSettings
         : defaultThemeSettings,
-      apiKeys: user.apiKeys,
+      apiKeys: user.ApiKey,
     };
 
     // Update cache

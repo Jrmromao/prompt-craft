@@ -1,13 +1,44 @@
 'use client';
 
 import { useUser } from '@clerk/nextjs';
+import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Crown, Zap, DollarSign, TrendingUp, BarChart3, AlertCircle } from 'lucide-react';
+import { Crown, Zap, DollarSign, TrendingUp, BarChart3, AlertCircle, Activity, Clock } from 'lucide-react';
 import Link from 'next/link';
+
+interface DashboardStats {
+  totalRuns: number;
+  monthlyRuns: number;
+  monthlyLimit: number;
+  totalCost: number;
+  avgCostPerRun: number;
+  avgLatency: number;
+  totalTokens: number;
+  successRate: number;
+  plan: string;
+}
 
 export default function DashboardPage() {
   const { user } = useUser();
+  const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch('/api/dashboard/stats')
+      .then(res => res.json())
+      .then(data => {
+        setStats(data);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error('Failed to fetch stats:', err);
+        setLoading(false);
+      });
+  }, []);
+
+  const percentUsed = stats ? (stats.monthlyRuns / stats.monthlyLimit) * 100 : 0;
+  const isNearLimit = percentUsed > 80;
 
   return (
     <div className="container mx-auto px-4 py-8 space-y-6">
@@ -24,141 +55,181 @@ export default function DashboardPage() {
         </Link>
       </div>
 
-      {/* Conversion Banner */}
-      <Card className="bg-gradient-to-r from-blue-600 to-blue-500 text-white border-0">
-        <CardContent className="p-6">
-          <div className="flex items-center justify-between">
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <Crown className="w-6 h-6" />
-                <h2 className="text-xl font-bold">Upgrade to Track More</h2>
+      {/* Upgrade Banner - Show if near limit or on free plan */}
+      {stats && (isNearLimit || stats.plan === 'FREE') && (
+        <Card className="bg-gradient-to-r from-blue-600 to-blue-500 text-white border-0">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <Crown className="w-6 h-6" />
+                  <h2 className="text-xl font-bold">
+                    {isNearLimit ? 'Running Low on Runs' : 'Upgrade to Track More'}
+                  </h2>
+                </div>
+                <p className="text-blue-100">
+                  {isNearLimit 
+                    ? `You've used ${stats.monthlyRuns.toLocaleString()} of ${stats.monthlyLimit.toLocaleString()} runs this month.`
+                    : `You're on the ${stats.plan} plan. Upgrade for unlimited tracking.`
+                  }
+                </p>
+                <div className="flex gap-4 text-sm">
+                  <div className="flex items-center gap-1">
+                    <Zap className="w-4 h-4" />
+                    <span>100k+ runs/month</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <DollarSign className="w-4 h-4" />
+                    <span>Cost optimization</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <TrendingUp className="w-4 h-4" />
+                    <span>Advanced analytics</span>
+                  </div>
+                </div>
               </div>
-              <p className="text-blue-100">
-                You're on the Free plan (1,000 runs/month). Upgrade for unlimited tracking.
-              </p>
-              <div className="flex gap-4 text-sm">
-                <div className="flex items-center gap-1">
-                  <Zap className="w-4 h-4" />
-                  <span>100k+ runs/month</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <DollarSign className="w-4 h-4" />
-                  <span>Cost optimization</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <TrendingUp className="w-4 h-4" />
-                  <span>Advanced analytics</span>
-                </div>
+              <Link href="/pricing">
+                <Button size="lg" variant="secondary" className="bg-white text-blue-600 hover:bg-gray-100">
+                  Upgrade Now
+                </Button>
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Stats Grid */}
+      {loading ? (
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          {[1, 2, 3, 4].map(i => (
+            <Card key={i} className="animate-pulse">
+              <CardHeader className="pb-2">
+                <div className="h-4 bg-gray-200 rounded w-24"></div>
+              </CardHeader>
+              <CardContent>
+                <div className="h-8 bg-gray-200 rounded w-16"></div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      ) : stats ? (
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <StatCard
+            title="Tracked Runs"
+            value={`${stats.monthlyRuns.toLocaleString()}/${stats.monthlyLimit === -1 ? '∞' : stats.monthlyLimit.toLocaleString()}`}
+            icon={<Activity className="w-4 h-4 text-blue-600" />}
+            subtitle="This month"
+          />
+          <StatCard
+            title="Total Cost"
+            value={`$${stats.totalCost.toFixed(2)}`}
+            icon={<DollarSign className="w-4 h-4 text-green-600" />}
+            subtitle="All time"
+          />
+          <StatCard
+            title="Avg Cost/Run"
+            value={`$${stats.avgCostPerRun.toFixed(4)}`}
+            icon={<TrendingUp className="w-4 h-4 text-purple-600" />}
+            subtitle="Per API call"
+          />
+          <StatCard
+            title="Success Rate"
+            value={`${stats.successRate}%`}
+            icon={<BarChart3 className="w-4 h-4 text-orange-600" />}
+            subtitle={`${stats.totalRuns} total runs`}
+          />
+        </div>
+      ) : (
+        <Card className="border-red-200 bg-red-50">
+          <CardContent className="p-6">
+            <div className="flex items-center gap-3">
+              <AlertCircle className="w-6 h-6 text-red-600" />
+              <div>
+                <p className="font-semibold text-red-900">Failed to load stats</p>
+                <p className="text-sm text-red-700">Please refresh the page</p>
               </div>
             </div>
-            <Link href="/pricing">
-              <Button className="bg-white text-blue-600 hover:bg-gray-100 font-semibold px-6">
-                Upgrade to Pro - $29/month
-              </Button>
-            </Link>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      )}
 
-      {/* Quick Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      {/* Getting Started - Show if no runs */}
+      {stats && stats.totalRuns === 0 && (
         <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">This Month</CardTitle>
+          <CardHeader>
+            <CardTitle>🚀 Get Started in 2 Minutes</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">0</div>
-            <p className="text-xs text-gray-500">Tracked runs</p>
-            <div className="mt-2 text-xs text-blue-600">0 / 1,000 used</div>
+          <CardContent className="space-y-4">
+            <div className="space-y-3">
+              <Step number={1} title="Install SDK" completed={false}>
+                <code className="text-sm bg-gray-100 px-2 py-1 rounded">npm install promptcraft-sdk</code>
+              </Step>
+              <Step number={2} title="Get API Key" completed={false}>
+                <Link href="/settings" className="text-blue-600 hover:underline text-sm">
+                  Go to Settings → Create API Key
+                </Link>
+              </Step>
+              <Step number={3} title="Add to Your Code" completed={false}>
+                <Link href="/docs/quickstart" className="text-blue-600 hover:underline text-sm">
+                  View Quick Start Guide →
+                </Link>
+              </Step>
+            </div>
           </CardContent>
         </Card>
-        
+      )}
+
+      {/* Recent Activity - Show if has runs */}
+      {stats && stats.totalRuns > 0 && (
         <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">Total Cost</CardTitle>
+          <CardHeader>
+            <CardTitle>Quick Stats</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">$0.00</div>
-            <p className="text-xs text-gray-500">AI spending</p>
-            <div className="mt-2 text-xs text-green-600">↓ 0% vs last month</div>
+          <CardContent className="space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-gray-600">Total Tokens Used</span>
+              <span className="font-semibold">{stats.totalTokens.toLocaleString()}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-gray-600">Avg Response Time</span>
+              <span className="font-semibold">{Math.round(stats.avgLatency)}ms</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-gray-600">Current Plan</span>
+              <span className="font-semibold">{stats.plan}</span>
+            </div>
           </CardContent>
         </Card>
-        
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">Avg Cost/Run</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">$0.00</div>
-            <p className="text-xs text-gray-500">Per API call</p>
-            <div className="mt-2 text-xs text-gray-400">No data yet</div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">Success Rate</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">0%</div>
-            <p className="text-xs text-gray-500">Successful calls</p>
-            <div className="mt-2 text-xs text-gray-400">No data yet</div>
-          </CardContent>
-        </Card>
+      )}
+    </div>
+  );
+}
+
+function StatCard({ title, value, icon, subtitle }: { title: string; value: string; icon: React.ReactNode; subtitle: string }) {
+  return (
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between pb-2">
+        <CardTitle className="text-sm font-medium text-gray-600">{title}</CardTitle>
+        {icon}
+      </CardHeader>
+      <CardContent>
+        <div className="text-2xl font-bold">{value}</div>
+        <p className="text-xs text-gray-500 mt-1">{subtitle}</p>
+      </CardContent>
+    </Card>
+  );
+}
+
+function Step({ number, title, completed, children }: { number: number; title: string; completed: boolean; children: React.ReactNode }) {
+  return (
+    <div className="flex gap-3">
+      <div className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold ${completed ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-600'}`}>
+        {number}
       </div>
-
-      {/* Getting Started */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Get Started</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-start gap-4 p-4 border rounded-lg">
-            <div className="bg-blue-100 p-2 rounded-lg">
-              <Zap className="w-6 h-6 text-blue-600" />
-            </div>
-            <div className="flex-1">
-              <h3 className="font-semibold mb-1">1. Install the SDK</h3>
-              <p className="text-sm text-gray-600 mb-2">
-                Add our SDK to your project to start tracking API calls
-              </p>
-              <code className="text-xs bg-gray-100 px-2 py-1 rounded">
-                npm install promptcraft-sdk
-              </code>
-            </div>
-          </div>
-
-          <div className="flex items-start gap-4 p-4 border rounded-lg">
-            <div className="bg-blue-100 p-2 rounded-lg">
-              <BarChart3 className="w-6 h-6 text-blue-600" />
-            </div>
-            <div className="flex-1">
-              <h3 className="font-semibold mb-1">2. Track Your First Run</h3>
-              <p className="text-sm text-gray-600 mb-2">
-                Wrap your OpenAI or Anthropic calls to start tracking costs
-              </p>
-              <Link href="/settings" className="text-sm text-blue-600 hover:underline">
-                Get your API key →
-              </Link>
-            </div>
-          </div>
-
-          <div className="flex items-start gap-4 p-4 border rounded-lg">
-            <div className="bg-blue-100 p-2 rounded-lg">
-              <AlertCircle className="w-6 h-6 text-blue-600" />
-            </div>
-            <div className="flex-1">
-              <h3 className="font-semibold mb-1">3. Set Budget Alerts</h3>
-              <p className="text-sm text-gray-600 mb-2">
-                Get notified before you exceed your spending limits
-              </p>
-              <Link href="/settings" className="text-sm text-blue-600 hover:underline">
-                Configure alerts →
-              </Link>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="flex-1">
+        <p className="font-medium mb-1">{title}</p>
+        {children}
+      </div>
     </div>
   );
 }

@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
     const user = await prisma.user.findUnique({
       where: { clerkId: userId },
       include: {
-        subscription: true,
+        Subscription: true,
       },
     });
 
@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
 
 
     // Create or get Stripe customer
-    let customerId = user.subscription?.stripeCustomerId;
+    let customerId = user.Subscription?.stripeCustomerId;
     if (!customerId) {
       const customer = await stripe.customers.create({
         email: user.email,
@@ -65,7 +65,7 @@ export async function POST(req: NextRequest) {
       await prisma.user.update({
         where: { id: user.id },
         data: {
-          subscription: {
+          Subscription: {
             create: {
               stripeCustomerId: customerId,
               status: SubscriptionStatus.INCOMPLETE,

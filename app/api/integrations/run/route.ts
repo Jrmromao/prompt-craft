@@ -187,16 +187,28 @@ export async function POST(request: Request) {
 }
 
 function calculateCost(provider: string, model: string, tokens: number): number {
+  // Simplified pricing - uses average of input/output rates
+  // Real implementation should track input/output tokens separately
   const pricing: Record<string, Record<string, number>> = {
     openai: {
-      'gpt-4': 0.03,
-      'gpt-4-turbo': 0.01,
-      'gpt-3.5-turbo': 0.0005,
+      'gpt-4': 0.045, // avg of 0.03 input + 0.06 output
+      'gpt-4-turbo': 0.02, // avg of 0.01 input + 0.03 output
+      'gpt-4-turbo-preview': 0.02,
+      'gpt-3.5-turbo': 0.001, // avg of 0.0005 input + 0.0015 output
     },
     anthropic: {
-      'claude-3-opus': 0.015,
-      'claude-3-sonnet': 0.003,
-      'claude-3-haiku': 0.00025,
+      'claude-3-opus': 0.045, // avg of 0.015 input + 0.075 output
+      'claude-3-sonnet': 0.009, // avg of 0.003 input + 0.015 output
+      'claude-3-5-sonnet': 0.009,
+      'claude-3-haiku': 0.000875, // avg of 0.00025 input + 0.00125 output
+    },
+    gemini: {
+      'gemini-pro': 0.001, // avg of 0.0005 input + 0.0015 output
+      'gemini-1.5-pro': 0.003125, // avg of 0.00125 input + 0.005 output
+      'gemini-1.5-flash': 0.0001875, // avg of 0.000075 input + 0.0003 output
+    },
+    grok: {
+      'grok-beta': 0.005, // $5 per 1M tokens
     },
   };
 

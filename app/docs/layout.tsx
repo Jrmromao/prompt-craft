@@ -18,6 +18,9 @@ const navigation = [
     items: [
       { title: 'OpenAI Integration', href: '/docs/openai', icon: BookOpen },
       { title: 'Anthropic Integration', href: '/docs/anthropic', icon: BookOpen },
+      { title: 'Google Gemini', href: '/docs/gemini', icon: BookOpen },
+      { title: 'xAI Grok', href: '/docs/grok', icon: BookOpen },
+      { title: 'Advanced Features', href: '/docs/advanced', icon: Zap },
       { title: 'Error Tracking', href: '/docs/errors', icon: FileText },
     ],
   },
