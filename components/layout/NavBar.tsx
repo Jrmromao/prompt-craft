@@ -84,6 +84,18 @@ export function NavBar({ user, onMenuClick }: { user?: NavBarUser; onMenuClick?:
                     Analytics
                   </Link>
                   <Link
+                    href="/prompts/optimize"
+                    className={cn(
+                      'flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-all hover:scale-105',
+                      pathname?.startsWith('/prompts/optimize')
+                        ? 'bg-gradient-to-r from-purple-600 to-purple-500 text-white shadow-md'
+                        : 'text-muted-foreground hover:bg-purple-100/40 dark:hover:bg-purple-500/10'
+                    )}
+                  >
+                    <Sparkles className="h-4 w-4" />
+                    Optimize
+                  </Link>
+                  <Link
                     href="/optimizer"
                     className={cn(
                       'flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-all hover:scale-105',
@@ -93,7 +105,7 @@ export function NavBar({ user, onMenuClick }: { user?: NavBarUser; onMenuClick?:
                     )}
                   >
                     <Zap className="h-4 w-4" />
-                    Optimizer
+                    Insights
                   </Link>
                   <Link
                     href="/docs"
