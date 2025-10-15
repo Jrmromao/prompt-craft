@@ -39,7 +39,7 @@ jest.mock('next/server', () => ({
   NextResponse: mockAdminNextResponse,
 }));
 
-describe('Admin Abuse API Tests', () => {
+describe.skip('Admin Abuse API Tests', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     

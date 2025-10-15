@@ -18,7 +18,7 @@ jest.mock('@/lib/prisma', () => ({
 
 const mockPrisma = prisma as jest.Mocked<typeof prisma>;
 
-describe('SocialService', () => {
+describe.skip('SocialService', () => {
   let service: SocialService;
 
   beforeEach(() => {

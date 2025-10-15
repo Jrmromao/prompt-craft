@@ -23,7 +23,6 @@ async function main() {
       where: { id: prompt.id },
       data: { slug: uniqueSlug },
     });
-    console.log(`Updated prompt ${prompt.id} with slug: ${uniqueSlug}`);
   }
   await prisma.$disconnect();
 }

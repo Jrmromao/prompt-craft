@@ -6,7 +6,6 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const limit = parseInt(searchParams.get('limit') || '5', 10);
 
-    console.log('Fetching popular templates with limit:', limit);
 
     const templates = await prisma.promptTemplate.findMany({
       where: {
@@ -43,7 +42,6 @@ export async function GET(request: Request) {
       take: limit
     });
 
-    console.log('Found templates:', templates.length);
 
     return NextResponse.json(templates);
   } catch (error) {

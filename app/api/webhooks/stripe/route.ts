@@ -20,13 +20,11 @@ export async function POST(req: Request) {
     const headersList = await headers();
     const signature = headersList.get('stripe-signature')!;
 
-    console.log("Received webhook request");
 
     let event: Stripe.Event;
 
     try {
       event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
-      console.log("Webhook event constructed:", event.type);
     } catch (err) {
       console.error("Webhook signature verification failed:", err);
       return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
@@ -35,12 +33,6 @@ export async function POST(req: Request) {
     switch (event.type) {
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session;
-        console.log("Processing checkout.session.completed:", {
-          sessionId: session.id,
-          customerId: session.customer,
-          subscriptionId: session.subscription,
-          metadata: session.metadata,
-        });
         
         if (!session.metadata?.userId) {
           console.error("No userId in session metadata");
@@ -91,12 +83,6 @@ export async function POST(req: Request) {
               price: session.amount_total! / 100, // Convert from cents
               stripeSessionId: session.id,
             },
-          });
-
-          console.log("Credit purchase processed:", {
-            userId,
-            amount,
-            sessionId: session.id,
           });
 
           // Log the successful purchase
@@ -176,15 +162,11 @@ export async function POST(req: Request) {
           },
         });
 
-        console.log("Subscription updated:", updatedSubscription);
         break;
       }
 
       case "customer.subscription.deleted": {
         const subscription = event.data.object as Stripe.Subscription;
-        console.log("Processing customer.subscription.deleted:", {
-          subscriptionId: subscription.id,
-        });
         
         // Update subscription status to canceled
         const updatedSubscription = await prisma.subscription.updateMany({
@@ -196,7 +178,6 @@ export async function POST(req: Request) {
           },
         });
 
-        console.log("Subscription canceled:", updatedSubscription);
         break;
       }
     }

@@ -3,14 +3,12 @@ import { prisma } from '@/lib/prisma';
 
 export async function GET() {
   try {
-    console.log('Fetching templates...');
     const templates = await prisma.promptTemplate.findMany({
       select: {
         tags: true,
       },
     });
 
-    console.log('Found templates:', templates);
 
     // Count occurrences of each tag
     const tagCounts = templates.reduce((acc, template) => {

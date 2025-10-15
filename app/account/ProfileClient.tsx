@@ -695,7 +695,6 @@ function ProfileContent({ user, currentPath }: ProfileClientProps) {
   useEffect(() => {
     async function fetchActivities() {
       try {
-        console.log('Fetching activities for user:', user.id);
 
         // Create a test audit log via API
         const testLog = {
@@ -704,7 +703,6 @@ function ProfileContent({ user, currentPath }: ProfileClientProps) {
           details: { message: 'Test audit log' },
           status: 'success',
         };
-        console.log('Creating test audit log:', testLog);
         
         await fetch('/api/audit', {
           method: 'POST',
@@ -712,11 +710,9 @@ function ProfileContent({ user, currentPath }: ProfileClientProps) {
           body: JSON.stringify(testLog)
         });
 
-        console.log('Fetching audit logs...');
         const response = await fetch('/api/audit?limit=50');
         const logs = await response.json();
         
-        console.log('Fetched activities:', logs);
         setActivities(logs);
       } catch (error) {
         console.error('Failed to fetch activities:', error);
@@ -927,7 +923,6 @@ function ProfileContent({ user, currentPath }: ProfileClientProps) {
         onOpenChange={setIsUpgradeDialogOpen}
         onUpgrade={(plan) => {
           // Handle upgrade logic here
-          console.log('Upgrading to plan:', plan);
           setIsUpgradeDialogOpen(false);
         }}
       />

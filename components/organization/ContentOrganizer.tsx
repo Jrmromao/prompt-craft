@@ -52,17 +52,14 @@ export function ContentOrganizer({ className }: ContentOrganizerProps) {
 
   const handleCreateFolder = (name: string, parentId?: string) => {
     // TODO: Create folder via API
-    console.log('Creating folder:', name, parentId)
   }
 
   const handleSelectFavorite = (promptId: string) => {
     // TODO: Navigate to prompt
-    console.log('Selecting favorite:', promptId)
   }
 
   const handleRemoveFavorite = (promptId: string) => {
     // TODO: Remove from favorites via API
-    console.log('Removing favorite:', promptId)
   }
 
   const handleTagSelect = (tagId: string) => {
@@ -77,7 +74,6 @@ export function ContentOrganizer({ className }: ContentOrganizerProps) {
 
   const handleCreateTag = (name: string) => {
     // TODO: Create tag via API
-    console.log('Creating tag:', name)
   }
 
   return (

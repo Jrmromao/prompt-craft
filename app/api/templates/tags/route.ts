@@ -6,8 +6,6 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const limit = parseInt(searchParams.get('limit') || '20', 10);
 
-    console.log('Fetching popular tags...');
-    console.log('Limit:', limit);
 
     const templates = await prisma.promptTemplate.findMany({
       select: {
@@ -15,7 +13,6 @@ export async function GET(request: Request) {
       },
     });
 
-    console.log('Found templates:', templates.length);
 
     // Count occurrences of each tag
     const tagCounts = templates.reduce((acc, template) => {
@@ -25,7 +22,6 @@ export async function GET(request: Request) {
       return acc;
     }, {} as Record<string, number>);
 
-    console.log('Tag counts:', tagCounts);
 
     // Sort tags by count and take top N
     const popularTags = Object.entries(tagCounts)
@@ -33,7 +29,6 @@ export async function GET(request: Request) {
       .sort((a, b) => b.count - a.count)
       .slice(0, limit);
 
-    console.log('Popular tags:', popularTags);
 
     return NextResponse.json(popularTags);
   } catch (error) {

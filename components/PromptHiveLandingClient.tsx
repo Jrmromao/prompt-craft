@@ -208,9 +208,7 @@ const PricingSection = ({
         return;
       }
 
-      console.log('Starting subscription process for plan:', plan);
       const priceId = isAnnual ? plan.stripeAnnualPriceId : plan.stripePriceId;
-      console.log('Price ID:', priceId);
       
       const response = await fetch(`${window.location.origin}/api/billing/checkout`, {
         method: 'POST',
@@ -223,7 +221,6 @@ const PricingSection = ({
       });
 
       const data = await response.json();
-      console.log('Checkout response:', data);
 
       if (!response.ok) {
         throw new Error(data.error || 'Failed to create checkout session');
@@ -616,9 +613,7 @@ const PromptHiveLandingClient = ({ user }: PromptHiveLandingClientProps) => {
         return;
       }
 
-      console.log('Starting subscription process for plan:', plan);
       const priceId = isAnnual ? plan.stripeAnnualPriceId : plan.stripePriceId;
-      console.log('Price ID:', priceId);
       
       const response = await fetch(`${window.location.origin}/api/billing/checkout`, {
         method: 'POST',
@@ -631,7 +626,6 @@ const PromptHiveLandingClient = ({ user }: PromptHiveLandingClientProps) => {
       });
 
       const data = await response.json();
-      console.log('Checkout response:', data);
 
       if (!response.ok) {
         throw new Error(data.error || 'Failed to create checkout session');

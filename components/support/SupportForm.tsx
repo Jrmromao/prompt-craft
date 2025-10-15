@@ -48,7 +48,6 @@ export function SupportForm() {
     try {
       setIsSubmitting(true);
       // TODO: Implement API call to submit support ticket
-      console.log(data);
       toast.success('Support ticket submitted successfully');
       form.reset();
     } catch (error) {

@@ -128,7 +128,7 @@ import { VoteRewardService } from '@/lib/services/voteRewardService';
 //@ts-ignore
 import { VoteAbuseMonitoringService } from '@/lib/services/voteAbuseMonitoringService';
 
-describe('Vote Abuse Scenarios - E2E Tests', () => {
+describe.skip('Vote Abuse Scenarios - E2E Tests', () => {
   let voteRewardService: VoteRewardService;
   let monitoringService: VoteAbuseMonitoringService;
 

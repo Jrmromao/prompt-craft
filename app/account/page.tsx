@@ -62,13 +62,10 @@ export default function AccountPage() {
     setLoading(true);
     try {
       // Fetch user data
-      console.log('Fetching user data...');
       const userResponse = await fetch('/api/auth/user');
-      console.log('User response status:', userResponse.status);
       
       if (userResponse.ok) {
         const userData = await userResponse.json();
-        console.log('User data:', userData);
         if (userData.success) {
           setDbUser({
             planType: userData.data.user.planType,

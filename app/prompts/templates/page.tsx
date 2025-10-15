@@ -111,14 +111,12 @@ export default function TemplateLibrary() {
   const loadTemplates = async () => {
     try {
       setIsLoading(true);
-      console.log('Frontend: Loading templates with filters:', { type: selectedType, search: searchQuery });
       
       const data = await templateService.getTemplates({
         type: selectedType || undefined,
         search: searchQuery || undefined,
       });
       
-      console.log('Frontend: Received templates:', data);
       setTemplates(data as Template[]);
     } catch (error) {
       console.error('Frontend: Error loading templates:', error);
@@ -134,9 +132,7 @@ export default function TemplateLibrary() {
 
   const loadPopularTemplates = async () => {
     try {
-      console.log('Frontend: Loading popular templates');
       const data = await templateService.getPopularTemplates();
-      console.log('Frontend: Received popular templates:', data);
       setPopularTemplates(data as Template[]);
     } catch (error) {
       console.error('Frontend: Error loading popular templates:', error);

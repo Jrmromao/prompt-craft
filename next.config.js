@@ -15,7 +15,22 @@ const nextConfig = {
   },
   experimental: {
     optimizeCss: false,
-    optimizePackageImports: ['@clerk/nextjs', 'lucide-react'],
+    optimizePackageImports: [
+      '@clerk/nextjs',
+      'lucide-react',
+      '@radix-ui/react-dialog',
+      '@radix-ui/react-dropdown-menu',
+      '@radix-ui/react-select',
+      '@radix-ui/react-tabs',
+      '@radix-ui/react-toast',
+      '@radix-ui/react-tooltip',
+      '@radix-ui/react-popover',
+      '@radix-ui/react-scroll-area',
+      'recharts',
+      'react-markdown',
+      'date-fns'
+    ],
+    serverComponentsExternalPackages: ['prisma', '@prisma/client']
   },
   typescript: {
     ignoreBuildErrors: true, // Temporarily ignore TypeScript errors

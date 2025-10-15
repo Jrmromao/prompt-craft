@@ -33,7 +33,6 @@ export default function RoleManagementPage() {
   const [selectedRole, setSelectedRole] = useState<Role>(Role.USER);
   const [isLoading, setIsLoading] = useState(true);
 
-  console.log('DEBUG: role', role, 'isLoaded', isLoaded);
 
   useEffect(() => {
     fetchUsers();

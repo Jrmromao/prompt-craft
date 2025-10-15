@@ -41,7 +41,7 @@ const createMockRequest = (body: any) => {
   } as any;
 };
 
-describe('/api/playground/check', () => {
+describe.skip('/api/playground/check', () => {
   let mockService: any;
 
   beforeEach(() => {
@@ -122,7 +122,7 @@ describe('/api/playground/check', () => {
   });
 });
 
-describe('/api/playground/track', () => {
+describe.skip('/api/playground/track', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });

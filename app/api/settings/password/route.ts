@@ -3,14 +3,14 @@ import { auth } from '@clerk/nextjs/server';
 import { clerkClient } from '@clerk/nextjs/server';
 import { z } from 'zod';
 import { Ratelimit } from '@upstash/ratelimit';
-import { Redis } from '@upstash/redis';
+import { redis } from '@/lib/redis';
 import { AuditAction } from '@/app/constants/audit';
 import { AuditService } from '@/lib/services/auditService';
 import { UserService } from '@/lib/services/UserService';
 import { validateCSRFToken } from '@/lib/csrf';
 
 const ratelimit = new Ratelimit({
-  redis: Redis.fromEnv(),
+  redis,
   limiter: Ratelimit.slidingWindow(3, '1 h'), // 3 attempts per hour
 });
 

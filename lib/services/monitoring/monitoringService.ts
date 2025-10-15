@@ -114,7 +114,6 @@ export class MonitoringService {
 
   private async sendPaymentFailureAlert(userId: string): Promise<void> {
     // TODO: Implement notification system
-    console.log(`Payment failure alert sent to user ${userId}`);
   }
 
   private async sendUsageLimitWarning(
@@ -123,9 +122,6 @@ export class MonitoringService {
     usagePercentage: number
   ): Promise<void> {
     // TODO: Implement notification system
-    console.log(
-      `Usage limit warning sent to user ${userId} for ${feature} (${usagePercentage.toFixed(1)}%)`
-    );
   }
 
   public async getSystemStatus(): Promise<{

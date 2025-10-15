@@ -6,24 +6,22 @@ import { prisma } from '@/lib/prisma';
 import { PLANS, PlanType } from '@/app/constants/plans';
 import { CreditType } from '@prisma/client';
 import { UserService } from '@/lib/services/UserService';
-import { Redis } from '@upstash/redis';
+import { redis } from '@/lib/redis';
 
 // Export dynamic configuration
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
 // Initialize Redis client
-const redis = Redis.fromEnv();
+// redis imported from @/lib/redis
 
 // Cache TTL in seconds (5 minutes)
 const USER_CACHE_TTL = 300;
 
 export async function POST(req: Request) {
   try {
-    console.log('Generate API route called');
     const { userId } = await auth();
     if (!userId) {
-      console.log('No userId found');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -39,7 +37,6 @@ export async function POST(req: Request) {
     let user = await redis.get<{ planType: string }>(userCacheKey);
 
     if (!user) {
-      console.log('User not found in Redis cache, querying database...');
       // If not in cache, get from database
       user = await prisma.user.findUnique({
         where: { id: userDatabaseId },
@@ -52,13 +49,10 @@ export async function POST(req: Request) {
 
       // Store in Redis cache
       await redis.set(userCacheKey, user, { ex: USER_CACHE_TTL });
-      console.log('User cached in Redis');
     } else {
-      console.log('User found in Redis cache');
     }
 
     const body = await req.json();
-    console.log('Request body:', body);
     const {
       name,
       description,
@@ -87,7 +81,6 @@ export async function POST(req: Request) {
     } = body;
 
     if (!name || !promptType) {
-      console.log('Missing required fields:', { name, promptType });
       return NextResponse.json(
         { error: 'Name and prompt type are required' },
         { status: 400 }
@@ -124,11 +117,9 @@ ${includeImageDescription ? 'Include detailed image descriptions' : ''}
 
 Please generate a complete, well-structured prompt that follows best practices for ${promptType} generation. Include any necessary instructions, context, and formatting requirements. Start your response directly with the prompt content, without any introductory text.`;
 
-    console.log('Generation prompt:', generationPrompt);
 
     // Initialize AI service
     const aiService = AIService.getInstance();
-    console.log('AI service initialized');
 
     // Calculate credit cost
     const estimatedTokens = Math.ceil(generationPrompt.length / 4); // Rough estimate
@@ -153,7 +144,6 @@ Please generate a complete, well-structured prompt that follows best practices f
     }
 
     // Generate the prompt
-    console.log('Generating prompt...');
     const generatedPrompt = await aiService.generateText(generationPrompt, {
       temperature: temperature || 0.7,
       maxTokens: maxTokens || 2000,
@@ -161,7 +151,6 @@ Please generate a complete, well-structured prompt that follows best practices f
       frequencyPenalty: frequencyPenalty,
       presencePenalty: presencePenalty,
     });
-    console.log('Prompt generated');
 
     // Deduct credits
     const actualCreditCost = CreditService.getInstance().calculateTokenCost(

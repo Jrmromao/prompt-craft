@@ -14,7 +14,6 @@ export async function POST(req: NextRequest) {
     }
 
     const { priceId } = await req.json();
-    console.log('Received checkout request:', { priceId, userId });
 
     if (!priceId) {
       console.error('Price ID is missing');
@@ -38,7 +37,6 @@ export async function POST(req: NextRequest) {
     const host = req.headers.get('host') || 'localhost:3001';
     const baseUrl = `${protocol}://${host}`;
 
-    console.log('Creating checkout session with base URL:', baseUrl);
 
     // Create or get Stripe customer
     let customerId = user.subscription?.stripeCustomerId;
@@ -109,7 +107,6 @@ export async function POST(req: NextRequest) {
       details: { priceId, customerId, sessionId: session.id },
     });
 
-    console.log('Created checkout session:', session.id);
     return NextResponse.json({ url: session.url });
   } catch (error) {
     console.error('Error creating checkout session:', error);

@@ -13,7 +13,6 @@ export async function getTicket(ticketId: string) {
 export async function addTicketComment(ticketId: string, content: string) {
   try {
     // TODO: Implement addComment when SupportTicketService has this method
-    console.log('Adding comment to ticket:', ticketId, content);
     return { success: true };
   } catch (error) {
     console.error('Error adding comment:', error);
@@ -24,7 +23,6 @@ export async function addTicketComment(ticketId: string, content: string) {
 export async function updateTicketStatus(ticketId: string, status: string) {
   try {
     // TODO: Implement updateStatus when SupportTicketService has this method
-    console.log('Updating ticket status:', ticketId, status);
     return { success: true };
   } catch (error) {
     console.error('Error updating ticket status:', error);

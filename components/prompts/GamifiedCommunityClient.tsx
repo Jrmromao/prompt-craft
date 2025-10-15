@@ -306,7 +306,6 @@ export default function GamifiedCommunityClient() {
   const showAchievementNotification = (newAchievements: Achievement[]) => {
     // Show toast notification for new achievements
     newAchievements.forEach(achievement => {
-      console.log(`🎉 Achievement unlocked: ${achievement.name}!`);
     });
   };
 

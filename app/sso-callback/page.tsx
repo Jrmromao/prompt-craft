@@ -14,11 +14,9 @@ export default function SsoCallbackPage() {
   useEffect(() => {
     if (isLoaded && user) {
       // User is authenticated, redirect to prompts
-      console.log('OAuth successful, redirecting to prompts');
       router.push('/prompts');
     } else if (isLoaded && !user) {
       // User is not authenticated, redirect to sign-in
-      console.log('OAuth failed, redirecting to sign-in');
       router.push('/sign-in');
     }
   }, [user, isLoaded, router]);

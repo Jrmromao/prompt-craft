@@ -84,11 +84,8 @@ export class SupportService {
     }
   ) {
     try {
-      console.log('SupportService: Getting DB user ID for Clerk ID:', clerkId);
       const dbUserId = await this.getDbUserId(clerkId);
-      console.log('SupportService: Found DB user ID:', dbUserId);
 
-      console.log('SupportService: Creating ticket with data:', { ...data, userId: dbUserId });
       const ticket = await prisma.supportTicket.create({
         data: {
           ...data,
@@ -107,7 +104,6 @@ export class SupportService {
           },
         },
       });
-      console.log('SupportService: Ticket created successfully:', { ticketId: ticket.id });
 
       // Send ticket creation notification
       await this.emailService.sendTicketCreatedNotification(

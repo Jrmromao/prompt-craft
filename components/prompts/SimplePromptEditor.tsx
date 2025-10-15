@@ -137,11 +137,9 @@ export function SimplePromptEditor() {
         body: JSON.stringify(prompt)
       });
 
-      console.log('Save response status:', response.status);
       
       if (response.ok) {
         const savedPrompt = await response.json();
-        console.log('Saved prompt:', savedPrompt);
         setSavedPromptId(savedPrompt.id);
         toast.success('🎉 Prompt saved successfully!');
         // Don't reset form to allow version control

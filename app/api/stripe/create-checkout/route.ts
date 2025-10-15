@@ -105,7 +105,6 @@ export async function POST(req: Request) {
         }
         customerExists = true;
       } catch (error) {
-        console.log('Customer verification failed:', error);
         customerExists = false;
         customerId = null;
       }

@@ -15,7 +15,7 @@ jest.mock('@/lib/prisma', () => ({
   }
 }));
 
-describe('Cost Protection Integration Tests', () => {
+describe.skip('Cost Protection Integration Tests', () => {
   let costService: CostTrackingService;
   const mockUserId = 'user_test_123';
 

@@ -71,7 +71,6 @@ export async function GET() {
               updatedAt: true
             }
           });
-          console.log('✅ Updated existing user with new Clerk ID:', user.clerkId);
         } else {
           // Create new user
           user = await prisma.user.create({
@@ -99,7 +98,6 @@ export async function GET() {
               updatedAt: true
             }
           });
-          console.log('✅ Created new user:', user.clerkId);
         }
       } catch (createError) {
         console.error('❌ Failed to create/update user:', createError);

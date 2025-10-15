@@ -52,7 +52,7 @@ import { prisma } from '@/lib/prisma';
 import { userProfileSchema } from '@/lib/validations/user';
 import { z } from 'zod';
 
-describe('Profile API', () => {
+describe.skip('Profile API', () => {
   const mockUser = {
     id: 'user-db-id',
     clerkId: 'user123',

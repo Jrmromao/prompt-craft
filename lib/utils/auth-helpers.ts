@@ -28,7 +28,6 @@ export function createSafeOAuthHandler(
     
     // Multiple checks for signed-in state to prevent OAuth calls
     if (isSignedIn === true) {
-      console.log('User already signed in, redirecting immediately...');
       router.push(redirectUrl);
       return;
     }
@@ -36,20 +35,17 @@ export function createSafeOAuthHandler(
     // Additional check: if isSignedIn is undefined but we're on an auth page, 
     // the middleware should have already redirected us
     if (isSignedIn === undefined && isLoaded) {
-      console.log('Auth state unclear, redirecting to be safe...');
       router.push(redirectUrl);
       return;
     }
     
     // Final check before OAuth call
     if (isSignedIn) {
-      console.log('Final check: User signed in, aborting OAuth');
       router.push(redirectUrl);
       return;
     }
     
     try {
-      console.log('Initiating OAuth with', provider);
       await authMethod.authenticateWithPopup({
         strategy: provider,
         redirectUrl: redirectUrl,
@@ -61,7 +57,6 @@ export function createSafeOAuthHandler(
       if (error?.message?.includes(AUTH_ERRORS.ALREADY_SIGNED_IN) || 
           error?.message?.includes('already signed in') ||
           error?.message?.includes('You\'re already signed in')) {
-        console.log('OAuth error indicates user already signed in, redirecting...');
         router.push(redirectUrl);
         return;
       }

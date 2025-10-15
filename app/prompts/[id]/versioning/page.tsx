@@ -53,8 +53,6 @@ export default function VersioningPage() {
     tests?: Array<{ input: string; output: string; rating: any }>;
   }) => {
     try {
-      console.log('Creating new version with data:', data);
-      console.log('Prompt ID:', promptId);
       
       const response = await fetch(`/api/prompts/${promptId}/versions`, {
         method: 'POST',

@@ -40,7 +40,6 @@ export class PerformanceService {
       //     userId: metric.userId,
       //   },
       // });
-      console.log('API Performance:', metric);
     } catch (error) {
       // Don't throw errors for monitoring to avoid breaking main functionality
       console.error('Failed to track API performance:', error);
@@ -58,7 +57,6 @@ export class PerformanceService {
       //     timestamp: metric.timestamp,
       //   },
       // });
-      console.log('Database Performance:', metric);
     } catch (error) {
       console.error('Failed to track database performance:', error);
     }
