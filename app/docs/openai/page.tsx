@@ -39,7 +39,81 @@ export default function OpenAIDocsPage() {
       <h2 className="text-2xl font-bold text-gray-900 mt-12 mb-4">Installation</h2>
       <CodeBlock code="npm install promptcraft-sdk openai" language="bash" />
 
-      <h2 className="text-2xl font-bold text-gray-900 mt-12 mb-4">Basic Usage</h2>
+      <h2 className="text-2xl font-bold text-gray-900 mt-12 mb-4">Quick Start (Recommended)</h2>
+      <p className="text-gray-700 mb-4">Use the wrapper for automatic tracking:</p>
+      <CodeBlock code={`import PromptCraft from 'promptcraft-sdk';
+import OpenAI from 'openai';
+
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+const promptcraft = new PromptCraft({ 
+  apiKey: process.env.PROMPTCRAFT_API_KEY 
+});
+
+// Wrap your client
+const tracked = promptcraft.wrapOpenAI(openai);
+
+// Use it exactly like normal OpenAI
+const result = await tracked.chat.completions.create({
+  model: 'gpt-4',
+  messages: [{ role: 'user', content: 'Hello!' }]
+});
+// ✅ Automatically tracked!`} />
+
+      <div className="bg-green-50 border-l-4 border-green-400 p-4 my-6 rounded-r">
+        <p className="text-sm text-green-900">
+          <strong>✨ Benefits:</strong> No timing code, automatic error tracking, built-in retries, and optional caching!
+        </p>
+      </div>
+
+      <h2 className="text-2xl font-bold text-gray-900 mt-12 mb-4">Manual Tracking</h2>
+      <p className="text-gray-700 mb-4">For more control, track manually:</p>
+      <CodeBlock code={`import PromptCraft from 'promptcraft-sdk';
+import OpenAI from 'openai';
+
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+const promptcraft = new PromptCraft({ 
+  apiKey: process.env.PROMPTCRAFT_API_KEY 
+});
+
+const params = {
+  model: 'gpt-4',
+  messages: [{ role: 'user', content: 'Hello!' }]
+};
+
+const start = Date.now();
+const result = await openai.chat.completions.create(params);
+await promptcraft.trackOpenAI(params, result, Date.now() - start);`} />
+
+      <h2 className="text-2xl font-bold text-gray-900 mt-12 mb-4">Advanced Features</h2>
+      
+      <h3 className="text-xl font-semibold text-gray-900 mt-8 mb-3">Caching</h3>
+      <p className="text-gray-700 mb-4">Save costs by caching responses:</p>
+      <CodeBlock code={`const promptcraft = new PromptCraft({ 
+  apiKey: process.env.PROMPTCRAFT_API_KEY,
+  enableCache: true  // Enable caching
+});
+
+const tracked = promptcraft.wrapOpenAI(openai);
+
+// Cache this response for 1 hour
+const result = await tracked.chat.completions.create(
+  { model: 'gpt-4', messages: [...] },
+  { cacheTTL: 3600000 }
+);`} />
+
+      <h3 className="text-xl font-semibold text-gray-900 mt-8 mb-3">Streaming</h3>
+      <p className="text-gray-700 mb-4">Track streaming responses:</p>
+      <CodeBlock code={`const stream = await tracked.chat.completions.stream({
+  model: 'gpt-4',
+  messages: [{ role: 'user', content: 'Tell me a story' }]
+});
+
+for await (const chunk of stream) {
+  process.stdout.write(chunk.choices[0]?.delta?.content || '');
+}
+// ✅ Automatically tracked after stream completes`} />
+
+      <h2 className="text-2xl font-bold text-gray-900 mt-12 mb-4">Basic Usage (Legacy)</h2>
       <CodeBlock code={`import PromptCraft from 'promptcraft-sdk';
 import OpenAI from 'openai';
 

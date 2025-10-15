@@ -49,7 +49,7 @@ export default function DocsHomePage() {
           <div>
             <h2 className="text-2xl font-bold mb-2">Get Started in 5 Minutes</h2>
             <p className="text-blue-100 mb-4 max-w-md">
-              Install the SDK and start tracking with just 2 lines of code. No complex setup required.
+              Wrap your OpenAI/Anthropic client and get automatic tracking, caching, retries, and error handling!
             </p>
             <Link href="/docs/quickstart">
               <button className="bg-white text-blue-600 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 inline-flex items-center gap-2 shadow-md hover:shadow-lg transition-all">
@@ -59,6 +59,22 @@ export default function DocsHomePage() {
             </Link>
           </div>
           <Zap className="w-32 h-32 text-blue-300 hidden lg:block opacity-50" />
+        </div>
+      </div>
+
+      {/* Features Highlight */}
+      <div className="grid md:grid-cols-3 gap-4 mb-12">
+        <div className="bg-gradient-to-br from-green-50 to-green-100 border border-green-200 rounded-lg p-5">
+          <h3 className="font-semibold text-green-900 mb-2">✨ Auto-Tracking</h3>
+          <p className="text-sm text-green-800">Wrap your client once, tracking happens automatically</p>
+        </div>
+        <div className="bg-gradient-to-br from-purple-50 to-purple-100 border border-purple-200 rounded-lg p-5">
+          <h3 className="font-semibold text-purple-900 mb-2">💾 Smart Caching</h3>
+          <p className="text-sm text-purple-800">Reduce API costs by up to 80% with intelligent caching</p>
+        </div>
+        <div className="bg-gradient-to-br from-orange-50 to-orange-100 border border-orange-200 rounded-lg p-5">
+          <h3 className="font-semibold text-orange-900 mb-2">🔄 Auto-Retry</h3>
+          <p className="text-sm text-orange-800">Built-in exponential backoff for failed requests</p>
         </div>
       </div>
 
@@ -117,18 +133,26 @@ export default function DocsHomePage() {
       <div className="mb-12">
         <h2 className="text-2xl font-bold mb-4 text-gray-900">Quick Example</h2>
         <p className="text-gray-600 mb-4">
-          Add these 3 lines to start tracking your OpenAI costs:
+          Wrap your client and get automatic tracking:
         </p>
         <CodeBlock code={`import PromptCraft from 'promptcraft-sdk';
+import OpenAI from 'openai';
 
+const openai = new OpenAI();
 const promptcraft = new PromptCraft({ 
-  apiKey: process.env.PROMPTCRAFT_API_KEY 
+  apiKey: process.env.PROMPTCRAFT_API_KEY,
+  enableCache: true,  // Optional: enable caching
+  maxRetries: 3       // Optional: auto-retry
 });
 
-// Track your API call
-const start = Date.now();
-const result = await openai.chat.completions.create(params);
-await promptcraft.trackOpenAI(params, result, Date.now() - start);`} />
+// Wrap once
+const tracked = promptcraft.wrapOpenAI(openai);
+
+// Use normally - tracking happens automatically!
+const result = await tracked.chat.completions.create({
+  model: 'gpt-4',
+  messages: [{ role: 'user', content: 'Hello!' }]
+});`} />
       </div>
 
       {/* Popular Topics */}

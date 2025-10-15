@@ -103,29 +103,33 @@ export default function QuickStartPage() {
             <span className="text-sm text-gray-500 ml-auto">2 minutes</span>
           </div>
           
-          <h3 className="text-lg font-semibold text-gray-900 mb-3 ml-13">For OpenAI:</h3>
+          <h3 className="text-lg font-semibold text-gray-900 mb-3 ml-13">For OpenAI (Recommended - Auto-tracking):</h3>
           <CodeBlock 
             language="typescript"
             code={`import PromptCraft from 'promptcraft-sdk';
 import OpenAI from 'openai';
 
+const openai = new OpenAI();
 const promptcraft = new PromptCraft({ 
   apiKey: process.env.PROMPTCRAFT_API_KEY 
 });
-const openai = new OpenAI();
 
-// Your existing code:
-const params = {
+// Wrap your client - tracking happens automatically!
+const tracked = promptcraft.wrapOpenAI(openai);
+
+// Use it exactly like normal OpenAI
+const result = await tracked.chat.completions.create({
   model: 'gpt-4',
   messages: [{ role: 'user', content: 'Hello!' }]
-};
-
-// Add these 2 lines:
-const start = Date.now();
-const result = await openai.chat.completions.create(params);
-await promptcraft.trackOpenAI(params, result, Date.now() - start);
-// ✅ Done!`}
+});
+// ✅ Done! Automatically tracked with error handling!`}
           />
+
+          <div className="bg-blue-50 border-l-4 border-blue-400 p-4 mt-4 ml-13">
+            <p className="text-sm text-blue-900">
+              <strong>💡 Pro tip:</strong> The wrapper approach automatically handles tracking, errors, and retries. No timing code needed!
+            </p>
+          </div>
 
           <h3 className="text-lg font-semibold text-gray-900 mb-3 mt-8 ml-13">For Anthropic:</h3>
           <CodeBlock 
@@ -133,20 +137,19 @@ await promptcraft.trackOpenAI(params, result, Date.now() - start);
             code={`import PromptCraft from 'promptcraft-sdk';
 import Anthropic from '@anthropic-ai/sdk';
 
+const anthropic = new Anthropic();
 const promptcraft = new PromptCraft({ 
   apiKey: process.env.PROMPTCRAFT_API_KEY 
 });
-const anthropic = new Anthropic();
 
-const params = {
+// Wrap and use
+const tracked = promptcraft.wrapAnthropic(anthropic);
+
+const result = await tracked.messages.create({
   model: 'claude-3-opus-20240229',
   max_tokens: 1024,
   messages: [{ role: 'user', content: 'Hello!' }]
-};
-
-const start = Date.now();
-const result = await anthropic.messages.create(params);
-await promptcraft.trackAnthropic(params, result, Date.now() - start);
+});
 // ✅ Done!`}
           />
         </div>

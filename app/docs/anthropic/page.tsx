@@ -39,7 +39,68 @@ export default function AnthropicDocsPage() {
       <h2 className="text-2xl font-bold text-gray-900 mt-12 mb-4">Installation</h2>
       <CodeBlock code="npm install promptcraft-sdk @anthropic-ai/sdk" language="bash" />
 
-      <h2 className="text-2xl font-bold text-gray-900 mt-12 mb-4">Basic Usage</h2>
+      <h2 className="text-2xl font-bold text-gray-900 mt-12 mb-4">Quick Start (Recommended)</h2>
+      <p className="text-gray-700 mb-4">Use the wrapper for automatic tracking:</p>
+      <CodeBlock code={`import PromptCraft from 'promptcraft-sdk';
+import Anthropic from '@anthropic-ai/sdk';
+
+const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+const promptcraft = new PromptCraft({ 
+  apiKey: process.env.PROMPTCRAFT_API_KEY 
+});
+
+// Wrap your client
+const tracked = promptcraft.wrapAnthropic(anthropic);
+
+// Use it exactly like normal Anthropic
+const result = await tracked.messages.create({
+  model: 'claude-3-opus-20240229',
+  max_tokens: 1024,
+  messages: [{ role: 'user', content: 'Hello!' }]
+});
+// ✅ Automatically tracked!`} />
+
+      <div className="bg-green-50 border-l-4 border-green-400 p-4 my-6 rounded-r">
+        <p className="text-sm text-green-900">
+          <strong>✨ Benefits:</strong> No timing code, automatic error tracking, built-in retries, and optional caching!
+        </p>
+      </div>
+
+      <h2 className="text-2xl font-bold text-gray-900 mt-12 mb-4">Advanced: Caching</h2>
+      <p className="text-gray-700 mb-4">Save costs by caching responses:</p>
+      <CodeBlock code={`const promptcraft = new PromptCraft({ 
+  apiKey: process.env.PROMPTCRAFT_API_KEY,
+  enableCache: true
+});
+
+const tracked = promptcraft.wrapAnthropic(anthropic);
+
+const result = await tracked.messages.create(
+  { model: 'claude-3-opus', max_tokens: 1024, messages: [...] },
+  { cacheTTL: 3600000 }  // Cache for 1 hour
+);`} />
+
+      <h2 className="text-2xl font-bold text-gray-900 mt-12 mb-4">Manual Tracking (Legacy)</h2>
+      <p className="text-gray-700 mb-4">For more control, track manually:</p>
+      <CodeBlock code={`import PromptCraft from 'promptcraft-sdk';
+import Anthropic from '@anthropic-ai/sdk';
+
+const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+const promptcraft = new PromptCraft({ 
+  apiKey: process.env.PROMPTCRAFT_API_KEY 
+});
+
+const params = {
+  model: 'claude-3-opus-20240229',
+  max_tokens: 1024,
+  messages: [{ role: 'user', content: 'Hello!' }]
+};
+
+const start = Date.now();
+const result = await anthropic.messages.create(params);
+await promptcraft.trackAnthropic(params, result, Date.now() - start);`} />
+
+      <h2 className="text-2xl font-bold text-gray-900 mt-12 mb-4">Basic Usage (Old Approach)</h2>
       <CodeBlock code={`import PromptCraft from 'promptcraft-sdk';
 import Anthropic from '@anthropic-ai/sdk';
 
