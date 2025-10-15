@@ -32,7 +32,7 @@ const PUBLIC_ROUTES = [
   '/legal/dmca-policy',
   '/legal/copyright-policy',
   '/account-test',
-  '/account', // Temporary fix
+  '/account',
 ];
 
 // Create route matchers
@@ -160,12 +160,15 @@ export default clerkMiddleware(async (auth, req: NextRequest) => {
   const isProtectedRoute = PROTECTED_ROUTES.some(route => pathname.startsWith(route));
 
   if (isProtectedRoute) {
-    // Use auth().protect() for better session handling
-    await auth.protect();
+    const { userId, sessionClaims } = await auth();
+    
+    // If not authenticated, redirect to sign-in
+    if (!userId) {
+      return NextResponse.redirect(new URL('/sign-in', req.url));
+    }
     
     // Handle admin role-based access
     if (pathname.startsWith('/admin')) {
-      const { sessionClaims } = await auth();
       const userRole = (sessionClaims?.publicMetadata as any)?.role as string;
       const allowedRoles = ['ADMIN', 'SUPER_ADMIN'];
       

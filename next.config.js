@@ -88,4 +88,6 @@ const sentryWebpackPluginOptions = {
   automaticVercelMonitors: true,
 };
 
-module.exports = withSentryConfig(nextConfig, sentryWebpackPluginOptions);
+// Temporarily disable Sentry for Next.js 15 compatibility
+module.exports = nextConfig;
+// module.exports = withSentryConfig(nextConfig, sentryWebpackPluginOptions);
