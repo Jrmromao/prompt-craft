@@ -5,7 +5,7 @@ import { FaTwitter, FaLinkedin, FaGithub } from 'react-icons/fa';
 
 export function Footer() {
   return (
-    <footer className="mt-16 w-full border-t border-border bg-gradient-to-b from-background to-muted/60 px-4 py-10 text-muted-foreground">
+    <footer className="relative z-20 mt-16 w-full border-t border-border bg-gradient-to-b from-background to-muted/60 px-4 py-10 text-muted-foreground">
       <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-8 md:flex-row md:items-start">
         {/* Left: Logo & Brand */}
         <div className="flex flex-col items-center gap-2 md:items-start">
