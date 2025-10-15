@@ -1,4 +1,4 @@
-import { UserService } from '@/lib/services/UserService';
+import { UserService } from '@/lib/services/userService';
 import { ServiceError } from '@/lib/services/types';
 import { prisma } from '@/lib/prisma';
 

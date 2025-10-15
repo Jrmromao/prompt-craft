@@ -1,6 +1,6 @@
 import { auth } from '@clerk/nextjs/server';
 import { headers } from 'next/headers';
-import { UserService } from '@/lib/services/UserService';
+import { UserService } from '@/lib/services/userService';
 import { NextResponse } from 'next/server';
 
 // Types for Clerk metadata
