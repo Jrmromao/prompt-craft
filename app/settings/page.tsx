@@ -8,20 +8,30 @@ import { Label } from '@/components/ui/label';
 import { Key, Bell, CreditCard, Shield, Users, Copy, Check, Plus, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
-import { useToast } from '@/hooks/use-toast';
 
 export default function SettingsPage() {
   const { user } = useUser();
-  const { toast } = useToast();
   const [apiKeys, setApiKeys] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
   const [newKeyName, setNewKeyName] = useState('');
   const [creatingKey, setCreatingKey] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
 
   useEffect(() => {
     fetchApiKeys();
   }, []);
+
+  const showMessage = (msg: string, isError = false) => {
+    if (isError) {
+      setError(msg);
+      setTimeout(() => setError(''), 3000);
+    } else {
+      setSuccess(msg);
+      setTimeout(() => setSuccess(''), 3000);
+    }
+  };
 
   const fetchApiKeys = async () => {
     try {
@@ -39,11 +49,7 @@ export default function SettingsPage() {
 
   const createApiKey = async () => {
     if (!newKeyName.trim()) {
-      toast({
-        title: 'Error',
-        description: 'Please enter a key name',
-        variant: 'destructive',
-      });
+      showMessage('Please enter a key name', true);
       return;
     }
 
@@ -57,21 +63,14 @@ export default function SettingsPage() {
 
       if (res.ok) {
         const data = await res.json();
-        toast({
-          title: 'API Key Created',
-          description: 'Copy your key now - you won\'t see it again!',
-        });
+        showMessage('API Key created! Copy it now - you won\'t see it again.');
         setApiKeys([...apiKeys, data.key]);
         setNewKeyName('');
       } else {
         throw new Error('Failed to create key');
       }
     } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'Failed to create API key',
-        variant: 'destructive',
-      });
+      showMessage('Failed to create API key', true);
     } finally {
       setCreatingKey(false);
     }
@@ -89,17 +88,10 @@ export default function SettingsPage() {
 
       if (res.ok) {
         setApiKeys(apiKeys.filter(k => k.id !== keyId));
-        toast({
-          title: 'API Key Deleted',
-          description: 'The API key has been removed',
-        });
+        showMessage('API Key deleted');
       }
     } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'Failed to delete API key',
-        variant: 'destructive',
-      });
+      showMessage('Failed to delete API key', true);
     }
   };
 
@@ -107,10 +99,7 @@ export default function SettingsPage() {
     navigator.clipboard.writeText(text);
     setCopiedKey(keyId);
     setTimeout(() => setCopiedKey(null), 2000);
-    toast({
-      title: 'Copied!',
-      description: 'API key copied to clipboard',
-    });
+    showMessage('API key copied to clipboard');
   };
 
   const maskKey = (key: string) => {
@@ -124,6 +113,18 @@ export default function SettingsPage() {
         <h1 className="text-3xl font-bold mb-2">Settings</h1>
         <p className="text-gray-600">Manage your account and API integration</p>
       </div>
+
+      {/* Success/Error Messages */}
+      {success && (
+        <div className="mb-4 p-4 bg-green-50 border border-green-200 text-green-800 rounded-lg">
+          {success}
+        </div>
+      )}
+      {error && (
+        <div className="mb-4 p-4 bg-red-50 border border-red-200 text-red-800 rounded-lg">
+          {error}
+        </div>
+      )}
 
       <div className="space-y-6">
         {/* API Keys Section */}
