@@ -13,7 +13,7 @@ const isPublicRoute = createRouteMatcher([
   '/api/health(.*)',
 ]);
 
-export default clerkMiddleware((auth, request) => {
+export default clerkMiddleware(async (auth, request) => {
   const { userId } = await auth();
   const isSignInPage = request.nextUrl.pathname.startsWith('/sign-in');
   const isSignUpPage = request.nextUrl.pathname.startsWith('/sign-up');
