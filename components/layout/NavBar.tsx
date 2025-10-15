@@ -57,28 +57,28 @@ export function NavBar({ user, onMenuClick }: { user?: NavBarUser; onMenuClick?:
               {user && (
                 <div className="hidden items-center gap-4 md:flex">
                   <Link
-                    href="/prompts"
+                    href="/dashboard"
                     className={cn(
                       'flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-all hover:scale-105',
-                      isActive('/prompts')
+                      isActive('/dashboard')
                         ? 'bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-md'
                         : 'text-muted-foreground hover:bg-blue-100/40 dark:hover:bg-blue-500/10'
                     )}
                   >
                     <Layers className="h-4 w-4" />
-                    My Prompts
+                    Dashboard
                   </Link>
                   <Link
-                    href="/community-prompts"
+                    href="/analytics"
                     className={cn(
                       'flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-all hover:scale-105',
-                      isActive('/community-prompts')
+                      isActive('/analytics')
                         ? 'bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-md'
                         : 'text-muted-foreground hover:bg-blue-100/40 dark:hover:bg-blue-500/10'
                     )}
                   >
                     <Users className="h-4 w-4" />
-                    Community
+                    Analytics
                   </Link>
                   <Link
                     href="/pricing"
