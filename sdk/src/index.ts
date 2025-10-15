@@ -10,6 +10,7 @@ interface PromptCraftConfig {
   middleware?: Middleware[];
   autoFallback?: boolean;
   smartRouting?: boolean;
+  autoOptimize?: boolean;
   costLimit?: number;
 }
 
@@ -51,6 +52,7 @@ interface CacheEntry {
 export class PromptCraft {
   private config: PromptCraftConfig;
   private cache: Map<string, CacheEntry> = new Map();
+  private optimizationCache: Map<string, string> = new Map();
   private rateLimitQueue: Array<() => Promise<any>> = [];
   private isProcessingQueue = false;
 
@@ -215,6 +217,15 @@ export class PromptCraft {
       chat: {
         completions: {
           async create(params: any, options?: WrapperOptions) {
+            // Auto-optimize prompts
+            if (self.config.autoOptimize && params.messages) {
+              for (const message of params.messages) {
+                if (message.content && typeof message.content === 'string') {
+                  message.content = await self.optimizePromptContent(message.content);
+                }
+              }
+            }
+
             // Smart routing - select optimal model
             const originalModel = params.model;
             if (self.config.smartRouting) {
@@ -489,6 +500,40 @@ export class PromptCraft {
   // Smart Call: Automatically select cheapest model meeting quality threshold
   smartCall(client: any) {
     return new SmartCall(client, this.config.apiKey);
+  }
+
+  // Optimize prompt for cost efficiency
+  private async optimizePromptContent(content: string): Promise<string> {
+    // Check cache first
+    if (this.optimizationCache.has(content)) {
+      return this.optimizationCache.get(content)!;
+    }
+
+    try {
+      const response = await fetch(`${this.config.baseUrl}/api/prompts/optimize`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${this.config.apiKey}`,
+        },
+        body: JSON.stringify({ prompt: content }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const optimized = data.optimized;
+        
+        // Cache the optimization
+        this.optimizationCache.set(content, optimized);
+        
+        console.log(`[PromptCraft] Optimized prompt: ${data.tokenReduction}% reduction`);
+        return optimized;
+      }
+    } catch (error) {
+      console.warn('[PromptCraft] Optimization failed, using original prompt');
+    }
+
+    return content;
   }
 
   async trackOpenAI(
