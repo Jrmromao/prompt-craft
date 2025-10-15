@@ -34,9 +34,9 @@ export default function DocsLayout({ children }: { children: React.ReactNode }) 
   const pathname = usePathname();
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex min-h-screen pt-16">
       {/* Sidebar */}
-      <aside className="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0 border-r bg-gray-50">
+      <aside className="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0 md:top-16 border-r bg-gray-50 z-10">
         <div className="flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">
           <div className="px-4 mb-6">
             <Link href="/docs" className="flex items-center gap-2">
@@ -78,7 +78,7 @@ export default function DocsLayout({ children }: { children: React.ReactNode }) 
       </aside>
 
       {/* Main content */}
-      <div className="md:pl-64 flex flex-col flex-1">
+      <div className="md:pl-64 flex flex-col flex-1 w-full">
         <main className="flex-1">
           {children}
         </main>
