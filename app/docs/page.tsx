@@ -1,88 +1,69 @@
-'use client';
-
-import { useState } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { BookOpen, Zap, Code, FileText } from 'lucide-react';
 import Link from 'next/link';
+import { ArrowRight, Zap, BookOpen, Code } from 'lucide-react';
 
-const docs = [
-  {
-    title: 'Quick Start',
-    description: 'Get started in 5 minutes',
-    icon: Zap,
-    href: '/docs/quickstart',
-    time: '5 min read',
-  },
-  {
-    title: 'Developer Guide',
-    description: 'Complete integration guide',
-    icon: BookOpen,
-    href: '/docs/guide',
-    time: '15 min read',
-  },
-  {
-    title: 'API Reference',
-    description: 'SDK and REST API documentation',
-    icon: Code,
-    href: '/docs/api',
-    time: '10 min read',
-  },
-];
-
-export default function DocsPage() {
+export default function DocsHomePage() {
   return (
-    <div className="container mx-auto px-4 py-8 max-w-6xl">
-      <div className="mb-8">
-        <h1 className="text-4xl font-bold mb-2">Documentation</h1>
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      {/* Hero */}
+      <div className="mb-16">
+        <h1 className="text-5xl font-bold mb-4">Documentation</h1>
         <p className="text-xl text-gray-600">
-          Everything you need to integrate PromptCraft
+          Everything you need to integrate PromptCraft and start tracking your AI costs.
         </p>
       </div>
 
-      {/* Quick Links */}
-      <div className="grid md:grid-cols-3 gap-6 mb-12">
-        {docs.map((doc) => (
-          <Link key={doc.href} href={doc.href}>
-            <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full">
-              <CardContent className="p-6">
-                <div className="flex items-start gap-4">
-                  <div className="p-3 bg-blue-100 rounded-lg">
-                    <doc.icon className="w-6 h-6 text-blue-600" />
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-lg mb-1">{doc.title}</h3>
-                    <p className="text-sm text-gray-600 mb-2">{doc.description}</p>
-                    <p className="text-xs text-gray-500">{doc.time}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </Link>
-        ))}
-      </div>
-
-      {/* Popular Topics */}
-      <div className="mb-12">
-        <h2 className="text-2xl font-bold mb-6">Popular Topics</h2>
-        <div className="space-y-3">
-          <TopicLink href="/docs/quickstart#step-2" title="Getting Your API Key" />
-          <TopicLink href="/docs/guide#openai" title="OpenAI Integration" />
-          <TopicLink href="/docs/guide#anthropic" title="Anthropic (Claude) Integration" />
-          <TopicLink href="/docs/guide#tagging-prompts" title="Tagging Prompts for Analytics" />
-          <TopicLink href="/docs/guide#error-tracking" title="Error Tracking" />
-          <TopicLink href="/docs/api#rate-limits" title="Rate Limits" />
+      {/* Quick Start CTA */}
+      <div className="bg-gradient-to-r from-blue-600 to-blue-500 rounded-lg p-8 mb-12 text-white">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-bold mb-2">Get Started in 5 Minutes</h2>
+            <p className="text-blue-100 mb-4">
+              Install the SDK and start tracking with just 2 lines of code
+            </p>
+            <Link href="/docs/quickstart">
+              <button className="bg-white text-blue-600 px-6 py-2 rounded-lg font-semibold hover:bg-gray-100 inline-flex items-center gap-2">
+                Quick Start Guide
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            </Link>
+          </div>
+          <Zap className="w-24 h-24 text-blue-300 hidden lg:block" />
         </div>
       </div>
 
+      {/* Main Sections */}
+      <div className="grid md:grid-cols-2 gap-6 mb-12">
+        <DocCard
+          title="OpenAI Integration"
+          description="Track GPT-4, GPT-3.5, and other OpenAI models"
+          href="/docs/openai"
+          icon={<BookOpen className="w-6 h-6" />}
+        />
+        <DocCard
+          title="Anthropic Integration"
+          description="Track Claude 3 Opus, Sonnet, and Haiku"
+          href="/docs/anthropic"
+          icon={<BookOpen className="w-6 h-6" />}
+        />
+        <DocCard
+          title="SDK Reference"
+          description="Complete SDK methods and types"
+          href="/docs/sdk"
+          icon={<Code className="w-6 h-6" />}
+        />
+        <DocCard
+          title="REST API"
+          description="Direct API integration without SDK"
+          href="/docs/api"
+          icon={<Code className="w-6 h-6" />}
+        />
+      </div>
+
       {/* Code Example */}
-      <Card className="mb-12">
-        <CardContent className="p-6">
-          <h2 className="text-2xl font-bold mb-4">Quick Example</h2>
-          <p className="text-gray-600 mb-4">
-            Add 2 lines of code to start tracking your AI costs:
-          </p>
-          <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto text-sm">
+      <div className="mb-12">
+        <h2 className="text-2xl font-bold mb-4">Quick Example</h2>
+        <div className="bg-gray-900 rounded-lg p-6 overflow-x-auto">
+          <pre className="text-sm text-gray-100">
 {`import PromptCraft from 'promptcraft-sdk';
 import OpenAI from 'openai';
 
@@ -91,51 +72,55 @@ const promptcraft = new PromptCraft({
 });
 const openai = new OpenAI();
 
-const params = { model: 'gpt-4', messages: [...] };
-
+// Track your API call
 const start = Date.now();
-const result = await openai.chat.completions.create(params);
+const result = await openai.chat.completions.create({
+  model: 'gpt-4',
+  messages: [{ role: 'user', content: 'Hello!' }]
+});
 await promptcraft.trackOpenAI(params, result, Date.now() - start);`}
           </pre>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
-      {/* Support */}
-      <Card>
-        <CardContent className="p-6">
-          <h2 className="text-2xl font-bold mb-4">Need Help?</h2>
-          <div className="grid md:grid-cols-2 gap-4">
-            <div>
-              <h3 className="font-semibold mb-2">Email Support</h3>
-              <p className="text-sm text-gray-600 mb-2">
-                Get help from our team
-              </p>
-              <a href="mailto:support@promptcraft.app" className="text-blue-600 hover:underline text-sm">
-                support@promptcraft.app
-              </a>
-            </div>
-            <div>
-              <h3 className="font-semibold mb-2">GitHub</h3>
-              <p className="text-sm text-gray-600 mb-2">
-                View source code and examples
-              </p>
-              <a href="https://github.com/promptcraft/sdk" className="text-blue-600 hover:underline text-sm">
-                github.com/promptcraft/sdk
-              </a>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Popular Topics */}
+      <div>
+        <h2 className="text-2xl font-bold mb-4">Popular Topics</h2>
+        <div className="grid md:grid-cols-2 gap-3">
+          <TopicLink href="/docs/quickstart#step-2" title="Getting Your API Key" />
+          <TopicLink href="/docs/errors" title="Error Tracking" />
+          <TopicLink href="/docs/openai#tagging" title="Tagging Prompts" />
+          <TopicLink href="/docs/api#rate-limits" title="Rate Limits" />
+        </div>
+      </div>
     </div>
+  );
+}
+
+function DocCard({ title, description, href, icon }: any) {
+  return (
+    <Link href={href}>
+      <div className="border rounded-lg p-6 hover:shadow-lg transition-shadow h-full">
+        <div className="flex items-start gap-4">
+          <div className="p-2 bg-blue-100 rounded-lg text-blue-600">
+            {icon}
+          </div>
+          <div>
+            <h3 className="font-semibold text-lg mb-1">{title}</h3>
+            <p className="text-sm text-gray-600">{description}</p>
+          </div>
+        </div>
+      </div>
+    </Link>
   );
 }
 
 function TopicLink({ href, title }: { href: string; title: string }) {
   return (
     <Link href={href}>
-      <div className="flex items-center gap-3 p-3 border rounded-lg hover:bg-gray-50 transition-colors">
-        <FileText className="w-5 h-5 text-gray-400" />
-        <span className="text-gray-700 hover:text-blue-600">{title}</span>
+      <div className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 transition-colors">
+        <span className="text-gray-700">{title}</span>
+        <ArrowRight className="w-4 h-4 text-gray-400" />
       </div>
     </Link>
   );
