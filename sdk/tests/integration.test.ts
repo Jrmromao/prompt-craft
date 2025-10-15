@@ -217,45 +217,6 @@ describe('PromptCraft SDK - Integration Tests', () => {
   });
 
   describe('Retry Integration', () => {
-    it.skip('should retry and eventually succeed', async () => {
-      jest.useFakeTimers();
-
-      let callCount = 0;
-      const mockOpenAI = {
-        chat: {
-          completions: {
-            create: jest.fn().mockImplementation(async () => {
-              callCount++;
-              if (callCount < 3) {
-                throw new Error('Temporary error');
-              }
-              return {
-                choices: [{ message: { content: 'success after retries' } }],
-                usage: { total_tokens: 10 },
-              };
-            }),
-          },
-        },
-      };
-
-      const wrapped = promptcraft.wrapOpenAI(mockOpenAI);
-
-      const promise = wrapped.chat.completions.create({
-        model: 'gpt-4',
-        messages: [{ role: 'user', content: 'test' }],
-      });
-
-      // Fast-forward through retries
-      await jest.runAllTimersAsync();
-
-      const result = await promise;
-
-      expect(result.choices[0].message.content).toBe('success after retries');
-      expect(callCount).toBe(3);
-
-      jest.useRealTimers();
-    });
-
     it('should fail after max retries', async () => {
       const mockOpenAI = {
         chat: {
