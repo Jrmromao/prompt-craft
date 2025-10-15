@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/prisma';
-import { PlanType, VoteAbuseType, VoteAbuseSeverity, VoteAbuseStatus, CreditType } from '@prisma/client';
+import { VoteAbuseType, VoteAbuseSeverity, VoteAbuseStatus, CreditType } from '@prisma/client';
+import { PlanType } from '@/app/constants/plans';
 import { CreditService } from './creditService';
 import { AuditService } from './auditService';
 import { AuditAction } from '@/app/constants/audit';

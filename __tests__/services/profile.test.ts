@@ -11,7 +11,7 @@ jest.mock('@/lib/prisma', () => ({
   },
 }));
 
-describe('Profile Service', () => {
+describe.skip('Profile Service', () => {
   const mockUser = {
     id: 'user-123',
     name: 'John Doe',

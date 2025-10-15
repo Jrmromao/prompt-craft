@@ -1,282 +1,282 @@
-import { auth } from '@clerk/nextjs/server';
+/**
+ * Analytics Service
+ * Aggregates and analyzes prompt usage data
+ */
+
 import { prisma } from '@/lib/prisma';
-import { Role } from '@prisma/client';
 
-interface AnalyticsOptions {
-  period?: 'daily' | 'weekly' | 'monthly' | 'yearly';
-  type?: 'users' | 'prompts' | 'usage' | 'all';
-  userId?: string;
-  promptId?: string;
-}
-
-interface AnalyticsData {
-  viewCount: number;
-  usageCount: number;
-  upvotes: number;
-  copyCount: number;
-  commentsCount: number;
-  recentViews: Array<{
-    id: string;
-    createdAt: string;
-    user?: {
-      name: string | null;
-      imageUrl: string | null;
-    };
-  }>;
-  recentUsages: Array<{
-    id: string;
-    createdAt: string;
-    result?: string;
-    user: {
-      name: string | null;
-      imageUrl: string | null;
-    };
-  }>;
-  recentCopies: Array<{
-    id: string;
-    createdAt: string;
-    user?: {
-      name: string | null;
-      imageUrl: string | null;
-    };
-  }>;
-  totalUsers: number;
-  activeUsers: number;
-  totalPrompts: number;
-  totalGenerations: number;
-  averageResponseTime: number;
+export interface AnalyticsOverview {
+  totalRuns: number;
+  totalCost: number;
+  totalTokens: number;
+  avgCostPerRun: number;
   successRate: number;
-  dashboardOverview: {
-    totalPromptViews: number;
-    totalPromptCopies: number;
-    mostPopularPrompt: {
-      user: {
-        name: string | null;
-      };
-    } | null;
-    mostActiveUser: {
-      name: string | null;
-    } | null;
-    recentActivity: {
-      usages: Array<{
-        id: string;
-        createdAt: string;
-        user: {
-          name: string | null;
-        };
-        prompt: {
-          name: string;
-        };
-      }>;
-    };
+  avgLatency: number;
+  periodComparison: {
+    runs: number;
+    cost: number;
   };
 }
 
-export class AnalyticsService {
-  private static instance: AnalyticsService | null = null;
-
-  private constructor() {}
-
-  public static getInstance(): AnalyticsService {
-    if (!AnalyticsService.instance) {
-      AnalyticsService.instance = new AnalyticsService();
-    }
-    return AnalyticsService.instance;
-  }
-
-  private async validateAdminAccess(): Promise<void> {
-    const { userId } = await auth();
-    if (!userId) {
-      throw new Error('Unauthorized');
-    }
-
-    const user = await prisma.user.findUnique({
-      where: { clerkId: userId },
-      select: { role: true },
-    });
-
-    if (!user || user.role !== Role.SUPER_ADMIN) {
-      throw new Error('Unauthorized to access analytics');
-    }
-  }
-
-  private async getPromptMetrics(promptId: string) {
-    const [viewCount, usageCount, upvotes, copyCount, commentsCount] = await Promise.all([
-      prisma.promptView.count({ where: { promptId } }),
-      prisma.promptUsage.count({ where: { promptId } }),
-      prisma.vote.count({ where: { promptId, value: 1 } }),
-      prisma.promptCopy.count({ where: { promptId } }),
-      prisma.comment.count({ where: { promptId } })
-    ]);
-
-    return { viewCount, usageCount, upvotes, copyCount, commentsCount };
-  }
-
-  private async getRecentActivity(promptId: string) {
-    const [recentViews, recentUsages, recentCopies] = await Promise.all([
-      prisma.promptView.findMany({
-        where: { promptId },
-        orderBy: { createdAt: 'desc' },
-        take: 5,
-        include: {
-          prompt: {
-            select: {
-              user: {
-                select: {
-                  name: true,
-                  imageUrl: true
-                }
-              }
-            }
-          }
-        }
-      }),
-      prisma.promptUsage.findMany({
-        where: { promptId },
-        orderBy: { createdAt: 'desc' },
-        take: 5,
-        include: {
-          user: {
-            select: {
-              name: true,
-              imageUrl: true
-            }
-          }
-        }
-      }),
-      prisma.promptCopy.findMany({
-        where: { promptId },
-        orderBy: { createdAt: 'desc' },
-        take: 5,
-        include: {
-          user: {
-            select: {
-              name: true,
-              imageUrl: true
-            }
-          }
-        }
-      })
-    ]);
-
-    return { recentViews, recentUsages, recentCopies };
-  }
-
-  private async getDashboardOverview() {
-    const [totalPromptViews, totalPromptCopies, mostPopularPrompt, mostActiveUser] = await Promise.all([
-      prisma.promptView.count(),
-      prisma.promptCopy.count(),
-      prisma.prompt.findFirst({
-        orderBy: { viewCount: 'desc' },
-        select: {
-          user: {
-            select: {
-              name: true
-            }
-          }
-        }
-      }),
-      prisma.$queryRaw<{ name: string | null }[]>`
-        WITH user_view_counts AS (
-          SELECT "userId", COUNT(*) as view_count
-          FROM "PromptView"
-          WHERE "userId" IS NOT NULL
-          GROUP BY "userId"
-          ORDER BY view_count DESC
-          LIMIT 1
-        )
-        SELECT u.name
-        FROM "User" u
-        JOIN user_view_counts uvc ON u.id = uvc."userId"
-      `.then(results => results[0] || null)
-    ]);
-
-    return { totalPromptViews, totalPromptCopies, mostPopularPrompt, mostActiveUser };
-  }
-
-  public async getAnalytics(options: AnalyticsOptions): Promise<AnalyticsData> {
-    // Only validate admin access for global analytics
-    if (!options.promptId) {
-      await this.validateAdminAccess();
-    }
-
-    const promptId = options.promptId;
-    const [metrics, activity, overview] = await Promise.all([
-      promptId ? this.getPromptMetrics(promptId) : Promise.resolve({
-        viewCount: 0,
-        usageCount: 0,
-        upvotes: 0,
-        copyCount: 0,
-        commentsCount: 0
-      }),
-      promptId ? this.getRecentActivity(promptId) : Promise.resolve({
-        recentViews: [],
-        recentUsages: [],
-        recentCopies: []
-      }),
-      this.getDashboardOverview()
-    ]);
-
-    // Transform activity data to match the expected types
-    const transformedActivity = {
-      recentViews: activity.recentViews.map(view => ({
-        id: view.id,
-        createdAt: view.createdAt.toISOString(),
-        user: view.prompt.user ? {
-          name: view.prompt.user.name,
-          imageUrl: view.prompt.user.imageUrl
-        } : undefined
-      })),
-      recentUsages: activity.recentUsages.map(usage => ({
-        id: usage.id,
-        createdAt: usage.createdAt.toISOString(),
-        result: usage.result as string | undefined,
-        user: {
-          name: usage.user.name,
-          imageUrl: usage.user.imageUrl
-        }
-      })),
-      recentCopies: activity.recentCopies.map(copy => ({
-        id: copy.id,
-        createdAt: copy.createdAt.toISOString(),
-        user: copy.user ? {
-          name: copy.user.name,
-          imageUrl: copy.user.imageUrl
-        } : undefined
-      }))
-    };
-
-    return {
-      ...metrics,
-      ...transformedActivity,
-      ...overview,
-      totalUsers: 0, // These are global metrics, not needed for prompt-specific analytics
-      activeUsers: 0,
-      totalPrompts: 0,
-      totalGenerations: 0,
-      averageResponseTime: 0,
-      successRate: 0,
-      dashboardOverview: {
-        totalPromptViews: overview.totalPromptViews,
-        totalPromptCopies: overview.totalPromptCopies,
-        mostPopularPrompt: overview.mostPopularPrompt,
-        mostActiveUser: overview.mostActiveUser,
-        recentActivity: {
-          usages: transformedActivity.recentUsages.map(usage => ({
-            id: usage.id,
-            createdAt: usage.createdAt,
-            user: {
-              name: usage.user.name
-            },
-            prompt: {
-              name: 'Prompt' // TODO: Include prompt name in the query
-            }
-          }))
-        }
-      }
-    };
-  }
+export interface ModelBreakdown {
+  model: string;
+  runs: number;
+  cost: number;
+  tokens: number;
+  avgCost: number;
+  successRate: number;
 }
 
-// Export a singleton instance
-export const analyticsService = AnalyticsService.getInstance();
+export interface TimeSeriesData {
+  date: string;
+  runs: number;
+  cost: number;
+  tokens: number;
+  successRate: number;
+}
+
+export class AnalyticsService {
+  private static instance: AnalyticsService;
+
+  static getInstance(): AnalyticsService {
+    if (!this.instance) {
+      this.instance = new AnalyticsService();
+    }
+    return this.instance;
+  }
+
+  async getOverview(
+    userId: string,
+    startDate: Date,
+    endDate: Date
+  ): Promise<AnalyticsOverview> {
+    const runs = await prisma.promptRun.findMany({
+      where: {
+        userId,
+        createdAt: {
+          gte: startDate,
+          lte: endDate,
+        },
+      },
+    });
+
+    const totalRuns = runs.length;
+    const totalCost = runs.reduce((sum, run) => sum + run.cost, 0);
+    const totalTokens = runs.reduce((sum, run) => sum + run.totalTokens, 0);
+    const avgCostPerRun = totalRuns > 0 ? totalCost / totalRuns : 0;
+    
+    const successfulRuns = runs.filter(run => run.success === true).length;
+    const successRate = totalRuns > 0 ? (successfulRuns / totalRuns) * 100 : 0;
+    
+    const avgLatency = totalRuns > 0
+      ? runs.reduce((sum, run) => sum + run.latency, 0) / totalRuns
+      : 0;
+
+    // Previous period comparison
+    const periodLength = endDate.getTime() - startDate.getTime();
+    const prevStartDate = new Date(startDate.getTime() - periodLength);
+    const prevEndDate = startDate;
+
+    const prevRuns = await prisma.promptRun.count({
+      where: {
+        userId,
+        createdAt: {
+          gte: prevStartDate,
+          lt: prevEndDate,
+        },
+      },
+    });
+
+    const prevCost = await prisma.promptRun.aggregate({
+      where: {
+        userId,
+        createdAt: {
+          gte: prevStartDate,
+          lt: prevEndDate,
+        },
+      },
+      _sum: {
+        cost: true,
+      },
+    });
+
+    return {
+      totalRuns,
+      totalCost,
+      totalTokens,
+      avgCostPerRun,
+      successRate,
+      avgLatency,
+      periodComparison: {
+        runs: totalRuns - prevRuns,
+        cost: totalCost - (prevCost._sum.cost || 0),
+      },
+    };
+  }
+
+  async getModelBreakdown(
+    userId: string,
+    startDate: Date,
+    endDate: Date
+  ): Promise<ModelBreakdown[]> {
+    const runs = await prisma.promptRun.findMany({
+      where: {
+        userId,
+        createdAt: {
+          gte: startDate,
+          lte: endDate,
+        },
+      },
+    });
+
+    const modelMap = new Map<string, ModelBreakdown>();
+
+    runs.forEach(run => {
+      const existing = modelMap.get(run.model) || {
+        model: run.model,
+        runs: 0,
+        cost: 0,
+        tokens: 0,
+        avgCost: 0,
+        successRate: 0,
+      };
+
+      existing.runs += 1;
+      existing.cost += run.cost;
+      existing.tokens += run.totalTokens;
+
+      modelMap.set(run.model, existing);
+    });
+
+    return Array.from(modelMap.values()).map(breakdown => ({
+      ...breakdown,
+      avgCost: breakdown.cost / breakdown.runs,
+      successRate: this.calculateSuccessRate(
+        runs.filter(r => r.model === breakdown.model)
+      ),
+    })).sort((a, b) => b.cost - a.cost);
+  }
+
+  async getTimeSeriesData(
+    userId: string,
+    startDate: Date,
+    endDate: Date,
+    granularity: 'day' | 'week' | 'month' = 'day'
+  ): Promise<TimeSeriesData[]> {
+    const runs = await prisma.promptRun.findMany({
+      where: {
+        userId,
+        createdAt: {
+          gte: startDate,
+          lte: endDate,
+        },
+      },
+      orderBy: {
+        createdAt: 'asc',
+      },
+    });
+
+    const dataMap = new Map<string, TimeSeriesData>();
+
+    runs.forEach(run => {
+      const dateKey = this.getDateKey(run.createdAt, granularity);
+      const existing = dataMap.get(dateKey) || {
+        date: dateKey,
+        runs: 0,
+        cost: 0,
+        tokens: 0,
+        successRate: 0,
+      };
+
+      existing.runs += 1;
+      existing.cost += run.cost;
+      existing.tokens += run.totalTokens;
+
+      dataMap.set(dateKey, existing);
+    });
+
+    return Array.from(dataMap.values()).map(data => ({
+      ...data,
+      successRate: this.calculateSuccessRate(
+        runs.filter(r => this.getDateKey(r.createdAt, granularity) === data.date)
+      ),
+    }));
+  }
+
+  async getMostExpensivePrompts(
+    userId: string,
+    startDate: Date,
+    endDate: Date,
+    limit: number = 10
+  ) {
+    const runs = await prisma.promptRun.findMany({
+      where: {
+        userId,
+        promptId: { not: null },
+        createdAt: {
+          gte: startDate,
+          lte: endDate,
+        },
+      },
+      include: {
+        prompt: {
+          select: {
+            id: true,
+            title: true,
+          },
+        },
+      },
+    });
+
+    const promptMap = new Map<string, {
+      promptId: string;
+      title: string;
+      totalCost: number;
+      runs: number;
+      avgCost: number;
+    }>();
+
+    runs.forEach(run => {
+      if (!run.promptId || !run.prompt) return;
+
+      const existing = promptMap.get(run.promptId) || {
+        promptId: run.promptId,
+        title: run.prompt.title,
+        totalCost: 0,
+        runs: 0,
+        avgCost: 0,
+      };
+
+      existing.totalCost += run.cost;
+      existing.runs += 1;
+
+      promptMap.set(run.promptId, existing);
+    });
+
+    return Array.from(promptMap.values())
+      .map(p => ({ ...p, avgCost: p.totalCost / p.runs }))
+      .sort((a, b) => b.totalCost - a.totalCost)
+      .slice(0, limit);
+  }
+
+  private calculateSuccessRate(runs: any[]): number {
+    if (runs.length === 0) return 0;
+    const successful = runs.filter(r => r.success === true).length;
+    return (successful / runs.length) * 100;
+  }
+
+  private getDateKey(date: Date, granularity: 'day' | 'week' | 'month'): string {
+    const d = new Date(date);
+    
+    if (granularity === 'day') {
+      return d.toISOString().split('T')[0];
+    }
+    
+    if (granularity === 'week') {
+      const week = Math.ceil((d.getDate() - d.getDay() + 1) / 7);
+      return `${d.getFullYear()}-W${week}`;
+    }
+    
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+  }
+}

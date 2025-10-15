@@ -191,7 +191,7 @@ export default async function AdminDashboard() {
         direction: 'up',
         period: 'from last month',
       },
-      color: 'bg-purple-500',
+      color: 'bg-blue-500',
       status: 'healthy',
     },
     {
@@ -256,7 +256,7 @@ export default async function AdminDashboard() {
         direction: 'down',
         period: 'from last week',
       },
-      color: 'bg-pink-500',
+      color: 'bg-blue-500',
       status: 'healthy',
     },
   ];

@@ -67,9 +67,9 @@ export function UpgradeAccountDialog({ open, onOpenChange, onUpgrade }: UpgradeA
       <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto border-0 bg-white dark:bg-gray-900 shadow-2xl">
         {/* Header Section */}
         <DialogHeader className="relative px-6 pt-4 pb-2 text-center">
-          <div className="absolute inset-0 bg-gradient-to-r from-purple-50/60 via-pink-50/40 to-white dark:from-purple-950/20 dark:via-pink-950/10 dark:to-slate-900" />
+          <div className="absolute inset-0 bg-gradient-to-r from-blue-50/60 via-blue-50/40 to-white dark:from-blue-950/20 dark:via-blue-950/10 dark:to-slate-900" />
           <div className="relative">
-            <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent mb-4 font-inter">
+            <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-500 bg-clip-text text-transparent mb-4 font-inter">
               Choose Your Plan
             </DialogTitle>
             
@@ -80,7 +80,7 @@ export function UpgradeAccountDialog({ open, onOpenChange, onUpgrade }: UpgradeA
                 className={cn(
                   'px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 min-w-[100px]',
                   billing === 'monthly'
-                    ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg shadow-purple-500/25'
+                    ? 'bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-lg shadow-blue-500/25'
                     : 'text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
                 )}
               >
@@ -92,7 +92,7 @@ export function UpgradeAccountDialog({ open, onOpenChange, onUpgrade }: UpgradeA
                   className={cn(
                     'relative px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 min-w-[100px]',
                     billing === 'yearly'
-                      ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg shadow-purple-500/25'
+                      ? 'bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-lg shadow-blue-500/25'
                       : 'text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
                   )}
                 >
@@ -133,7 +133,7 @@ export function UpgradeAccountDialog({ open, onOpenChange, onUpgrade }: UpgradeA
               </div>
             </div>
             <p className="text-xs text-slate-400 dark:text-slate-500 mt-2">
-              Need help? <button className="text-purple-600 dark:text-purple-400 hover:underline">Contact support</button>
+              Need help? <button className="text-blue-600 dark:text-blue-400 hover:underline">Contact support</button>
             </p>
           </div>
         </div>
@@ -152,8 +152,8 @@ function PlanCard({ plan, isBestValue, onSelect, isLoading, billing }: any) {
         'relative flex flex-col rounded-2xl p-6 transition-all duration-300 ease-out cursor-pointer group h-full',
         'bg-white dark:bg-gray-900 border-2 shadow-lg hover:shadow-xl',
         isBestValue 
-          ? 'border-purple-500 bg-gradient-to-br from-purple-50/50 to-pink-50/30 dark:from-purple-950/20 dark:to-pink-950/10 scale-[1.02] shadow-xl ring-2 ring-purple-500/20' 
-          : 'border-gray-200 dark:border-gray-700 hover:border-purple-300 dark:hover:border-purple-600 hover:scale-[1.01]',
+          ? 'border-blue-500 bg-gradient-to-br from-blue-50/50 to-blue-50/30 dark:from-blue-950/20 dark:to-blue-950/10 scale-[1.02] shadow-xl ring-2 ring-blue-500/20' 
+          : 'border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600 hover:scale-[1.01]',
         plan.isCurrent && 'opacity-60 cursor-not-allowed'
       )}
       onMouseEnter={() => setIsHovered(true)}
@@ -163,7 +163,7 @@ function PlanCard({ plan, isBestValue, onSelect, isLoading, billing }: any) {
       {/* Best Value Badge */}
       {isBestValue && (
         <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 z-10">
-          <div className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-4 py-1.5 rounded-full text-xs font-bold shadow-lg font-inter flex items-center gap-1">
+          <div className="bg-gradient-to-r from-blue-600 to-blue-500 text-white px-4 py-1.5 rounded-full text-xs font-bold shadow-lg font-inter flex items-center gap-1">
             <Sparkles className="h-3 w-3" />
             Best Value
           </div>
@@ -185,7 +185,7 @@ function PlanCard({ plan, isBestValue, onSelect, isLoading, billing }: any) {
           'w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-300 shadow-lg',
           plan.id === 'FREE' 
             ? 'bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700'
-            : 'bg-gradient-to-br from-purple-500 to-pink-500 group-hover:from-purple-600 group-hover:to-pink-600'
+            : 'bg-gradient-to-br from-blue-500 to-blue-500 group-hover:from-blue-600 group-hover:to-blue-500'
         )}>
           {plan.id === 'FREE' ? (
             <Sparkles className="h-7 w-7 text-gray-600 dark:text-gray-400" />
@@ -216,7 +216,7 @@ function PlanCard({ plan, isBestValue, onSelect, isLoading, billing }: any) {
           </span>
         </div>
         {billing === 'yearly' && plan.price > 0 && (
-          <div className="text-xs text-purple-600 dark:text-purple-400 font-medium mt-1">
+          <div className="text-xs text-blue-600 dark:text-blue-400 font-medium mt-1">
             Billed ${plan.price} annually
           </div>
         )}
@@ -230,7 +230,7 @@ function PlanCard({ plan, isBestValue, onSelect, isLoading, billing }: any) {
         <ul className="space-y-3">
           {plan.features.slice(0, 3).map((feature: any, index: number) => (
             <li key={index} className="flex items-start gap-3">
-              <div className="flex-shrink-0 w-5 h-5 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center mt-0.5">
+              <div className="flex-shrink-0 w-5 h-5 rounded-full bg-gradient-to-r from-blue-500 to-blue-500 flex items-center justify-center mt-0.5">
                 <Check className="h-3 w-3 text-white" />
               </div>
               <div>
@@ -255,8 +255,8 @@ function PlanCard({ plan, isBestValue, onSelect, isLoading, billing }: any) {
           plan.isCurrent
             ? 'bg-gray-400 text-gray-600 cursor-not-allowed'
             : plan.id === 'FREE'
-            ? 'bg-white text-purple-600 border-2 border-purple-600 hover:bg-purple-50 dark:bg-gray-900 dark:hover:bg-purple-950/20 hover:scale-105'
-            : 'bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700 shadow-lg hover:shadow-xl transform hover:scale-105'
+            ? 'bg-white text-blue-600 border-2 border-blue-600 hover:bg-blue-50 dark:bg-gray-900 dark:hover:bg-blue-950/20 hover:scale-105'
+            : 'bg-gradient-to-r from-blue-600 to-blue-500 text-white hover:from-blue-700 hover:to-blue-700 shadow-lg hover:shadow-xl transform hover:scale-105'
         )}
       >
         {isLoading ? (

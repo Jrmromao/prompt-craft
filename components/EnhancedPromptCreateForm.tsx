@@ -23,8 +23,8 @@ const formSchema = z.object({
   targetAudience: z.string().optional(),
   promptType: z.enum(['creative', 'analytical', 'conversational', 'technical']).optional(),
   tone: z.enum(['professional', 'casual', 'friendly', 'authoritative']).optional(),
-  tags: z.array(z.string()).default([]),
-  isPublic: z.boolean().default(false)
+  tags: z.array(z.string()),
+  isPublic: z.boolean()
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -159,16 +159,16 @@ export default function EnhancedPromptCreateForm() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800">
       <div className="max-w-4xl mx-auto p-6 space-y-8">
         {/* Header Section */}
         <div className="text-center space-y-4">
           <div className="flex items-center justify-center gap-3 mb-4">
-            <div className="p-3 rounded-full bg-gradient-to-r from-purple-600 to-pink-600">
+            <div className="p-3 rounded-full bg-gradient-to-r from-blue-600 to-blue-500">
               <Sparkles className="h-8 w-8 text-white" />
             </div>
           </div>
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-blue-500 bg-clip-text text-transparent">
             AI-Powered Prompt Creation
           </h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
@@ -194,7 +194,7 @@ export default function EnhancedPromptCreateForm() {
               <div key={step.key} className="flex items-center">
                 <div className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all ${
                   isActive 
-                    ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg' 
+                    ? 'bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-lg' 
                     : isCompleted
                     ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300'
                     : 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400'
@@ -217,8 +217,8 @@ export default function EnhancedPromptCreateForm() {
             <Card className="border-0 shadow-xl bg-white/80 backdrop-blur-sm dark:bg-gray-900/80">
               <CardHeader className="text-center pb-6">
                 <CardTitle className="flex items-center justify-center gap-3 text-2xl">
-                  <div className="p-2 rounded-lg bg-gradient-to-r from-purple-100 to-pink-100 dark:from-purple-900 dark:to-pink-900">
-                    <Sparkles className="h-6 w-6 text-purple-600" />
+                  <div className="p-2 rounded-lg bg-gradient-to-r from-blue-100 to-blue-50 dark:from-blue-900 dark:to-blue-900">
+                    <Sparkles className="h-6 w-6 text-blue-600" />
                   </div>
                   Describe Your Prompt Idea
                 </CardTitle>
@@ -233,14 +233,14 @@ export default function EnhancedPromptCreateForm() {
                     <Input
                       id="name"
                       placeholder="e.g., Blog Post Writer, Code Reviewer..."
-                      className="h-12 border-2 focus:border-purple-500 transition-colors"
+                      className="h-12 border-2 focus:border-blue-500 transition-colors"
                       {...form.register('name')}
                     />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="promptType" className="text-sm font-semibold">Prompt Type</Label>
                     <Select onValueChange={(value) => form.setValue('promptType', value as any)}>
-                      <SelectTrigger className="h-12 border-2 focus:border-purple-500">
+                      <SelectTrigger className="h-12 border-2 focus:border-blue-500">
                         <SelectValue placeholder="Select type" />
                       </SelectTrigger>
                       <SelectContent>
@@ -258,7 +258,7 @@ export default function EnhancedPromptCreateForm() {
                   <Textarea
                     id="userIdea"
                     placeholder="Describe what you want your prompt to do. Be as detailed as possible..."
-                    className="min-h-[120px] border-2 focus:border-purple-500 transition-colors resize-none"
+                    className="min-h-[120px] border-2 focus:border-blue-500 transition-colors resize-none"
                     {...form.register('userIdea')}
                   />
                   <p className="text-xs text-muted-foreground">
@@ -272,14 +272,14 @@ export default function EnhancedPromptCreateForm() {
                     <Input
                       id="targetAudience"
                       placeholder="e.g., Developers, Marketers, Students..."
-                      className="h-12 border-2 focus:border-purple-500 transition-colors"
+                      className="h-12 border-2 focus:border-blue-500 transition-colors"
                       {...form.register('targetAudience')}
                     />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="tone" className="text-sm font-semibold">Tone</Label>
                     <Select onValueChange={(value) => form.setValue('tone', value as any)}>
-                      <SelectTrigger className="h-12 border-2 focus:border-purple-500">
+                      <SelectTrigger className="h-12 border-2 focus:border-blue-500">
                         <SelectValue placeholder="Select tone" />
                       </SelectTrigger>
                       <SelectContent>
@@ -297,7 +297,7 @@ export default function EnhancedPromptCreateForm() {
                   <Textarea
                     id="requirements"
                     placeholder="Any specific requirements, constraints, or formatting needs..."
-                    className="min-h-[80px] border-2 focus:border-purple-500 transition-colors resize-none"
+                    className="min-h-[80px] border-2 focus:border-blue-500 transition-colors resize-none"
                     {...form.register('requirements')}
                   />
                 </div>
@@ -306,7 +306,7 @@ export default function EnhancedPromptCreateForm() {
                   <Button
                     onClick={form.handleSubmit(optimizePrompt)}
                     disabled={isOptimizing || !form.watch('userIdea') || form.watch('userIdea').length < 10}
-                    className="h-12 px-8 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
+                    className="h-12 px-8 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
                   >
                     {isOptimizing ? (
                       <LoadingSpinner text="Optimizing with AI..." />
@@ -346,7 +346,7 @@ export default function EnhancedPromptCreateForm() {
                   {optimizationResult.suggestions.length > 0 && (
                     <div className="space-y-3">
                       <h3 className="font-semibold text-lg flex items-center gap-2">
-                        <div className="w-2 h-2 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full"></div>
+                        <div className="w-2 h-2 bg-gradient-to-r from-blue-600 to-blue-500 rounded-full"></div>
                         AI Suggestions
                       </h3>
                       <div className="grid gap-3">
@@ -362,7 +362,7 @@ export default function EnhancedPromptCreateForm() {
                   <div className="flex justify-center gap-4 pt-4">
                     <Button
                       onClick={() => setSelectedPrompt(optimizationResult.optimizedPrompt)}
-                      className="h-12 px-6 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
+                      className="h-12 px-6 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
                     >
                       <Copy className="mr-2 h-4 w-4" />
                       Use This Prompt
@@ -370,7 +370,7 @@ export default function EnhancedPromptCreateForm() {
                     <Button
                       onClick={generateVariations}
                       variant="outline"
-                      className="h-12 px-6 border-2 border-purple-200 hover:border-purple-300 hover:bg-purple-50 dark:border-purple-800 dark:hover:bg-purple-900/20 font-semibold rounded-xl transition-all duration-200"
+                      className="h-12 px-6 border-2 border-blue-200 hover:border-blue-300 hover:bg-blue-50 dark:border-blue-800 dark:hover:bg-blue-900/20 font-semibold rounded-xl transition-all duration-200"
                     >
                       <RefreshCw className="mr-2 h-4 w-4" />
                       Generate Variations (2 credits each)
@@ -401,8 +401,8 @@ export default function EnhancedPromptCreateForm() {
                       key={index}
                       className={`p-6 rounded-xl border-2 cursor-pointer transition-all duration-200 ${
                         selectedPrompt === variation
-                          ? 'border-purple-500 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 shadow-lg'
-                          : 'border-gray-200 dark:border-gray-700 hover:border-purple-300 hover:shadow-md'
+                          ? 'border-blue-500 bg-gradient-to-r from-blue-50 to-blue-50 dark:from-blue-900/20 dark:to-blue-900/20 shadow-lg'
+                          : 'border-gray-200 dark:border-gray-700 hover:border-blue-300 hover:shadow-md'
                       }`}
                       onClick={() => setSelectedPrompt(variation)}
                     >
@@ -411,7 +411,7 @@ export default function EnhancedPromptCreateForm() {
                           Variation {index + 1}
                         </Badge>
                         {selectedPrompt === variation && (
-                          <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs">
+                          <Badge className="bg-gradient-to-r from-blue-500 to-blue-500 text-white text-xs">
                             Selected
                           </Badge>
                         )}
@@ -426,7 +426,7 @@ export default function EnhancedPromptCreateForm() {
                     <Button
                       onClick={() => setActiveTab('finalize')}
                       disabled={!selectedPrompt}
-                      className="h-12 px-8 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
+                      className="h-12 px-8 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
                     >
                       Continue to Finalize
                     </Button>
@@ -465,7 +465,7 @@ export default function EnhancedPromptCreateForm() {
                         <input
                           type="checkbox"
                           id="isPublic"
-                          className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
+                          className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                           {...form.register('isPublic')}
                         />
                         <Label htmlFor="isPublic" className="text-sm">
@@ -477,7 +477,7 @@ export default function EnhancedPromptCreateForm() {
                       <Label className="text-sm font-semibold">Tags (Optional)</Label>
                       <Input
                         placeholder="e.g., writing, coding, marketing..."
-                        className="h-12 border-2 focus:border-purple-500 transition-colors"
+                        className="h-12 border-2 focus:border-blue-500 transition-colors"
                         onChange={(e) => {
                           const tags = e.target.value.split(',').map(tag => tag.trim()).filter(Boolean);
                           form.setValue('tags', tags);

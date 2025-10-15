@@ -117,16 +117,16 @@ export function MyPromptsClient({ prompts }: MyPromptsClientProps) {
     <div className="min-h-screen bg-gradient-to-b from-background via-background/95 to-background/90">
 
       {/* Hero Section */}
-      <div className="relative overflow-hidden bg-gradient-to-b from-purple-500/10 via-pink-500/5 to-transparent py-16">
+      <div className="relative overflow-hidden bg-gradient-to-b from-blue-500/10 via-blue-500/5 to-transparent py-16">
         <div className="container relative z-10 mx-auto max-w-6xl px-4">
           <div className="mx-auto max-w-3xl text-center">
-            <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-purple-200 bg-purple-100/40 px-4 py-2 dark:border-purple-500/20 dark:bg-purple-500/10">
-              <Sparkles className="h-4 w-4 text-purple-400" />
-              <span className="text-sm text-purple-700 dark:text-purple-300">
+            <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-100/40 px-4 py-2 dark:border-blue-500/20 dark:bg-blue-500/10">
+              <Sparkles className="h-4 w-4 text-blue-400" />
+              <span className="text-sm text-blue-700 dark:text-blue-300">
                 My Prompts
               </span>
             </div>
-            <h1 className="mb-4 bg-gradient-to-r from-purple-400 via-pink-400 to-purple-400 bg-clip-text text-4xl font-bold tracking-tight text-transparent sm:text-5xl">
+            <h1 className="mb-4 bg-gradient-to-r from-blue-400 via-blue-400 to-blue-400 bg-clip-text text-4xl font-bold tracking-tight text-transparent sm:text-5xl">
               Your Prompt Collection
             </h1>
             <p className="mb-8 text-lg text-muted-foreground">
@@ -136,7 +136,7 @@ export function MyPromptsClient({ prompts }: MyPromptsClientProps) {
               <Button
                 asChild
                 size="lg"
-                className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+                className="bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-700"
               >
                 <Link href="/prompts">
                   <Sparkles className="mr-2 h-4 w-4" />
@@ -147,7 +147,7 @@ export function MyPromptsClient({ prompts }: MyPromptsClientProps) {
                 variant="outline"
                 size="lg"
                 asChild
-                className="border-purple-200 hover:bg-purple-100/40 dark:border-purple-500/20 dark:hover:bg-purple-500/10"
+                className="border-blue-200 hover:bg-blue-100/40 dark:border-blue-500/20 dark:hover:bg-blue-500/10"
               >
                 <Link href="/community-prompts">
                   <Users className="mr-2 h-4 w-4" />
@@ -157,7 +157,7 @@ export function MyPromptsClient({ prompts }: MyPromptsClientProps) {
             </div>
           </div>
         </div>
-        <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top,_var(--tw-gradient-stops))] from-purple-500/20 via-pink-500/5 to-transparent" />
+        <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top,_var(--tw-gradient-stops))] from-blue-500/20 via-blue-500/5 to-transparent" />
       </div>
 
       <div className="container mx-auto max-w-6xl space-y-8 px-4 py-8">
@@ -180,7 +180,7 @@ export function MyPromptsClient({ prompts }: MyPromptsClientProps) {
                   {allTags.map((tag: { id: string; name: string }) => (
                     <div
                       key={tag.id}
-                      className={`flex items-center gap-2 px-2 py-1 rounded cursor-pointer hover:bg-muted ${selectedTags.includes(tag.name) ? 'bg-purple-100 text-purple-700 dark:bg-purple-500/10 dark:text-purple-300' : ''}`}
+                      className={`flex items-center gap-2 px-2 py-1 rounded cursor-pointer hover:bg-muted ${selectedTags.includes(tag.name) ? 'bg-blue-100 text-blue-700 dark:bg-blue-500/10 dark:text-blue-300' : ''}`}
                       onClick={() => {
                         if (!selectedTags.includes(tag.name)) {
                           setSelectedTags(prev => [...prev, tag.name]);
@@ -204,7 +204,7 @@ export function MyPromptsClient({ prompts }: MyPromptsClientProps) {
                 <Badge
                   key={tag}
                   variant="secondary"
-                  className="flex items-center gap-1 bg-purple-100 text-purple-700 hover:bg-purple-200 dark:bg-purple-500/10 dark:text-purple-300"
+                  className="flex items-center gap-1 bg-blue-100 text-blue-700 hover:bg-blue-200 dark:bg-blue-500/10 dark:text-blue-300"
                 >
                   <Tag className="h-3 w-3" />
                   {tag}
@@ -226,7 +226,7 @@ export function MyPromptsClient({ prompts }: MyPromptsClientProps) {
                       <Badge
                         key={tag}
                         variant="secondary"
-                        className="flex items-center gap-1 bg-purple-100 text-purple-700 hover:bg-purple-200 dark:bg-purple-500/10 dark:text-purple-300"
+                        className="flex items-center gap-1 bg-blue-100 text-blue-700 hover:bg-blue-200 dark:bg-blue-500/10 dark:text-blue-300"
                       >
                         <Tag className="h-3 w-3" />
                         {tag}
@@ -292,7 +292,7 @@ export function MyPromptsClient({ prompts }: MyPromptsClientProps) {
                 transition={{ duration: 0.2 }}
               >
                 <Card
-                  className="group relative h-full overflow-hidden border-purple-200 transition-all hover:border-purple-500/50 hover:shadow-lg hover:shadow-purple-500/5 dark:border-purple-500/20 cursor-pointer"
+                  className="group relative h-full overflow-hidden border-blue-200 transition-all hover:border-blue-500/50 hover:shadow-lg hover:shadow-blue-500/5 dark:border-blue-500/20 cursor-pointer"
                   onClick={(e) => handleCardClick(e, prompt.id)}
                 >
                   <CardHeader>
@@ -331,7 +331,7 @@ export function MyPromptsClient({ prompts }: MyPromptsClientProps) {
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </div>
-                    <CardTitle className="line-clamp-1 bg-gradient-to-r from-purple-700 to-pink-600 bg-clip-text text-transparent group-hover:from-purple-600 group-hover:to-pink-500 dark:from-purple-300 dark:to-pink-300">
+                    <CardTitle className="line-clamp-1 bg-gradient-to-r from-blue-700 to-blue-500 bg-clip-text text-transparent group-hover:from-blue-600 group-hover:to-blue-500 dark:from-blue-300 dark:to-blue-300">
                       {prompt.name}
                     </CardTitle>
                     <CardDescription className="line-clamp-2">{prompt.description}</CardDescription>
@@ -342,7 +342,7 @@ export function MyPromptsClient({ prompts }: MyPromptsClientProps) {
                         <Badge
                           key={tag.id}
                           variant="outline"
-                          className="border-purple-200 bg-purple-100/40 text-purple-700 dark:border-purple-500/20 dark:bg-purple-500/10 dark:text-purple-300"
+                          className="border-blue-200 bg-blue-100/40 text-blue-700 dark:border-blue-500/20 dark:bg-blue-500/10 dark:text-blue-300"
                         >
                           {tag.name}
                         </Badge>
@@ -352,7 +352,7 @@ export function MyPromptsClient({ prompts }: MyPromptsClientProps) {
                           <TooltipTrigger asChild>
                             <Badge
                               variant="outline"
-                              className="border-purple-200 bg-purple-100/40 text-purple-700 cursor-pointer dark:border-purple-500/20 dark:bg-purple-500/10 dark:text-purple-300"
+                              className="border-blue-200 bg-blue-100/40 text-blue-700 cursor-pointer dark:border-blue-500/20 dark:bg-blue-500/10 dark:text-blue-300"
                             >
                               +{prompt.tags.length - 2}
                             </Badge>
@@ -370,9 +370,9 @@ export function MyPromptsClient({ prompts }: MyPromptsClientProps) {
                   </CardContent>
                   <CardFooter className="flex items-center justify-between border-t bg-muted/50 px-6 py-4">
                     <div className="flex items-center gap-2">
-                      <Avatar className="h-6 w-6 ring-2 ring-purple-200 dark:ring-purple-500/20">
+                      <Avatar className="h-6 w-6 ring-2 ring-blue-200 dark:ring-blue-500/20">
                         <AvatarImage src={prompt.user.imageUrl || undefined} alt={prompt.user.name || 'User'} />
-                        <AvatarFallback className="bg-purple-100 text-purple-700 dark:bg-purple-500/10 dark:text-purple-300">
+                        <AvatarFallback className="bg-blue-100 text-blue-700 dark:bg-blue-500/10 dark:text-blue-300">
                           {prompt.user.name?.[0]?.toUpperCase() || 'U'}
                         </AvatarFallback>
                       </Avatar>
@@ -381,21 +381,21 @@ export function MyPromptsClient({ prompts }: MyPromptsClientProps) {
                     <div className="flex items-center gap-4 text-sm text-muted-foreground">
                       <div className="flex items-center gap-1">
                         <button
-                          className="flex items-center gap-1 hover:text-purple-600 focus:outline-none"
+                          className="flex items-center gap-1 hover:text-blue-600 focus:outline-none"
                           title="Copy prompt"
                           onClick={e => handleCopy(e, prompt.id, prompt.content)}
                         >
-                          <Copy className="h-4 w-4 text-purple-400" />
+                          <Copy className="h-4 w-4 text-blue-400" />
                           <span>{promptStats[prompt.id]?.copyCount ?? 0}</span>
                         </button>
                       </div>
                       <div className="flex items-center gap-1">
                         <button
-                          className="flex items-center gap-1 hover:text-purple-600 focus:outline-none"
+                          className="flex items-center gap-1 hover:text-blue-600 focus:outline-none"
                           title="Add comment (demo)"
                           onClick={e => handleAddComment(e, prompt.id)}
                         >
-                          <MessageSquare className="h-4 w-4 text-purple-400" />
+                          <MessageSquare className="h-4 w-4 text-blue-400" />
                           <span>{promptStats[prompt.id]?.commentCount ?? 0}</span>
                         </button>
                       </div>
@@ -410,15 +410,15 @@ export function MyPromptsClient({ prompts }: MyPromptsClientProps) {
 
         {sortedPrompts.length === 0 && (
           <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-8 text-center">
-            <div className="rounded-full bg-purple-100 p-3 dark:bg-purple-500/10">
-              <Plus className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+            <div className="rounded-full bg-blue-100 p-3 dark:bg-blue-500/10">
+              <Plus className="h-6 w-6 text-blue-600 dark:text-blue-400" />
             </div>
             <h3 className="mt-4 text-lg font-semibold">No prompts found</h3>
             <p className="mt-2 text-sm text-muted-foreground">
               {searchQuery ? 'Try adjusting your search' : 'Create your first prompt to get started'}
             </p>
             {!searchQuery && (
-              <Button className="mt-4 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700">
+              <Button className="mt-4 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-700">
                 <Plus className="mr-2 h-4 w-4" />
                 Create New Prompt
               </Button>

@@ -147,7 +147,7 @@ export function DataTable<TData, TValue>({
           rows.map(row => (
             <Card
               key={row.id}
-              className="border-purple-100 bg-white p-4 shadow-sm dark:border-purple-900/30 dark:bg-gray-900"
+              className="border-blue-100 bg-white p-4 shadow-sm dark:border-blue-900/30 dark:bg-gray-900"
             >
               <div className="space-y-3">
                 {row.getVisibleCells().map((cell, index) => {
@@ -160,7 +160,7 @@ export function DataTable<TData, TValue>({
                     return (
                       <div
                         key={cell.id}
-                        className="mb-2 border-b border-purple-100 pb-2 dark:border-purple-900/20"
+                        className="mb-2 border-b border-blue-100 pb-2 dark:border-blue-900/20"
                       >
                         <div className="font-medium text-gray-900 dark:text-white">
                           {flexRender(cell.column.columnDef.cell, cell.getContext())}
@@ -184,7 +184,7 @@ export function DataTable<TData, TValue>({
             </Card>
           ))
         ) : (
-          <div className="rounded-lg border border-purple-100 bg-white py-8 text-center text-sm text-gray-500 dark:border-purple-900/30 dark:bg-gray-900 dark:text-gray-400">
+          <div className="rounded-lg border border-blue-100 bg-white py-8 text-center text-sm text-gray-500 dark:border-blue-900/30 dark:bg-gray-900 dark:text-gray-400">
             No results.
           </div>
         )}
@@ -222,7 +222,7 @@ export function DataTable<TData, TValue>({
             size="sm"
             onClick={() => table.previousPage()}
             disabled={!table.getCanPreviousPage()}
-            className="h-8 border-gray-200 text-gray-600 hover:bg-purple-50 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-purple-900/20"
+            className="h-8 border-gray-200 text-gray-600 hover:bg-blue-50 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-blue-900/20"
           >
             <ChevronLeft className="mr-1 h-4 w-4" />
             Previous
@@ -232,7 +232,7 @@ export function DataTable<TData, TValue>({
             size="sm"
             onClick={() => table.nextPage()}
             disabled={!table.getCanNextPage()}
-            className="h-8 border-gray-200 text-gray-600 hover:bg-purple-50 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-purple-900/20"
+            className="h-8 border-gray-200 text-gray-600 hover:bg-blue-50 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-blue-900/20"
           >
             Next
             <ChevronRight className="ml-1 h-4 w-4" />

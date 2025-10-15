@@ -77,12 +77,10 @@ export async function GET(request: Request, context: any) {
 }
 
 export async function POST(req: Request) {
-  console.log('API: Support ticket creation request received');
 
   try {
     const session = await auth();
     const userId = session.userId;
-    console.log('API: Auth check - User ID:', userId);
 
     if (!userId) {
       console.error('API: Authentication failed - No user ID');
@@ -90,7 +88,6 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
-    console.log('API: Request body received:', { ...body, userId: undefined });
 
     // Validate request body
     const validationResult = ticketSchema.safeParse(body);
@@ -113,7 +110,6 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    console.log('API: Creating ticket for user:', dbUser.id);
 
     // Create ticket
     const ticket = await prisma.supportTicket.create({
@@ -136,7 +132,6 @@ export async function POST(req: Request) {
       },
     });
 
-    console.log('API: Ticket created successfully:', { ticketId: ticket.id });
     return NextResponse.json(ticket);
   } catch (error) {
     console.error(

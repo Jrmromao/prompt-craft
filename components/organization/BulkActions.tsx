@@ -62,7 +62,7 @@ export function BulkActions({
   }
 
   return (
-    <div className="flex items-center justify-between p-2 border-b bg-purple-50 dark:bg-purple-950/20">
+    <div className="flex items-center justify-between p-2 border-b bg-blue-50 dark:bg-blue-950/20">
       <div className="flex items-center gap-2">
         <Checkbox
           checked={isAllSelected}

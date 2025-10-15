@@ -70,7 +70,7 @@ export function BottomTabBar() {
               className={cn(
                 "flex flex-col items-center justify-center min-w-0 flex-1 px-2 py-2 text-xs transition-colors relative",
                 active 
-                  ? "text-purple-600 dark:text-purple-400" 
+                  ? "text-blue-600 dark:text-blue-400" 
                   : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
               )}
             >
@@ -92,7 +92,7 @@ export function BottomTabBar() {
                 {tab.label}
               </span>
               {active && (
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-purple-600 dark:bg-purple-400 rounded-full" />
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-blue-600 dark:bg-blue-400 rounded-full" />
               )}
             </Link>
           )

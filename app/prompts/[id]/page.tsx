@@ -1,181 +1,19 @@
-import { notFound } from 'next/navigation';
-import { Metadata } from 'next';
-import { Suspense } from 'react';
-import { PromptContent } from '@/components/PromptContent';
-import { currentUser } from '@clerk/nextjs/server';
-import { TestPromptModal } from '@/components/TestPromptModal';
-import { PlanType } from '@/utils/constants';
-import { UserService } from '@/lib/services/UserService';
-import { PromptService } from '@/lib/services/promptService';
-import { prisma } from '@/lib/prisma';
+import { PromptViewer } from '@/components/prompts/PromptViewer';
 
-// Mark page as dynamic since it uses headers() through AnalyticsTrackingService
-export const dynamic = 'force-dynamic';
-
-async function getPrompt(id: string) {
-  try {
-    const promptService = PromptService.getInstance();
-    return await promptService.getPrompt(id);
-  } catch (error) {
-    return null;
-  }
+interface PromptPageProps {
+  params: Promise<{
+    id: string;
+  }>;
 }
 
-async function getVersionHistory(promptId: string) {
-  try {
-    return await prisma.version.findMany({
-      where: { promptId },
-      orderBy: { createdAt: 'desc' },
-    });
-  } catch (error) {
-    console.error('Error fetching version history:', error);
-    return [];
-  }
-}
-
-async function getComments(promptId: string) {
-  try {
-    const comments = await prisma.comment.findMany({
-      where: { promptId },
-      orderBy: { createdAt: 'desc' },
-      include: { user: { select: { name: true, imageUrl: true } } },
-      take: 10,
-    });
-    return comments;
-  } catch (error) {
-    console.error('Error fetching comments:', error);
-    return [];
-  }
-}
-
-async function getAnalytics(promptId: string) {
-  try {
-    // Example: fetch viewCount, usageCount, upvotes, copyCount, commentsCount
-    const prompt = await prisma.prompt.findUnique({
-      where: { id: promptId },
-      select: {
-        viewCount: true,
-        usageCount: true,
-        upvotes: true,
-        copyCount: true,
-        comments: true,
-      },
-    });
-    return {
-      viewCount: prompt?.viewCount || 0,
-      usageCount: prompt?.usageCount || 0,
-      upvotes: prompt?.upvotes || 0,
-      copyCount: prompt?.copyCount || 0,
-      commentsCount: prompt?.comments?.length || 0,
-    };
-  } catch (error) {
-    console.error('Error fetching analytics:', error);
-    return { viewCount: 0, usageCount: 0, upvotes: 0, copyCount: 0, commentsCount: 0 };
-  }
-}
-
-function getPromptJsonLd(prompt: any) {
-  return {
-    '@context': 'https://schema.org',
-    '@type': 'Article',
-    headline: prompt.name,
-    description: prompt.description,
-    datePublished: prompt.createdAt,
-    dateModified: prompt.updatedAt,
-    author: {
-      '@type': 'Person',
-      name: prompt.user?.name || 'Anonymous',
-    },
-  };
-}
-
-export async function generateMetadata(props: { params: Promise<{ id: string }> }): Promise<Metadata> {
-  const params = await props.params;
-  const prompt = await getPrompt(params.id);
-  if (!prompt) return { title: 'Prompt Not Found | PromptHive' };
-
-  const title = `${prompt.name} | PromptHive`;
-  const description = prompt.description || 'View this prompt on PromptHive.';
-
-  return {
-    title,
-    description,
-    openGraph: {
-      title,
-      description,
-      type: 'article',
-      url: `http://prompthive.co/prompts/${prompt.id}`,
-      images: [{ url: 'http://prompthive.co/og-image.jpg' }],
-      publishedTime: new Date(prompt.createdAt).toISOString(),
-      modifiedTime: new Date(prompt.updatedAt).toISOString(),
-    },
-    twitter: {
-      card: 'summary_large_image',
-      title,
-      description,
-      images: ['http://prompthive.co/og-image.jpg'],
-    },
-    alternates: {
-      canonical: `http://prompthive.co/prompts/${prompt.id}`,
-    },
-  };
-}
-
-export default async function PromptDetailPage(props: { params: Promise<{ id: string }> }) {
-  const params = await props.params;
-  const prompt = await getPrompt(params.id);
-  if (!prompt) return notFound();
-
-  const [versionHistory, comments, analytics] = await Promise.all([
-    getVersionHistory(prompt.id),
-    getComments(prompt.id),
-    getAnalytics(prompt.id),
-  ]);
-
-  const promptWithVersion = {
-    ...prompt,
-    currentVersionId: prompt.id, // Use prompt id as default version
-    metadata: prompt.metadata as { copyCount?: number; viewCount?: number; usageCount?: number } | undefined,
-    createdAt: new Date(prompt.createdAt), // Convert string to Date
-    updatedAt: new Date(prompt.updatedAt), // Convert string to Date
-  };
-
-  const clerkUser = await currentUser();
-  const userService = UserService.getInstance();
-  const planType = 'FREE' as PlanType; // Default plan type
-
-  const userObj = clerkUser
-    ? {
-        id: clerkUser.id,
-        name: clerkUser.fullName || '',
-        username: clerkUser.username || 'anonymous',
-        email: clerkUser.primaryEmailAddress?.emailAddress || '',
-        imageUrl: clerkUser.imageUrl,
-        planType: planType || PlanType.FREE,
-      }
-    : {
-        id: 'anonymous',
-        name: 'Anonymous',
-        username: 'anonymous',
-        email: '',
-        imageUrl: '',
-        planType: PlanType.FREE,
-      };
-
+export default async function PromptPage({ params }: PromptPageProps) {
+  const { id } = await params;
+  
   return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <PromptContent
-        prompt={promptWithVersion}
-        user={userObj}
-        initialVersionHistory={versionHistory}
-        initialComments={comments}
-        initialAnalytics={analytics}
-        initialCommentCount={comments.length}
-      />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(getPromptJsonLd(prompt)) }}
-      />
-    </Suspense>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50">
+      <div className="container mx-auto px-4 py-8">
+        <PromptViewer promptId={id} />
+      </div>
+    </div>
   );
-} 
+}

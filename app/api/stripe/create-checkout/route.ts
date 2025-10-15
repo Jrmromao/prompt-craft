@@ -66,7 +66,7 @@ export async function POST(req: Request) {
       // Get user with subscription
       const user = await tx.user.findUnique({
         where: { clerkId: userId },
-        include: { subscription: true },
+        include: { Subscription: true },
       });
 
       if (!user) {
@@ -105,7 +105,6 @@ export async function POST(req: Request) {
         }
         customerExists = true;
       } catch (error) {
-        console.log('Customer verification failed:', error);
         customerExists = false;
         customerId = null;
       }

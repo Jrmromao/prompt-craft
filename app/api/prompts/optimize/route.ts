@@ -1,96 +1,50 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { PromptOptimizationService } from '@/lib/services/promptOptimizationService';
-import { CreditService } from '@/lib/services/creditService';
-import { calculateCreditCost } from '@/app/constants/creditCosts';
 import { prisma } from '@/lib/prisma';
-import * as Sentry from '@sentry/nextjs';
 
 export async function POST(request: NextRequest) {
   try {
-    const { userId } = await auth();
+    const { userId: clerkUserId } = await auth();
     
-    if (!userId) {
-      return NextResponse.json(
-        { success: false, error: 'Unauthorized' },
-        { status: 401 }
-      );
+    if (!clerkUserId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Get user's plan type for credit calculation
+    // Get the database user ID from Clerk ID
     const user = await prisma.user.findUnique({
-      where: { clerkId: userId },
-      select: { id: true, planType: true }
+      where: { clerkId: clerkUserId },
+      select: { id: true }
     });
 
     if (!user) {
-      return NextResponse.json(
-        { success: false, error: 'User not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    const body = await request.json();
-    const { userIdea, requirements, targetAudience, promptType, tone } = body;
+    const { userIdea, requirements, promptType, tone } = await request.json();
 
-    if (!userIdea || userIdea.length < 10) {
-      return NextResponse.json(
-        { success: false, error: 'User idea must be at least 10 characters long' },
-        { status: 400 }
-      );
-    }
-
-    // Calculate credit cost based on user's plan
-    const creditCost = calculateCreditCost('PROMPT_OPTIMIZATION', user.planType);
-    
-    // Check if user has enough credits
-    const creditService = CreditService.getInstance();
-    const hasEnoughCredits = await creditService.hasEnoughCredits(user.id, creditCost);
-    
-    if (!hasEnoughCredits) {
-      return NextResponse.json(
-        { 
-          success: false, 
-          error: `Insufficient credits. This operation requires ${creditCost} credits.`,
-          requiredCredits: creditCost
-        },
-        { status: 402 }
-      );
+    if (!userIdea) {
+      return NextResponse.json({ error: 'User idea is required' }, { status: 400 });
     }
 
     const optimizationService = PromptOptimizationService.getInstance();
     
     const result = await optimizationService.optimizePrompt({
       userIdea,
-      requirements,
-      targetAudience,
-      promptType,
-      tone,
-      userId: user.id
+      requirements: requirements || '',
+      promptType: promptType || 'conversational',
+      tone: tone || 'professional',
+      userId: user.id // Use database user ID
     });
 
-    // Deduct credits after successful optimization
-    await creditService.deductCredits(
-      user.id, 
-      creditCost, 
-      'USAGE', 
-      'Prompt optimization'
-    );
-
-    return NextResponse.json({
-      success: true,
-      data: result,
-      creditsUsed: creditCost
-    });
-
-  } catch (error) {
-    Sentry.captureException(error);
+    return NextResponse.json(result);
+  } catch (error: any) {
+    console.error('Error optimizing prompt:', error);
     
-    const errorMessage = error instanceof Error ? error.message : 'Optimization failed';
+    if (error.message.includes('Insufficient credits')) {
+      return NextResponse.json({ error: error.message }, { status: 402 });
+    }
     
-    return NextResponse.json(
-      { success: false, error: errorMessage },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

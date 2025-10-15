@@ -78,18 +78,18 @@ export default async function UsersPage({ searchParams }) {
           </CardContent>
         </Card>
 
-        <Card className="border-purple-200 bg-purple-50 dark:border-purple-900 dark:bg-purple-950">
+        <Card className="border-blue-200 bg-blue-50 dark:border-blue-900 dark:bg-blue-950">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-purple-700 dark:text-purple-300">
+            <CardTitle className="text-sm font-medium text-blue-700 dark:text-blue-300">
               New This Week
             </CardTitle>
-            <TrendingUp className="h-5 w-5 text-purple-700 dark:text-purple-300" />
+            <TrendingUp className="h-5 w-5 text-blue-700 dark:text-blue-300" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-purple-900 dark:text-purple-100">
+            <div className="text-2xl font-bold text-blue-900 dark:text-blue-100">
               {newUsersThisWeek}
             </div>
-            <p className="text-xs text-purple-700 dark:text-purple-300">
+            <p className="text-xs text-blue-700 dark:text-blue-300">
               Users joined in last 7 days
             </p>
           </CardContent>

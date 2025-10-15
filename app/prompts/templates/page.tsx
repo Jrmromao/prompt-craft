@@ -111,14 +111,12 @@ export default function TemplateLibrary() {
   const loadTemplates = async () => {
     try {
       setIsLoading(true);
-      console.log('Frontend: Loading templates with filters:', { type: selectedType, search: searchQuery });
       
       const data = await templateService.getTemplates({
         type: selectedType || undefined,
         search: searchQuery || undefined,
       });
       
-      console.log('Frontend: Received templates:', data);
       setTemplates(data as Template[]);
     } catch (error) {
       console.error('Frontend: Error loading templates:', error);
@@ -134,9 +132,7 @@ export default function TemplateLibrary() {
 
   const loadPopularTemplates = async () => {
     try {
-      console.log('Frontend: Loading popular templates');
       const data = await templateService.getPopularTemplates();
-      console.log('Frontend: Received popular templates:', data);
       setPopularTemplates(data as Template[]);
     } catch (error) {
       console.error('Frontend: Error loading popular templates:', error);
@@ -169,11 +165,11 @@ export default function TemplateLibrary() {
   });
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-purple-50/40 via-white to-pink-50/80 dark:from-purple-950/20 dark:via-gray-900 dark:to-pink-950/20">
+    <div className="min-h-screen bg-gradient-to-b from-blue-50/40 via-white to-blue-50/80 dark:from-blue-950/20 dark:via-gray-900 dark:to-blue-950/20">
       <div className="container mx-auto px-4 py-8">
         {/* Hero Section */}
         <div className="max-w-3xl mx-auto text-center mb-12">
-          <h1 className="text-4xl font-bold mb-4 bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent font-inter">
+          <h1 className="text-4xl font-bold mb-4 bg-gradient-to-r from-blue-600 to-blue-500 bg-clip-text text-transparent font-inter">
             Prompt Engineering Templates
           </h1>
           <p className="text-lg text-gray-600 dark:text-gray-400 font-inter">
@@ -195,14 +191,14 @@ export default function TemplateLibrary() {
                 {/* Card Container */}
                 <div className={`h-full p-6 rounded-2xl border-2 transition-all duration-300 ${
                   selectedType === type.id
-                    ? 'border-purple-500 bg-gradient-to-br from-purple-500/10 to-pink-500/10 dark:from-purple-500/20 dark:to-pink-500/20'
-                    : 'border-purple-100 dark:border-purple-800 bg-white dark:bg-gray-800 hover:border-purple-300 dark:hover:border-purple-700'
+                    ? 'border-blue-500 bg-gradient-to-br from-blue-500/10 to-blue-500/10 dark:from-blue-500/20 dark:to-blue-500/20'
+                    : 'border-blue-100 dark:border-blue-800 bg-white dark:bg-gray-800 hover:border-blue-300 dark:hover:border-blue-700'
                 }`}>
                   {/* Icon Container */}
                   <div className={`mb-4 p-3 rounded-xl inline-flex ${
                     selectedType === type.id
-                      ? 'bg-gradient-to-br from-purple-500 to-pink-500 text-white'
-                      : 'bg-purple-100 dark:bg-purple-900 text-purple-600 dark:text-purple-400'
+                      ? 'bg-gradient-to-br from-blue-500 to-blue-500 text-white'
+                      : 'bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400'
                   }`}>
                     <type.icon className="h-6 w-6" />
                   </div>
@@ -210,14 +206,14 @@ export default function TemplateLibrary() {
                   {/* Content */}
                   <h3 className={`text-xl font-semibold mb-2 font-inter ${
                     selectedType === type.id
-                      ? 'text-purple-600 dark:text-purple-400'
+                      ? 'text-blue-600 dark:text-blue-400'
                       : 'text-gray-900 dark:text-white'
                   }`}>
                     {type.name}
                   </h3>
                   <p className={`text-sm font-inter ${
                     selectedType === type.id
-                      ? 'text-purple-600/80 dark:text-purple-400/80'
+                      ? 'text-blue-600/80 dark:text-blue-400/80'
                       : 'text-gray-600 dark:text-gray-400'
                   }`}>
                     {type.description}
@@ -226,7 +222,7 @@ export default function TemplateLibrary() {
                   {/* Selection Indicator */}
                   {selectedType === type.id && (
                     <div className="absolute -top-2 -right-2">
-                      <div className="bg-gradient-to-br from-purple-500 to-pink-500 text-white p-1 rounded-full">
+                      <div className="bg-gradient-to-br from-blue-500 to-blue-500 text-white p-1 rounded-full">
                         <Check className="h-4 w-4" />
                       </div>
                     </div>
@@ -236,7 +232,7 @@ export default function TemplateLibrary() {
                   <div className={`absolute inset-0 rounded-2xl transition-opacity duration-300 ${
                     selectedType === type.id
                       ? 'opacity-0'
-                      : 'opacity-0 group-hover:opacity-100 bg-gradient-to-br from-purple-500/5 to-pink-500/5'
+                      : 'opacity-0 group-hover:opacity-100 bg-gradient-to-br from-blue-500/5 to-blue-500/5'
                   }`} />
                 </div>
               </div>
@@ -247,13 +243,13 @@ export default function TemplateLibrary() {
         {/* Search and Filter Section */}
         <div className="mb-8">
           <div className="max-w-3xl mx-auto">
-            <div className="flex items-center gap-4 bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-purple-100 dark:border-purple-800">
+            <div className="flex items-center gap-4 bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-blue-100 dark:border-blue-800">
               {/* Search Bar */}
               <div className="flex-1 relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <Input
                   placeholder="Search templates..."
-                  className="w-full pl-10 pr-4 py-2 border-purple-200 focus:border-purple-500 dark:border-purple-800 dark:focus:border-purple-400 font-inter rounded-lg"
+                  className="w-full pl-10 pr-4 py-2 border-blue-200 focus:border-blue-500 dark:border-blue-800 dark:focus:border-blue-400 font-inter rounded-lg"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   aria-label="Search templates"
@@ -265,7 +261,7 @@ export default function TemplateLibrary() {
                 value={selectedType || 'all'}
                 onValueChange={(value: string) => setSelectedType(value === 'all' ? null : value as "zero-shot" | "few-shot" | "chain-of-thought")}
               >
-                <SelectTrigger className="w-[180px] border-purple-200 dark:border-purple-800">
+                <SelectTrigger className="w-[180px] border-blue-200 dark:border-blue-800">
                   <SelectValue placeholder="Filter by type" />
                 </SelectTrigger>
                 <SelectContent>
@@ -311,10 +307,10 @@ export default function TemplateLibrary() {
           {/* Left Sidebar - Popular Templates */}
           <div className="lg:col-span-1">
             <div className="sticky top-4">
-              <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg border border-purple-100 dark:border-purple-900">
+              <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg border border-blue-100 dark:border-blue-900">
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-xl font-semibold text-gray-900 dark:text-white font-inter">Popular Templates</h2>
-                  <Badge variant="outline" className="border-purple-200 text-purple-700 dark:border-purple-800 dark:text-purple-300 font-inter">
+                  <Badge variant="outline" className="border-blue-200 text-blue-700 dark:border-blue-800 dark:text-blue-300 font-inter">
                     Trending
                   </Badge>
                 </div>
@@ -322,22 +318,22 @@ export default function TemplateLibrary() {
                   {isLoading ? (
                     Array.from({ length: 3 }).map((_, i) => (
                       <div key={i} className="animate-pulse">
-                        <div className="h-4 bg-purple-100 dark:bg-purple-900 rounded w-3/4 mb-2"></div>
-                        <div className="h-3 bg-purple-100 dark:bg-purple-900 rounded w-1/2"></div>
+                        <div className="h-4 bg-blue-100 dark:bg-blue-900 rounded w-3/4 mb-2"></div>
+                        <div className="h-3 bg-blue-100 dark:bg-blue-900 rounded w-1/2"></div>
                       </div>
                     ))
                   ) : (
                     popularTemplates.map(template => (
                       <div 
                         key={template.id} 
-                        className="group flex items-start gap-4 p-4 bg-gradient-to-r from-purple-50/40 to-pink-50/80 dark:from-purple-950/20 dark:to-pink-950/20 rounded-lg border border-purple-100 dark:border-purple-900 hover:border-purple-200 dark:hover:border-purple-800 transition-all duration-300 hover:shadow-md"
+                        className="group flex items-start gap-4 p-4 bg-gradient-to-r from-blue-50/40 to-blue-50/80 dark:from-blue-950/20 dark:to-blue-950/20 rounded-lg border border-blue-100 dark:border-blue-900 hover:border-blue-200 dark:hover:border-blue-800 transition-all duration-300 hover:shadow-md"
                       >
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-1">
-                            <h3 className="font-medium text-gray-900 dark:text-white font-inter group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors duration-300">
+                            <h3 className="font-medium text-gray-900 dark:text-white font-inter group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-300">
                               {template.name}
                             </h3>
-                            <Badge variant="outline" className="border-purple-200 text-purple-700 dark:border-purple-800 dark:text-purple-300 font-inter">
+                            <Badge variant="outline" className="border-blue-200 text-blue-700 dark:border-blue-800 dark:text-blue-300 font-inter">
                               {template.type}
                             </Badge>
                           </div>
@@ -345,12 +341,12 @@ export default function TemplateLibrary() {
                             {template.description}
                           </p>
                           <div className="flex items-center gap-2 mt-2">
-                            <span className="text-xs text-gray-500 dark:text-gray-400 flex items-center group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors duration-300">
+                            <span className="text-xs text-gray-500 dark:text-gray-400 flex items-center group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-300">
                               <Star className="h-3 w-3 mr-1" />
                               {template.rating.toFixed(1)}
                             </span>
                             <span className="text-xs text-gray-500 dark:text-gray-400">•</span>
-                            <span className="text-xs text-gray-500 dark:text-gray-400 flex items-center group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors duration-300">
+                            <span className="text-xs text-gray-500 dark:text-gray-400 flex items-center group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-300">
                               <Zap className="h-3 w-3 mr-1" />
                               {template.usageCount} uses
                             </span>
@@ -358,7 +354,7 @@ export default function TemplateLibrary() {
                         </div>
                         <Button
                           size="sm"
-                          className="bg-white hover:bg-purple-50 text-purple-600 border border-purple-200 dark:bg-gray-800 dark:border-purple-800 dark:text-purple-400 dark:hover:bg-gray-700 font-inter transition-all duration-300 hover:scale-105"
+                          className="bg-white hover:bg-blue-50 text-blue-600 border border-blue-200 dark:bg-gray-800 dark:border-blue-800 dark:text-blue-400 dark:hover:bg-gray-700 font-inter transition-all duration-300 hover:scale-105"
                           onClick={() => handleTemplateSelect(template)}
                           aria-label={`Use template: ${template.name}`}
                         >
@@ -378,22 +374,22 @@ export default function TemplateLibrary() {
               {isLoading ? (
                 // Loading skeletons
                 Array.from({ length: 3 }).map((_, i) => (
-                  <Card key={i} className="overflow-hidden border-purple-100 dark:border-purple-900 animate-pulse">
+                  <Card key={i} className="overflow-hidden border-blue-100 dark:border-blue-900 animate-pulse">
                     <CardContent className="p-6">
-                      <div className="h-6 w-3/4 bg-purple-100 dark:bg-purple-900 rounded mb-4"></div>
-                      <div className="h-4 w-full bg-purple-100 dark:bg-purple-900 rounded mb-2"></div>
-                      <div className="h-4 w-2/3 bg-purple-100 dark:bg-purple-900 rounded mb-4"></div>
+                      <div className="h-6 w-3/4 bg-blue-100 dark:bg-blue-900 rounded mb-4"></div>
+                      <div className="h-4 w-full bg-blue-100 dark:bg-blue-900 rounded mb-2"></div>
+                      <div className="h-4 w-2/3 bg-blue-100 dark:bg-blue-900 rounded mb-4"></div>
                       <div className="flex gap-2 mb-4">
-                        <div className="h-6 w-20 bg-purple-100 dark:bg-purple-900 rounded"></div>
-                        <div className="h-6 w-20 bg-purple-100 dark:bg-purple-900 rounded"></div>
+                        <div className="h-6 w-20 bg-blue-100 dark:bg-blue-900 rounded"></div>
+                        <div className="h-6 w-20 bg-blue-100 dark:bg-blue-900 rounded"></div>
                       </div>
-                      <div className="h-10 w-full bg-purple-100 dark:bg-purple-900 rounded"></div>
+                      <div className="h-10 w-full bg-blue-100 dark:bg-blue-900 rounded"></div>
                     </CardContent>
                   </Card>
                 ))
               ) : templates.length === 0 ? (
-                <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-purple-100 dark:border-purple-900">
-                  <BookOpen className="h-12 w-12 mx-auto text-purple-400 dark:text-purple-600 mb-4" />
+                <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-blue-100 dark:border-blue-900">
+                  <BookOpen className="h-12 w-12 mx-auto text-blue-400 dark:text-blue-600 mb-4" />
                   <h3 className="text-xl font-semibold mb-2 text-gray-900 dark:text-white font-inter">No Templates Found</h3>
                   <p className="text-gray-600 dark:text-gray-400 font-inter">
                     Try adjusting your search criteria or browse our categories
@@ -403,7 +399,7 @@ export default function TemplateLibrary() {
                 templates.map((template: Template) => (
                   <Card 
                     key={template.id} 
-                    className="overflow-hidden border-purple-100 dark:border-purple-900 hover:border-purple-200 dark:hover:border-purple-800 transition-all duration-300 hover:shadow-lg"
+                    className="overflow-hidden border-blue-100 dark:border-blue-900 hover:border-blue-200 dark:hover:border-blue-800 transition-all duration-300 hover:shadow-lg"
                   >
                     <CardHeader>
                       <div className="flex items-center justify-between">
@@ -412,10 +408,10 @@ export default function TemplateLibrary() {
                           <p className="text-sm text-gray-600 dark:text-gray-400 font-inter">{template.description}</p>
                         </div>
                         <div className="flex items-center gap-2">
-                          <Badge variant="outline" className="border-purple-200 text-purple-700 dark:border-purple-800 dark:text-purple-300 font-inter">
+                          <Badge variant="outline" className="border-blue-200 text-blue-700 dark:border-blue-800 dark:text-blue-300 font-inter">
                             {template.type}
                           </Badge>
-                          <Badge variant="outline" className="border-purple-200 text-purple-700 dark:border-purple-800 dark:text-purple-300 font-inter">
+                          <Badge variant="outline" className="border-blue-200 text-blue-700 dark:border-blue-800 dark:text-blue-300 font-inter">
                             {template.complexity}
                           </Badge>
                         </div>
@@ -429,7 +425,7 @@ export default function TemplateLibrary() {
                             <TestTube className="h-4 w-4 mr-2" />
                             Example
                           </h4>
-                          <div className="bg-gradient-to-r from-purple-50/40 to-pink-50/80 dark:from-purple-950/20 dark:to-pink-950/20 p-3 rounded border border-purple-100 dark:border-purple-900">
+                          <div className="bg-gradient-to-r from-blue-50/40 to-blue-50/80 dark:from-blue-950/20 dark:to-blue-950/20 p-3 rounded border border-blue-100 dark:border-blue-900">
                             <p className="text-sm text-gray-700 dark:text-gray-300 font-inter">{template.example}</p>
                           </div>
                         </div>
@@ -457,15 +453,15 @@ export default function TemplateLibrary() {
                             <div className="space-y-2">
                               <div className="flex items-center justify-between">
                                 <span className="text-sm text-gray-600 dark:text-gray-400 font-inter">Clarity</span>
-                                <Progress value={template.successMetrics.clarity} className="w-32 bg-purple-100 dark:bg-purple-900" />
+                                <Progress value={template.successMetrics.clarity} className="w-32 bg-blue-100 dark:bg-blue-900" />
                               </div>
                               <div className="flex items-center justify-between">
                                 <span className="text-sm text-gray-600 dark:text-gray-400 font-inter">Specificity</span>
-                                <Progress value={template.successMetrics.specificity} className="w-32 bg-purple-100 dark:bg-purple-900" />
+                                <Progress value={template.successMetrics.specificity} className="w-32 bg-blue-100 dark:bg-blue-900" />
                               </div>
                               <div className="flex items-center justify-between">
                                 <span className="text-sm text-gray-600 dark:text-gray-400 font-inter">Effectiveness</span>
-                                <Progress value={template.successMetrics.effectiveness} className="w-32 bg-purple-100 dark:bg-purple-900" />
+                                <Progress value={template.successMetrics.effectiveness} className="w-32 bg-blue-100 dark:bg-blue-900" />
                               </div>
                             </div>
                           </div>
@@ -477,7 +473,7 @@ export default function TemplateLibrary() {
                             <Badge
                               key={i}
                               variant="secondary"
-                              className="bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300 font-inter"
+                              className="bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300 font-inter"
                             >
                               {tag}
                             </Badge>
@@ -487,7 +483,7 @@ export default function TemplateLibrary() {
                         {/* Actions */}
                         <div className="flex gap-2">
                           <Button 
-                            className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-inter transition-all duration-300 hover:scale-105"
+                            className="flex-1 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-700 text-white font-inter transition-all duration-300 hover:scale-105"
                             onClick={() => handleTemplateSelect(template)}
                             aria-label={`Use template: ${template.name}`}
                           >
@@ -495,7 +491,7 @@ export default function TemplateLibrary() {
                           </Button>
                           <Button 
                             variant="outline" 
-                            className="border-purple-200 text-purple-700 hover:bg-purple-50 dark:border-purple-800 dark:text-purple-300 dark:hover:bg-gray-800 font-inter transition-all duration-300 hover:scale-105"
+                            className="border-blue-200 text-blue-700 hover:bg-blue-50 dark:border-blue-800 dark:text-blue-300 dark:hover:bg-gray-800 font-inter transition-all duration-300 hover:scale-105"
                             aria-label={`Learn more about ${template.name}`}
                           >
                             Learn More

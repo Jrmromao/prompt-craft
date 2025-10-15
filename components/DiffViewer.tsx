@@ -13,7 +13,7 @@ export function DiffViewer({ version1, version2 }: DiffViewerProps) {
   if (!version1 || !version2) {
     return (
       <div className="flex flex-col items-center justify-center h-full text-center p-6">
-        <h3 className="text-lg font-semibold text-purple-600 dark:text-purple-300 mb-2">
+        <h3 className="text-lg font-semibold text-blue-600 dark:text-blue-300 mb-2">
           Select Versions to Compare
         </h3>
         <p className="text-sm text-gray-500 dark:text-gray-400">
@@ -29,11 +29,11 @@ export function DiffViewer({ version1, version2 }: DiffViewerProps) {
     <div className="w-full space-y-4">
       <div className="flex justify-between items-center mb-4">
         <div className="flex items-center gap-2">
-          <span className="px-2 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded text-sm">
+          <span className="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded text-sm">
             v{version1.version}
           </span>
           <span className="text-gray-500">→</span>
-          <span className="px-2 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded text-sm">
+          <span className="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded text-sm">
             v{version2.version}
           </span>
         </div>

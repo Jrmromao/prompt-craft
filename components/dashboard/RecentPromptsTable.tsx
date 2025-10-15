@@ -44,7 +44,7 @@ export function RecentPromptsTable({ prompts }: RecentPromptsTableProps) {
       accessorKey: 'creditsUsed',
       header: 'Credits',
       cell: ({ row }: any) => (
-        <span className="font-semibold text-purple-700 dark:text-purple-300">
+        <span className="font-semibold text-blue-700 dark:text-blue-300">
           {row.original.creditsUsed}
         </span>
       ),

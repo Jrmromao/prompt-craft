@@ -53,7 +53,6 @@ class S3Service {
   }
 
   private async ensureMainBucketExists(): Promise<void> {
-    console.log(`Checking if bucket exists: ${this.mainBucketName}`);
 
     try {
       // Check if bucket exists
@@ -62,14 +61,12 @@ class S3Service {
           Bucket: this.mainBucketName,
         })
       );
-      console.log(`Bucket ${this.mainBucketName} exists`);
     } catch (error: any) {
       if (
         error.$metadata?.httpStatusCode === 404 ||
         error.name === 'NotFound' ||
         error.name === 'NoSuchBucket'
       ) {
-        console.log(`Bucket ${this.mainBucketName} not found, creating...`);
         try {
           // Create bucket configuration
           const createBucketCommand: CreateBucketCommandInput = {
@@ -87,7 +84,6 @@ class S3Service {
           const createResult = await this.s3Client.send(
             new CreateBucketCommand(createBucketCommand)
           );
-          console.log('Bucket created:', createResult);
 
           // Configure encryption
           await this.s3Client.send(
@@ -104,7 +100,6 @@ class S3Service {
               },
             })
           );
-          console.log('Bucket encryption configured');
 
           // Configure public access block
           await this.s3Client.send(
@@ -118,7 +113,6 @@ class S3Service {
               },
             })
           );
-          console.log('Public access block configured');
         } catch (createError: any) {
           console.error('Failed to create bucket:', {
             name: createError.name,
@@ -143,7 +137,6 @@ class S3Service {
   // }
   // this will be used when we start uploading files per user and company
   // public async initializeCompanyStorage(): Promise<void> {
-  //     console.log(`Initializing storage for company: ${companyId}`);
   //     try {
   //         await this.ensureMainBucketExists();
   //         const prefix = this.getCompanyPrefix(companyId);
@@ -154,7 +147,6 @@ class S3Service {
   //             Buffer.from(""),
   //             "application/json",
   //         );
-  //         console.log("Company storage initialized");
   //     } catch (error: unknown) {
   //         const errorMessage =
   //             error instanceof Error ? error.message : "Unknown error";
@@ -169,7 +161,6 @@ class S3Service {
     data: Buffer | Uint8Array | string,
     contentType: string
   ): Promise<CompleteMultipartUploadCommandOutput> {
-    console.log(`Uploading file with key: ${key}`);
     try {
       await this.ensureMainBucketExists();
 
@@ -185,7 +176,6 @@ class S3Service {
       });
 
       const result = await upload.done();
-      console.log('File uploaded successfully');
       return result;
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';

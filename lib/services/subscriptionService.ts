@@ -1,241 +1,129 @@
 import { prisma } from '@/lib/prisma';
-import { Role } from '@/utils/constants';
-import { SubscriptionStatus, PlanType, Period, Subscription, Plan } from '@prisma/client';
-import { addDays, addMonths, isAfter } from 'date-fns';
-import { DatabaseService } from '@/lib/services/database/databaseService';
-import { EmailService } from './emailService';
+import Stripe from 'stripe';
+import { PLANS, PlanId } from '@/lib/plans';
 
-interface SubscriptionDetails {
-  status: SubscriptionStatus;
-  planName: string;
-  period: Period;
-  periodEnd: Date;
-  autoRenew: boolean;
-}
-
-interface SubscriptionWithPlan extends Subscription {
-  plan: Plan;
-}
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+  apiVersion: '2024-11-20.acacia',
+});
 
 export class SubscriptionService {
   private static instance: SubscriptionService;
-  private databaseService: DatabaseService;
 
-  public constructor() {
-    this.databaseService = DatabaseService.getInstance();
-  }
-
-  public static getInstance(): SubscriptionService {
-    if (!SubscriptionService.instance) {
-      SubscriptionService.instance = new SubscriptionService();
+  static getInstance(): SubscriptionService {
+    if (!this.instance) {
+      this.instance = new SubscriptionService();
     }
-    return SubscriptionService.instance;
+    return this.instance;
   }
 
-  public async getSubscriptionDetails(userId: string): Promise<SubscriptionDetails> {
-    const subscription = (await this.databaseService.getSubscriptionWithCache(
-      userId
-    )) as SubscriptionWithPlan | null;
+  async createCheckoutSession(userId: string, planId: PlanId) {
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new Error('User not found');
 
-    if (!subscription || !subscription.plan) {
-      return {
-        status: SubscriptionStatus.INCOMPLETE,
-        planName: 'FREE',
-        period: Period.MONTHLY,
-        periodEnd: new Date(),
-        autoRenew: false,
-      };
+    const plan = PLANS[planId];
+    if (!plan.priceId) throw new Error('Invalid plan');
+
+    const session = await stripe.checkout.sessions.create({
+      customer_email: user.email,
+      line_items: [{ price: plan.priceId, quantity: 1 }],
+      mode: 'subscription',
+      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?success=true`,
+      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/pricing?canceled=true`,
+      metadata: { userId, planId },
+    });
+
+    return session.url;
+  }
+
+  async handleWebhook(event: Stripe.Event) {
+    switch (event.type) {
+      case 'checkout.session.completed':
+        await this.handleCheckoutComplete(event.data.object as Stripe.Checkout.Session);
+        break;
+      case 'customer.subscription.updated':
+      case 'customer.subscription.deleted':
+        await this.handleSubscriptionChange(event.data.object as Stripe.Subscription);
+        break;
     }
-
-    return {
-      status: subscription.status,
-      planName: subscription.plan.name,
-      period: subscription.plan.period as Period,
-      periodEnd: subscription.currentPeriodEnd,
-      autoRenew: !subscription.cancelAtPeriodEnd,
-    };
   }
 
-  public async createSubscription(
-    userId: string,
-    planId: string,
-    autoRenew: boolean = true
-  ): Promise<SubscriptionDetails> {
-    const plan = (await this.databaseService.getPlanWithCache(planId)) as Plan | null;
-    if (!plan) throw new Error('Plan not found');
-
-    const now = new Date();
-    const periodEnd = plan.period === Period.WEEKLY ? addDays(now, 7) : addMonths(now, 1);
-
-    const subscription = (await this.databaseService.createSubscription({
-      user: { connect: { id: userId } },
-      plan: { connect: { id: planId } },
-      status: SubscriptionStatus.ACTIVE,
-      currentPeriodStart: now,
-      currentPeriodEnd: periodEnd,
-      cancelAtPeriodEnd: !autoRenew,
-      stripeCustomerId: '', // set as needed
-      stripeSubscriptionId: '', // set as needed
-    })) as SubscriptionWithPlan;
-
-    return {
-      status: subscription.status,
-      planName: subscription.plan.name,
-      period: subscription.plan.period as Period,
-      periodEnd: subscription.currentPeriodEnd,
-      autoRenew: !subscription.cancelAtPeriodEnd,
-    };
-  }
-
-  public async cancelSubscription(userId: string): Promise<SubscriptionDetails> {
-    const subscription = (await this.databaseService.updateSubscription(userId, {
-      status: SubscriptionStatus.CANCELED,
-      cancelAtPeriodEnd: true,
-    })) as SubscriptionWithPlan;
-
-    return {
-      status: subscription.status,
-      planName: subscription.plan.name,
-      period: subscription.plan.period as Period,
-      periodEnd: subscription.currentPeriodEnd,
-      autoRenew: !subscription.cancelAtPeriodEnd,
-    };
-  }
-
-  public async updateSubscription(
-    userId: string,
-    updates: Partial<{
-      planId: string;
-      status: SubscriptionStatus;
-      currentPeriodEnd: Date;
-      cancelAtPeriodEnd: boolean;
-    }>
-  ): Promise<SubscriptionDetails> {
-    const subscription = (await this.databaseService.updateSubscription(
-      userId,
-      updates
-    )) as SubscriptionWithPlan;
-
-    // Update user role if plan changes
-    if (updates.planId) {
-      const plan = (await this.databaseService.getPlanWithCache(updates.planId)) as Plan | null;
-      if (plan) {
-        await prisma.user.update({
-          where: { id: userId },
-          data: {
-            role: plan.name === 'PRO' ? Role.ADMIN : Role.USER,
-          },
-        });
-      }
-    }
-
-    return {
-      status: subscription.status,
-      planName: subscription.plan.name,
-      period: subscription.plan.period as Period,
-      periodEnd: subscription.currentPeriodEnd,
-      autoRenew: !subscription.cancelAtPeriodEnd,
-    };
-  }
-
-  public async checkSubscriptionStatus(userId: string): Promise<{
-    isActive: boolean;
-    daysRemaining: number;
-    needsRenewal: boolean;
-  }> {
-    const subscription = await this.getSubscriptionDetails(userId);
-    const now = new Date();
-
-    if (subscription.status !== SubscriptionStatus.ACTIVE) {
-      return {
-        isActive: false,
-        daysRemaining: 0,
-        needsRenewal: true,
-      };
-    }
-
-    const daysRemaining = Math.ceil(
-      (subscription.periodEnd.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
-    );
-
-    return {
-      isActive: true,
-      daysRemaining,
-      needsRenewal: daysRemaining <= 3 && !subscription.autoRenew,
-    };
-  }
-
-  public async processRenewal(userId: string): Promise<SubscriptionDetails> {
-    const subscription = await prisma.subscription.findUnique({
-      where: { userId },
-      include: {
-        plan: true,
-        user: {
-          select: {
-            email: true,
-            name: true,
-            emailPreferences: true,
-          },
-        },
+  private async handleCheckoutComplete(session: Stripe.Checkout.Session) {
+    const { userId, planId } = session.metadata!;
+    
+    await prisma.user.update({
+      where: { id: userId },
+      data: {
+        planType: planId.toUpperCase(),
+        stripeCustomerId: session.customer as string,
+        stripeSubscriptionId: session.subscription as string,
       },
     });
-    if (!subscription) throw new Error('Subscription not found');
-    const now = new Date();
+  }
 
-    if (subscription.status !== SubscriptionStatus.ACTIVE) {
-      throw new Error('Subscription is not active');
-    }
+  private async handleSubscriptionChange(subscription: Stripe.Subscription) {
+    const user = await prisma.user.findFirst({
+      where: { stripeSubscriptionId: subscription.id },
+    });
 
-    if (!isAfter(subscription.currentPeriodEnd, now)) {
-      // Calculate new period end
-      const newPeriodEnd =
-        subscription.plan.period === Period.WEEKLY ? addDays(now, 7) : addMonths(now, 1);
+    if (!user) return;
 
-      // Update subscription
-      const updatedSubscription = await this.updateSubscription(userId, {
-        currentPeriodEnd: newPeriodEnd,
-        status: SubscriptionStatus.ACTIVE,
-      });
+    const isActive = subscription.status === 'active';
+    
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        planType: isActive ? user.planType : 'FREE',
+      },
+    });
+  }
 
-      // Send renewal reminder email if user has product updates enabled
-      const emailPreferences =
-        typeof subscription.user.emailPreferences === 'string'
-          ? JSON.parse(subscription.user.emailPreferences)
-          : subscription.user.emailPreferences;
+  async cancelSubscription(userId: string) {
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user?.stripeSubscriptionId) throw new Error('No subscription found');
 
-      if (emailPreferences?.productUpdates) {
-        const emailService = EmailService.getInstance();
-        await emailService.sendSubscriptionRenewalReminder(
-          subscription.user.email,
-          subscription.user.name || 'there',
-          subscription.plan.name,
-          newPeriodEnd.toLocaleDateString()
-        );
-      }
+    await stripe.subscriptions.cancel(user.stripeSubscriptionId);
+  }
 
-      return updatedSubscription;
-    }
+  async getUsage(userId: string) {
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new Error('User not found');
+
+    const plan = PLANS[user.planType as PlanId] || PLANS.FREE;
+    
+    const startOfMonth = new Date();
+    startOfMonth.setDate(1);
+    startOfMonth.setHours(0, 0, 0, 0);
+
+    const [runsCount, promptsCount] = await Promise.all([
+      prisma.promptRun.count({
+        where: { userId: user.id, createdAt: { gte: startOfMonth } },
+      }),
+      prisma.promptRun.findMany({
+        where: { userId: user.id },
+        distinct: ['promptId'],
+        select: { promptId: true },
+      }),
+    ]);
 
     return {
-      status: subscription.status,
-      planName: subscription.plan.name,
-      period: subscription.plan.period as Period,
-      periodEnd: subscription.currentPeriodEnd,
-      autoRenew: !subscription.cancelAtPeriodEnd,
+      trackedRuns: {
+        used: runsCount,
+        limit: plan.limits.trackedRuns,
+        percentage: plan.limits.trackedRuns === -1 ? 0 : (runsCount / plan.limits.trackedRuns) * 100,
+      },
+      promptsTracked: {
+        used: promptsCount.length,
+        limit: plan.limits.promptsTracked,
+        percentage: plan.limits.promptsTracked === -1 ? 0 : (promptsCount.length / plan.limits.promptsTracked) * 100,
+      },
     };
   }
 
-  public async getPricing(planName: PlanType, period: Period): Promise<number> {
-    const plan = (await this.databaseService.getPlanWithCache(planName)) as Plan | null;
-    if (!plan) {
-      throw new Error(`Plan ${planName} not found`);
-    }
-
-    // Only return price if the plan's period matches the requested period
-    if (plan.period === period) {
-      return plan.price;
-    }
-
-    throw new Error(`Plan ${planName} is not available for ${period} period`);
+  async checkLimit(userId: string, type: 'trackedRuns' | 'promptsTracked'): Promise<boolean> {
+    const usage = await this.getUsage(userId);
+    const limit = usage[type].limit;
+    
+    if (limit === -1) return true; // unlimited
+    return usage[type].used < limit;
   }
 }

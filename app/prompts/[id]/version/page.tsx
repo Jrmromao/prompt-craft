@@ -289,11 +289,11 @@ export default async function VersionPage(props: { params: Promise<{ id: string 
             variant="ghost"
             size="icon"
             onClick={() => router.back()}
-            className="hover:bg-purple-100 dark:hover:bg-purple-900/30"
+            className="hover:bg-blue-100 dark:hover:bg-blue-900/30"
           >
-            <ArrowLeft className="h-5 w-5 text-purple-600 dark:text-purple-300" />
+            <ArrowLeft className="h-5 w-5 text-blue-600 dark:text-blue-300" />
           </Button>
-          <h1 className="mt-4 text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+          <h1 className="mt-4 text-3xl font-bold bg-gradient-to-r from-blue-600 to-blue-500 bg-clip-text text-transparent">
             {prompt.name}
           </h1>
           <p className="mt-2 text-gray-600 dark:text-gray-400">
@@ -309,7 +309,7 @@ export default async function VersionPage(props: { params: Promise<{ id: string 
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-xl font-semibold">Version History</h2>
                   <Button
-                    className="bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700"
+                    className="bg-gradient-to-r from-blue-600 to-blue-500 text-white hover:from-blue-700 hover:to-blue-700"
                     onClick={() => router.push(`/prompts/${promptId}/versioning`)}
                   >
                     <Plus className="mr-2 h-5 w-5" />
@@ -323,8 +323,8 @@ export default async function VersionPage(props: { params: Promise<{ id: string 
                         key={version.id}
                         className={`rounded-lg border p-4 transition-all duration-200 cursor-pointer ${
                           selectedVersion.id === version.id
-                            ? 'border-purple-200 bg-purple-50 dark:border-purple-800 dark:bg-purple-900/30'
-                            : 'border-gray-200 hover:border-purple-200 hover:bg-purple-50/50 dark:border-gray-800 dark:hover:border-purple-800 dark:hover:bg-purple-900/20'
+                            ? 'border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-900/30'
+                            : 'border-gray-200 hover:border-blue-200 hover:bg-blue-50/50 dark:border-gray-800 dark:hover:border-blue-800 dark:hover:bg-blue-900/20'
                         }`}
                         onClick={() => setSelectedVersion(version)}
                       >
@@ -332,7 +332,7 @@ export default async function VersionPage(props: { params: Promise<{ id: string 
                           <div className="flex items-center gap-2">
                             <span className="font-semibold">Version {version.version}</span>
                             {selectedVersion.id === version.id && (
-                              <Badge variant="secondary" className="bg-purple-100 text-purple-700 dark:bg-purple-900/50 dark:text-purple-300">
+                              <Badge variant="secondary" className="bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300">
                                 Current
                               </Badge>
                             )}
@@ -373,7 +373,7 @@ export default async function VersionPage(props: { params: Promise<{ id: string 
                         <h3 className="text-lg font-semibold">Test Prompt</h3>
                         <Button
                           onClick={() => setIsTestModalOpen(true)}
-                          className="bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700"
+                          className="bg-gradient-to-r from-blue-600 to-blue-500 text-white hover:from-blue-700 hover:to-blue-700"
                           disabled={isLoadingHistory}
                         >
                           {isLoadingHistory ? (

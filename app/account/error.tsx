@@ -37,7 +37,7 @@ export default function ProfileError({
             </Button>
             <Button
               onClick={reset}
-              className="bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700"
+              className="bg-gradient-to-r from-blue-600 to-blue-500 text-white hover:from-blue-700 hover:to-blue-700"
             >
               Try Again
             </Button>

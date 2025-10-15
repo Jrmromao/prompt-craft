@@ -121,7 +121,6 @@ export class UsageTrackingService {
           : {}),
       };
 
-      console.log('Querying usage with params:', { userId, feature, where });
 
       const result = await prisma.usage.aggregate({
         where,
@@ -130,7 +129,6 @@ export class UsageTrackingService {
         },
       });
 
-      console.log('Usage query result:', result);
 
       return result._sum.count || 0;
     } catch (error) {

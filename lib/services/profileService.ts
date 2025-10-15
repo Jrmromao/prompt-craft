@@ -23,7 +23,12 @@ export class ProfileService {
   private redis: Redis;
 
   private constructor() {
-    this.redis = Redis.fromEnv();
+    try {
+      this.redis = Redis.fromEnv();
+    } catch (error) {
+      console.warn('Redis connection failed, caching disabled:', error);
+      this.redis = null as any;
+    }
   }
 
   public static getInstance(): ProfileService {
@@ -51,9 +56,16 @@ export class ProfileService {
     }
 
     try {
-      // Check Redis cache first
-      const cacheKey = this.getUserCacheKey(clerkId);
-      const cachedUser = await this.redis.get<User>(cacheKey);
+      // Check Redis cache first (if available)
+      let cachedUser = null;
+      if (this.redis) {
+        try {
+          const cacheKey = this.getUserCacheKey(clerkId);
+          cachedUser = await this.redis.get<User>(cacheKey);
+        } catch (redisError) {
+          console.warn('Redis cache read failed:', redisError);
+        }
+      }
 
       if (cachedUser) {
         return cachedUser;
@@ -104,8 +116,14 @@ export class ProfileService {
       });
 
       if (user) {
-        // Cache the user in Redis
-        await this.redis.set(cacheKey, user, { ex: this.CACHE_TTL });
+        // Cache the user in Redis (if available)
+        if (this.redis) {
+          try {
+            await this.redis.set(cacheKey, user, { ex: this.CACHE_TTL });
+          } catch (redisError) {
+            console.warn('Redis cache write failed:', redisError);
+          }
+        }
       }
       return user as any;
     } catch (error) {

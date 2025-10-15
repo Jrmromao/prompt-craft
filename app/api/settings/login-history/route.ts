@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { auth, clerkClient } from '@clerk/nextjs/server';
 import { AuditAction } from '@/app/constants/audit';
 import { AuditService } from '@/lib/services/auditService';
-import { Redis } from '@upstash/redis';
+import { redis } from '@/lib/redis';
 import { UserService } from '@/lib/services/UserService';
 
 // Prevent static generation of this route
@@ -40,7 +40,7 @@ const mockLoginHistory: Session[] = [
   },
 ];
 
-const redis = Redis.fromEnv();
+// redis imported from @/lib/redis
 const USER_CACHE_TTL = 600; // 10 minutes
 
 interface CachedUser {

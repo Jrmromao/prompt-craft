@@ -147,7 +147,7 @@ export class BillingService {
   async getPortalUrl(userId: string): Promise<string> {
     const user = await prisma.user.findUnique({
       where: { clerkId: userId },
-      include: { subscription: true }
+      include: { Subscription: true }
     });
     
     if (!user || !user.stripeCustomerId) {

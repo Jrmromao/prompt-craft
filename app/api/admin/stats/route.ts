@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
       prisma.voteAbuseDetection.findMany({
         take: 10,
         orderBy: { detectedAt: 'desc' },
-        include: { user: { select: { id: true, email: true } } }
+        include: { User: { select: { id: true, email: true } } }
       }),
       errorService.getErrorStats(),
       prisma.user.aggregate({

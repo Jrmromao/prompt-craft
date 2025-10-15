@@ -53,8 +53,6 @@ export default function VersioningPage() {
     tests?: Array<{ input: string; output: string; rating: any }>;
   }) => {
     try {
-      console.log('Creating new version with data:', data);
-      console.log('Prompt ID:', promptId);
       
       const response = await fetch(`/api/prompts/${promptId}/versions`, {
         method: 'POST',
@@ -157,7 +155,7 @@ export default function VersioningPage() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="w-8 h-8 animate-spin text-purple-600" />
+        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
       </div>
     );
   }
@@ -175,7 +173,7 @@ export default function VersioningPage() {
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold">Version History</h1>
         <Button
-          className="bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700"
+          className="bg-gradient-to-r from-blue-600 to-blue-500 text-white hover:from-blue-700 hover:to-blue-700"
           onClick={handleNewVersionClick}
         >
           <Plus className="mr-2 h-5 w-5" />
@@ -191,17 +189,17 @@ export default function VersioningPage() {
                 variant="ghost"
                 size="icon"
                 onClick={() => router.back()}
-                className="hover:bg-purple-100 dark:hover:bg-purple-900/30"
+                className="hover:bg-blue-100 dark:hover:bg-blue-900/30"
               >
-                <ArrowLeft className="h-5 w-5 text-purple-600 dark:text-purple-300" />
+                <ArrowLeft className="h-5 w-5 text-blue-600 dark:text-blue-300" />
               </Button>
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-500 bg-clip-text text-transparent">
                 Versioning
               </h1>
             </div>
             {/* <Button
               onClick={handleNewVersionClick}
-              className="bg-purple-600 hover:bg-purple-700 text-white"
+              className="bg-blue-600 hover:bg-blue-700 text-white"
             >
               New Version
             </Button> */}
@@ -215,8 +213,8 @@ export default function VersioningPage() {
                 key={version.id}
                 className={`flex items-center gap-2 p-2 rounded border cursor-pointer transition-colors ${
                   (selectedVersion1?.id === version.id || selectedVersion2?.id === version.id)
-                    ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20'
-                    : 'border-purple-100 dark:border-purple-900 hover:border-purple-300 dark:hover:border-purple-700'
+                    ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+                    : 'border-blue-100 dark:border-blue-900 hover:border-blue-300 dark:hover:border-blue-700'
                 }`}
                 onClick={() => handleVersionSelect(version)}
               >
@@ -224,7 +222,7 @@ export default function VersioningPage() {
                   type="checkbox"
                   checked={selectedVersion1?.id === version.id || selectedVersion2?.id === version.id}
                   onChange={() => handleVersionSelect(version)}
-                  className="accent-purple-600"
+                  className="accent-blue-600"
                   disabled={Boolean(
                     selectedVersion1 && selectedVersion2 &&
                     !(selectedVersion1.id === version.id || selectedVersion2.id === version.id)
@@ -237,7 +235,7 @@ export default function VersioningPage() {
                 />
                 <div className="flex flex-col min-w-0">
                   <div className="flex items-center gap-2">
-                    <span className="font-semibold text-purple-700 dark:text-purple-300">v{version.version}</span>
+                    <span className="font-semibold text-blue-700 dark:text-blue-300">v{version.version}</span>
                     <span className="text-xs text-gray-500 dark:text-gray-400">
                       {version.prompt?.user?.name ?? 'Anonymous'}
                     </span>

@@ -71,12 +71,12 @@ export function TestHistory({ history, onSelectTest }: TestHistoryProps) {
                 key={test.id}
                 className={`relative p-4 cursor-pointer transition-colors ${
                   selectedTest?.id === test.id
-                    ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20'
-                    : 'hover:border-purple-300 dark:hover:border-purple-700'
+                    ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+                    : 'hover:border-blue-300 dark:hover:border-blue-700'
                 }`}
                 onClick={() => handleSelectTest(test, idx + 1)}
               >
-                <div className="absolute top-2 right-2 bg-purple-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold shadow">
+                <div className="absolute top-2 right-2 bg-blue-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold shadow">
                   {idx + 1}
                 </div>
                 <div className="space-y-3">

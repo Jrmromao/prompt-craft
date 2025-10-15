@@ -4,6 +4,9 @@ import type { NextRequest } from 'next/server';
 import { rateLimitMiddleware } from './middleware/rate-limit';
 import { quotaMiddleware } from './middleware/quota';
 
+// CSP with Google Fonts support
+const CSP_POLICY = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.clerk.accounts.dev; connect-src 'self' https://*.clerk.accounts.dev; img-src 'self' data: https: https://img.clerk.com; worker-src 'self' blob:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; frame-src 'self' https://*.clerk.accounts.dev; form-action 'self'; frame-ancestors 'self'";
+
 // Define routes that don't require authentication
 const PUBLIC_ROUTES = [
   '/',
@@ -28,7 +31,8 @@ const PUBLIC_ROUTES = [
   '/legal/refund-policy',
   '/legal/dmca-policy',
   '/legal/copyright-policy',
-  '/community-prompts',
+  '/account-test',
+  '/account',
 ];
 
 // Create route matchers
@@ -48,33 +52,18 @@ const dynamicPaths = [
 // Function to validate request origin
 function validateOrigin(request: NextRequest): boolean {
   const origin = request.headers.get('origin');
-  const referer = request.headers.get('referer');
   
   // Allow requests with no origin (like mobile apps or curl requests)
   if (!origin) return true;
   
-  // Allow localhost during development
-  if (process.env.NODE_ENV === 'development') {
-    if (origin.startsWith('http://localhost') || origin.startsWith('http://127.0.0.1')) {
-      return true;
-    }
-  }
+  const allowedOrigins = [
+    process.env.NEXT_PUBLIC_APP_URL,
+    'https://prompthive.co',
+    'https://www.prompthive.co',
+    ...(process.env.NODE_ENV === 'development' ? ['http://localhost:3000', 'http://127.0.0.1:3000'] : [])
+  ].filter(Boolean);
 
-  // In production, allow requests from your domain and Clerk domains
-  if (process.env.NODE_ENV === 'production') {
-    const allowedDomains = [
-      process.env.NEXT_PUBLIC_APP_URL || '',
-      'https://*.clerk.accounts.dev',
-      'https://*.clerk.com'
-    ].filter(Boolean);
-    
-    return allowedDomains.some(domain => 
-      origin === domain || 
-      (domain.includes('*') && origin.match(new RegExp(domain.replace('*', '.*'))))
-    );
-  }
-
-  return false;
+  return allowedOrigins.includes(origin);
 }
 
 // Security middleware
@@ -87,16 +76,17 @@ async function securityMiddleware(request: NextRequest) {
   // Handle preflight requests
   if (request.method === 'OPTIONS') {
     const origin = request.headers.get('origin');
+    const isValidOrigin = validateOrigin(request);
     
     return new NextResponse(null, {
       status: 204,
       headers: {
-        'Access-Control-Allow-Origin': origin || '*',
+        'Access-Control-Allow-Origin': isValidOrigin && origin ? origin : 'null',
         'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
         'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Date, X-Api-Version, X-Clerk-Token',
         'Access-Control-Allow-Credentials': 'true',
         'Access-Control-Max-Age': '86400',
-        'Content-Security-Policy': "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.clerk.accounts.dev; connect-src 'self' https://*.clerk.accounts.dev; img-src 'self' data: https: https://img.clerk.com; worker-src 'self' blob:; style-src 'self' 'unsafe-inline'; frame-src 'self' https://*.clerk.accounts.dev; form-action 'self'; frame-ancestors 'self'",
+        'Content-Security-Policy': CSP_POLICY,
       },
     });
   }
@@ -109,11 +99,11 @@ async function securityMiddleware(request: NextRequest) {
       status: 403,
       headers: {
         'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': origin || '*',
+        'Access-Control-Allow-Origin': 'null',
         'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
         'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Date, X-Api-Version, X-Clerk-Token',
         'Access-Control-Allow-Credentials': 'true',
-        'Content-Security-Policy': "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.clerk.accounts.dev; connect-src 'self' https://*.clerk.accounts.dev; img-src 'self' data: https: https://img.clerk.com; worker-src 'self' blob:; style-src 'self' 'unsafe-inline'; frame-src 'self' https://*.clerk.accounts.dev; form-action 'self'; frame-ancestors 'self'",
+        'Content-Security-Policy': CSP_POLICY,
       },
     });
   }
@@ -134,11 +124,12 @@ async function securityMiddleware(request: NextRequest) {
   
   // Add CORS headers to all responses
   const origin = request.headers.get('origin');
-  response.headers.set('Access-Control-Allow-Origin', origin || '*');
+  const isValidOrigin = validateOrigin(request);
+  response.headers.set('Access-Control-Allow-Origin', isValidOrigin && origin ? origin : 'null');
   response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Date, X-Api-Version, X-Clerk-Token');
   response.headers.set('Access-Control-Allow-Credentials', 'true');
-  response.headers.set('Content-Security-Policy', "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.clerk.accounts.dev; connect-src 'self' https://*.clerk.accounts.dev; img-src 'self' data: https: https://img.clerk.com; worker-src 'self' blob:; style-src 'self' 'unsafe-inline'; frame-src 'self' https://*.clerk.accounts.dev; form-action 'self'; frame-ancestors 'self'");
+  response.headers.set('Content-Security-Policy', CSP_POLICY);
 
   return response;
 }
@@ -146,19 +137,15 @@ async function securityMiddleware(request: NextRequest) {
 const isAdminRoute = createRouteMatcher(['/admin', '/admin/users', '/admin/analytics', '/admin/settings']);
 
 export default clerkMiddleware(async (auth, req: NextRequest) => {
-  const { userId } = await auth();
   const { pathname } = req.nextUrl;
   
-  console.log(`🔍 Middleware: ${pathname}, userId: ${userId ? 'authenticated' : 'not authenticated'}`);
-
-  // Check if route is public
+  // Allow public routes
   if (isPublicRoute(req)) {
-    console.log(`✅ Public route allowed: ${pathname}`);
     return NextResponse.next();
   }
 
-  // Check if route requires authentication
-  const PRIVATE_ROUTES = [
+  // Protected routes that require authentication
+  const PROTECTED_ROUTES = [
     '/dashboard',
     '/prompts',
     '/playground', 
@@ -170,38 +157,27 @@ export default clerkMiddleware(async (auth, req: NextRequest) => {
     '/complete-signup'
   ];
 
-  const isPrivateRoute = PRIVATE_ROUTES.some(route => pathname.startsWith(route));
+  const isProtectedRoute = PROTECTED_ROUTES.some(route => pathname.startsWith(route));
 
-  if (isPrivateRoute && !userId) {
-    console.log(`🔒 Private route requires auth: ${pathname}`);
-    const signInUrl = new URL('/sign-in', req.url);
-    signInUrl.searchParams.set('redirect_url', pathname);
-    return NextResponse.redirect(signInUrl);
-  }
-
-  // Handle authenticated users on auth routes
-  const AUTH_ROUTES = ['/sign-in', '/sign-up'];
-  const isAuthRoute = AUTH_ROUTES.some(route => pathname.startsWith(route));
-  
-  if (isAuthRoute && userId) {
-    console.log(`✅ Authenticated user on auth route, redirecting: ${pathname}`);
-    const redirectUrl = req.nextUrl.searchParams.get('redirect_url') || '/prompts';
-    return NextResponse.redirect(new URL(redirectUrl, req.url));
-  }
-
-  // Handle role-based access for admin routes
-  if (pathname.startsWith('/admin')) {
-    const authResult = await auth();
-    const userRole = (authResult.sessionClaims?.publicMetadata as any)?.role as string;
-    const allowedRoles = ['ADMIN', 'SUPER_ADMIN'];
+  if (isProtectedRoute) {
+    const { userId, sessionClaims } = await auth();
     
-    if (!allowedRoles.includes(userRole)) {
-      console.log(`🚫 Access denied for role ${userRole} to ${pathname}`);
-      return NextResponse.redirect(new URL('/unauthorized', req.url));
+    // If not authenticated, redirect to sign-in
+    if (!userId) {
+      return NextResponse.redirect(new URL('/sign-in', req.url));
+    }
+    
+    // Handle admin role-based access
+    if (pathname.startsWith('/admin')) {
+      const userRole = (sessionClaims?.publicMetadata as any)?.role as string;
+      const allowedRoles = ['ADMIN', 'SUPER_ADMIN'];
+      
+      if (!allowedRoles.includes(userRole)) {
+        return NextResponse.redirect(new URL('/unauthorized', req.url));
+      }
     }
   }
 
-  console.log(`✅ Request allowed: ${pathname}`);
   return NextResponse.next();
 });
 

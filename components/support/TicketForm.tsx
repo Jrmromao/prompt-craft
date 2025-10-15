@@ -61,7 +61,6 @@ export function TicketForm() {
 
   const onSubmit = async (data: TicketFormValues) => {
     if (!userId) {
-      console.log('Form submission blocked: No user ID');
       toast.error('You must be signed in to create a support ticket');
       router.push('/sign-in?redirect_url=/support/new');
       return;
@@ -69,7 +68,6 @@ export function TicketForm() {
 
     try {
       setIsSubmitting(true);
-      console.log('Form submission started with data:', { ...data, userId });
 
       const response = await fetch('/api/support/tickets', {
         method: 'POST',
@@ -79,7 +77,6 @@ export function TicketForm() {
         body: JSON.stringify(data),
       });
 
-      console.log('API response received:', response.status);
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
@@ -88,7 +85,6 @@ export function TicketForm() {
       }
 
       const responseData = await response.json();
-      console.log('Ticket created successfully:', responseData);
 
       toast.success('Ticket created successfully');
       router.push('/support/tickets');

@@ -3,10 +3,10 @@ import { auth } from '@clerk/nextjs/server';
 import { GDPRService } from '@/lib/services/GDPRService';
 import { z } from 'zod';
 import { Ratelimit } from '@upstash/ratelimit';
-import { Redis } from '@upstash/redis';
+import { redis } from '@/lib/redis';
 
 const ratelimit = new Ratelimit({
-  redis: Redis.fromEnv(),
+  redis,
   limiter: Ratelimit.slidingWindow(1, '24 h'), // 1 deletion request per day
 });
 

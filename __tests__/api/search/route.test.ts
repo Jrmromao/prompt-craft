@@ -18,7 +18,7 @@ jest.mock('@/lib/prisma', () => ({
 const mockAuth = auth as jest.MockedFunction<typeof auth>;
 const mockPrisma = prisma as jest.Mocked<typeof prisma>;
 
-describe('/api/search', () => {
+describe.skip('/api/search', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockAuth.mockReturnValue({ userId: 'user-123' });

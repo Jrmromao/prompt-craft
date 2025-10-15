@@ -224,7 +224,7 @@ export function SmartTemplateSelector({ onSelectTemplate, onCustomizeTemplate }:
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Search className="w-5 h-5 text-purple-600" />
+            <Search className="w-5 h-5 text-blue-600" />
             Find the Perfect Template
           </CardTitle>
         </CardHeader>
@@ -277,7 +277,7 @@ export function SmartTemplateSelector({ onSelectTemplate, onCustomizeTemplate }:
             <CardHeader>
               <div className="flex items-start justify-between">
                 <div className="flex-1">
-                  <CardTitle className="text-lg group-hover:text-purple-600 transition-colors">
+                  <CardTitle className="text-lg group-hover:text-blue-600 transition-colors">
                     {template.title}
                   </CardTitle>
                   <p className="text-sm text-muted-foreground mt-1">

@@ -27,7 +27,7 @@ describe('BottomTabNavigation', () => {
     render(<BottomTabNavigation />);
     
     const homeTab = screen.getByText('Home').closest('a');
-    expect(homeTab).toHaveClass('text-purple-600');
+    expect(homeTab).toHaveClass('text-blue-600');
   });
 
   it('has proper touch targets (minimum 60px)', () => {

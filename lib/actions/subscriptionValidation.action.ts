@@ -10,9 +10,11 @@ export async function validateSubscription() {
 
   const user = await prisma.user.findUnique({
     where: { clerkId: userId },
-    include: {
-      subscription: true,
-      prompts: {
+    select: {
+      id: true,
+      planType: true,
+      Subscription: true,
+      Prompt: {
         select: {
           id: true,
         },
@@ -24,16 +26,29 @@ export async function validateSubscription() {
     redirect('/sign-in');
   }
 
-  // If user has an active subscription, allow full access
-  if (user.subscription?.status === 'ACTIVE') {
-    return { canCreate: true, isPro: true };
+  const promptCount = user.Prompt.length;
+  const isPro = user.Subscription?.status === 'ACTIVE' || user.planType === 'PRO';
+
+  // PRO users: unlimited access
+  if (isPro) {
+    return { 
+      canCreate: true, 
+      isPro: true,
+      promptsUsed: promptCount,
+      promptsRemaining: 'unlimited'
+    };
   }
 
-  // Free users can always view their prompts page
-  // They just have limited creation abilities
+  // FREE users: 10 prompt limit
+  const FREE_LIMIT = 10;
+  const canCreate = promptCount < FREE_LIMIT;
+  const promptsRemaining = FREE_LIMIT - promptCount;
+
   return { 
-    canCreate: user.prompts.length === 0, // Can create if no prompts yet
+    canCreate,
     isPro: false,
-    isLastFree: user.prompts.length === 0
+    promptsUsed: promptCount,
+    promptsRemaining: Math.max(0, promptsRemaining),
+    isAtLimit: promptCount >= FREE_LIMIT
   };
 }

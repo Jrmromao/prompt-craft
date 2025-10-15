@@ -48,8 +48,8 @@ export function UsersTable({ initialUsers }: UsersTableProps) {
   const getRoleColor = (role: Role) => {
     const colors: Record<Role, { bg: string; text: string }> = {
       [Role.ADMIN]: {
-        bg: 'bg-purple-50 dark:bg-purple-950',
-        text: 'text-purple-700 dark:text-purple-300',
+        bg: 'bg-blue-50 dark:bg-blue-950',
+        text: 'text-blue-700 dark:text-blue-300',
       },
       [Role.USER]: {
         bg: 'bg-blue-50 dark:bg-blue-950',

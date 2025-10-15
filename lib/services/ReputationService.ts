@@ -22,7 +22,7 @@ export class ReputationService {
       where: { id: userId },
       include: {
         prompts: { include: { _count: { select: { likes: true, views: true } } } },
-        _count: { select: { prompts: true } }
+        _count: { select: { Prompt: true } }
       }
     });
 

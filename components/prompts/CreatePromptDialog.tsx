@@ -1,6 +1,33 @@
 'use client';
 
-import React from 'react';
+import { ContextEngineeringService } from '@/lib/services/contextEngineering';
+
+// Add these new props to the interface
+interface CreatePromptDialogProps {
+  // ... existing props
+  contextDomain?: string;
+  setContextDomain?: (domain: string) => void;
+  contextExpertise?: string;
+  setContextExpertise?: (expertise: string) => void;
+  autoEnhance?: boolean;
+  setAutoEnhance?: (enhance: boolean) => void;
+}
+
+// Add context engineering section in the dialog
+const contextService = ContextEngineeringService.getInstance();
+
+const handleContextEnhancement = async () => {
+  if (!content.trim()) return;
+  
+  const enhanced = await contextService.enhancePrompt(content, {
+    domain: contextDomain,
+    promptType: promptType,
+    userId: 'current-user' // Get from auth
+  });
+  
+  setContent(enhanced);
+  toast.success('Prompt enhanced with context!');
+};
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';

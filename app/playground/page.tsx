@@ -18,14 +18,14 @@ export default function PlaygroundPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-purple-50/40 via-white to-pink-50/80 dark:from-purple-950/20 dark:via-gray-900 dark:to-pink-950/20">
+    <div className="min-h-screen bg-gradient-to-b from-blue-50/40 via-white to-blue-50/80 dark:from-blue-950/20 dark:via-gray-900 dark:to-blue-950/20">
       <div className="mx-auto max-w-4xl px-4 py-8">
         <ModernBreadcrumb 
           items={breadcrumbItems}
           className="mb-8"
         />
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold mb-4 bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-transparent font-inter">
+          <h1 className="text-4xl font-bold mb-4 bg-clip-text bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-500 text-transparent font-inter">
             Prompt Playground
           </h1>
           <p className="text-lg text-gray-600 dark:text-gray-400 font-inter">

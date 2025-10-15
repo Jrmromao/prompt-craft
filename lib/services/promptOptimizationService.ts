@@ -124,7 +124,15 @@ Respond in this exact JSON format:
     improvements: string[];
   } {
     try {
-      const parsed = JSON.parse(response);
+      // Remove markdown code blocks if present
+      let cleanResponse = response.trim();
+      if (cleanResponse.startsWith('```json')) {
+        cleanResponse = cleanResponse.replace(/^```json\s*/, '').replace(/\s*```$/, '');
+      } else if (cleanResponse.startsWith('```')) {
+        cleanResponse = cleanResponse.replace(/^```\s*/, '').replace(/\s*```$/, '');
+      }
+      
+      const parsed = JSON.parse(cleanResponse);
       return {
         optimizedPrompt: parsed.optimizedPrompt || '',
         suggestions: parsed.suggestions || [],

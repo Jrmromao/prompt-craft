@@ -84,7 +84,7 @@ export default function ProBillingSection({ billingData }: ProBillingSectionProp
           <Button 
             onClick={handleManageSubscription} 
             disabled={isLoading}
-            className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-inter"
+            className="bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-700 text-white font-inter"
           >
             {isLoading ? (
               <Loader2 className="h-4 w-4 animate-spin mr-2" />
@@ -130,7 +130,7 @@ export default function ProBillingSection({ billingData }: ProBillingSectionProp
       </Card>
 
       {/* Buy Credits Card */}
-      <Card className="p-6 bg-gradient-to-r from-purple-50/80 to-pink-50/80 dark:from-purple-950/20 dark:to-pink-950/20">
+      <Card className="p-6 bg-gradient-to-r from-blue-50/80 to-blue-50/80 dark:from-blue-950/20 dark:to-blue-950/20">
         <div className="flex items-start justify-between">
           <div className="w-full">
             <h3 className="text-lg font-semibold mb-2 font-inter">Need More Credits?</h3>
@@ -141,7 +141,7 @@ export default function ProBillingSection({ billingData }: ProBillingSectionProp
             <div className="flex flex-col sm:flex-row gap-4">
               <Button 
                 onClick={() => setIsCreditDialogOpen(true)} 
-                className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-inter flex-1"
+                className="bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-700 text-white font-inter flex-1"
                 aria-label="Buy additional credits"
               >
                 <Coins className="w-4 h-4 mr-2" />
@@ -149,7 +149,7 @@ export default function ProBillingSection({ billingData }: ProBillingSectionProp
               </Button>
               <Button
                 onClick={() => window.location.href = '/pricing'}
-                className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-inter flex-1"
+                className="bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-700 text-white font-inter flex-1"
                 aria-label="Upgrade Plan"
               >
                 <ArrowUpRight className="w-4 h-4 mr-2 text-white" />

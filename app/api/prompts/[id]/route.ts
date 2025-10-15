@@ -1,112 +1,162 @@
 import { NextRequest, NextResponse } from 'next/server';
-// import { dynamic, runtime, securityHeaders, cacheConfig } from '@/app/api/config';
-import { securityHeaders, cacheConfig } from '@/app/api/config';
-import { PromptService } from '@/lib/services/promptService';
 import { auth } from '@clerk/nextjs/server';
-import { rateLimit } from '@/lib/utils/rateLimit';
+import { prisma } from '@/lib/prisma';
 
-// Export dynamic configuration
-export const dynamic = 'force-dynamic';
-export const runtime = 'nodejs';
-
-// Cache control headers
-const getCacheControl = (duration: number) => {
-  return `public, s-maxage=${duration}, stale-while-revalidate=${duration * 2}`;
-};
-
-export async function GET(request: Request, context: any) {
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
-    const { userId } = await auth();
-    if (!userId) {
+    const { userId: clerkUserId } = await auth();
+    
+    if (!clerkUserId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const params = await context.params;
-    const promptId = params.id;
-    if (!promptId) {
-      return NextResponse.json({ error: 'Prompt ID is required' }, { status: 400 });
+    const user = await prisma.user.findUnique({
+      where: { clerkId: clerkUserId },
+      select: { id: true }
+    });
+
+    if (!user) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    const promptService = PromptService.getInstance();
-    const prompt = await promptService.getPrompt(promptId);
+    // Await params in Next.js 15
+    const { id } = await params;
+
+    // Try to find by slug first, then by ID as fallback
+    const prompt = await prisma.prompt.findFirst({
+      where: { 
+        OR: [
+          { slug: id, userId: user.id },
+          { id: id, userId: user.id }
+        ]
+      },
+      select: {
+        id: true,
+        name: true,
+        content: true,
+        description: true,
+        isPublic: true,
+        createdAt: true,
+        updatedAt: true,
+        slug: true,
+      }
+    });
 
     if (!prompt) {
       return NextResponse.json({ error: 'Prompt not found' }, { status: 404 });
     }
 
-    // Create response with security headers
-    const response = NextResponse.json(prompt);
-
-    // Add security headers
-    Object.entries(securityHeaders).forEach(([key, value]) => {
-      response.headers.set(key, value);
-    });
-
-    // Add cache headers if the route is cacheable
-    if (cacheConfig.cacheableRoutes.includes('/api/prompts/[id]')) {
-      response.headers.set('Cache-Control', getCacheControl(cacheConfig.durations.medium));
-      response.headers.set('Cache-Tag', cacheConfig.tags.prompts);
-    }
-
-    return response;
+    return NextResponse.json(prompt);
   } catch (error) {
     console.error('Error fetching prompt:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      {
-        status: 500,
-        headers: {
-          'Content-Type': 'application/json',
-          ...securityHeaders,
-        },
-      }
-    );
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
 
-export async function PUT(request: Request, context: any) {
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
-    const { userId } = await auth();
-    if (!userId) {
+    const { userId: clerkUserId } = await auth();
+    
+    if (!clerkUserId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const params = await context.params;
-    const promptId = params.id;
-    if (!promptId) {
-      return NextResponse.json({ error: 'Prompt ID is required' }, { status: 400 });
+    const user = await prisma.user.findUnique({
+      where: { clerkId: clerkUserId },
+      include: { Subscription: true }
+    });
+
+    if (!user) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    const body = await request.json();
-    const promptService = PromptService.getInstance();
-    const updatedPrompt = await promptService.updatePrompt(promptId, userId, body);
+    const { id } = await params;
+    
+    let requestBody;
+    try {
+      requestBody = await request.json();
+    } catch (error) {
+      return NextResponse.json({ error: 'Invalid JSON in request body' }, { status: 400 });
+    }
 
-    return NextResponse.json(updatedPrompt);
+    const { name, content, description, isPublic } = requestBody;
+
+    if (!name || !content) {
+      return NextResponse.json({ error: 'Name and content are required' }, { status: 400 });
+    }
+
+    // Find the prompt
+    const existingPrompt = await prisma.prompt.findFirst({
+      where: { 
+        OR: [
+          { slug: id, userId: user.id },
+          { id: id, userId: user.id }
+        ]
+      },
+      include: { Version: true }
+    });
+
+    if (!existingPrompt) {
+      return NextResponse.json({ error: 'Prompt not found' }, { status: 404 });
+    }
+
+    // Check if content has changed - if so, create new version
+    const contentChanged = existingPrompt.content !== content;
+    
+    if (contentChanged) {
+      const isPro = user.Subscription?.status === 'ACTIVE' || user.planType === 'PRO';
+      
+      // FREE users: 3 versions per prompt max
+      if (!isPro && existingPrompt.Version.length >= (user.maxVersionsPerPrompt || 3)) {
+        return NextResponse.json({ 
+          error: `Free users can create up to ${user.maxVersionsPerPrompt || 3} versions per prompt. Upgrade to PRO for unlimited versions.`,
+          code: 'VERSION_LIMIT_REACHED',
+          upgradeRequired: true
+        }, { status: 402 });
+      }
+
+      // Create new version
+      await prisma.version.create({
+        data: {
+          content,
+          userId: user.id,
+          promptId: existingPrompt.id
+        }
+      });
+
+      // Update user's version usage
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { versionsUsed: { increment: 1 } }
+      });
+    }
+
+    // Update the prompt
+    const updatedPrompt = await prisma.prompt.update({
+      where: { id: existingPrompt.id },
+      data: {
+        name,
+        content,
+        description: description || '',
+        isPublic: isPublic ?? existingPrompt.isPublic,
+      }
+    });
+
+    return NextResponse.json({
+      ...updatedPrompt,
+      versionCreated: contentChanged
+    });
   } catch (error) {
     console.error('Error updating prompt:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
-  }
-}
-
-export async function DELETE(request: Request, context: any) {
-  try {
-    const { userId } = await auth();
-    if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    const params = await context.params;
-    const promptId = params.id;
-    if (!promptId) {
-      return NextResponse.json({ error: 'Prompt ID is required' }, { status: 400 });
-    }
-
-    const promptService = PromptService.getInstance();
-    await promptService.deletePrompt(promptId, userId);
-
-    return NextResponse.json({ success: true });
-  } catch (error) {
-    console.error('Error deleting prompt:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ 
+      error: 'Internal server error',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    }, { status: 500 });
   }
 }

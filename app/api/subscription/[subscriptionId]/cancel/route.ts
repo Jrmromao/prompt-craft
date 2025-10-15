@@ -24,7 +24,7 @@ export async function POST(
     // Get subscription from database
     const subscription = await prisma.subscription.findUnique({
       where: { id: subscriptionId },
-      include: { user: true },
+      include: { User: true },
     });
 
     if (!subscription) {

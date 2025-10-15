@@ -55,7 +55,6 @@ export class WebhookService {
   }
 
   public async handleEvent(event: Stripe.Event) {
-    console.log('Processing webhook event:', event.type);
 
     try {
       switch (event.type as StripeWebhookEvent) {
@@ -86,7 +85,6 @@ export class WebhookService {
           await this.handlePaymentIntentFailed(event.data.object as Stripe.PaymentIntent);
           break;
         default:
-          console.log(`Unhandled event type: ${event.type}`);
       }
 
       // Log successful event processing
@@ -218,7 +216,6 @@ export class WebhookService {
     });
 
     // TODO: Send email notification
-    console.log('Trial ending soon for user:', user.email);
   }
 
   private async handleInvoicePaymentSucceeded(invoice: Stripe.Invoice) {
@@ -328,7 +325,6 @@ export class WebhookService {
     });
 
     // TODO: Send email notification
-    console.log('Upcoming invoice for user:', user.email);
   }
 
   private async handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent) {
@@ -391,7 +387,6 @@ export class WebhookService {
       });
 
       // Log success
-      console.log(`Payment intent ${paymentIntent.id} succeeded for user ${userId}`);
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       console.error(`Failed to process successful payment intent ${paymentIntent.id}:`, error);

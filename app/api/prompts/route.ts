@@ -1,206 +1,145 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { withPlanLimitsMiddleware } from '@/middleware/withPlanLimits';
 import { auth } from '@clerk/nextjs/server';
-import { PromptService } from '@/lib/services/promptService';
-import { AIService } from '@/lib/services/aiService';
 import { prisma } from '@/lib/prisma';
-import { Role, PlanType } from '@/utils/constants';
-import { PLANS } from '@/app/constants/plans';
-import { CreditService } from '@/lib/services/creditService';
-import { encode } from 'gpt-tokenizer';
-import { z } from 'zod';
 
-const createPromptSchema = z.object({
-  name: z.string().min(1).max(100),
-  description: z.string().max(500).optional(),
-  content: z.string().min(1).max(10000),
-  isPublic: z.boolean().default(false),
-  tags: z.array(z.string()).max(10).optional(),
-  promptType: z.string().optional(),
-  systemPrompt: z.string().max(2000).optional(),
-  context: z.string().max(1000).optional(),
-  examples: z.array(z.string()).max(5).optional(),
-  constraints: z.array(z.string()).max(10).optional(),
-  outputFormat: z.string().max(200).optional(),
-  temperature: z.number().min(0).max(2).optional(),
-  topP: z.number().min(0).max(1).optional(),
-  frequencyPenalty: z.number().min(-2).max(2).optional(),
-  presencePenalty: z.number().min(-2).max(2).optional(),
-  maxTokens: z.number().min(1).max(4000).optional(),
-  validationRules: z.array(z.string()).max(5).optional(),
-  fallbackStrategy: z.string().max(200).optional(),
-});
-
-// Export dynamic configuration
-export const dynamic = 'force-dynamic';
-export const runtime = 'nodejs';
-
-// GET /api/prompts
-export const GET = withPlanLimitsMiddleware(
-  async (req: NextRequest) => {
-    try {
-      const { userId } = await auth();
-      if (!userId) {
-        return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
-      }
-
-      const prompts = await prisma.prompt.findMany({
-        where: { userId },
-        orderBy: { createdAt: 'desc' }
-      });
-
-      return NextResponse.json({ success: true, data: prompts });
-    } catch (error) {
-      console.error('Error fetching prompts:', error);
-      return NextResponse.json(
-        { success: false, error: 'Failed to fetch prompts' },
-        { status: 500 }
-      );
+export async function POST(request: NextRequest) {
+  try {
+    const { userId: clerkUserId } = await auth();
+    
+    if (!clerkUserId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-  }
-);
 
-// POST /api/prompts
-export const POST = withPlanLimitsMiddleware(
-  async (req: NextRequest) => {
-    try {
-      const { userId } = await auth();
-      if (!userId) {
-        return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+    // Check user's plan and prompt count
+    let user = await prisma.user.findUnique({
+      where: { clerkId: clerkUserId },
+      include: {
+        Subscription: true,
+        Prompt: { select: { id: true } }
       }
+    });
 
-      const body = await req.json();
-      
-      // Validate input
-      const validationResult = createPromptSchema.safeParse(body);
-      if (!validationResult.success) {
-        return NextResponse.json(
-          { success: false, error: 'Invalid input data', details: validationResult.error.errors },
-          { status: 400 }
-        );
-      }
-
-      const { 
-        name,
-        description,
-        content,
-        isPublic,
-        tags,
-        promptType,
-        systemPrompt,
-        context,
-        examples,
-        constraints,
-        outputFormat,
-        temperature,
-        topP,
-        frequencyPenalty,
-        presencePenalty,
-        maxTokens,
-        validationRules,
-        fallbackStrategy
-      } = validationResult.data;
-
-      if (!name || !content) {
-        return NextResponse.json(
-          { error: 'Name and content are required' },
-          { status: 400 }
-        );
-      }
-
-      // Check user's plan and private prompt limit
-      const user = await prisma.user.findUnique({
-        where: { clerkId: userId },
-        select: { id: true, planType: true }
-      });
-
-      if (!user) {
-        return NextResponse.json({ error: 'User not found' }, { status: 404 });
-      }
-
-      // If creating a private prompt, check the limit based on plan
-      if (!isPublic) {
-        const privatePromptCount = await prisma.prompt.count({
-          where: {
-            userId: user.id,
-            isPublic: false,
-            createdAt: {
-              gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1) // First day of current month
-            }
-          }
-        });
-
-        // Check limits based on plan type
-        if (user.planType === PlanType.FREE && privatePromptCount >= 3) {
-          return NextResponse.json(
-            { error: 'Free users can only create 3 private prompts per month. Please upgrade your plan to create more private prompts.' },
-            { status: 403 }
-          );
-        } else if (user.planType === PlanType.PRO && privatePromptCount >= 50) {
-          return NextResponse.json(
-            { error: 'Pro users can only create 50 private prompts per month. Please upgrade to Elite plan for unlimited private prompts.' },
-            { status: 403 }
-          );
+    // Auto-create user if not found
+    if (!user) {
+      const { user: clerkUser } = await auth();
+      user = await prisma.user.create({
+        data: {
+          clerkId: clerkUserId,
+          email: clerkUser?.emailAddresses?.[0]?.emailAddress || '',
+          name: clerkUser?.fullName || '',
+          planType: 'FREE'
+        },
+        include: {
+          Subscription: true,
+          Prompt: { select: { id: true } }
         }
-      }
-
-      // Create the prompt
-      const promptService = PromptService.getInstance();
-      // Call savePrompt and get the optimized content and token info
-      const aiService = (await import('@/lib/services/aiService')).AIService.getInstance();
-      const optimizationPrompt = `Rewrite and optimize the following prompt for clarity, effectiveness, and best practices. Only return the improved prompt, do not add any explanations.\n\nPrompt:\n${content}`;
-      let optimizedContent = content;
-      let outputTokenCount = 0;
-      try {
-        const aiResult = await aiService.generateText(optimizationPrompt, {
-          model: 'gpt4',
-          temperature: 0.3,
-          maxTokens: 1000,
-        });
-        if (aiResult && aiResult.text) {
-          optimizedContent = aiResult.text.trim();
-          outputTokenCount = aiResult.tokenCount || 0;
-        }
-      } catch (err) {
-        console.error('AI optimization failed, saving original content:', err);
-      }
-      // Calculate input tokens
-      const inputTokenCount = encode(content).length;
-      // Calculate credit cost
-      const creditService = CreditService.getInstance();
-      const creditCost = creditService.calculateTokenCost(inputTokenCount, outputTokenCount, 'gpt-4');
-      // Deduct credits
-      const creditDeducted = await creditService.deductCredits(user.id, creditCost, 'USAGE', 'Prompt creation');
-      if (!creditDeducted) {
-        return NextResponse.json({ error: `Insufficient credits to create prompt. Required: ${creditCost}` }, { status: 402 });
-      }
-      // Save the prompt with optimized content
-      const prompt = await promptService.savePrompt(user.id, {
-        name,
-        description,
-        content: optimizedContent,
-        isPublic,
-        tags,
-        systemPrompt,
-        context,
-        examples,
-        constraints,
-        outputFormat,
-        temperature,
-        topP,
-        frequencyPenalty,
-        presencePenalty,
-        maxTokens,
-        validationRules,
-        fallbackStrategy
       });
-      return NextResponse.json(prompt);
-    } catch (error) {
-      console.error('Error creating prompt:', error);
-      return NextResponse.json(
-        { error: 'Failed to create prompt' },
-        { status: 500 }
-      );
     }
+
+    const isPro = user.Subscription?.status === 'ACTIVE' || user.planType === 'PRO';
+    const promptCount = user.Prompt.length;
+
+    // Enforce 10 prompt limit for free users
+    if (!isPro && promptCount >= 10) {
+      return NextResponse.json({ 
+        error: 'Free plan limit reached. Upgrade to PRO for unlimited prompts.',
+        code: 'LIMIT_REACHED'
+      }, { status: 402 });
+    }
+
+    const { name, content, description, isPublic } = await request.json();
+
+    if (!name || !content) {
+      return NextResponse.json({ error: 'Name and content are required' }, { status: 400 });
+    }
+
+    // Generate unique slug
+    const baseSlug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    const timestamp = Date.now().toString().slice(-6); // Last 6 digits of timestamp
+    const uniqueSlug = `${baseSlug}-${timestamp}`;
+
+    // Create prompt and initial version in a transaction
+    const result = await prisma.$transaction(async (tx) => {
+      const prompt = await tx.prompt.create({
+        data: {
+          name,
+          content,
+          description: description || '',
+          isPublic: isPublic || false,
+          userId: user.id, // Use database user ID, not Clerk ID
+          slug: uniqueSlug,
+        }
+      });
+
+      // Create initial version (version 1)
+      const version = await tx.version.create({
+        data: {
+          content,
+          userId: user.id,
+          promptId: prompt.id
+        }
+      });
+
+      // Update user's version usage
+      await tx.user.update({
+        where: { id: user.id },
+        data: { versionsUsed: { increment: 1 } }
+      });
+
+      return { prompt, version };
+    });
+
+    return NextResponse.json({
+      ...result.prompt,
+      initialVersion: result.version
+    });
+  } catch (error) {
+    console.error('Error creating prompt:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
-);
+}
+
+export async function GET() {
+  try {
+    const { userId: clerkUserId } = await auth();
+    
+    if (!clerkUserId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { clerkId: clerkUserId }
+    });
+
+    if (!user) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+
+    const prompts = await prisma.prompt.findMany({
+      where: { userId: user.id },
+      include: {
+        Version: {
+          select: { id: true, createdAt: true },
+          orderBy: { createdAt: 'desc' },
+          take: 1
+        },
+        _count: {
+          select: { Version: true }
+        }
+      },
+      orderBy: { updatedAt: 'desc' }
+    });
+
+    // Add version count and latest version info
+    const promptsWithVersionInfo = prompts.map(prompt => ({
+      ...prompt,
+      versionCount: prompt._count.Version,
+      latestVersion: prompt.Version[0] || null
+    }));
+
+    return NextResponse.json(promptsWithVersionInfo);
+  } catch (error) {
+    console.error('Error fetching prompts:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
+}

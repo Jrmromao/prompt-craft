@@ -53,7 +53,6 @@ export class AuditService {
 
   public async logAudit(entry: AuditLogEntry): Promise<void> {
     try {
-      console.log('Creating audit log entry:', entry);
       const result = await prisma.auditLog.create({
         data: {
           userId: entry.userId,
@@ -65,7 +64,6 @@ export class AuditService {
           timestamp: new Date(),
         },
       });
-      console.log('Successfully created audit log:', result);
     } catch (error) {
       console.error('Failed to log audit entry:', error);
       if (error instanceof Error) {
@@ -84,7 +82,6 @@ export class AuditService {
     endDate?: Date;
   }): Promise<AuditLogEntry[]> {
     try {
-      console.log('Fetching audit logs for user:', userId, 'with options:', options);
       const logs = await prisma.auditLog.findMany({
         where: {
           userId,
@@ -105,7 +102,6 @@ export class AuditService {
         },
       });
 
-      console.log('Found audit logs:', logs);
       return logs.map(log => ({
         id: log.id,
         userId: log.userId,

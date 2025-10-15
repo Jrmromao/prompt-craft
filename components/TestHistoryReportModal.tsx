@@ -36,7 +36,7 @@ export function TestHistoryReportModal({ open, test, rank, onClose }: TestHistor
             <div className="flex flex-wrap items-center gap-3">
               <span>Test Report</span>
               {typeof rank === 'number' && rank > 0 && (
-                <span className="inline-block bg-purple-600 text-white rounded-full px-3 py-1 text-xs font-bold align-middle">Rank #{rank}</span>
+                <span className="inline-block bg-blue-600 text-white rounded-full px-3 py-1 text-xs font-bold align-middle">Rank #{rank}</span>
               )}
               {overallRating !== null && (
                 <span className="inline-flex items-center gap-2">

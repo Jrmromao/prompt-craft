@@ -97,13 +97,13 @@ export default function CollectDobPage() {
           </label>
           <p className="text-xs text-gray-600 dark:text-gray-400">
             By continuing, you confirm you are at least 16 years old and agree to our{' '}
-            <a href="/legal/privacy-policy" target="_blank" rel="noopener noreferrer" className="underline text-purple-600 dark:text-purple-400">Privacy Policy</a>.
+            <a href="/legal/privacy-policy" target="_blank" rel="noopener noreferrer" className="underline text-blue-600 dark:text-blue-400">Privacy Policy</a>.
           </p>
           {error && <div className="text-red-500 text-sm" role="alert">{error}</div>}
           {success && <div className="text-green-500 text-sm" role="status">Date of birth saved! Redirecting…</div>}
           <button
             type="submit"
-            className="bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold py-3 px-8 rounded-full transition-all duration-300 transform hover:scale-105 hover:shadow-lg hover:shadow-purple-500/20 disabled:opacity-60"
+            className="bg-gradient-to-r from-blue-600 to-blue-500 text-white font-semibold py-3 px-8 rounded-full transition-all duration-300 transform hover:scale-105 hover:shadow-lg hover:shadow-blue-500/20 disabled:opacity-60"
             disabled={loading}
             aria-busy={loading}
           >

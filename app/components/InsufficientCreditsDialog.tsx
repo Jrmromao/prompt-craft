@@ -37,7 +37,7 @@ export function InsufficientCreditsDialog({
             <Button variant="outline" onClick={onClose}>
               Cancel
             </Button>
-            <Button asChild className="bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700">
+            <Button asChild className="bg-gradient-to-r from-blue-600 to-blue-500 text-white hover:from-blue-700 hover:to-blue-700">
               <Link href="/pricing">
                 View Plans
               </Link>

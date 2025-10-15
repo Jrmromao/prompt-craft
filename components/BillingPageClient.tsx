@@ -181,7 +181,7 @@ export function BillingPageClient({ subscription }: { subscription?: Subscriptio
           <div className="flex flex-col gap-3 sm:flex-row">
             <Button
               onClick={handleGoToDashboard}
-              className="flex-1 bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:shadow-lg hover:shadow-blue-500/20 dark:hover:shadow-purple-800/20"
+              className="flex-1 bg-gradient-to-r from-blue-500 to-blue-600 text-white hover:shadow-lg hover:shadow-blue-500/20 dark:hover:shadow-blue-800/20"
               disabled={isLoading}
             >
               <BarChart className="mr-2 h-4 w-4" />
@@ -244,7 +244,7 @@ export function BillingPageClient({ subscription }: { subscription?: Subscriptio
         className="overflow-hidden rounded-2xl border border-blue-200 bg-white shadow-xl shadow-blue-500/5 dark:border-indigo-800 dark:bg-indigo-900 dark:shadow-indigo-950/10"
       >
         {/* Card Banner */}
-        <div className="relative bg-gradient-to-r from-blue-500 to-purple-600 px-6 py-4">
+        <div className="relative bg-gradient-to-r from-blue-500 to-blue-600 px-6 py-4">
           <div className="flex items-center justify-between">
             <div>
               <span className="mb-2 inline-block rounded-full bg-white/20 px-2 py-1 text-xs font-medium text-white backdrop-blur-sm">
@@ -300,7 +300,7 @@ export function BillingPageClient({ subscription }: { subscription?: Subscriptio
           {isActive ? (
             <div className="space-y-3">
               <Button
-                className="flex w-full items-center justify-center rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 py-6 font-medium text-white transition-all hover:shadow-lg hover:shadow-blue-500/20 dark:hover:shadow-purple-800/20"
+                className="flex w-full items-center justify-center rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 py-6 font-medium text-white transition-all hover:shadow-lg hover:shadow-blue-500/20 dark:hover:shadow-blue-800/20"
                 onClick={handleGoToDashboard}
                 disabled={isLoading}
               >
@@ -330,7 +330,7 @@ export function BillingPageClient({ subscription }: { subscription?: Subscriptio
             </Button>
           ) : (
             <SubscribeButton
-              className="flex w-full items-center justify-center rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 py-6 font-medium text-white transition-all hover:shadow-lg hover:shadow-blue-500/20 dark:hover:shadow-purple-800/20"
+              className="flex w-full items-center justify-center rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 py-6 font-medium text-white transition-all hover:shadow-lg hover:shadow-blue-500/20 dark:hover:shadow-blue-800/20"
               priceId={
                 billingInterval === 'monthly'
                   ? process.env.NEXT_PUBLIC_STRIPE_MONTHLY_PRICE_ID

@@ -34,7 +34,6 @@ class Logger {
         }
         break;
       default:
-        console.log(JSON.stringify(logEntry));
     }
   }
 

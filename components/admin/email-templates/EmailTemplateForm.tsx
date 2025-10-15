@@ -40,8 +40,8 @@ const formSchema = z.object({
   subject: z.string().min(1, 'Subject is required'),
   body: z.string().min(1, 'Body is required'),
   type: z.enum(templateTypes),
-  isActive: z.boolean().default(true),
-  variables: z.array(z.string()).default([]),
+  isActive: z.boolean(),
+  variables: z.array(z.string()),
 });
 
 type FormValues = z.infer<typeof formSchema>;

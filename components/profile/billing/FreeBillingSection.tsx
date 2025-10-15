@@ -60,23 +60,23 @@ export default function FreeBillingSection({ billingData }: FreeBillingSectionPr
       <Card className="p-6">
         <h2 className="text-xl font-semibold mb-4 font-inter">Credits Overview</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="p-4 bg-purple-50/40 dark:bg-purple-950/20 rounded-lg" role="group" aria-label="Monthly Credits">
+          <div className="p-4 bg-blue-50/40 dark:bg-blue-950/20 rounded-lg" role="group" aria-label="Monthly Credits">
             <p className="text-sm text-gray-600 dark:text-gray-400 font-inter">Monthly Credits</p>
-            <p className="text-2xl font-bold font-inter bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">{credits.monthly}</p>
+            <p className="text-2xl font-bold font-inter bg-gradient-to-r from-blue-600 to-blue-500 bg-clip-text text-transparent">{credits.monthly}</p>
           </div>
-          <div className="p-4 bg-purple-50/40 dark:bg-purple-950/20 rounded-lg" role="group" aria-label="Purchased Credits">
+          <div className="p-4 bg-blue-50/40 dark:bg-blue-950/20 rounded-lg" role="group" aria-label="Purchased Credits">
             <p className="text-sm text-gray-600 dark:text-gray-400 font-inter">Purchased Credits</p>
-            <p className="text-2xl font-bold font-inter bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">{credits.purchased}</p>
+            <p className="text-2xl font-bold font-inter bg-gradient-to-r from-blue-600 to-blue-500 bg-clip-text text-transparent">{credits.purchased}</p>
           </div>
-          <div className="p-4 bg-purple-50/40 dark:bg-purple-950/20 rounded-lg" role="group" aria-label="Total Credits">
+          <div className="p-4 bg-blue-50/40 dark:bg-blue-950/20 rounded-lg" role="group" aria-label="Total Credits">
             <p className="text-sm text-gray-600 dark:text-gray-400 font-inter">Total Credits</p>
-            <p className="text-2xl font-bold font-inter bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">{credits.total}</p>
+            <p className="text-2xl font-bold font-inter bg-gradient-to-r from-blue-600 to-blue-500 bg-clip-text text-transparent">{credits.total}</p>
           </div>
         </div>
       </Card>
 
       {/* Upgrade and Buy Credits Card */}
-      <Card className="p-6 bg-gradient-to-r from-purple-50/80 to-pink-50/80 dark:from-purple-950/20 dark:to-pink-950/20">
+      <Card className="p-6 bg-gradient-to-r from-blue-50/80 to-blue-50/80 dark:from-blue-950/20 dark:to-blue-950/20">
         <div className="flex items-start justify-between">
           <div className="w-full">
             <h3 className="text-lg font-semibold mb-2 font-inter">Need More Credits?</h3>
@@ -86,7 +86,7 @@ export default function FreeBillingSection({ billingData }: FreeBillingSectionPr
             <div className="flex flex-col sm:flex-row gap-4">
               <Button 
                 onClick={() => setIsCreditDialogOpen(true)} 
-                className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-inter flex-1"
+                className="bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-700 text-white font-inter flex-1"
                 aria-label="Buy additional credits"
               >
                 <Coins className="w-4 h-4 mr-2" />
@@ -95,7 +95,7 @@ export default function FreeBillingSection({ billingData }: FreeBillingSectionPr
               <Button 
                 onClick={handleUpgrade} 
                 variant="outline"
-                className="border-purple-600 text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-950/20 font-inter flex-1"
+                className="border-blue-600 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/20 font-inter flex-1"
                 aria-label="View available plans"
               >
                 <CreditCard className="w-4 h-4 mr-2" />
@@ -115,7 +115,7 @@ export default function FreeBillingSection({ billingData }: FreeBillingSectionPr
             {billingData.invoices.map((invoice) => (
               <div 
                 key={invoice.id} 
-                className="flex items-center justify-between p-4 bg-purple-50/40 dark:bg-purple-950/20 rounded-lg"
+                className="flex items-center justify-between p-4 bg-blue-50/40 dark:bg-blue-950/20 rounded-lg"
                 role="listitem"
               >
                 <div>
@@ -127,7 +127,7 @@ export default function FreeBillingSection({ billingData }: FreeBillingSectionPr
                   </p>
                 </div>
                 <div className="text-right">
-                  <p className="font-medium font-inter bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">${invoice.amount}</p>
+                  <p className="font-medium font-inter bg-gradient-to-r from-blue-600 to-blue-500 bg-clip-text text-transparent">${invoice.amount}</p>
                   <p className="text-sm text-gray-600 dark:text-gray-400 font-inter capitalize">{invoice.status}</p>
                 </div>
               </div>

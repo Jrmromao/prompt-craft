@@ -29,10 +29,10 @@ export function Gravatar({ email, size = 32, className = '' }: GravatarProps) {
   if (!avatarUrl) {
     return (
       <div
-        className={`rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center ${className}`}
+        className={`rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center ${className}`}
         style={{ width: size, height: size }}
       >
-        <span className="text-xs text-purple-600 dark:text-purple-300">
+        <span className="text-xs text-blue-600 dark:text-blue-300">
           {email.charAt(0).toUpperCase()}
         </span>
       </div>

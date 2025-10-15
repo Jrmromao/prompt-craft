@@ -83,7 +83,7 @@ export function TagManager({ tags, selectedTags, onTagSelect, onTagDeselect, onC
                 <Badge
                   key={tagId}
                   variant="default"
-                  className="text-xs bg-purple-100 text-purple-800 hover:bg-purple-200 dark:bg-purple-900 dark:text-purple-200"
+                  className="text-xs bg-blue-100 text-blue-800 hover:bg-blue-200 dark:bg-blue-900 dark:text-blue-200"
                 >
                   {tag.name}
                   <Button
@@ -113,8 +113,8 @@ export function TagManager({ tags, selectedTags, onTagSelect, onTagDeselect, onC
                 className={cn(
                   "text-xs cursor-pointer transition-colors",
                   isSelected 
-                    ? "bg-purple-600 text-white hover:bg-purple-700" 
-                    : "hover:bg-purple-50 hover:border-purple-300 dark:hover:bg-purple-950"
+                    ? "bg-blue-600 text-white hover:bg-blue-700" 
+                    : "hover:bg-blue-50 hover:border-blue-300 dark:hover:bg-blue-950"
                 )}
                 onClick={() => {
                   if (isSelected) {

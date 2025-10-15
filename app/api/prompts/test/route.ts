@@ -12,10 +12,8 @@ export const dynamic = 'force-dynamic';
 
 export async function POST(req: Request) {
   try {
-    console.log('Test API route called');
     const { userId } = await auth();
     if (!userId) {
-      console.log('No userId found');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -69,11 +67,9 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
-    console.log('Request body:', body);
     const { content, testInput, promptVersionId, temperature = 0.7, maxTokens = 1000 } = body;
 
     if (!content) {
-      console.log('Missing content');
       return NextResponse.json(
         { error: 'Content is required' },
         { status: 400 }
@@ -82,15 +78,12 @@ export async function POST(req: Request) {
 
     // Initialize AI service
     const aiService = AIService.getInstance();
-    console.log('AI service initialized');
 
     // Test the prompt
-    console.log('Testing prompt...');
     const result = await aiService.generateText(content, {
       temperature,
       maxTokens,
     });
-    console.log('Test completed');
 
     // Calculate input and output tokens
     const inputTokenCount = encode(content).length;

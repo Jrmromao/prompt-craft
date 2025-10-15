@@ -21,7 +21,6 @@ export class GDPRCleanupJob {
 
   async run(): Promise<void> {
     try {
-      console.log('Starting GDPR cleanup job...');
       
       await this.gdprService.executeScheduledDeletions();
       
@@ -35,7 +34,6 @@ export class GDPRCleanupJob {
         }),
       });
 
-      console.log('GDPR cleanup job completed successfully');
     } catch (error) {
       console.error('GDPR cleanup job failed:', error);
       

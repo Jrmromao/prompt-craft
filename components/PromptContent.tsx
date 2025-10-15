@@ -232,7 +232,7 @@ function PromptContentInner({ user, prompt, initialCommentCount, initialVersionH
         <div className="mb-6">
           <Link
             href="/community-prompts"
-            className="inline-flex items-center text-sm text-gray-600 hover:text-purple-600 dark:text-gray-400 dark:hover:text-purple-400"
+            className="inline-flex items-center text-sm text-gray-600 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400"
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Community Prompts
@@ -242,7 +242,7 @@ function PromptContentInner({ user, prompt, initialCommentCount, initialVersionH
           {/* Header Section */}
           <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
             <div>
-              <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent mb-2">
+              <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-400 to-blue-400 bg-clip-text text-transparent mb-2">
                 {prompt.name}
               </h1>
               <span className="text-sm text-gray-500 dark:text-gray-400">Prompt ID: {prompt.id}</span>
@@ -282,14 +282,14 @@ function PromptContentInner({ user, prompt, initialCommentCount, initialVersionH
               />
               <Button
                 onClick={() => setIsTestModalOpen(true)}
-                className="bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700"
+                className="bg-gradient-to-r from-blue-600 to-blue-500 text-white hover:from-blue-700 hover:to-blue-700"
               >
                 <Play className="mr-2 h-4 w-4" />
                 Test Prompt
               </Button>
               <Button
                 variant="outline"
-                className="ml-2 border-purple-300 text-purple-700 hover:bg-purple-50 dark:border-purple-700 dark:text-purple-300 dark:hover:bg-purple-900"
+                className="ml-2 border-blue-300 text-blue-700 hover:bg-blue-50 dark:border-blue-700 dark:text-blue-300 dark:hover:bg-blue-900"
                 onClick={() => router.push(`/prompts/${prompt.id}/versioning`)}
               >
                 <GitBranch className="mr-2 h-4 w-4" />
@@ -298,20 +298,20 @@ function PromptContentInner({ user, prompt, initialCommentCount, initialVersionH
             </div>
           </div>
           {/* Prompt Content Section */}
-          <div className="group rounded-xl border border-gray-200 bg-white/50 p-2 backdrop-blur-sm transition-all duration-300 hover:border-purple-500/50 dark:border-gray-800 dark:bg-gray-900/50">
+          <div className="group rounded-xl border border-gray-200 bg-white/50 p-2 backdrop-blur-sm transition-all duration-300 hover:border-blue-500/50 dark:border-gray-800 dark:bg-gray-900/50">
             <div className="flex flex-col gap-2">
               {/* Version Selector */}
               {versions.length > 0 && (
                 <div className="flex items-center justify-between border-b border-gray-200 pb-1 dark:border-gray-800">
                   <div className="flex items-center gap-1">
-                    <GitBranch className="h-3 w-3 text-purple-600 dark:text-purple-400" />
+                    <GitBranch className="h-3 w-3 text-blue-600 dark:text-blue-400" />
                     <span className="text-xs font-medium text-gray-700 dark:text-gray-300">Version History</span>
                   </div>
                   <Dialog open={isVersionSelectOpen} onOpenChange={setIsVersionSelectOpen}>
                     <DialogTrigger asChild>
                       <Button 
                         variant="outline" 
-                        className="flex items-center gap-2 border-purple-200 bg-purple-50 text-purple-700 hover:bg-purple-100 dark:border-purple-800 dark:bg-purple-900/30 dark:text-purple-300 dark:hover:bg-purple-900/50"
+                        className="flex items-center gap-2 border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 dark:border-blue-800 dark:bg-blue-900/30 dark:text-blue-300 dark:hover:bg-blue-900/50"
                       >
                         <span className="font-medium">Version {selectedVersion?.version || 'Latest'}</span>
                         <ChevronDown className="h-4 w-4" />
@@ -320,7 +320,7 @@ function PromptContentInner({ user, prompt, initialCommentCount, initialVersionH
                     <DialogContent className="max-w-md">
                       <DialogHeader>
                         <DialogTitle className="flex items-center gap-2 text-xl">
-                          <GitBranch className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                          <GitBranch className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                           Select Version
                         </DialogTitle>
                         <p className="text-sm text-muted-foreground mt-1">
@@ -333,14 +333,14 @@ function PromptContentInner({ user, prompt, initialCommentCount, initialVersionH
                             key={version.id}
                             className={`rounded-lg border transition-all duration-200 ${
                               selectedVersion?.id === version.id
-                                ? 'border-purple-200 bg-purple-50 dark:border-purple-800 dark:bg-purple-900/30'
-                                : 'border-gray-200 hover:border-purple-200 hover:bg-purple-50/50 dark:border-gray-800 dark:hover:border-purple-800 dark:hover:bg-purple-900/20'
+                                ? 'border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-900/30'
+                                : 'border-gray-200 hover:border-blue-200 hover:bg-blue-50/50 dark:border-gray-800 dark:hover:border-blue-800 dark:hover:bg-blue-900/20'
                             }`}
                           >
                             <div
                               className={`w-full p-4 h-auto cursor-pointer ${
                                 selectedVersion?.id === version.id
-                                  ? 'text-purple-700 dark:text-purple-300'
+                                  ? 'text-blue-700 dark:text-blue-300'
                                   : 'text-gray-700 dark:text-gray-300'
                               }`}
                               onClick={() => {
@@ -354,7 +354,7 @@ function PromptContentInner({ user, prompt, initialCommentCount, initialVersionH
                                   {selectedVersion?.id === version.id && (
                                     <Badge 
                                       variant="secondary" 
-                                      className="bg-purple-100 text-purple-700 dark:bg-purple-900/50 dark:text-purple-300"
+                                      className="bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300"
                                     >
                                       Current
                                     </Badge>
@@ -381,7 +381,7 @@ function PromptContentInner({ user, prompt, initialCommentCount, initialVersionH
                         </Button>
                         <Button
                           variant="default"
-                          className="bg-purple-600 hover:bg-purple-700 dark:bg-purple-500 dark:hover:bg-purple-600"
+                          className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
                           onClick={() => setIsVersionSelectOpen(false)}
                         >
                           Done
@@ -436,11 +436,11 @@ function PromptContentInner({ user, prompt, initialCommentCount, initialVersionH
                   <TabsTrigger value="comments" className="relative">
                     Comments
                     {isCommentCountLoading ? (
-                      <span className="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-purple-300 text-white">
+                      <span className="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-blue-300 text-white">
                         <Loader2 className="animate-spin h-4 w-4" />
                       </span>
                     ) : (
-                      <span className="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-purple-500 text-[11px] font-semibold text-white shadow-sm transition-transform hover:scale-110 dark:bg-purple-600">
+                      <span className="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-blue-500 text-[11px] font-semibold text-white shadow-sm transition-transform hover:scale-110 dark:bg-blue-600">
                         {commentCount > 99 ? '99+' : commentCount}
                       </span>
                     )}

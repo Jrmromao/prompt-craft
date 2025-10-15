@@ -183,7 +183,7 @@ export function CommunityPromptsClient() {
       label: 'Discover Prompts',
       icon: Sparkles,
       description: 'Explore community creations',
-      gradient: 'from-purple-500 to-pink-500'
+      gradient: 'from-blue-500 to-blue-500'
     },
     {
       id: 'leaderboards' as SidebarView,
@@ -199,8 +199,8 @@ export function CommunityPromptsClient() {
       id: 'myStats' as LeaderboardTab,
       label: 'My Stats',
       icon: User,
-      color: 'from-purple-500 to-pink-500',
-      bgColor: 'bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20'
+      color: 'from-blue-500 to-blue-500',
+      bgColor: 'bg-gradient-to-r from-blue-50 to-blue-50 dark:from-blue-900/20 dark:to-blue-900/20'
     }] : []),
     {
       id: 'topCreators' as LeaderboardTab,
@@ -246,7 +246,7 @@ export function CommunityPromptsClient() {
       return (
         <div className="flex items-center justify-center h-96">
           <div className="text-center">
-            <Loader2 className="h-12 w-12 animate-spin text-purple-500 mx-auto mb-4" />
+            <Loader2 className="h-12 w-12 animate-spin text-blue-500 mx-auto mb-4" />
             <p className="text-muted-foreground">Loading leaderboards...</p>
           </div>
         </div>
@@ -289,7 +289,7 @@ export function CommunityPromptsClient() {
                   {[
                     { label: 'Credits Earned', value: leaderboardData.userStats.creditsEarned, icon: Coins, color: 'from-green-500 to-emerald-500' },
                     { label: 'Votes Cast', value: leaderboardData.userStats.votesCast, icon: Star, color: 'from-blue-500 to-cyan-500' },
-                    { label: 'Prompts Created', value: leaderboardData.userStats.promptsCreated, icon: Sparkles, color: 'from-purple-500 to-pink-500' },
+                    { label: 'Prompts Created', value: leaderboardData.userStats.promptsCreated, icon: Sparkles, color: 'from-blue-500 to-blue-500' },
                     { label: 'Total Upvotes', value: leaderboardData.userStats.totalUpvotes, icon: TrendingUp, color: 'from-orange-500 to-red-500' }
                   ].map((stat, index) => (
                     <div key={index} className="group relative overflow-hidden rounded-xl bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 p-6 hover:shadow-lg transition-all duration-300">
@@ -307,12 +307,12 @@ export function CommunityPromptsClient() {
                 </div>
               ) : (
                 <div className="text-center py-16">
-                  <div className="p-4 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                  <div className="p-4 rounded-full bg-gradient-to-r from-blue-500 to-blue-500 w-16 h-16 mx-auto mb-4 flex items-center justify-center">
                     <User className="h-8 w-8 text-white" />
                   </div>
                   <h3 className="text-lg font-semibold mb-2">Start Your Journey</h3>
                   <p className="text-muted-foreground mb-6">Create prompts and vote to see your stats here!</p>
-                  <Button className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white">
+                  <Button className="bg-gradient-to-r from-blue-500 to-blue-500 hover:from-blue-600 hover:to-blue-500 text-white">
                     <Sparkles className="h-4 w-4 mr-2" />
                     Create Your First Prompt
                   </Button>
@@ -325,7 +325,7 @@ export function CommunityPromptsClient() {
                 {leaderboardData.topCreators.length > 0 ? (
                   leaderboardData.topCreators.map((user, index) => (
                     <div key={user.id} className="flex items-center gap-4 p-4 rounded-xl bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 hover:shadow-lg transition-all duration-300 group">
-                      <div className="flex items-center justify-center w-12 h-12 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold text-lg shadow-lg">
+                      <div className="flex items-center justify-center w-12 h-12 rounded-full bg-gradient-to-r from-blue-500 to-blue-500 text-white font-bold text-lg shadow-lg">
                         {index < 3 ? (
                           index === 0 ? '🥇' : index === 1 ? '🥈' : '🥉'
                         ) : (
@@ -334,14 +334,14 @@ export function CommunityPromptsClient() {
                       </div>
                       <Avatar className="h-12 w-12 border-2 border-white dark:border-gray-700 shadow-md">
                         <AvatarImage src={user.imageUrl} />
-                        <AvatarFallback className="bg-gradient-to-r from-purple-500 to-pink-500 text-white">
+                        <AvatarFallback className="bg-gradient-to-r from-blue-500 to-blue-500 text-white">
                           {user.name[0]}
                         </AvatarFallback>
                       </Avatar>
                       <div className="flex-1">
                         <h4 className="font-semibold text-lg">{user.name}</h4>
                         <p className="text-muted-foreground">
-                          <span className="font-medium text-purple-600 dark:text-purple-400">
+                          <span className="font-medium text-blue-600 dark:text-blue-400">
                             {user.totalUpvotes}
                           </span> upvotes • <span className="font-medium">{user.promptCount}</span> prompts
                         </p>
@@ -368,7 +368,7 @@ export function CommunityPromptsClient() {
                 {leaderboardData.topVoters.length > 0 ? (
                   leaderboardData.topVoters.map((user, index) => (
                     <div key={user.id} className="flex items-center gap-4 p-4 rounded-xl bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 hover:shadow-lg transition-all duration-300 group">
-                      <div className="flex items-center justify-center w-12 h-12 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold text-lg shadow-lg">
+                      <div className="flex items-center justify-center w-12 h-12 rounded-full bg-gradient-to-r from-blue-500 to-blue-500 text-white font-bold text-lg shadow-lg">
                         {index < 3 ? (
                           index === 0 ? '🥇' : index === 1 ? '🥈' : '🥉'
                         ) : (
@@ -377,7 +377,7 @@ export function CommunityPromptsClient() {
                       </div>
                       <Avatar className="h-12 w-12 border-2 border-white dark:border-gray-700 shadow-md">
                         <AvatarImage src={user.imageUrl} />
-                        <AvatarFallback className="bg-gradient-to-r from-purple-500 to-pink-500 text-white">
+                        <AvatarFallback className="bg-gradient-to-r from-blue-500 to-blue-500 text-white">
                           {user.name[0]}
                         </AvatarFallback>
                       </Avatar>
@@ -411,7 +411,7 @@ export function CommunityPromptsClient() {
                 {leaderboardData.topCreditEarners.length > 0 ? (
                   leaderboardData.topCreditEarners.map((user, index) => (
                     <div key={user.id} className="flex items-center gap-4 p-4 rounded-xl bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 hover:shadow-lg transition-all duration-300 group">
-                      <div className="flex items-center justify-center w-12 h-12 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold text-lg shadow-lg">
+                      <div className="flex items-center justify-center w-12 h-12 rounded-full bg-gradient-to-r from-blue-500 to-blue-500 text-white font-bold text-lg shadow-lg">
                         {index < 3 ? (
                           index === 0 ? '🥇' : index === 1 ? '🥈' : '🥉'
                         ) : (
@@ -420,7 +420,7 @@ export function CommunityPromptsClient() {
                       </div>
                       <Avatar className="h-12 w-12 border-2 border-white dark:border-gray-700 shadow-md">
                         <AvatarImage src={user.imageUrl} />
-                        <AvatarFallback className="bg-gradient-to-r from-purple-500 to-pink-500 text-white">
+                        <AvatarFallback className="bg-gradient-to-r from-blue-500 to-blue-500 text-white">
                           {user.name[0]}
                         </AvatarFallback>
                       </Avatar>
@@ -498,17 +498,17 @@ export function CommunityPromptsClient() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
       {/* Hero Section */}
       <div className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-purple-600/10 to-pink-600/10 dark:from-purple-400/5 dark:to-pink-400/5" />
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-600/10 to-blue-500/10 dark:from-blue-400/5 dark:to-blue-400/5" />
         <div className="container mx-auto px-4 py-16 relative">
           <div className="text-center max-w-4xl mx-auto">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white text-sm font-medium mb-6 shadow-lg">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-blue-500 to-blue-500 text-white text-sm font-medium mb-6 shadow-lg">
               <Sparkles className="h-4 w-4" />
               Community Hub
             </div>
-            <h1 className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent mb-6 leading-tight">
+            <h1 className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-blue-600 to-blue-500 bg-clip-text text-transparent mb-6 leading-tight">
               Discover Amazing Prompts
             </h1>
             <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto leading-relaxed">
@@ -556,7 +556,7 @@ export function CommunityPromptsClient() {
                       placeholder="Search for the perfect prompt..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      className="pl-12 pr-4 py-4 text-lg rounded-xl border-2 border-gray-200 dark:border-gray-700 focus:border-purple-500 dark:focus:border-purple-400 bg-white dark:bg-gray-900"
+                      className="pl-12 pr-4 py-4 text-lg rounded-xl border-2 border-gray-200 dark:border-gray-700 focus:border-blue-500 dark:focus:border-blue-400 bg-white dark:bg-gray-900"
                     />
                   </div>
 
@@ -570,7 +570,7 @@ export function CommunityPromptsClient() {
                         className={cn(
                           "px-4 py-2 rounded-full font-medium transition-all duration-300",
                           filterTag === tag.value
-                            ? "bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg border-0"
+                            ? "bg-gradient-to-r from-blue-500 to-blue-500 text-white shadow-lg border-0"
                             : "bg-white dark:bg-gray-800 hover:shadow-md border-2 border-gray-200 dark:border-gray-700"
                         )}
                         onClick={() => setFilterTag(tag.value)}
@@ -625,7 +625,7 @@ export function CommunityPromptsClient() {
                         className={cn(
                           "p-2 rounded-lg",
                           viewMode === 'grid' 
-                            ? "bg-gradient-to-r from-purple-500 to-pink-500 text-white"
+                            ? "bg-gradient-to-r from-blue-500 to-blue-500 text-white"
                             : "border-2 border-gray-200 dark:border-gray-700"
                         )}
                       >
@@ -638,7 +638,7 @@ export function CommunityPromptsClient() {
                         className={cn(
                           "p-2 rounded-lg",
                           viewMode === 'list' 
-                            ? "bg-gradient-to-r from-purple-500 to-pink-500 text-white"
+                            ? "bg-gradient-to-r from-blue-500 to-blue-500 text-white"
                             : "border-2 border-gray-200 dark:border-gray-700"
                         )}
                       >
@@ -654,7 +654,7 @@ export function CommunityPromptsClient() {
             {loading ? (
               <div className="flex items-center justify-center h-96">
                 <div className="text-center">
-                  <Loader2 className="h-12 w-12 animate-spin text-purple-500 mx-auto mb-4" />
+                  <Loader2 className="h-12 w-12 animate-spin text-blue-500 mx-auto mb-4" />
                   <p className="text-muted-foreground">Loading amazing prompts...</p>
                 </div>
               </div>
@@ -667,7 +667,7 @@ export function CommunityPromptsClient() {
                   <Card key={prompt.id} className="group hover:shadow-xl transition-all duration-300 border-0 shadow-lg bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm overflow-hidden">
                     <CardHeader className="pb-3">
                       <div className="flex items-start justify-between">
-                        <CardTitle className="text-xl line-clamp-2 group-hover:text-transparent group-hover:bg-gradient-to-r group-hover:from-purple-600 group-hover:to-pink-600 group-hover:bg-clip-text transition-all duration-300">
+                        <CardTitle className="text-xl line-clamp-2 group-hover:text-transparent group-hover:bg-gradient-to-r group-hover:from-blue-600 group-hover:to-blue-500 group-hover:bg-clip-text transition-all duration-300">
                           {prompt.name}
                         </CardTitle>
                         <div className="flex items-center gap-2">
@@ -686,7 +686,7 @@ export function CommunityPromptsClient() {
                         <div className="flex items-center gap-3">
                           <Avatar className="h-8 w-8 border-2 border-white dark:border-gray-700 shadow-md">
                             <AvatarImage src={prompt.user.imageUrl} />
-                            <AvatarFallback className="bg-gradient-to-r from-purple-500 to-pink-500 text-white text-sm">
+                            <AvatarFallback className="bg-gradient-to-r from-blue-500 to-blue-500 text-white text-sm">
                               {prompt.user.name[0]}
                             </AvatarFallback>
                           </Avatar>
@@ -695,7 +695,7 @@ export function CommunityPromptsClient() {
                           </span>
                         </div>
                         <div className="flex items-center gap-2">
-                          <div className="flex items-center gap-1 text-sm font-medium text-purple-600 dark:text-purple-400">
+                          <div className="flex items-center gap-1 text-sm font-medium text-blue-600 dark:text-blue-400">
                             <TrendingUp className="h-4 w-4" />
                             {prompt.upvotes}
                           </div>
@@ -704,12 +704,12 @@ export function CommunityPromptsClient() {
                       
                       <div className="flex flex-wrap gap-2">
                         {prompt.tags.slice(0, 3).map((tag, index) => (
-                          <Badge key={`${prompt.id}-tag-${index}`} variant="outline" className="text-xs border-purple-200 dark:border-purple-700 text-purple-600 dark:text-purple-400">
+                          <Badge key={`${prompt.id}-tag-${index}`} variant="outline" className="text-xs border-blue-200 dark:border-blue-700 text-blue-600 dark:text-blue-400">
                             {tag}
                           </Badge>
                         ))}
                         {prompt.tags.length > 3 && (
-                          <Badge key={`${prompt.id}-more-tags`} variant="outline" className="text-xs border-purple-200 dark:border-purple-700 text-purple-600 dark:text-purple-400">
+                          <Badge key={`${prompt.id}-more-tags`} variant="outline" className="text-xs border-blue-200 dark:border-blue-700 text-blue-600 dark:text-blue-400">
                             +{prompt.tags.length - 3} more
                           </Badge>
                         )}
@@ -717,15 +717,15 @@ export function CommunityPromptsClient() {
 
                       <div className="flex items-center gap-2 pt-2">
                         <Link href={`/prompts/${prompt.id}`} className="flex-1">
-                          <Button className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl">
+                          <Button className="w-full bg-gradient-to-r from-blue-500 to-blue-500 hover:from-blue-600 hover:to-blue-500 text-white shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl">
                             <Sparkles className="h-4 w-4 mr-2" />
                             View Prompt
                           </Button>
                         </Link>
-                        <Button variant="outline" size="sm" className="p-2 rounded-lg border-2 border-gray-200 dark:border-gray-700 hover:border-purple-500 dark:hover:border-purple-400">
+                        <Button variant="outline" size="sm" className="p-2 rounded-lg border-2 border-gray-200 dark:border-gray-700 hover:border-blue-500 dark:hover:border-blue-400">
                           <Bookmark className="h-4 w-4" />
                         </Button>
-                        <Button variant="outline" size="sm" className="p-2 rounded-lg border-2 border-gray-200 dark:border-gray-700 hover:border-purple-500 dark:hover:border-purple-400">
+                        <Button variant="outline" size="sm" className="p-2 rounded-lg border-2 border-gray-200 dark:border-gray-700 hover:border-blue-500 dark:hover:border-blue-400">
                           <Share2 className="h-4 w-4" />
                         </Button>
                       </div>
@@ -737,7 +737,7 @@ export function CommunityPromptsClient() {
 
             {!loading && prompts.length === 0 && (
               <div className="text-center py-20">
-                <div className="p-6 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 w-20 h-20 mx-auto mb-6 flex items-center justify-center">
+                <div className="p-6 rounded-full bg-gradient-to-r from-blue-500 to-blue-500 w-20 h-20 mx-auto mb-6 flex items-center justify-center">
                   <Search className="h-10 w-10 text-white" />
                 </div>
                 <h3 className="text-2xl font-bold mb-4">No prompts found</h3>
@@ -749,7 +749,7 @@ export function CommunityPromptsClient() {
                     setSearchQuery('');
                     setFilterTag('all');
                   }}
-                  className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white shadow-lg"
+                  className="bg-gradient-to-r from-blue-500 to-blue-500 hover:from-blue-600 hover:to-blue-500 text-white shadow-lg"
                 >
                   <Sparkles className="h-4 w-4 mr-2" />
                   Clear Filters

@@ -8,10 +8,10 @@ import { CREDIT_PURCHASE_METADATA, STRIPE_API_VERSION } from '@/app/constants/cr
 import { AuditService } from '@/lib/services/auditService';
 import { AuditAction } from '@/app/constants/audit';
 import { Ratelimit } from '@upstash/ratelimit';
-import { Redis } from '@upstash/redis';
+import { redis } from '@/lib/redis';
 
 const ratelimit = new Ratelimit({
-  redis: Redis.fromEnv(),
+  redis,
   limiter: Ratelimit.slidingWindow(5, '1 m'),
 });
 
@@ -25,9 +25,7 @@ import { stripe } from '@/lib/stripe';
 
 export async function POST(req: NextRequest) {
   try {
-    console.log("Purchase route hit");
     const { userId: clerkId } = await auth();
-    console.log("clerkId", clerkId);
 
     if (!clerkId) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
@@ -102,13 +100,6 @@ export async function POST(req: NextRequest) {
         userId: user.id,
         amount: amount.toString(),
       },
-    });
-
-    console.log('Created Stripe checkout session:', {
-      sessionId: session.id,
-      userId: user.id,
-      amount,
-      price,
     });
 
     // Log the purchase attempt

@@ -98,7 +98,7 @@ export default function ContactPage() {
           transition={{ duration: 0.5 }}
           className="mb-16 text-center"
         >
-          <h1 className="font-playfair mb-6 bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-6xl font-bold tracking-tight text-transparent">
+          <h1 className="font-playfair mb-6 bg-gradient-to-r from-blue-600 to-blue-500 bg-clip-text text-6xl font-bold tracking-tight text-transparent">
             Get in Touch
           </h1>
           <p className="font-inter mx-auto max-w-2xl text-xl leading-relaxed text-gray-600 dark:text-gray-300">
@@ -123,8 +123,8 @@ export default function ContactPage() {
               </h2>
               <div className="space-y-8">
                 <div className="flex items-center space-x-4">
-                  <div className="rounded-full bg-purple-100 p-3 dark:bg-purple-900">
-                    <FaEnvelope className="text-xl text-purple-600 dark:text-purple-400" />
+                  <div className="rounded-full bg-blue-100 p-3 dark:bg-blue-900">
+                    <FaEnvelope className="text-xl text-blue-600 dark:text-blue-400" />
                   </div>
                   <div>
                     <p className="font-inter text-sm font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">
@@ -132,15 +132,15 @@ export default function ContactPage() {
                     </p>
                     <a
                       href="mailto:support@promptcraft.ai"
-                      className="font-inter text-lg text-gray-900 transition hover:text-purple-600 dark:text-white dark:hover:text-purple-400"
+                      className="font-inter text-lg text-gray-900 transition hover:text-blue-600 dark:text-white dark:hover:text-blue-400"
                     >
                       support@promptcraft.ai
                     </a>
                   </div>
                 </div>
                 <div className="flex items-center space-x-4">
-                  <div className="rounded-full bg-pink-100 p-3 dark:bg-pink-900">
-                    <FaPhone className="text-xl text-pink-600 dark:text-pink-400" />
+                  <div className="rounded-full bg-blue-50 p-3 dark:bg-blue-900">
+                    <FaPhone className="text-xl text-blue-500 dark:text-blue-400" />
                   </div>
                   <div>
                     <p className="font-inter text-sm font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">
@@ -148,7 +148,7 @@ export default function ContactPage() {
                     </p>
                     <a
                       href="tel:+1234567890"
-                      className="font-inter text-lg text-gray-900 transition hover:text-pink-600 dark:text-white dark:hover:text-pink-400"
+                      className="font-inter text-lg text-gray-900 transition hover:text-blue-500 dark:text-white dark:hover:text-blue-400"
                     >
                       +1 (234) 567-890
                     </a>
@@ -176,9 +176,9 @@ export default function ContactPage() {
                     href="https://twitter.com/"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="group rounded-full bg-gray-100 p-3 transition hover:bg-purple-100 dark:bg-gray-700 dark:hover:bg-purple-900"
+                    className="group rounded-full bg-gray-100 p-3 transition hover:bg-blue-100 dark:bg-gray-700 dark:hover:bg-blue-900"
                   >
-                    <FaTwitter className="text-xl text-gray-600 transition group-hover:text-purple-600 dark:text-gray-300 dark:group-hover:text-purple-400" />
+                    <FaTwitter className="text-xl text-gray-600 transition group-hover:text-blue-600 dark:text-gray-300 dark:group-hover:text-blue-400" />
                   </a>
                   <a
                     href="https://linkedin.com/"
@@ -235,7 +235,7 @@ export default function ContactPage() {
                   Your message has been sent. We'll get back to you soon.
                 </div>
                 <button
-                  className="font-inter mt-6 transform rounded-lg bg-gradient-to-r from-purple-600 to-pink-600 px-6 py-3 font-semibold text-white shadow-lg transition hover:scale-105 hover:from-purple-700 hover:to-pink-700"
+                  className="font-inter mt-6 transform rounded-lg bg-gradient-to-r from-blue-600 to-blue-500 px-6 py-3 font-semibold text-white shadow-lg transition hover:scale-105 hover:from-blue-700 hover:to-blue-700"
                   onClick={() => setSubmitted(false)}
                 >
                   Send another message
@@ -259,7 +259,7 @@ export default function ContactPage() {
                     className={`font-inter w-full rounded-lg border px-4 py-3 text-lg transition-colors ${
                       errors.name
                         ? 'border-red-500 focus:border-red-500 focus:ring-red-500'
-                        : 'border-gray-300 focus:border-purple-500 focus:ring-purple-500 dark:border-gray-700'
+                        : 'border-gray-300 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-700'
                     } bg-white focus:outline-none focus:ring-2 dark:bg-gray-900`}
                     autoComplete="name"
                     disabled={!!user?.fullName}
@@ -289,7 +289,7 @@ export default function ContactPage() {
                     className={`font-inter w-full rounded-lg border px-4 py-3 text-lg transition-colors ${
                       errors.email
                         ? 'border-red-500 focus:border-red-500 focus:ring-red-500'
-                        : 'border-gray-300 focus:border-purple-500 focus:ring-purple-500 dark:border-gray-700'
+                        : 'border-gray-300 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-700'
                     } bg-white focus:outline-none focus:ring-2 dark:bg-gray-900`}
                     autoComplete="email"
                     disabled={!!user?.primaryEmailAddress?.emailAddress}
@@ -319,7 +319,7 @@ export default function ContactPage() {
                     className={`font-inter w-full rounded-lg border px-4 py-3 text-lg transition-colors ${
                       errors.message
                         ? 'border-red-500 focus:border-red-500 focus:ring-red-500'
-                        : 'border-gray-300 focus:border-purple-500 focus:ring-purple-500 dark:border-gray-700'
+                        : 'border-gray-300 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-700'
                     } bg-white focus:outline-none focus:ring-2 dark:bg-gray-900`}
                     placeholder="How can we help you?"
                     aria-invalid={!!errors.message}
@@ -336,7 +336,7 @@ export default function ContactPage() {
                   <button
                     type="submit"
                     disabled={isLoading}
-                    className={`font-inter w-full transform rounded-lg bg-gradient-to-r from-purple-600 to-pink-600 py-3 text-lg font-semibold text-white shadow-lg transition hover:scale-105 hover:from-purple-700 hover:to-pink-700 disabled:cursor-not-allowed disabled:opacity-50 ${
+                    className={`font-inter w-full transform rounded-lg bg-gradient-to-r from-blue-600 to-blue-500 py-3 text-lg font-semibold text-white shadow-lg transition hover:scale-105 hover:from-blue-700 hover:to-blue-700 disabled:cursor-not-allowed disabled:opacity-50 ${
                       isLoading ? 'animate-pulse' : ''
                     }`}
                   >

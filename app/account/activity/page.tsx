@@ -1,7 +1,5 @@
 import { Metadata } from "next";
 import { auth } from "@clerk/nextjs/server";
-import { AuditService } from "@/lib/services/auditService";
-import { ActivityList } from "@/components/settings/activity-list";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { ActivityIcon } from "lucide-react";
 
@@ -16,10 +14,6 @@ export default async function ActivityPage() {
     throw new Error("Unauthorized");
   }
 
-  const activities = await AuditService.getInstance().getAuditLogs(userId, {
-    limit: 50,
-  });
-
   return (
     <div className="space-y-6">
       <Card>
@@ -33,7 +27,7 @@ export default async function ActivityPage() {
           </p>
         </CardHeader>
         <CardContent>
-          <ActivityList activities={activities} />
+          <p className="text-sm text-muted-foreground">Activity history coming soon...</p>
         </CardContent>
       </Card>
     </div>

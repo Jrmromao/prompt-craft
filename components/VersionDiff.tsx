@@ -212,7 +212,7 @@ export function VersionDiff({
         <div className="flex h-full flex-col">
           <Card className="flex h-full flex-col">
             <CardHeader>
-              <CardTitle className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-lg text-transparent">
+              <CardTitle className="bg-gradient-to-r from-blue-600 to-blue-500 bg-clip-text text-lg text-transparent">
                 Content
               </CardTitle>
             </CardHeader>
@@ -224,7 +224,7 @@ export function VersionDiff({
         <div className="flex h-full flex-col">
           <Card className="flex h-full flex-col">
             <CardHeader>
-              <CardTitle className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-lg text-transparent">
+              <CardTitle className="bg-gradient-to-r from-blue-600 to-blue-500 bg-clip-text text-lg text-transparent">
                 Content
               </CardTitle>
             </CardHeader>
@@ -237,7 +237,7 @@ export function VersionDiff({
         <div className="flex h-full flex-col">
           <Card className="flex h-full flex-col">
             <CardHeader>
-              <CardTitle className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-lg text-transparent">
+              <CardTitle className="bg-gradient-to-r from-blue-600 to-blue-500 bg-clip-text text-lg text-transparent">
                 Description
               </CardTitle>
             </CardHeader>
@@ -249,7 +249,7 @@ export function VersionDiff({
         <div className="flex h-full flex-col">
           <Card className="flex h-full flex-col">
             <CardHeader>
-              <CardTitle className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-lg text-transparent">
+              <CardTitle className="bg-gradient-to-r from-blue-600 to-blue-500 bg-clip-text text-lg text-transparent">
                 Description
               </CardTitle>
             </CardHeader>
@@ -262,7 +262,7 @@ export function VersionDiff({
         <div className="flex h-full flex-col">
           <Card className="flex h-full flex-col">
             <CardHeader>
-              <CardTitle className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-lg text-transparent">
+              <CardTitle className="bg-gradient-to-r from-blue-600 to-blue-500 bg-clip-text text-lg text-transparent">
                 Tags
               </CardTitle>
             </CardHeader>
@@ -274,7 +274,7 @@ export function VersionDiff({
         <div className="flex h-full flex-col">
           <Card className="flex h-full flex-col">
             <CardHeader>
-              <CardTitle className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-lg text-transparent">
+              <CardTitle className="bg-gradient-to-r from-blue-600 to-blue-500 bg-clip-text text-lg text-transparent">
                 Tags
               </CardTitle>
             </CardHeader>
@@ -287,7 +287,7 @@ export function VersionDiff({
         <div className="flex h-full flex-col">
           <Card className="flex h-full flex-col">
             <CardHeader>
-              <CardTitle className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-lg text-transparent">
+              <CardTitle className="bg-gradient-to-r from-blue-600 to-blue-500 bg-clip-text text-lg text-transparent">
                 Metadata
               </CardTitle>
             </CardHeader>
@@ -299,7 +299,7 @@ export function VersionDiff({
         <div className="flex h-full flex-col">
           <Card className="flex h-full flex-col">
             <CardHeader>
-              <CardTitle className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-lg text-transparent">
+              <CardTitle className="bg-gradient-to-r from-blue-600 to-blue-500 bg-clip-text text-lg text-transparent">
                 Metadata
               </CardTitle>
             </CardHeader>

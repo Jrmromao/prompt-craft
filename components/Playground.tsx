@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Loader2, Copy, Check, AlertCircle, Play, History, Settings } from 'lucide-react';
+import { Loader2, Copy, Check, AlertCircle, Play, History, Settings, Zap } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
@@ -27,6 +27,10 @@ interface Usage {
   playgroundRunsThisMonth: number;
 }
 
+import { ContextEngineeringService } from '@/lib/services/contextEngineering';
+
+import { PromptOptimizer } from '@/lib/services/promptOptimizer';
+
 export default function Playground({
   initialPrompt = '',
   disabled = false,
@@ -36,6 +40,55 @@ export default function Playground({
   promptId,
 }: PlaygroundProps) {
   const [prompt, setPrompt] = useState(initialPrompt);
+  const [isImproving, setIsImproving] = useState(false);
+  // ... existing state
+
+  const improvePrompt = async () => {
+    if (!prompt.trim()) return;
+    
+    setIsImproving(true);
+    try {
+      const result = await PromptOptimizer.improvePrompt(prompt);
+      setPrompt(result.improved);
+      toast.success(`Improved! ${result.changes.join(', ')}`);
+    } catch (error) {
+      toast.error('Failed to improve prompt');
+    } finally {
+      setIsImproving(false);
+    }
+  };
+  const [contextDomain, setContextDomain] = useState('general');
+  const [contextMode, setContextMode] = useState<'basic' | 'enhanced'>('basic');
+  // ... existing state
+
+  const contextService = ContextEngineeringService.getInstance();
+
+  const enhanceWithContext = async () => {
+    if (!prompt.trim()) return;
+    
+    const enhanced = await contextService.enhancePrompt(prompt, {
+      domain: contextDomain,
+      userId: 'current-user', // Get from auth
+      sessionHistory: [] // Track session
+    });
+    
+    setPrompt(enhanced);
+    toast.success('Prompt enhanced with context!');
+  };
+
+  async function runPrompt() {
+    // ... existing validation
+
+    let finalPrompt = prompt;
+    if (contextMode === 'enhanced') {
+      finalPrompt = await contextService.enhancePrompt(prompt, {
+        domain: contextDomain,
+        userId: 'current-user'
+      });
+    }
+
+    // ... rest of existing function with finalPrompt
+  }
   const [output, setOutput] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -170,8 +223,8 @@ export default function Playground({
       <CardHeader className={cn('pb-2', !showTitle && 'hidden')}>
         <div className="flex items-center justify-between gap-x-3">
           <CardTitle className="text-xl flex items-center gap-2">
-            <div className="p-2 rounded-lg bg-gradient-to-r from-purple-100 to-pink-100 dark:from-purple-900 dark:to-pink-900">
-              <Play className="h-5 w-5 text-purple-600" />
+            <div className="p-2 rounded-lg bg-gradient-to-r from-blue-100 to-blue-50 dark:from-blue-900 dark:to-blue-900">
+              <Play className="h-5 w-5 text-blue-600" />
             </div>
             Prompt Playground
           </CardTitle>
@@ -189,22 +242,42 @@ export default function Playground({
       </CardHeader>
       <CardContent className="space-y-4">
         {!isPaidUser ? (
-          <div className="rounded-md border border-yellow-300 bg-yellow-100 p-4 dark:border-yellow-800 dark:bg-yellow-900/20">
-            <div className="flex items-start gap-2">
-              <AlertCircle className="mt-0.5 h-5 w-5 text-yellow-600 dark:text-yellow-400" />
+          <div className="rounded-lg border-2 border-gradient-to-r from-blue-500 to-blue-500 bg-gradient-to-br from-blue-50 to-blue-50 p-6 dark:from-blue-900/20 dark:to-blue-900/20">
+            <div className="text-center space-y-4">
+              <div className="mx-auto w-16 h-16 bg-gradient-to-r from-blue-600 to-blue-500 rounded-full flex items-center justify-center">
+                <Play className="w-8 h-8 text-white" />
+              </div>
               <div>
-                <h4 className="font-medium text-yellow-800 dark:text-yellow-200">
-                  Upgrade Required
-                </h4>
-                <p className="mt-1 text-sm text-yellow-700 dark:text-yellow-300">
-                  The Playground is available exclusively for paid members. Upgrade your plan to access this feature.
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+                  🚀 Unlock the Playground
+                </h3>
+                <p className="text-gray-600 dark:text-gray-300 mb-4">
+                  Test prompts instantly • Get AI responses • Save 10+ hours/week
                 </p>
+                <div className="bg-white dark:bg-gray-800 rounded-lg p-4 mb-4 border">
+                  <div className="text-sm text-gray-500 mb-2">What you get:</div>
+                  <div className="space-y-1 text-sm">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                      <span>Unlimited playground runs</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                      <span>Unlimited prompt versions</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                      <span>Advanced AI models</span>
+                    </div>
+                  </div>
+                </div>
                 <Button
-                  className="mt-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700"
+                  className="w-full h-12 bg-gradient-to-r from-blue-600 to-blue-500 text-white hover:from-blue-700 hover:to-blue-700 font-semibold text-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all"
                   onClick={() => window.location.href = '/pricing'}
                 >
-                  View Pricing Plans
+                  Upgrade to PRO - $35/month
                 </Button>
+                <p className="text-xs text-gray-500 mt-2">Cancel anytime • 7-day money back guarantee</p>
               </div>
             </div>
           </div>
@@ -223,42 +296,70 @@ export default function Playground({
               </TabsList>
 
               <TabsContent value="prompt" className="mt-4">
-                <div className="space-y-4">
-                  <div className="relative">
-                    <Textarea
-                      value={prompt}
-                      onChange={e => setPrompt(e.target.value)}
-                      placeholder="Type your prompt here..."
-                      disabled={disabled || loading || isOverLimit}
-                      className="min-h-[200px] font-mono text-sm"
-                    />
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="absolute right-2 top-2"
-                      onClick={() => handleCopy(prompt)}
-                    >
-                      {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                    </Button>
-                  </div>
+                  <div className="space-y-4">
+                    <div className="relative">
+                      <Textarea
+                        value={prompt}
+                        onChange={e => setPrompt(e.target.value)}
+                        placeholder="Type your prompt here..."
+                        disabled={disabled || loading || isOverLimit}
+                        className="min-h-[200px] font-mono text-sm"
+                      />
+                      <div className="absolute right-2 top-2 flex gap-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={improvePrompt}
+                          disabled={isImproving || !prompt.trim()}
+                          className="bg-blue-100 hover:bg-blue-200"
+                        >
+                          {isImproving ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <Zap className="h-4 w-4 text-blue-600" />
+                          )}
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleCopy(prompt)}
+                        >
+                          {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                        </Button>
+                      </div>
+                    </div>
 
-                  <Button
-                    className="w-full h-12 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
-                    onClick={runPrompt}
-                    disabled={loading || !prompt.trim() || disabled || isOverLimit}
-                  >
-                    {loading ? (
-                      <LoadingSpinner text="Running..." />
-                    ) : isOverLimit ? (
-                      'Upgrade for more runs'
-                    ) : (
-                      <>
-                        <Play className="mr-2 h-4 w-4" />
-                        Run Prompt ({creditCost} credits)
-                      </>
-                    )}
-                  </Button>
-                </div>
+                    <div className="flex gap-2">
+                      <Button
+                        className="flex-1 h-12 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-700 text-white font-semibold rounded-xl"
+                        onClick={runPrompt}
+                        disabled={loading || !prompt.trim() || disabled || isOverLimit}
+                      >
+                        {loading ? (
+                          <LoadingSpinner text="Running..." />
+                        ) : (
+                          <>
+                            <Play className="mr-2 h-4 w-4" />
+                            Run Prompt ({creditCost} credits)
+                          </>
+                        )}
+                      </Button>
+                      
+                      <Button
+                        variant="outline"
+                        onClick={improvePrompt}
+                        disabled={isImproving || !prompt.trim()}
+                        className="px-6"
+                      >
+                        {isImproving ? (
+                          <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                        ) : (
+                          <Zap className="h-4 w-4 mr-2 text-blue-600" />
+                        )}
+                        Improve
+                      </Button>
+                    </div>
+                  </div>
               </TabsContent>
 
               <TabsContent value="output" className="mt-4">
@@ -298,7 +399,7 @@ export default function Playground({
                           : "You've reached your Playground run limit for this month. Upgrade your plan for more runs!"}
                     </p>
                     <Button
-                      className="mt-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700"
+                      className="mt-4 bg-gradient-to-r from-blue-600 to-blue-500 text-white hover:from-blue-700 hover:to-blue-700"
                       onClick={() => window.location.href = '/pricing'}
                     >
                       View Pricing Plans

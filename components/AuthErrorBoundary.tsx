@@ -71,7 +71,7 @@ export default class AuthErrorBoundary extends Component<Props, State> {
             <div className="space-y-3">
               <Button
                 onClick={this.handleRetry}
-                className="w-full bg-purple-600 hover:bg-purple-700 text-white"
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white"
               >
                 <RefreshCw className="w-4 h-4 mr-2" />
                 Try Again

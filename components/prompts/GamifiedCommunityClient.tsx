@@ -213,10 +213,10 @@ const TIER_COLORS = {
   SILVER: 'from-gray-400 to-gray-600',
   GOLD: 'from-yellow-400 to-yellow-600',
   PLATINUM: 'from-blue-400 to-blue-600',
-  DIAMOND: 'from-purple-400 to-purple-600',
-  MASTER: 'from-pink-400 to-pink-600',
+  DIAMOND: 'from-blue-400 to-blue-600',
+  MASTER: 'from-blue-400 to-blue-500',
   GRANDMASTER: 'from-red-400 to-red-600',
-  LEGENDARY: 'from-gradient-to-r from-purple-600 via-pink-600 to-blue-600',
+  LEGENDARY: 'from-gradient-to-r from-blue-600 via-blue-500 to-blue-600',
 };
 
 const DIFFICULTY_COLORS = {
@@ -229,9 +229,9 @@ const DIFFICULTY_COLORS = {
 
 const PREMIUM_TIER_STYLES = {
   BASIC: 'border-blue-200 bg-blue-50/50',
-  PREMIUM: 'border-purple-200 bg-purple-50/50',
-  ELITE: 'border-pink-200 bg-pink-50/50',
-  EXCLUSIVE: 'border-gradient-to-r from-purple-200 to-pink-200 bg-gradient-to-r from-purple-50/50 to-pink-50/50',
+  PREMIUM: 'border-blue-200 bg-blue-50/50',
+  ELITE: 'border-blue-200 bg-blue-50/50',
+  EXCLUSIVE: 'border-gradient-to-r from-blue-200 to-blue-200 bg-gradient-to-r from-blue-50/50 to-blue-50/50',
 };
 
 export default function GamifiedCommunityClient() {
@@ -306,7 +306,6 @@ export default function GamifiedCommunityClient() {
   const showAchievementNotification = (newAchievements: Achievement[]) => {
     // Show toast notification for new achievements
     newAchievements.forEach(achievement => {
-      console.log(`🎉 Achievement unlocked: ${achievement.name}!`);
     });
   };
 
@@ -359,15 +358,15 @@ export default function GamifiedCommunityClient() {
     return (
       <div className="space-y-6">
         {/* User Profile Card */}
-        <Card className="relative overflow-hidden border-0 bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50">
-          <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 via-pink-500/10 to-blue-500/10" />
+        <Card className="relative overflow-hidden border-0 bg-gradient-to-br from-blue-50 via-blue-50 to-blue-50">
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 via-blue-500/10 to-blue-500/10" />
           <CardHeader className="relative">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
                 <div className="relative">
                   <Avatar className="h-16 w-16 border-4 border-white shadow-lg">
                     <AvatarImage src={userStats.planType === PlanType.PRO ? '/premium-avatar.png' : '/default-avatar.png'} />
-                    <AvatarFallback className="bg-gradient-to-br from-purple-500 to-pink-500 text-white font-bold">
+                    <AvatarFallback className="bg-gradient-to-br from-blue-500 to-blue-500 text-white font-bold">
                       {userStats.level}
                     </AvatarFallback>
                   </Avatar>
@@ -391,7 +390,7 @@ export default function GamifiedCommunityClient() {
                 </div>
               </div>
               <div className="text-right">
-                <div className="flex items-center space-x-1 text-2xl font-bold text-purple-600">
+                <div className="flex items-center space-x-1 text-2xl font-bold text-blue-600">
                   <Coins className="h-6 w-6" />
                   <span>{userStats.totalCreditsEarned.toLocaleString()}</span>
                 </div>
@@ -409,10 +408,10 @@ export default function GamifiedCommunityClient() {
             <p className="text-2xl font-bold text-blue-900">{userStats.achievements}</p>
             <p className="text-sm text-blue-700">Achievements</p>
           </Card>
-          <Card className="text-center p-4 bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200">
-            <Award className="h-8 w-8 text-purple-600 mx-auto mb-2" />
-            <p className="text-2xl font-bold text-purple-900">{userStats.badges}</p>
-            <p className="text-sm text-purple-700">Badges</p>
+          <Card className="text-center p-4 bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
+            <Award className="h-8 w-8 text-blue-600 mx-auto mb-2" />
+            <p className="text-2xl font-bold text-blue-900">{userStats.badges}</p>
+            <p className="text-sm text-blue-700">Badges</p>
           </Card>
           <Card className="text-center p-4 bg-gradient-to-br from-green-50 to-green-100 border-green-200">
             <Target className="h-8 w-8 text-green-600 mx-auto mb-2" />
@@ -441,7 +440,7 @@ export default function GamifiedCommunityClient() {
                   <div className="flex items-center space-x-3">
                     <div className={cn(
                       "p-2 rounded-full",
-                      challenge.isPremium ? "bg-gradient-to-r from-purple-500 to-pink-500" : "bg-blue-500"
+                      challenge.isPremium ? "bg-gradient-to-r from-blue-500 to-blue-500" : "bg-blue-500"
                     )}>
                       <Target className="h-4 w-4 text-white" />
                     </div>
@@ -480,7 +479,7 @@ export default function GamifiedCommunityClient() {
                   Level {prompt.difficultyLevel}
                 </Badge>
                 {prompt.isPremium && (
-                  <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 text-white">
+                  <Badge className="bg-gradient-to-r from-blue-500 to-blue-500 text-white">
                     <Crown className="h-3 w-3 mr-1" />
                     Premium
                   </Badge>
@@ -490,7 +489,7 @@ export default function GamifiedCommunityClient() {
                   <span>{prompt.qualityScore.toFixed(1)}</span>
                 </div>
               </div>
-              <CardTitle className="text-lg group-hover:text-purple-600 transition-colors">
+              <CardTitle className="text-lg group-hover:text-blue-600 transition-colors">
                 {prompt.name}
               </CardTitle>
               <CardDescription className="line-clamp-2 mt-1">
@@ -498,7 +497,7 @@ export default function GamifiedCommunityClient() {
               </CardDescription>
             </div>
             {prompt.isPremium && (
-              <Lock className="h-5 w-5 text-purple-500 opacity-60" />
+              <Lock className="h-5 w-5 text-blue-500 opacity-60" />
             )}
           </div>
         </CardHeader>
@@ -619,7 +618,7 @@ export default function GamifiedCommunityClient() {
                 </div>
               </div>
               <div className="text-right">
-                <p className="font-bold text-purple-600">{(user.totalCreditsEarned || 0).toLocaleString()}</p>
+                <p className="font-bold text-blue-600">{(user.totalCreditsEarned || 0).toLocaleString()}</p>
                 <p className="text-xs text-gray-500">credits</p>
               </div>
             </div>
@@ -630,9 +629,9 @@ export default function GamifiedCommunityClient() {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-blue-50 to-blue-50">
       {/* Hero Section */}
-      <div className="relative overflow-hidden bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 text-white">
+      <div className="relative overflow-hidden bg-gradient-to-r from-blue-600 via-blue-500 to-blue-600 text-white">
         <div className="absolute inset-0 bg-black/20" />
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="text-center">
@@ -650,7 +649,7 @@ export default function GamifiedCommunityClient() {
             <div className="flex justify-center space-x-4">
               <Button
                 size="lg"
-                className="bg-white text-purple-600 hover:bg-white/90 px-8 py-3 text-lg font-semibold"
+                className="bg-white text-blue-600 hover:bg-white/90 px-8 py-3 text-lg font-semibold"
                 onClick={() => setActiveTab('discover')}
               >
                 <Sparkles className="h-5 w-5 mr-2" />
@@ -841,7 +840,7 @@ export default function GamifiedCommunityClient() {
                           </div>
                         </div>
                         <div className="text-right">
-                          <p className="font-bold text-purple-600">{user.totalCreditsEarned?.toLocaleString() || 0}</p>
+                          <p className="font-bold text-blue-600">{user.totalCreditsEarned?.toLocaleString() || 0}</p>
                           <p className="text-xs text-gray-500">points</p>
                         </div>
                       </div>
@@ -948,7 +947,7 @@ export default function GamifiedCommunityClient() {
                           </div>
                         </div>
                         <div className="text-right">
-                          <p className="font-bold text-purple-600">{(user.totalCreditsEarned || 0).toLocaleString()}</p>
+                          <p className="font-bold text-blue-600">{(user.totalCreditsEarned || 0).toLocaleString()}</p>
                           <p className="text-xs text-gray-500">credits</p>
                         </div>
                       </div>
@@ -974,7 +973,7 @@ export default function GamifiedCommunityClient() {
                             "w-8 h-8 rounded-full flex items-center justify-center text-white font-bold",
                             index === 0 ? "bg-gradient-to-r from-blue-400 to-blue-600" :
                             index === 1 ? "bg-gradient-to-r from-green-400 to-green-600" :
-                            index === 2 ? "bg-gradient-to-r from-purple-400 to-purple-600" :
+                            index === 2 ? "bg-gradient-to-r from-blue-400 to-blue-600" :
                             "bg-gray-400"
                           )}>
                             {index + 1}
@@ -1026,7 +1025,7 @@ export default function GamifiedCommunityClient() {
                 <Button onClick={() => setShowPremiumUpgrade(false)} variant="outline" className="flex-1">
                   Cancel
                 </Button>
-                <Button className="flex-1 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600">
+                <Button className="flex-1 bg-gradient-to-r from-blue-500 to-blue-500 hover:from-blue-600 hover:to-blue-500">
                   Upgrade Now
                 </Button>
               </div>

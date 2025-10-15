@@ -6,13 +6,11 @@
 //
 // export async function POST(req: Request) {
 //     try {
-//         console.log("IN POST CREATE USERS")
 //
 //        const clerkUser = await clerkClient.users.createUser({
 //             emailAddress: ["jrmromao@gmail.com"], firstName: "John", lastName: "Doe", skipPasswordChecks: true, password: "securePassword123"});
 //
 //
-//         console.log(clerkUser)
 //
 //         return NextResponse.json({ clerkUser })
 //     } catch (error) {
@@ -35,7 +33,6 @@
 //
 // export async function POST(req: Request) {
 //     try {
-//         console.log("Starting user creation with Clerk v6.5.0");
 //
 //         // Initialize Clerk client
 //         if (!process.env.CLERK_SECRET_KEY) {
@@ -60,7 +57,6 @@
 //                 password: "SuperSecurePassword123!"
 //             });
 //
-//             console.log("User created successfully:", user.id);
 //
 //             return NextResponse.json({
 //                 success: true,
@@ -103,7 +99,6 @@ export const runtime = 'nodejs';
 
 export async function POST(request: Request) {
   try {
-    console.log('Starting user creation with minimal fields');
 
     // Make sure the CLERK_SECRET_KEY is set
     if (!process.env.CLERK_SECRET_KEY) {
@@ -114,9 +109,7 @@ export async function POST(request: Request) {
     let userData;
     try {
       userData = await request.json();
-      console.log('Received user data from request:', JSON.stringify(userData, null, 2));
     } catch (e) {
-      console.log('No valid JSON in request body, using default test data');
       // Generate a unique email for testing
       const timestamp = new Date().getTime();
       userData = {
@@ -148,8 +141,6 @@ export async function POST(request: Request) {
       skip_password_requirement: false,
     });
 
-    console.log('Making Clerk API request with payload structure:');
-    console.log(payload);
 
     // Make a direct fetch request (no SDK dependency)
     const response = await fetch('https://api.clerk.dev/v1/users', {
@@ -163,7 +154,6 @@ export async function POST(request: Request) {
 
     // Get the raw response for debugging
     const responseText = await response.text();
-    console.log('Raw API response:', responseText);
 
     // Try to parse the response
     let result;
