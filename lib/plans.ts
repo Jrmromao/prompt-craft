@@ -4,57 +4,37 @@ export const PLANS = {
     name: 'Free',
     price: 0,
     limits: {
-      trackedRuns: 1000, // per month
-      promptsTracked: 5,
-      dataRetention: 7, // days
+      trackedRuns: 1000,
+      promptsTracked: -1,
+      dataRetention: 7,
       teamMembers: 1,
     },
     features: [
-      '1,000 tracked runs/month',
-      'Track up to 5 prompts',
+      'Smart routing (saves 30-60%)',
+      '1,000 requests/month',
+      'Basic tracking',
       '7 days data retention',
-      'Basic analytics',
-    ],
-  },
-  STARTER: {
-    id: 'starter',
-    name: 'Starter',
-    price: 9,
-    priceId: process.env.STRIPE_STARTER_PRICE_ID,
-    limits: {
-      trackedRuns: 10000,
-      promptsTracked: 25,
-      dataRetention: 30,
-      teamMembers: 3,
-    },
-    features: [
-      '10,000 tracked runs/month',
-      'Track up to 25 prompts',
-      '30 days data retention',
-      'Advanced analytics',
-      'Cost optimization suggestions',
-      'Email support',
+      'Community support',
     ],
   },
   PRO: {
     id: 'pro',
     name: 'Pro',
-    price: 29,
+    price: 9,
     priceId: process.env.STRIPE_PRO_PRICE_ID,
     limits: {
-      trackedRuns: 100000,
-      promptsTracked: -1, // unlimited
-      dataRetention: 90,
-      teamMembers: 10,
+      trackedRuns: -1, // unlimited
+      promptsTracked: -1,
+      dataRetention: 30,
+      teamMembers: 1,
     },
     features: [
-      '100,000 tracked runs/month',
-      'Unlimited prompts',
-      '90 days data retention',
+      'Everything in Free',
+      'Unlimited requests',
+      'Prompt optimization (50-80% savings)',
+      'Smart caching',
+      '30 days data retention',
       'Advanced analytics',
-      'Cost optimization suggestions',
-      'A/B testing',
-      'Custom alerts',
       'Priority support',
     ],
   },
@@ -64,24 +44,25 @@ export const PLANS = {
     price: 99,
     priceId: process.env.STRIPE_ENTERPRISE_PRICE_ID,
     limits: {
-      trackedRuns: -1, // unlimited
+      trackedRuns: -1,
       promptsTracked: -1,
-      dataRetention: 365,
+      dataRetention: 90,
       teamMembers: -1,
     },
     features: [
-      'Unlimited tracked runs',
-      'Unlimited prompts',
-      '1 year data retention',
-      'Advanced analytics',
-      'Cost optimization suggestions',
-      'A/B testing',
-      'Custom alerts',
+      'Everything in Pro',
+      'Team collaboration',
+      'Custom limits',
+      '90 days data retention',
+      'Budget controls',
+      'SSO & SAML',
       'Dedicated support',
-      'SSO',
-      'Custom integrations',
+      'SLA guarantee',
     ],
   },
 } as const;
 
 export type PlanId = keyof typeof PLANS;
+
+// Legacy support
+export const STARTER = PLANS.PRO;
