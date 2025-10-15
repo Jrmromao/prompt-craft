@@ -16,7 +16,7 @@ export async function GET(req: NextRequest) {
     const user = await prisma.user.findUnique({
       where: { id: userId },
       include: {
-        subscription: true,
+        Subscription: true,
       },
     });
 
@@ -29,7 +29,7 @@ export async function GET(req: NextRequest) {
 
     // Get payment methods from Stripe
     const paymentMethods = await stripe.paymentMethods.list({
-      customer: user.subscription.stripeCustomerId,
+      customer: user.Subscription.stripeCustomerId,
       type: 'card',
     });
 
@@ -43,7 +43,7 @@ export async function GET(req: NextRequest) {
         expMonth: method.card?.exp_month,
         expYear: method.card?.exp_year,
       },
-      isDefault: method.id === user.subscription!.stripeDefaultPaymentMethodId,
+      isDefault: method.id === user.Subscription!.stripeDefaultPaymentMethodId,
     }));
 
     return NextResponse.json({
@@ -78,7 +78,7 @@ export async function POST(req: NextRequest) {
     const user = await prisma.user.findUnique({
       where: { id: userId },
       include: {
-        subscription: true,
+        Subscription: true,
       },
     });
 
@@ -91,11 +91,11 @@ export async function POST(req: NextRequest) {
 
     // Attach payment method to customer
     await stripe.paymentMethods.attach(paymentMethodId, {
-      customer: user.subscription.stripeCustomerId,
+      customer: user.Subscription.stripeCustomerId,
     });
 
     // Set as default payment method
-    await stripe.customers.update(user.subscription.stripeCustomerId, {
+    await stripe.customers.update(user.Subscription.stripeCustomerId, {
       invoice_settings: {
         default_payment_method: paymentMethodId,
       },
@@ -103,7 +103,7 @@ export async function POST(req: NextRequest) {
 
     // Update subscription with new default payment method
     await prisma.subscription.update({
-      where: { id: user.subscription.id },
+      where: { id: user.Subscription.id },
       data: {
         stripeDefaultPaymentMethodId: paymentMethodId,
       },
@@ -146,7 +146,7 @@ export async function DELETE(req: NextRequest) {
     const user = await prisma.user.findUnique({
       where: { id: userId },
       include: {
-        subscription: true,
+        Subscription: true,
       },
     });
 
@@ -161,9 +161,9 @@ export async function DELETE(req: NextRequest) {
     await stripe.paymentMethods.detach(paymentMethodId);
 
     // If this was the default payment method, update the subscription
-    if (paymentMethodId === user.subscription.stripeDefaultPaymentMethodId) {
+    if (paymentMethodId === user.Subscription.stripeDefaultPaymentMethodId) {
       await prisma.subscription.update({
-        where: { id: user.subscription.id },
+        where: { id: user.Subscription.id },
         data: {
           stripeDefaultPaymentMethodId: null,
         },

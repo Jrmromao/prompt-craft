@@ -37,7 +37,7 @@ export async function GET() {
     }
 
     // Return masked keys (we can't unmask hashed keys)
-    const maskedKeys = user.apiKeys.map(key => ({
+    const maskedKeys = user.ApiKey.map(key => ({
       id: key.id,
       name: key.name,
       maskedKey: `pc_${'*'.repeat(56)}`, // Show format but hide actual key

@@ -1,13 +1,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useSignIn } from '@clerk/nextjs';
+import { useSignIn, useClerk } from '@clerk/nextjs';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Sparkles, ArrowLeft, Eye, EyeOff } from 'lucide-react';
 
 export default function SignInPage() {
-  const { signIn, isLoaded } = useSignIn();
+  const { signIn, isLoaded, setActive } = useSignIn();
   const router = useRouter();
   const searchParams = useSearchParams();
   
@@ -33,7 +33,7 @@ export default function SignInPage() {
       });
       
       if (result.status === 'complete') {
-        await signIn.setActive({ session: result.createdSessionId });
+        await setActive({ session: result.createdSessionId });
         router.push(redirectUrl);
       }
     } catch (err: any) {

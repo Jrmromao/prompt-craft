@@ -58,6 +58,7 @@ try {
 } catch (error) {
   // Track the error
   await promptcraft.trackError(
+    'openai',
     params.model,
     JSON.stringify(params.messages),
     error,

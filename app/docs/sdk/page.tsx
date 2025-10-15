@@ -136,9 +136,68 @@ await promptcraft.trackAnthropic(
       </div>
 
       <div className="border-t border-gray-200 pt-8 mt-12">
+        <h3 className="text-xl font-semibold text-gray-900 mb-4">trackGemini()</h3>
+        <p className="text-gray-700 mb-4">Track a Google Gemini API call.</p>
+        <CodeBlock code={`trackGemini(
+  params: any,
+  result: any,
+  latency: number,
+  promptId?: string
+): Promise<void>`} />
+
+        <h4 className="text-lg font-semibold text-gray-900 mt-6 mb-3">Parameters</h4>
+        <ul className="space-y-2 text-gray-700 list-disc list-inside mb-6">
+          <li><code className="bg-gray-100 px-2 py-1 rounded text-sm">params</code> - The parameters passed to Gemini</li>
+          <li><code className="bg-gray-100 px-2 py-1 rounded text-sm">result</code> - The response from Gemini</li>
+          <li><code className="bg-gray-100 px-2 py-1 rounded text-sm">latency</code> - Time taken in milliseconds</li>
+          <li><code className="bg-gray-100 px-2 py-1 rounded text-sm">promptId</code> - Optional tag to group related prompts</li>
+        </ul>
+
+        <h4 className="text-lg font-semibold text-gray-900 mb-3">Example</h4>
+        <CodeBlock code={`const start = Date.now();
+const result = await model.generateContent(params);
+await promptcraft.trackGemini(
+  { model: 'gemini-pro', ...params },
+  result.response,
+  Date.now() - start,
+  'my-prompt-v1' // optional
+);`} />
+      </div>
+
+      <div className="border-t border-gray-200 pt-8 mt-12">
+        <h3 className="text-xl font-semibold text-gray-900 mb-4">trackGrok()</h3>
+        <p className="text-gray-700 mb-4">Track an xAI Grok API call.</p>
+        <CodeBlock code={`trackGrok(
+  params: any,
+  result: any,
+  latency: number,
+  promptId?: string
+): Promise<void>`} />
+
+        <h4 className="text-lg font-semibold text-gray-900 mt-6 mb-3">Parameters</h4>
+        <ul className="space-y-2 text-gray-700 list-disc list-inside mb-6">
+          <li><code className="bg-gray-100 px-2 py-1 rounded text-sm">params</code> - The parameters passed to Grok</li>
+          <li><code className="bg-gray-100 px-2 py-1 rounded text-sm">result</code> - The response from Grok</li>
+          <li><code className="bg-gray-100 px-2 py-1 rounded text-sm">latency</code> - Time taken in milliseconds</li>
+          <li><code className="bg-gray-100 px-2 py-1 rounded text-sm">promptId</code> - Optional tag to group related prompts</li>
+        </ul>
+
+        <h4 className="text-lg font-semibold text-gray-900 mb-3">Example</h4>
+        <CodeBlock code={`const start = Date.now();
+const result = await grok.chat.completions.create(params);
+await promptcraft.trackGrok(
+  params,
+  result,
+  Date.now() - start,
+  'my-prompt-v1' // optional
+);`} />
+      </div>
+
+      <div className="border-t border-gray-200 pt-8 mt-12">
         <h3 className="text-xl font-semibold text-gray-900 mb-4">trackError()</h3>
         <p className="text-gray-700 mb-4">Track a failed API call.</p>
         <CodeBlock code={`trackError(
+  provider: string,
   model: string,
   input: string,
   error: Error,
@@ -147,6 +206,7 @@ await promptcraft.trackAnthropic(
 
         <h4 className="text-lg font-semibold text-gray-900 mt-6 mb-3">Parameters</h4>
         <ul className="space-y-2 text-gray-700 list-disc list-inside mb-6">
+          <li><code className="bg-gray-100 px-2 py-1 rounded text-sm">provider</code> - The provider (openai, anthropic, gemini, grok)</li>
           <li><code className="bg-gray-100 px-2 py-1 rounded text-sm">model</code> - The model that was attempted</li>
           <li><code className="bg-gray-100 px-2 py-1 rounded text-sm">input</code> - The input that was sent</li>
           <li><code className="bg-gray-100 px-2 py-1 rounded text-sm">error</code> - The error object</li>
@@ -159,6 +219,7 @@ await promptcraft.trackAnthropic(
   await promptcraft.trackOpenAI(params, result, latency);
 } catch (error) {
   await promptcraft.trackError(
+    'openai',
     params.model,
     JSON.stringify(params.messages),
     error,

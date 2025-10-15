@@ -28,76 +28,70 @@ function CodeBlock({ code, language = 'typescript' }: { code: string; language?:
   );
 }
 
-export default function OpenAIDocsPage() {
+export default function GrokDocsPage() {
   return (
     <div className="max-w-4xl mx-auto px-6 py-12">
-      <h1 className="text-4xl font-bold text-gray-900 mb-4">OpenAI Integration</h1>
+      <h1 className="text-4xl font-bold text-gray-900 mb-4">xAI Grok Integration</h1>
       <p className="text-xl text-gray-600 mb-12">
-        Track your OpenAI API costs including GPT-4, GPT-3.5-Turbo, and other models.
+        Track your xAI Grok API costs with real-time analytics.
       </p>
 
       <h2 className="text-2xl font-bold text-gray-900 mt-12 mb-4">Installation</h2>
+      <p className="text-gray-700 mb-4">
+        Grok uses the OpenAI SDK (compatible API). Install both packages:
+      </p>
       <CodeBlock code="npm install promptcraft-sdk openai" language="bash" />
 
       <h2 className="text-2xl font-bold text-gray-900 mt-12 mb-4">Basic Usage</h2>
-      <CodeBlock code={`import PromptCraft from 'promptcraft-sdk';
-import OpenAI from 'openai';
+      <CodeBlock code={`import OpenAI from 'openai';
+import PromptCraft from 'promptcraft-sdk';
 
 // Initialize
 const promptcraft = new PromptCraft({ 
   apiKey: process.env.PROMPTCRAFT_API_KEY 
 });
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
+const grok = new OpenAI({
+  apiKey: process.env.XAI_API_KEY,
+  baseURL: 'https://api.x.ai/v1'
 });
 
 // Make your API call
 const params = {
-  model: 'gpt-4',
+  model: 'grok-beta',
   messages: [
-    { role: 'system', content: 'You are a helpful assistant.' },
+    { role: 'system', content: 'You are Grok, a helpful assistant.' },
     { role: 'user', content: 'Hello!' }
   ]
 };
 
 const start = Date.now();
-const result = await openai.chat.completions.create(params);
+const result = await grok.chat.completions.create(params);
 
 // Track the call
-await promptcraft.trackOpenAI(params, result, Date.now() - start);
+await promptcraft.trackGrok(params, result, Date.now() - start);
 
 console.log(result.choices[0].message.content);`} />
 
-      <h2 id="tagging" className="text-2xl font-bold text-gray-900 mt-12 mb-4">Tagging Prompts</h2>
+      <h2 className="text-2xl font-bold text-gray-900 mt-12 mb-4">Tagging Prompts</h2>
       <p className="text-gray-700 mb-4">
-        Pass a <code className="bg-gray-100 px-2 py-1 rounded text-sm">promptId</code> to group and analyze specific prompts in your dashboard:
+        Pass a <code className="bg-gray-100 px-2 py-1 rounded text-sm">promptId</code> to group and analyze specific prompts:
       </p>
-      <CodeBlock code={`const params = {
-  model: 'gpt-4',
-  messages: [...]
-};
-
-const start = Date.now();
-const result = await openai.chat.completions.create(params);
-
-// Pass promptId as 4th parameter
-await promptcraft.trackOpenAI(
-  params, 
-  result, 
+      <CodeBlock code={`await promptcraft.trackGrok(
+  params,
+  result,
   Date.now() - start,
   'customer-support-v2'
 );`} />
 
       <h2 className="text-2xl font-bold text-gray-900 mt-12 mb-4">Error Handling</h2>
-      <p className="text-gray-700 mb-4">Always track failed calls to monitor error rates:</p>
       <CodeBlock code={`const start = Date.now();
 try {
-  const result = await openai.chat.completions.create(params);
-  await promptcraft.trackOpenAI(params, result, Date.now() - start);
+  const result = await grok.chat.completions.create(params);
+  await promptcraft.trackGrok(params, result, Date.now() - start);
   return result;
 } catch (error) {
   await promptcraft.trackError(
-    'openai',
+    'grok',
     params.model,
     JSON.stringify(params.messages),
     error,
@@ -107,19 +101,17 @@ try {
 }`} />
 
       <h2 className="text-2xl font-bold text-gray-900 mt-12 mb-4">Supported Models</h2>
-      <p className="text-gray-700 mb-4">All OpenAI models are supported. Example pricing:</p>
+      <p className="text-gray-700 mb-4">Example pricing:</p>
       <ul className="space-y-2 text-gray-700 list-disc list-inside mb-4">
-        <li><strong>GPT-4 Turbo</strong> - $0.01 input / $0.03 output per 1K tokens</li>
-        <li><strong>GPT-4</strong> - $0.03 input / $0.06 output per 1K tokens</li>
-        <li><strong>GPT-3.5-Turbo</strong> - $0.0005 input / $0.0015 output per 1K tokens</li>
+        <li><strong>Grok Beta</strong> - $5 per 1M tokens (input + output)</li>
       </ul>
       <p className="text-sm text-gray-600 bg-yellow-50 border-l-4 border-yellow-400 p-3 rounded">
-        <strong>Note:</strong> Pricing shown is approximate. Actual costs calculated based on official OpenAI pricing at time of API call. Visit <a href="https://openai.com/pricing" target="_blank" rel="noopener" className="text-blue-600 hover:underline">openai.com/pricing</a> for current rates.
+        <strong>Note:</strong> Pricing shown is approximate. Actual costs calculated based on official xAI pricing at time of API call. Visit <a href="https://x.ai" target="_blank" rel="noopener" className="text-blue-600 hover:underline">x.ai</a> for current rates.
       </p>
 
       <h2 className="text-2xl font-bold text-gray-900 mt-12 mb-4">What Gets Tracked</h2>
       <ul className="space-y-2 text-gray-700 list-disc list-inside">
-        <li>Model name (e.g., gpt-4, gpt-3.5-turbo)</li>
+        <li>Model name (e.g., grok-beta)</li>
         <li>Token usage (input + output)</li>
         <li>Cost (calculated from tokens × model price)</li>
         <li>Latency (response time in ms)</li>
@@ -132,17 +124,17 @@ try {
       <ol className="space-y-2 text-gray-700 list-decimal list-inside">
         <li><strong>Always track errors</strong> - Use try/catch with trackError()</li>
         <li><strong>Use prompt IDs</strong> - Tag prompts for better analytics</li>
-        <li><strong>Monitor latency</strong> - Slow responses cost more</li>
+        <li><strong>Monitor latency</strong> - Track response times</li>
         <li><strong>Set budget alerts</strong> - Get notified before overspending</li>
       </ol>
 
       <h2 className="text-2xl font-bold text-gray-900 mt-12 mb-4">Next Steps</h2>
       <div className="grid md:grid-cols-3 gap-4">
-        <Link href="/docs/anthropic" className="border border-gray-200 rounded-lg p-4 hover:shadow-md hover:border-blue-300 transition-all">
-          <p className="font-semibold text-gray-900">Anthropic Integration</p>
+        <Link href="/docs/openai" className="border border-gray-200 rounded-lg p-4 hover:shadow-md hover:border-blue-300 transition-all">
+          <p className="font-semibold text-gray-900">OpenAI Integration</p>
         </Link>
-        <Link href="/docs/errors" className="border border-gray-200 rounded-lg p-4 hover:shadow-md hover:border-blue-300 transition-all">
-          <p className="font-semibold text-gray-900">Error Tracking Guide</p>
+        <Link href="/docs/gemini" className="border border-gray-200 rounded-lg p-4 hover:shadow-md hover:border-blue-300 transition-all">
+          <p className="font-semibold text-gray-900">Gemini Integration</p>
         </Link>
         <Link href="/docs/sdk" className="border border-gray-200 rounded-lg p-4 hover:shadow-md hover:border-blue-300 transition-all">
           <p className="font-semibold text-gray-900">SDK Reference</p>

@@ -28,63 +28,52 @@ function CodeBlock({ code, language = 'typescript' }: { code: string; language?:
   );
 }
 
-export default function AnthropicDocsPage() {
+export default function GeminiDocsPage() {
   return (
     <div className="max-w-4xl mx-auto px-6 py-12">
-      <h1 className="text-4xl font-bold text-gray-900 mb-4">Anthropic (Claude) Integration</h1>
+      <h1 className="text-4xl font-bold text-gray-900 mb-4">Google Gemini Integration</h1>
       <p className="text-xl text-gray-600 mb-12">
-        Track your Anthropic API costs including Claude 3 Opus, Sonnet, and Haiku.
+        Track your Google Gemini API costs including Gemini Pro, 1.5 Pro, and Flash.
       </p>
 
       <h2 className="text-2xl font-bold text-gray-900 mt-12 mb-4">Installation</h2>
-      <CodeBlock code="npm install promptcraft-sdk @anthropic-ai/sdk" language="bash" />
+      <CodeBlock code="npm install promptcraft-sdk @google/generative-ai" language="bash" />
 
       <h2 className="text-2xl font-bold text-gray-900 mt-12 mb-4">Basic Usage</h2>
-      <CodeBlock code={`import PromptCraft from 'promptcraft-sdk';
-import Anthropic from '@anthropic-ai/sdk';
+      <CodeBlock code={`import { GoogleGenerativeAI } from '@google/generative-ai';
+import PromptCraft from 'promptcraft-sdk';
 
 // Initialize
 const promptcraft = new PromptCraft({ 
   apiKey: process.env.PROMPTCRAFT_API_KEY 
 });
-const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY
-});
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
 
 // Make your API call
 const params = {
-  model: 'claude-3-opus-20240229',
-  max_tokens: 1024,
-  messages: [
-    { role: 'user', content: 'Hello!' }
-  ]
+  contents: [{ role: 'user', parts: [{ text: 'Hello!' }] }]
 };
 
 const start = Date.now();
-const result = await anthropic.messages.create(params);
+const result = await model.generateContent(params);
 
 // Track the call
-await promptcraft.trackAnthropic(params, result, Date.now() - start);
+await promptcraft.trackGemini(
+  { model: 'gemini-pro', ...params },
+  result.response,
+  Date.now() - start
+);
 
-console.log(result.content[0].text);`} />
+console.log(result.response.text());`} />
 
       <h2 className="text-2xl font-bold text-gray-900 mt-12 mb-4">Tagging Prompts</h2>
       <p className="text-gray-700 mb-4">
         Pass a <code className="bg-gray-100 px-2 py-1 rounded text-sm">promptId</code> to group and analyze specific prompts:
       </p>
-      <CodeBlock code={`const params = {
-  model: 'claude-3-opus-20240229',
-  max_tokens: 1024,
-  messages: [...]
-};
-
-const start = Date.now();
-const result = await anthropic.messages.create(params);
-
-// Pass promptId as 4th parameter
-await promptcraft.trackAnthropic(
-  params,
-  result,
+      <CodeBlock code={`await promptcraft.trackGemini(
+  { model: 'gemini-pro', ...params },
+  result.response,
   Date.now() - start,
   'content-generation-v1'
 );`} />
@@ -92,14 +81,18 @@ await promptcraft.trackAnthropic(
       <h2 className="text-2xl font-bold text-gray-900 mt-12 mb-4">Error Handling</h2>
       <CodeBlock code={`const start = Date.now();
 try {
-  const result = await anthropic.messages.create(params);
-  await promptcraft.trackAnthropic(params, result, Date.now() - start);
+  const result = await model.generateContent(params);
+  await promptcraft.trackGemini(
+    { model: 'gemini-pro', ...params },
+    result.response,
+    Date.now() - start
+  );
   return result;
 } catch (error) {
   await promptcraft.trackError(
-    'anthropic',
-    params.model,
-    JSON.stringify(params.messages),
+    'gemini',
+    'gemini-pro',
+    JSON.stringify(params),
     error,
     Date.now() - start
   );
@@ -109,17 +102,17 @@ try {
       <h2 className="text-2xl font-bold text-gray-900 mt-12 mb-4">Supported Models</h2>
       <p className="text-gray-700 mb-4">Example pricing:</p>
       <ul className="space-y-2 text-gray-700 list-disc list-inside mb-4">
-        <li><strong>Claude 3.5 Sonnet</strong> - $0.003 input / $0.015 output per 1K tokens</li>
-        <li><strong>Claude 3 Opus</strong> - $0.015 input / $0.075 output per 1K tokens</li>
-        <li><strong>Claude 3 Haiku</strong> - $0.00025 input / $0.00125 output per 1K tokens</li>
+        <li><strong>Gemini 1.5 Flash</strong> - $0.000075 input / $0.0003 output per 1K tokens</li>
+        <li><strong>Gemini 1.5 Pro</strong> - $0.00125 input / $0.005 output per 1K tokens</li>
+        <li><strong>Gemini Pro</strong> - $0.0005 input / $0.0015 output per 1K tokens</li>
       </ul>
       <p className="text-sm text-gray-600 bg-yellow-50 border-l-4 border-yellow-400 p-3 rounded">
-        <strong>Note:</strong> Pricing shown is approximate. Actual costs calculated based on official Anthropic pricing at time of API call. Visit <a href="https://anthropic.com/pricing" target="_blank" rel="noopener" className="text-blue-600 hover:underline">anthropic.com/pricing</a> for current rates.
+        <strong>Note:</strong> Pricing shown is approximate. Actual costs calculated based on official Google pricing at time of API call. Visit <a href="https://ai.google.dev/pricing" target="_blank" rel="noopener" className="text-blue-600 hover:underline">ai.google.dev/pricing</a> for current rates.
       </p>
 
       <h2 className="text-2xl font-bold text-gray-900 mt-12 mb-4">What Gets Tracked</h2>
       <ul className="space-y-2 text-gray-700 list-disc list-inside">
-        <li>Model name (e.g., claude-3-opus-20240229)</li>
+        <li>Model name (e.g., gemini-pro, gemini-1.5-flash)</li>
         <li>Token usage (input + output)</li>
         <li>Cost (calculated from tokens × model price)</li>
         <li>Latency (response time in ms)</li>
@@ -130,10 +123,10 @@ try {
 
       <h2 className="text-2xl font-bold text-gray-900 mt-12 mb-4">Best Practices</h2>
       <ol className="space-y-2 text-gray-700 list-decimal list-inside">
-        <li><strong>Choose the right model</strong> - Haiku is 60x cheaper than Opus</li>
+        <li><strong>Choose the right model</strong> - Flash is 16x cheaper than 1.5 Pro</li>
         <li><strong>Track errors</strong> - Monitor failure rates</li>
         <li><strong>Use prompt IDs</strong> - Analyze performance by use case</li>
-        <li><strong>Set max_tokens</strong> - Control output length and cost</li>
+        <li><strong>Monitor token usage</strong> - Optimize prompts to reduce costs</li>
       </ol>
 
       <h2 className="text-2xl font-bold text-gray-900 mt-12 mb-4">Next Steps</h2>
@@ -141,8 +134,8 @@ try {
         <Link href="/docs/openai" className="border border-gray-200 rounded-lg p-4 hover:shadow-md hover:border-blue-300 transition-all">
           <p className="font-semibold text-gray-900">OpenAI Integration</p>
         </Link>
-        <Link href="/docs/errors" className="border border-gray-200 rounded-lg p-4 hover:shadow-md hover:border-blue-300 transition-all">
-          <p className="font-semibold text-gray-900">Error Tracking Guide</p>
+        <Link href="/docs/grok" className="border border-gray-200 rounded-lg p-4 hover:shadow-md hover:border-blue-300 transition-all">
+          <p className="font-semibold text-gray-900">Grok Integration</p>
         </Link>
         <Link href="/docs/sdk" className="border border-gray-200 rounded-lg p-4 hover:shadow-md hover:border-blue-300 transition-all">
           <p className="font-semibold text-gray-900">SDK Reference</p>

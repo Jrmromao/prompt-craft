@@ -79,6 +79,18 @@ export default function DocsHomePage() {
             href="/docs/anthropic"
             icon={<BookOpen className="w-6 h-6" />}
           />
+          <DocCard
+            title="Google Gemini"
+            description="Track Gemini Pro, 1.5 Pro, and Flash models with cost tracking"
+            href="/docs/gemini"
+            icon={<BookOpen className="w-6 h-6" />}
+          />
+          <DocCard
+            title="xAI Grok"
+            description="Track Grok API calls with real-time cost monitoring"
+            href="/docs/grok"
+            icon={<BookOpen className="w-6 h-6" />}
+          />
         </div>
       </div>
 
