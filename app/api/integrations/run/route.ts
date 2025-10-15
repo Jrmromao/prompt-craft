@@ -4,6 +4,8 @@ import { prisma } from '@/lib/prisma';
 import { ApiKeyService } from '@/lib/services/apiKeyService';
 import { OpenAIService } from '@/lib/services/openaiService';
 import { AnthropicService } from '@/lib/services/anthropicService';
+import { trackRunSchema } from '@/lib/validation/schemas';
+import { checkRateLimit } from '@/lib/middleware/rateLimiting';
 
 export async function POST(request: Request) {
   const start = Date.now();
@@ -22,8 +24,30 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
+    // Rate limiting
+    const rateLimit = await checkRateLimit(user.id, user.planType);
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        { error: 'Rate limit exceeded' },
+        { 
+          status: 429,
+          headers: { 'X-RateLimit-Remaining': '0' }
+        }
+      );
+    }
+
     const body = await request.json();
-    const { provider, model, input, promptId, temperature, maxTokens, output, tokensUsed, success: runSuccess, error: runError } = body;
+    
+    // Validate input
+    const validation = trackRunSchema.safeParse(body);
+    if (!validation.success) {
+      return NextResponse.json(
+        { error: 'Invalid input', details: validation.error.errors },
+        { status: 400 }
+      );
+    }
+
+    const { provider, model, input, promptId, temperature, maxTokens, output, tokensUsed, success: runSuccess, error: runError } = validation.data;
 
     // If this is a tracking request (has output/tokensUsed), save the run
     if (output !== undefined || tokensUsed !== undefined) {
