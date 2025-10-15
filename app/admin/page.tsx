@@ -12,7 +12,7 @@ import {
   ArrowUpRight,
   ArrowDownRight,
 } from 'lucide-react';
-import { analyticsService } from '@/lib/services/analyticsService';
+import { AnalyticsService } from '@/lib/services/analyticsService';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { auth } from '@clerk/nextjs/server';
@@ -140,6 +140,7 @@ export default async function AdminDashboard() {
   const { userId } = await auth();
   if (!userId) throw new Error('Unauthorized');
 
+  const analyticsService = AnalyticsService.getInstance();
   const data = await analyticsService.getAnalytics({
     period: 'weekly',
     type: 'all',
