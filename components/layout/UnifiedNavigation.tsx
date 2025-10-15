@@ -44,9 +44,7 @@ export function UnifiedNavigation() {
   return (
     <>
       {/* Desktop Navigation */}
-      <div className="hidden md:block">
-        <NavBar user={navUser} />
-      </div>
+      <NavBar user={navUser} />
       
       {/* Mobile Navigation */}
       <div className="md:hidden">
