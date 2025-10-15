@@ -44,7 +44,7 @@ export class GDPRService {
         }),
         prisma.prompt.findMany({
           where: { userId },
-          include: { tags: true, versions: true },
+          include: { Tag: true, versions: true },
         }),
         prisma.comment.findMany({
           where: { userId },
