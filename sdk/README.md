@@ -1,110 +1,95 @@
-# @promptcraft/sdk
+# PromptCraft SDK
 
-Official SDK for [PromptCraft](https://promptcraft.app) - Track and optimize your AI costs.
+Official SDK for tracking OpenAI and Anthropic API usage with PromptCraft.
 
 ## Installation
 
 ```bash
-npm install @promptcraft/sdk
+npm install promptcraft-sdk
 ```
 
-## Quick Start
+## Usage
 
 ### OpenAI
 
 ```typescript
-import { PromptCraft } from '@promptcraft/sdk';
 import OpenAI from 'openai';
+import PromptCraft from 'promptcraft-sdk';
 
-const promptCraft = new PromptCraft({
-  apiKey: process.env.PROMPTCRAFT_API_KEY,
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+const promptcraft = new PromptCraft({ 
+  apiKey: process.env.PROMPTCRAFT_API_KEY 
 });
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-
-// Wrap once
-promptCraft.wrapOpenAI(openai);
-
-// Use normally - tracking happens automatically
-const response = await openai.chat.completions.create({
+const params = {
   model: 'gpt-4',
   messages: [{ role: 'user', content: 'Hello!' }],
-  promptId: 'greeting', // Optional: for analytics
-});
+  promptId: 'greeting-prompt' // optional
+};
+
+const start = Date.now();
+try {
+  const result = await openai.chat.completions.create(params);
+  await promptcraft.trackOpenAI(params, result, Date.now() - start);
+  console.log(result.choices[0].message.content);
+} catch (error) {
+  await promptcraft.trackError(params.model, JSON.stringify(params.messages), error, Date.now() - start);
+  throw error;
+}
 ```
 
-### Anthropic (Claude)
+### Anthropic
 
 ```typescript
-import { PromptCraft } from '@promptcraft/sdk';
 import Anthropic from '@anthropic-ai/sdk';
+import PromptCraft from 'promptcraft-sdk';
 
-const promptCraft = new PromptCraft({
-  apiKey: process.env.PROMPTCRAFT_API_KEY,
+const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+const promptcraft = new PromptCraft({ 
+  apiKey: process.env.PROMPTCRAFT_API_KEY 
 });
 
-const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
-});
-
-promptCraft.wrapAnthropic(anthropic);
-
-const response = await anthropic.messages.create({
+const params = {
   model: 'claude-3-opus-20240229',
   max_tokens: 1024,
   messages: [{ role: 'user', content: 'Hello!' }],
-  promptId: 'greeting',
-});
-```
+  promptId: 'greeting-prompt' // optional
+};
 
-## Manual Tracking
-
-If you can't use the wrapper:
-
-```typescript
-await promptCraft.trackRun({
-  promptId: 'customer-support',
-  model: 'gpt-4',
-  input: 'User question',
-  output: 'AI response',
-  tokensUsed: 150,
-  latency: 1200,
-  success: true,
-});
+const start = Date.now();
+try {
+  const result = await anthropic.messages.create(params);
+  await promptcraft.trackAnthropic(params, result, Date.now() - start);
+  console.log(result.content[0].text);
+} catch (error) {
+  await promptcraft.trackError(params.model, JSON.stringify(params.messages), error, Date.now() - start);
+  throw error;
+}
 ```
 
 ## Configuration
 
 ```typescript
-const promptCraft = new PromptCraft({
-  apiKey: 'your-api-key',        // Required
-  baseUrl: 'https://custom.com', // Optional (default: https://promptcraft.app)
+const promptcraft = new PromptCraft({
+  apiKey: 'your-api-key',
+  baseUrl: 'https://your-instance.com' // optional, defaults to https://promptcraft.app
 });
 ```
 
-## Get API Key
+## Get Your API Key
 
 1. Sign up at [promptcraft.app](https://promptcraft.app)
 2. Go to Settings → API Keys
-3. Create new API key
-4. Copy and use in your code
+3. Generate a new API key
 
 ## Features
 
-- ✅ Automatic cost tracking
-- ✅ Token usage monitoring
-- ✅ Latency tracking
-- ✅ Success/failure tracking
-- ✅ Zero performance impact
-- ✅ Works with existing code
-
-## Support
-
-- **Docs**: [docs.promptcraft.app](https://docs.promptcraft.app)
-- **Email**: support@promptcraft.app
-- **Discord**: [Join community](https://discord.gg/promptcraft)
+- ✅ Track OpenAI API calls
+- ✅ Track Anthropic API calls
+- ✅ Automatic cost calculation
+- ✅ Performance monitoring
+- ✅ Error tracking
+- ✅ Zero performance impact (async tracking)
 
 ## License
 

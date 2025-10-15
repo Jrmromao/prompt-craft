@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
-import { UserService } from '@/lib/services/UserService';
+import { UserService } from '@/lib/services/userService';
 import { prisma } from '@/lib/prisma';
 import Stripe from 'stripe';
 import { z } from 'zod';

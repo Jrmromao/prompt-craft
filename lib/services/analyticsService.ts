@@ -47,6 +47,32 @@ export class AnalyticsService {
     return this.instance;
   }
 
+  async getAnalytics(params: { period: string; type: string }) {
+    const endDate = new Date();
+    const startDate = new Date();
+    
+    if (params.period === 'weekly') {
+      startDate.setDate(startDate.getDate() - 7);
+    } else if (params.period === 'monthly') {
+      startDate.setMonth(startDate.getMonth() - 1);
+    }
+
+    const runs = await prisma.promptRun.findMany({
+      where: {
+        createdAt: {
+          gte: startDate,
+          lte: endDate,
+        },
+      },
+    });
+
+    return {
+      totalRuns: runs.length,
+      totalCost: runs.reduce((sum, run) => sum + run.cost, 0),
+      totalTokens: runs.reduce((sum, run) => sum + run.totalTokens, 0),
+    };
+  }
+
   async getOverview(
     userId: string,
     startDate: Date,

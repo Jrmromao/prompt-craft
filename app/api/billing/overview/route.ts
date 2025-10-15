@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { BillingService } from '@/lib/services/billingService';
-import { UserService } from '@/lib/services/UserService';
+import { UserService } from '@/lib/services/userService';
 import { AuditService } from '@/lib/services/auditService';
 import { AuditAction } from '@/app/constants/audit';
 import { prisma } from '@/lib/prisma';

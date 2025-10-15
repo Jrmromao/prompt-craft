@@ -1,114 +1,163 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Check, Zap, Crown } from 'lucide-react';
+import { Check } from 'lucide-react';
+import Link from 'next/link';
 
 export default function PricingPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50">
-      <div className="container mx-auto px-4 py-16">
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white py-16">
+      <div className="container mx-auto px-4">
         <div className="text-center mb-16">
-          <h1 className="text-4xl font-bold mb-4 bg-gradient-to-r from-blue-600 to-blue-600 bg-clip-text text-transparent">
-            Simple, Transparent Pricing
-          </h1>
-          <p className="text-xl text-muted-foreground">
-            Start free, upgrade when you need more power
+          <h1 className="text-4xl font-bold mb-4">Simple, Transparent Pricing</h1>
+          <p className="text-xl text-gray-600">
+            Track your AI costs without breaking the bank
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-          {/* Free Plan */}
+        <div className="grid md:grid-cols-4 gap-6 max-w-7xl mx-auto">
+          {/* Free */}
           <Card className="border-2">
             <CardHeader className="text-center pb-4">
-              <div className="flex items-center justify-center gap-2 mb-2">
-                <Zap className="w-5 h-5 text-green-600" />
-                <CardTitle className="text-2xl">Free</CardTitle>
-              </div>
-              <div className="text-4xl font-bold">$0</div>
-              <p className="text-muted-foreground">Perfect for getting started</p>
+              <CardTitle className="text-2xl mb-2">Free</CardTitle>
+              <div className="text-4xl font-bold mb-2">$0</div>
+              <p className="text-gray-600 text-sm">Forever free</p>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-3">
-                <div className="flex items-center gap-2">
-                  <Check className="w-4 h-4 text-green-600" />
-                  <span>10 AI-generated prompts</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Check className="w-4 h-4 text-green-600" />
-                  <span>3 versions per prompt</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Check className="w-4 h-4 text-green-600" />
-                  <span>DeepSeek AI model</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Check className="w-4 h-4 text-green-600" />
-                  <span>Export functionality</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Check className="w-4 h-4 text-green-600" />
-                  <span>Basic version control</span>
-                </div>
-              </div>
-              <Button className="w-full" variant="outline">
-                Get Started Free
-              </Button>
+            <CardContent>
+              <ul className="space-y-3 mb-6">
+                <Feature>1,000 tracked runs/month</Feature>
+                <Feature>Track up to 5 prompts</Feature>
+                <Feature>7 days data retention</Feature>
+                <Feature>Basic analytics</Feature>
+                <Feature>1 team member</Feature>
+              </ul>
+              <Link href="/sign-up">
+                <Button className="w-full" variant="outline">Get Started</Button>
+              </Link>
             </CardContent>
           </Card>
 
-          {/* Pro Plan */}
-          <Card className="border-2 border-blue-200 relative">
-            <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-blue-600">
-              Most Popular
-            </Badge>
+          {/* Starter */}
+          <Card className="border-2">
             <CardHeader className="text-center pb-4">
-              <div className="flex items-center justify-center gap-2 mb-2">
-                <Crown className="w-5 h-5 text-blue-600" />
-                <CardTitle className="text-2xl">Pro</CardTitle>
-              </div>
-              <div className="text-4xl font-bold">$29</div>
-              <p className="text-muted-foreground">per month</p>
+              <CardTitle className="text-2xl mb-2">Starter</CardTitle>
+              <div className="text-4xl font-bold mb-2">$9</div>
+              <p className="text-gray-600 text-sm">per month</p>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-3">
-                <div className="flex items-center gap-2">
-                  <Check className="w-4 h-4 text-green-600" />
-                  <span className="font-medium">Unlimited prompts</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Check className="w-4 h-4 text-green-600" />
-                  <span className="font-medium">Unlimited versions</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Check className="w-4 h-4 text-green-600" />
-                  <span>GPT-4 & Claude AI models</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Check className="w-4 h-4 text-green-600" />
-                  <span>Advanced version control</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Check className="w-4 h-4 text-green-600" />
-                  <span>Priority support</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Check className="w-4 h-4 text-green-600" />
-                  <span>Everything in Free</span>
-                </div>
-              </div>
-              <Button className="w-full bg-gradient-to-r from-blue-600 to-blue-600 hover:from-blue-700 hover:to-blue-700">
-                Upgrade to Pro
-              </Button>
+            <CardContent>
+              <ul className="space-y-3 mb-6">
+                <Feature>10,000 tracked runs/month</Feature>
+                <Feature>Track up to 25 prompts</Feature>
+                <Feature>30 days data retention</Feature>
+                <Feature>Advanced analytics</Feature>
+                <Feature>Cost optimization tips</Feature>
+                <Feature>3 team members</Feature>
+                <Feature>Email support</Feature>
+              </ul>
+              <Link href="/sign-up">
+                <Button className="w-full">Start Free Trial</Button>
+              </Link>
+            </CardContent>
+          </Card>
+
+          {/* Pro */}
+          <Card className="border-2 border-blue-600 relative">
+            <div className="absolute -top-4 left-1/2 -translate-x-1/2">
+              <span className="bg-blue-600 text-white px-4 py-1 rounded-full text-sm font-semibold">
+                Most Popular
+              </span>
+            </div>
+            <CardHeader className="text-center pb-4">
+              <CardTitle className="text-2xl mb-2">Pro</CardTitle>
+              <div className="text-4xl font-bold mb-2">$29</div>
+              <p className="text-gray-600 text-sm">per month</p>
+            </CardHeader>
+            <CardContent>
+              <ul className="space-y-3 mb-6">
+                <Feature>100,000 tracked runs/month</Feature>
+                <Feature>Unlimited prompts</Feature>
+                <Feature>90 days data retention</Feature>
+                <Feature>Advanced analytics</Feature>
+                <Feature>Cost optimization tips</Feature>
+                <Feature>A/B testing</Feature>
+                <Feature>Custom alerts</Feature>
+                <Feature>10 team members</Feature>
+                <Feature>Priority support</Feature>
+              </ul>
+              <Link href="/sign-up">
+                <Button className="w-full">Start Free Trial</Button>
+              </Link>
+            </CardContent>
+          </Card>
+
+          {/* Enterprise */}
+          <Card className="border-2">
+            <CardHeader className="text-center pb-4">
+              <CardTitle className="text-2xl mb-2">Enterprise</CardTitle>
+              <div className="text-4xl font-bold mb-2">$99</div>
+              <p className="text-gray-600 text-sm">per month</p>
+            </CardHeader>
+            <CardContent>
+              <ul className="space-y-3 mb-6">
+                <Feature>Unlimited tracked runs</Feature>
+                <Feature>Unlimited prompts</Feature>
+                <Feature>1 year data retention</Feature>
+                <Feature>Advanced analytics</Feature>
+                <Feature>Cost optimization tips</Feature>
+                <Feature>A/B testing</Feature>
+                <Feature>Custom alerts</Feature>
+                <Feature>Unlimited team members</Feature>
+                <Feature>Dedicated support</Feature>
+                <Feature>SSO</Feature>
+                <Feature>Custom integrations</Feature>
+              </ul>
+              <Link href="/sign-up">
+                <Button className="w-full">Start Free Trial</Button>
+              </Link>
             </CardContent>
           </Card>
         </div>
 
-        <div className="text-center mt-12">
-          <p className="text-muted-foreground">
-            All plans include our core prompt engineering tools. Upgrade or downgrade anytime.
-          </p>
+        {/* FAQ */}
+        <div className="max-w-3xl mx-auto mt-16">
+          <h2 className="text-2xl font-bold text-center mb-8">Frequently Asked Questions</h2>
+          <div className="space-y-6">
+            <FAQ
+              question="What counts as a tracked run?"
+              answer="Each API call to OpenAI or Anthropic that you track with our SDK counts as one run."
+            />
+            <FAQ
+              question="Can I change plans anytime?"
+              answer="Yes! Upgrade or downgrade anytime. Changes take effect immediately and we'll prorate the difference."
+            />
+            <FAQ
+              question="What happens if I exceed my limit?"
+              answer="We'll notify you when you're close to your limit. You can upgrade anytime or wait until next month."
+            />
+            <FAQ
+              question="Do you offer refunds?"
+              answer="Yes, we offer a 30-day money-back guarantee. No questions asked."
+            />
+          </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+function Feature({ children }: { children: React.ReactNode }) {
+  return (
+    <li className="flex items-start gap-2">
+      <Check className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+      <span className="text-sm">{children}</span>
+    </li>
+  );
+}
+
+function FAQ({ question, answer }: { question: string; answer: string }) {
+  return (
+    <div>
+      <h3 className="font-semibold mb-2">{question}</h3>
+      <p className="text-gray-600">{answer}</p>
     </div>
   );
 }

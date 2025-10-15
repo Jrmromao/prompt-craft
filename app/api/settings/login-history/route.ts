@@ -3,7 +3,7 @@ import { auth, clerkClient } from '@clerk/nextjs/server';
 import { AuditAction } from '@/app/constants/audit';
 import { AuditService } from '@/lib/services/auditService';
 import { redis } from '@/lib/redis';
-import { UserService } from '@/lib/services/UserService';
+import { UserService } from '@/lib/services/userService';
 
 // Prevent static generation of this route
 export const dynamic = 'force-dynamic';

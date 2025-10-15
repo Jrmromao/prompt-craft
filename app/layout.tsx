@@ -6,10 +6,10 @@ import { ClientLayout } from '../components/ClientLayout';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'PromptHive - AI Prompt Engineering Platform',
-  description: 'Create, share, and discover AI prompts for various use cases',
+  title: 'PromptCraft - AI Cost Tracking & Analytics',
+  description: 'Track your OpenAI and Anthropic API costs in real-time. Get cost optimization suggestions, performance monitoring, and budget alerts.',
   manifest: '/manifest.json',
-  themeColor: '#7c3aed',
+  themeColor: '#2563eb',
   viewport: 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no',
   appleWebApp: {
     capable: true,
