@@ -6,6 +6,7 @@ import { OpenAIService } from '@/lib/services/openaiService';
 import { AnthropicService } from '@/lib/services/anthropicService';
 import { trackRunSchema } from '@/lib/validation/schemas';
 import { checkRateLimit } from '@/lib/middleware/rateLimiting';
+import { PLANS } from '@/lib/plans';
 
 export async function POST(request: Request) {
   const start = Date.now();
@@ -22,6 +23,33 @@ export async function POST(request: Request) {
 
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+
+    // Check monthly run limit
+    const plan = PLANS[user.planType as keyof typeof PLANS] || PLANS.FREE;
+    if (plan.limits.trackedRuns !== -1) {
+      const startOfMonth = new Date();
+      startOfMonth.setDate(1);
+      startOfMonth.setHours(0, 0, 0, 0);
+
+      const runsThisMonth = await prisma.promptRun.count({
+        where: {
+          userId: user.id,
+          createdAt: { gte: startOfMonth },
+        },
+      });
+
+      if (runsThisMonth >= plan.limits.trackedRuns) {
+        return NextResponse.json(
+          { 
+            error: 'Monthly run limit exceeded',
+            limit: plan.limits.trackedRuns,
+            used: runsThisMonth,
+            message: `Upgrade to track more runs. Current plan: ${plan.name} (${plan.limits.trackedRuns} runs/month)`
+          },
+          { status: 402 } // Payment Required
+        );
+      }
     }
 
     // Rate limiting
