@@ -420,8 +420,8 @@ const result = await tracked.chat.completions.create({
                 </Link>
               </Step>
               <Step number={3} title="Add to Your Code" completed={false}>
-                <Link href="/docs/quickstart" className="text-blue-600 hover:underline text-sm">
-                  View Quick Start Guide →
+                <Link href="/dashboard" className="text-blue-600 hover:underline text-sm">
+                  View Quick Start Guide → dashboard
                 </Link>
               </Step>
             </div>
@@ -474,7 +474,7 @@ function StatCard({ title, value, icon, subtitle }: { title: string; value: stri
 function Step({ number, title, completed, children }: { number: number; title: string; completed: boolean; children: React.ReactNode }) {
   return (
     <div className="flex gap-3">
-      <div className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-between text-sm font-bold ${completed ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-600'}`}>
+      <div className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold ${completed ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-600'}`}>
         {number}
       </div>
       <div className="flex-1">
