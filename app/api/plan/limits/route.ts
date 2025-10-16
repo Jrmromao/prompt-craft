@@ -1,7 +1,9 @@
-export const dynamic = 'force-dynamic';
 import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { prisma } from '@/lib/prisma';
+import { PLAN_LIMITS, checkAISpendLimit } from '@/lib/middleware/planLimits';
+
+export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
@@ -10,36 +12,31 @@ export async function GET() {
       return new NextResponse('Unauthorized', { status: 401 });
     }
 
-    // Get user from database
     const user = await prisma.user.findUnique({
       where: { clerkId: userId },
-      include: {
-        Subscription: {
-          include: {
-            Plan: true,
-          },
-        },
-      },
     });
 
     if (!user) {
       return new NextResponse('User not found', { status: 404 });
     }
 
-    if (!user.Subscription) {
-      return NextResponse.json({
-        name: 'FREE',
-        status: 'ACTIVE',
-      });
-    }
+    const limits = PLAN_LIMITS[user.planType];
+    const spendCheck = await checkAISpendLimit(user.id);
 
     return NextResponse.json({
-      name: user.Subscription.Plan.name,
-      status: user.Subscription.status,
-      periodEnd: user.Subscription.currentPeriodEnd,
+      plan: user.planType,
+      limits,
+      usage: {
+        aiSpend: {
+          current: spendCheck.currentSpend,
+          limit: spendCheck.limit,
+          percentUsed: spendCheck.percentUsed,
+          allowed: spendCheck.allowed,
+        },
+      },
     });
   } catch (error) {
-    console.error('Error fetching current subscription:', error);
+    console.error('Error fetching plan limits:', error);
     return new NextResponse('Internal Server Error', { status: 500 });
   }
 }

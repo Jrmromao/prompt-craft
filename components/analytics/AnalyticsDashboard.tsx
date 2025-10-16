@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { TrendingUp, TrendingDown, DollarSign, Zap, Clock, CheckCircle } from 'lucide-react';
 import { OverviewCards } from './OverviewCards';
 import { CostChart } from './CostChart';
@@ -77,8 +78,9 @@ export function AnalyticsDashboard() {
     return (
       <div className="text-center py-12">
         <p className="text-gray-600 mb-4">No data yet. Connect your API key to get started.</p>
+        <Link href="/settings">
           Connect API Key →
-        </a>
+        </Link>
       </div>
     );
   }

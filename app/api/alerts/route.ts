@@ -1,53 +1,81 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
-import { AlertService } from '@/lib/services/alertService';
 import { prisma } from '@/lib/prisma';
+import crypto from 'crypto';
+
+export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
-    const { userId: clerkUserId } = await auth();
-    if (!clerkUserId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const { userId } = await auth();
+    if (!userId) {
+      return new NextResponse('Unauthorized', { status: 401 });
     }
 
-    const user = await prisma.user.findUnique({ where: { clerkId: clerkUserId } });
-    if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
-    }
-
-    const alerts = await prisma.alert.findMany({
-      where: { userId: user.id },
-      orderBy: { createdAt: 'desc' },
+    const user = await prisma.user.findUnique({
+      where: { clerkId: userId },
     });
 
-    return NextResponse.json({ alerts });
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    if (!user) {
+      return new NextResponse('User not found', { status: 404 });
+    }
+
+    const alerts = await prisma.alertSettings.findUnique({
+      where: { userId: user.id },
+    });
+
+    console.log('[Alerts API] Fetched settings:', alerts ? JSON.stringify(alerts.settings) : 'null');
+
+    const defaultSettings = {
+      costSpike: { enabled: false, threshold: 50 },
+      errorRate: { enabled: false, threshold: 10 },
+      slowResponse: { enabled: false, threshold: 2000 },
+      invalidApiKey: { enabled: true },
+    };
+
+    return NextResponse.json(alerts?.settings || defaultSettings);
+  } catch (error) {
+    console.error('[Alerts API] Error fetching alerts:', error);
+    return new NextResponse('Internal Server Error', { status: 500 });
   }
 }
 
 export async function POST(req: Request) {
   try {
-    const { userId: clerkUserId } = await auth();
-    if (!clerkUserId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const { userId } = await auth();
+    if (!userId) {
+      return new NextResponse('Unauthorized', { status: 401 });
     }
 
-    const user = await prisma.user.findUnique({ where: { clerkId: clerkUserId } });
+    const user = await prisma.user.findUnique({
+      where: { clerkId: userId },
+    });
+
     if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+      return new NextResponse('User not found', { status: 404 });
     }
 
-    const { type, threshold } = await req.json();
-    if (!type || !threshold) {
-      return NextResponse.json({ error: 'Type and threshold required' }, { status: 400 });
-    }
+    const settings = await req.json();
+    console.log('[Alerts API] Saving settings:', JSON.stringify(settings, null, 2));
 
-    const alertService = AlertService.getInstance();
-    const alert = await alertService.createAlert(user.id, type, threshold);
+    const alertSettings = await prisma.alertSettings.upsert({
+      where: { userId: user.id },
+      create: {
+        id: crypto.randomUUID(),
+        userId: user.id,
+        settings: settings,
+        updatedAt: new Date(),
+      },
+      update: {
+        settings: settings,
+        updatedAt: new Date(),
+      },
+    });
 
-    return NextResponse.json({ alert });
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.log('[Alerts API] Saved successfully:', alertSettings.id);
+    return NextResponse.json(alertSettings);
+  } catch (error) {
+    console.error('[Alerts API] Error saving alerts:', error);
+    return new NextResponse('Internal Server Error', { status: 500 });
   }
 }

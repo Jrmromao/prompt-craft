@@ -3,7 +3,7 @@ import Stripe from 'stripe';
 import { PLANS, PlanId } from '@/lib/plans';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2024-11-20.acacia',
+  apiVersion: '2025-08-27.basil',
 });
 
 export class SubscriptionService {
@@ -21,7 +21,8 @@ export class SubscriptionService {
     if (!user) throw new Error('User not found');
 
     const plan = PLANS[planId];
-    if (!plan.priceId) throw new Error('Invalid plan');
+    if (!plan) throw new Error('Invalid plan');
+    if (!('priceId' in plan) || !plan.priceId) throw new Error('Plan has no priceId');
 
     const session = await stripe.checkout.sessions.create({
       customer_email: user.email,
@@ -53,7 +54,7 @@ export class SubscriptionService {
     await prisma.user.update({
       where: { id: userId },
       data: {
-        planType: planId.toUpperCase(),
+        planType: planId.toUpperCase() as any,
         stripeCustomerId: session.customer as string,
         stripeSubscriptionId: session.subscription as string,
       },
@@ -88,20 +89,15 @@ export class SubscriptionService {
     const user = await prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw new Error('User not found');
 
-    const plan = PLANS[user.planType as PlanId] || PLANS.FREE;
+    const plan = PLANS[user.planType as PlanId] || PLANS.TRIAL;
     
     const startOfMonth = new Date();
     startOfMonth.setDate(1);
     startOfMonth.setHours(0, 0, 0, 0);
 
-    const [runsCount, promptsCount] = await Promise.all([
+    const [runsCount] = await Promise.all([
       prisma.promptRun.count({
         where: { userId: user.id, createdAt: { gte: startOfMonth } },
-      }),
-      prisma.promptRun.findMany({
-        where: { userId: user.id },
-        distinct: ['promptId'],
-        select: { promptId: true },
       }),
     ]);
 
@@ -111,15 +107,10 @@ export class SubscriptionService {
         limit: plan.limits.trackedRuns,
         percentage: plan.limits.trackedRuns === -1 ? 0 : (runsCount / plan.limits.trackedRuns) * 100,
       },
-      promptsTracked: {
-        used: promptsCount.length,
-        limit: plan.limits.promptsTracked,
-        percentage: plan.limits.promptsTracked === -1 ? 0 : (promptsCount.length / plan.limits.promptsTracked) * 100,
-      },
     };
   }
 
-  async checkLimit(userId: string, type: 'trackedRuns' | 'promptsTracked'): Promise<boolean> {
+  async checkLimit(userId: string, type: 'trackedRuns'): Promise<boolean> {
     const usage = await this.getUsage(userId);
     const limit = usage[type].limit;
     

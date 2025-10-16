@@ -156,10 +156,10 @@ export class BillingService {
     const portalSession = await stripe.billingPortal.sessions.create({
       customer: user.stripeCustomerId,
       return_url: process.env.NEXT_PUBLIC_APP_URL + '/account?tab=billing',
-      flow_data: user.subscription?.stripeSubscriptionId && user.subscription.stripeSubscriptionId !== 'pending' ? {
+      flow_data: user.Subscription?.stripeSubscriptionId && user.Subscription.stripeSubscriptionId !== 'pending' ? {
         type: 'subscription_cancel',
         subscription_cancel: {
-          subscription: user.subscription.stripeSubscriptionId,
+          subscription: user.Subscription.stripeSubscriptionId,
         },
       } : undefined,
     });

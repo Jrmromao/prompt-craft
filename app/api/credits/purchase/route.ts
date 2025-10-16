@@ -1,125 +1,65 @@
-import { NextResponse, type NextRequest } from 'next/server';
+import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
-import { UserService } from '@/lib/services/userService';
 import { prisma } from '@/lib/prisma';
-import Stripe from 'stripe';
-import { z } from 'zod';
-import { CREDIT_PURCHASE_METADATA, STRIPE_API_VERSION } from '@/app/constants/credits';
-import { AuditService } from '@/lib/services/auditService';
-import { AuditAction } from '@/app/constants/audit';
-import { Ratelimit } from '@upstash/ratelimit';
-import { redis } from '@/lib/redis';
 
-const ratelimit = new Ratelimit({
-  redis,
-  limiter: Ratelimit.slidingWindow(5, '1 m'),
-});
-
-const purchaseSchema = z.object({
-  packageId: z.string().min(1, 'Package ID is required'),
-  successUrl: z.string().url('Valid success URL required').optional(),
-  cancelUrl: z.string().url('Valid cancel URL required').optional(),
-});
-
-import { stripe } from '@/lib/stripe';
-
-export async function POST(req: NextRequest) {
+export async function POST(req: Request) {
   try {
-    const { userId: clerkId } = await auth();
-
-    if (!clerkId) {
-      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+    const { userId } = await auth();
+    if (!userId) {
+      return new NextResponse('Unauthorized', { status: 401 });
     }
 
-    // Rate limiting
-    const { success } = await ratelimit.limit(clerkId);
-    if (!success) {
-      return NextResponse.json({ success: false, error: 'Rate limit exceeded' }, { status: 429 });
-    }
-
-    // Validate input
-    const body = await req.json();
-    const validationResult = purchaseSchema.safeParse(body);
-    if (!validationResult.success) {
-      return NextResponse.json(
-        { success: false, error: 'Invalid input data', details: validationResult.error.errors },
-        { status: 400 }
-      );
-    }
-
-    // Get user using service
-    const userService = UserService.getInstance();
-    const user = await userService.getUserByClerkId(clerkId);
+    const user = await prisma.user.findUnique({
+      where: { clerkId: userId },
+    });
 
     if (!user) {
-      console.error("No user found for Clerk ID:", clerkId);
-      return NextResponse.json({ success: false, error: 'User not found' }, { status: 404 });
+      return new NextResponse('User not found', { status: 404 });
     }
 
-    const { amount, price } = await req.json();
-    if (!amount || !price) {
-      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+    const { packageId } = await req.json();
+
+    // Get credit package
+    const pkg = await prisma.creditPackage.findUnique({
+      where: { id: packageId },
+    });
+
+    if (!pkg) {
+      return new NextResponse('Package not found', { status: 404 });
     }
 
-    // Get or create Stripe customer
-    let customerId = user.stripeCustomerId;
-    if (!customerId) {
-      const customer = await stripe.customers.create({
-        email: user.email,
-        metadata: { userId: user.id },
-      });
-      customerId = customer.id;
-      await prisma.user.update({
-        where: { id: user.id },
-        data: { stripeCustomerId: customerId },
-      });
-    }
+    // Create Stripe checkout session for one-time payment
+    const Stripe = (await import('stripe')).default;
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+      apiVersion: '2025-08-27.basil',
+    });
 
-    // Create Stripe checkout session
     const session = await stripe.checkout.sessions.create({
-      customer: customerId,
-      payment_method_types: ['card'],
-      line_items: [
-        {
-          price_data: {
-            currency: 'usd',
-            product_data: {
-              name: `${amount} Credits`,
-              description: `Purchase ${amount} credits for your account`,
-            },
-            unit_amount: price * 100, // Convert to cents
+      customer_email: user.email,
+      line_items: [{
+        price_data: {
+          currency: 'usd',
+          product_data: {
+            name: pkg.name,
+            description: pkg.description || undefined,
           },
-          quantity: 1,
+          unit_amount: Math.round(pkg.price * 100),
         },
-      ],
+        quantity: 1,
+      }],
       mode: 'payment',
-      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/account?success=true`,
-      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/account?canceled=true`,
+      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/settings/billing?credits=success`,
+      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/settings/billing`,
       metadata: {
-        type: CREDIT_PURCHASE_METADATA,
         userId: user.id,
-        amount: amount.toString(),
+        packageId: pkg.id,
+        credits: pkg.amount.toString(),
       },
     });
 
-    // Log the purchase attempt
-    await AuditService.getInstance().logAudit({
-      userId: user.id,
-      action: 'CREDIT_PURCHASE_ATTEMPTED' as AuditAction,
-      resource: 'credits',
-      details: {
-        amount,
-        price,
-        sessionId: session.id,
-      },
-    });
-
-    return NextResponse.json({ url: session.url });
+    return NextResponse.json({ sessionId: session.id, url: session.url });
   } catch (error) {
-    console.error('Error creating checkout session:', error);
-    return NextResponse.json(
-      { error: 'Failed to create checkout session' },
-      { status: 500 }
-    );
+    console.error('Error creating credit purchase:', error);
+    return new NextResponse('Internal Server Error', { status: 500 });
   }
 }

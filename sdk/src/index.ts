@@ -57,6 +57,11 @@ export class PromptCraft {
   private isProcessingQueue = false;
 
   constructor(config: PromptCraftConfig) {
+    // Validate API key but don't throw - just warn
+    if (!config.apiKey || config.apiKey.trim() === '') {
+      console.warn('[PromptCraft] Warning: No API key provided. Tracking and optimization features will be disabled, but your app will continue to work.');
+    }
+
     this.config = {
       baseUrl: 'https://promptcraft.app',
       enableCache: false,
@@ -103,14 +108,22 @@ export class PromptCraft {
         headers: {
           'Authorization': `Bearer ${this.config.apiKey}`,
         },
+        timeout: 2000, // 2 second timeout
       });
 
       if (response.ok) {
         const data = await response.json();
         return data.enabled;
       }
+      
+      // Invalid API key - disable routing but don't break
+      if (response.status === 401 || response.status === 403) {
+        console.warn('[PromptCraft] Invalid API key - smart routing disabled');
+        return false;
+      }
     } catch (error) {
-      console.warn('[PromptCraft] Failed to check routing status:', error);
+      // Network error - fail gracefully
+      console.warn('[PromptCraft] Routing check failed (non-fatal):', error);
     }
 
     return true; // Default to enabled if check fails
@@ -162,10 +175,16 @@ export class PromptCraft {
       });
 
       if (!response.ok) {
-        console.error('PromptCraft tracking failed:', response.statusText);
+        // Don't throw on tracking errors - just log
+        if (response.status === 401 || response.status === 403) {
+          console.warn('[PromptCraft] Invalid API key - tracking disabled. Your app will continue to work.');
+        } else {
+          console.warn('[PromptCraft] Tracking failed:', response.statusText);
+        }
       }
     } catch (error) {
-      console.error('PromptCraft tracking error:', error);
+      // Never throw on tracking errors - silently fail
+      console.warn('[PromptCraft] Tracking error (non-fatal):', error);
     }
   }
 
@@ -577,6 +596,7 @@ export class PromptCraft {
           'Authorization': `Bearer ${this.config.apiKey}`,
         },
         body: JSON.stringify({ prompt: content }),
+        timeout: 3000, // 3 second timeout
       });
 
       if (response.ok) {
@@ -589,8 +609,14 @@ export class PromptCraft {
         console.log(`[PromptCraft] Optimized prompt: ${data.tokenReduction}% reduction`);
         return optimized;
       }
+      
+      // Invalid API key - use original prompt
+      if (response.status === 401 || response.status === 403) {
+        console.warn('[PromptCraft] Invalid API key - optimization disabled');
+      }
     } catch (error) {
-      console.warn('[PromptCraft] Optimization failed, using original prompt');
+      // Network error - fail gracefully, use original prompt
+      console.warn('[PromptCraft] Optimization failed (non-fatal), using original prompt');
     }
 
     return content;

@@ -243,6 +243,7 @@ export function SmartRecommendations({
 
         {/* View more */}
         <div className="pt-2">
+          <Link href="/dashboard">
             <Button variant="outline" className="w-full">
               Explore More Prompts
               <ArrowRight className="h-4 w-4 ml-2" />

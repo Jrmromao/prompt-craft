@@ -16,7 +16,6 @@ import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 import { ThemeToggle } from '../ThemeToggle';
 import { usePathname, useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { MobileMenu } from './MobileMenu';
 import { GlobalSearch } from '@/components/search/GlobalSearch';
 import { CommandPalette } from '@/components/ui/command-palette';
 import { useClerk } from '@clerk/nextjs';
@@ -141,7 +140,6 @@ export function NavBar({ user, onMenuClick }: { user?: NavBarUser; onMenuClick?:
           </div>
         </div>
       </nav>
-      <MobileMenu isOpen={isMobileMenuOpen} onClose={() => setIsMobileMenuOpen(false)} />
       {/* <CommandPalette 
         open={isCommandPaletteOpen} 
         onOpenChange={setIsCommandPaletteOpen} 

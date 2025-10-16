@@ -1,40 +1,36 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { prisma } from '@/lib/prisma';
-import { QualityMonitor } from '@/lib/services/qualityMonitor';
 
-export async function POST(request: Request) {
+export async function POST(req: Request) {
   try {
-    const { userId: clerkUserId } = await auth();
-    if (!clerkUserId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const { userId } = await auth();
+    if (!userId) {
+      return new NextResponse('Unauthorized', { status: 401 });
     }
 
     const user = await prisma.user.findUnique({
-      where: { clerkId: clerkUserId },
+      where: { clerkId: userId },
     });
 
     if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+      return new NextResponse('User not found', { status: 404 });
     }
 
-    const { runId, rating, feedback } = await request.json();
+    const { runId, rating, feedback } = await req.json();
 
-    if (!runId || !rating || rating < 1 || rating > 5) {
-      return NextResponse.json(
-        { error: 'Invalid input. Rating must be 1-5.' },
-        { status: 400 }
-      );
-    }
+    const qualityFeedback = await prisma.qualityFeedback.create({
+      data: {
+        userId: user.id,
+        runId,
+        rating,
+        feedback,
+      },
+    });
 
-    await QualityMonitor.submitFeedback(user.id, runId, rating, feedback);
-
-    return NextResponse.json({ success: true });
+    return NextResponse.json(qualityFeedback);
   } catch (error) {
-    console.error('Quality feedback error:', error);
-    return NextResponse.json(
-      { error: 'Failed to submit feedback' },
-      { status: 500 }
-    );
+    console.error('Error submitting feedback:', error);
+    return new NextResponse('Internal Server Error', { status: 500 });
   }
 }
