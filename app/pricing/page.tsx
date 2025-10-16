@@ -61,7 +61,7 @@ export default function PricingPage() {
             </CardHeader>
             <CardContent>
               <p className="text-sm text-gray-600 mb-4">
-                Up to <strong>$100/month</strong> AI spend
+                Optimize up to <strong>$100/month</strong> in AI costs
               </p>
               <ul className="space-y-2 mb-6 text-sm">
                 <Feature>Basic analytics</Feature>
@@ -95,7 +95,7 @@ export default function PricingPage() {
             </CardHeader>
             <CardContent>
               <p className="text-sm text-gray-600 mb-4">
-                Up to <strong>$500/month</strong> AI spend
+                Optimize up to <strong>$500/month</strong> in AI costs
               </p>
               <ul className="space-y-2 mb-6 text-sm">
                 <Feature>Everything in Free</Feature>
@@ -129,7 +129,7 @@ export default function PricingPage() {
             </CardHeader>
             <CardContent>
               <p className="text-sm text-gray-600 mb-4">
-                Up to <strong>$2,000/month</strong> AI spend
+                Optimize up to <strong>$2,000/month</strong> in AI costs
               </p>
               <ul className="space-y-2 mb-6 text-sm">
                 <Feature>Everything in Starter</Feature>
@@ -158,7 +158,7 @@ export default function PricingPage() {
             </CardHeader>
             <CardContent>
               <p className="text-sm text-gray-600 mb-4">
-                <strong>Unlimited</strong> AI spend
+                <strong>Unlimited</strong> AI cost optimization
               </p>
               <ul className="space-y-2 mb-6 text-sm">
                 <Feature>Everything in Pro</Feature>

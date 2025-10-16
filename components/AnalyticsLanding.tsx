@@ -263,26 +263,26 @@ const result = await tracked.chat.completions.create({
           <PricingCard
             name="Free"
             price="$0"
-            features={["$100/mo AI spend", "7 days retention", "Basic routing"]}
+            features={["Optimize $100/mo AI costs", "7 days retention", "Basic routing"]}
             cta="Start Free"
           />
           <PricingCard
             name="Starter"
             price="$19"
-            features={["$500/mo AI spend", "30 days retention", "Redis caching", "Email alerts"]}
+            features={["Optimize $500/mo AI costs", "30 days retention", "Redis caching", "Email alerts"]}
             cta="Start Free"
           />
           <PricingCard
             name="Pro"
             price="$49"
-            features={["$2k/mo AI spend", "90 days retention", "Prompt optimization", "Quality monitoring"]}
+            features={["Optimize $2k/mo AI costs", "90 days retention", "Prompt optimization", "Quality monitoring"]}
             cta="Start Free"
             popular
           />
           <PricingCard
             name="Enterprise"
             price="Custom"
-            features={["Unlimited AI spend", "1 year retention", "SSO & SLA", "Dedicated support"]}
+            features={["Unlimited optimization", "1 year retention", "SSO & SLA", "Dedicated support"]}
             cta="Contact Sales"
           />
         </div>
