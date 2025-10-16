@@ -3,13 +3,14 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { Key, Bell, CreditCard, User, BarChart3 } from 'lucide-react';
+import { Key, Bell, CreditCard, User, BarChart3, Users } from 'lucide-react';
 
 const tabs = [
   { name: 'API Keys', href: '/settings', icon: Key },
   { name: 'Alerts', href: '/settings/alerts', icon: Bell },
   { name: 'Billing', href: '/settings/billing', icon: CreditCard },
   { name: 'Usage', href: '/settings/usage', icon: BarChart3 },
+  { name: 'Team', href: '/settings/team', icon: Users },
   { name: 'Profile', href: '/settings/profile', icon: User },
 ];
 

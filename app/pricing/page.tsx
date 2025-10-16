@@ -104,7 +104,7 @@ export default function PricingPage() {
                 <Feature>Email support</Feature>
                 <Feature>Savings reports</Feature>
                 <Feature highlight>Email alerts</Feature>
-                <MissingFeature>Team collaboration</MissingFeature>
+                <MissingFeature>Team collaboration (Coming Soon)</MissingFeature>
               </ul>
               <Link href="/sign-up">
                 <Button className="w-full bg-green-600 hover:bg-green-700">Upgrade Now</Button>
