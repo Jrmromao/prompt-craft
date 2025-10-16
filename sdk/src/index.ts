@@ -63,7 +63,7 @@ export class PromptCraft {
     }
 
     this.config = {
-      baseUrl: 'https://promptcraft.app',
+      baseUrl: 'https://prompthive.co',
       enableCache: false,
       maxRetries: 3,
       middleware: [],
