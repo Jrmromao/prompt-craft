@@ -112,6 +112,7 @@ export async function POST(request: Request) {
           keyId: newKey.id,
           keyName: newKey.name,
         },
+        details: `Created API key: ${newKey.name}`,
         timestamp: new Date(),
       },
     });
@@ -188,6 +189,7 @@ export async function DELETE(request: Request) {
           keyId,
           keyName: apiKey.name,
         },
+        details: `Deleted API key: ${apiKey.name}`,
         timestamp: new Date(),
       },
     });
