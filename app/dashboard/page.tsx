@@ -110,7 +110,7 @@ export default function DashboardPage() {
           data={{ usagePercent: percentUsed }}
         />
       )}
-      {stats && stats.savings.total > 50 && stats.plan === 'FREE' && (
+      {stats && stats.savings?.total > 50 && stats.plan === 'FREE' && (
         <SmartUpgradeModal 
           trigger="high_savings"
           currentPlan={stats.plan}
