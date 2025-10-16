@@ -1,53 +1,17 @@
 'use client';
 
-import { useUser } from '@clerk/nextjs';
-import { useEffect, useState } from 'react';
-
-interface DbUser {
-  planType: string;
-  monthlyCredits: number;
-  purchasedCredits: number;
-  role: string;
-}
-
-interface SubscriptionInfo {
-  status: string;
-  currentPeriodEnd: string;
-  planName: string;
-  cancelAtPeriodEnd?: boolean;
-}
-
-interface UsageStats {
-  promptsCreated: number;
-  creditsUsed: number;
-  lastActivity: string;
-}
-
-interface BillingInfo {
-  invoices: Array<{
-    id: string;
-    amount: number;
-    currency: string;
-    status: string;
-    created: number;
-    invoice_pdf?: string;
-  }>;
-  paymentMethods: Array<{
-    id: string;
-    type: string;
-    last4?: string;
-    brand?: string;
-  }>;
-  nextPayment?: {
-    amount: number;
-    date: string;
-  };
-}
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
 export default function AccountPage() {
-  const { user, isLoaded, isSignedIn } = useUser();
-  const [dbUser, setDbUser] = useState<DbUser | null>(null);
-  const [subscription, setSubscription] = useState<SubscriptionInfo | null>(null);
+  const router = useRouter();
+
+  useEffect(() => {
+    router.replace('/settings');
+  }, [router]);
+
+  return null;
+}
   const [usage, setUsage] = useState<UsageStats | null>(null);
   const [billing, setBilling] = useState<BillingInfo | null>(null);
   const [loading, setLoading] = useState(false);
