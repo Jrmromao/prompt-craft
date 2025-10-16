@@ -1,5 +1,5 @@
 import { Given, When, Then } from '@cucumber/cucumber';
-import { expect } from '@jest/globals';
+import assert from 'assert';
 
 // Mock state
 let currentUser: any;
@@ -47,19 +47,20 @@ When('I click the {string} button', async function (buttonText: string) {
 });
 
 Then('I should see a success message', function () {
-  expect(lastError).toBeNull();
+  assert.strictEqual(lastError, null);
 });
 
 Then('I should see the full API key starting with {string}', function (prefix: string) {
-  expect(lastCreatedKey).toMatch(new RegExp(`^${prefix}`));
+  assert.ok(lastCreatedKey);
+  assert.match(lastCreatedKey!, new RegExp(`^${prefix}`));
 });
 
 Then('I should be able to copy the key', function () {
-  expect(lastCreatedKey).toBeTruthy();
+  assert.ok(lastCreatedKey);
 });
 
 Then('the key should be {int} characters long', function (length: number) {
-  expect(lastCreatedKey?.length).toBe(length);
+  assert.strictEqual(lastCreatedKey?.length, length);
 });
 
 Given('I have created an API key named {string}', function (keyName: string) {
@@ -80,11 +81,11 @@ When('I refresh the page', function () {
 });
 
 Then('I should not see the full API key', function () {
-  expect(lastCreatedKey).toBeNull();
+  assert.strictEqual(lastCreatedKey, null);
 });
 
 Then('I should see {string} as the masked key', function (maskedKey: string) {
-  expect(maskedKey).toMatch(/^pc_\*+$/);
+  assert.match(maskedKey, /^pc_\*+$/);
 });
 
 Given('I have an existing API key named {string}', function (keyName: string) {
@@ -100,7 +101,7 @@ When('I click the delete button for {string}', function (keyName: string) {
 });
 
 Then('I should see a confirmation dialog', function () {
-  expect(this.keyToDelete).toBeTruthy();
+  assert.ok(this.keyToDelete);
 });
 
 When('I confirm the deletion', function () {
@@ -108,12 +109,12 @@ When('I confirm the deletion', function () {
 });
 
 Then('the key should be removed from the list', function () {
-  expect(apiKeys.find(k => k.id === this.keyToDelete.id)).toBeUndefined();
+  assert.strictEqual(apiKeys.find(k => k.id === this.keyToDelete.id), undefined);
 });
 
 Then('I should see an audit log entry for the deletion', function () {
   // Check audit log
-  expect(true).toBe(true);
+  assert.strictEqual(true, true);
 });
 
 Given('I have {int} existing API keys', function (count: number) {
@@ -136,11 +137,11 @@ When('I try to create a {int}th API key', function (count: number) {
 });
 
 Then('I should see an error message {string}', function (errorMessage: string) {
-  expect(lastError).toBe(errorMessage);
+  assert.strictEqual(lastError, errorMessage);
 });
 
 Then('the key should not be created', function () {
-  expect(apiKeys.length).toBeLessThanOrEqual(5);
+  assert.ok(apiKeys.length <= 5);
 });
 
 When('I try to create a key with name {string}', function (keyName: string) {
@@ -155,7 +156,7 @@ When('I try to create a key with name {string}', function (keyName: string) {
 });
 
 Then('I should see an error {string}', function (errorMessage: string) {
-  expect(lastError).toBe(errorMessage);
+  assert.strictEqual(lastError, errorMessage);
 });
 
 When('I check the database', function () {
@@ -164,10 +165,10 @@ When('I check the database', function () {
 
 Then('the key should be stored as a bcrypt hash', function () {
   const key = apiKeys[apiKeys.length - 1];
-  expect(key.hashedKey).toBeTruthy();
+  assert.ok(key.hashedKey);
 });
 
 Then('the original key should not be stored in plain text', function () {
   const key = apiKeys[apiKeys.length - 1];
-  expect(key.hashedKey).not.toBe(key.key);
+  assert.notStrictEqual(key.hashedKey, key.key);
 });

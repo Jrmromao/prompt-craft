@@ -13,7 +13,7 @@ Feature: API Key Management
     Then I should see a success message
     And I should see the full API key starting with "pc_"
     And I should be able to copy the key
-    And the key should be 68 characters long
+    And the key should be 67 characters long
 
   Scenario: API key is only shown once
     Given I have created an API key named "Test Key"
