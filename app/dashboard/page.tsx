@@ -46,21 +46,14 @@ export default function DashboardPage() {
         setLoading(false);
       });
 
-    // Check localStorage first for recently generated key
-    const savedKey = localStorage.getItem('promptcraft_api_key');
-    if (savedKey && savedKey.startsWith('pc_')) {
-      setApiKey(savedKey);
-    } else {
-      // Fetch API keys from server
-      fetch('/api/keys')
-        .then(res => res.json())
-        .then(data => {
-          if (data.apiKeys && data.apiKeys.length > 0) {
-            // If key exists but is masked, show message
-            setApiKey('existing'); // Flag that key exists
-          }
-        });
-    }
+    // Check if user has existing API keys
+    fetch('/api/keys')
+      .then(res => res.json())
+      .then(data => {
+        if (data.apiKeys && data.apiKeys.length > 0) {
+          setApiKey('existing'); // Flag that key exists
+        }
+      });
   }, []);
 
   const generateApiKey = async () => {
@@ -70,8 +63,10 @@ export default function DashboardPage() {
       const data = await res.json();
       if (data.apiKey) {
         setApiKey(data.apiKey);
-        // Store in localStorage so user can see it again (until they refresh)
-        localStorage.setItem('promptcraft_api_key', data.apiKey);
+        // SOC 2: Do NOT store in localStorage (security risk)
+        // Key shown only once, then gone forever
+      } else if (data.error) {
+        alert(data.error);
       }
     } catch (error) {
       console.error('Failed to generate API key:', error);
@@ -151,6 +146,12 @@ export default function DashboardPage() {
       ) : (
         <Card className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20 border-green-200 dark:border-green-800">
           <CardContent className="p-6">
+            <div className="bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 rounded-lg p-4 mb-4">
+              <p className="text-sm font-semibold text-red-600 dark:text-red-500">
+                ⚠️ IMPORTANT: Save this key now. For security, you will not see it again.
+              </p>
+            </div>
+            
             <h3 className="text-lg font-semibold mb-4">🎉 Quick Start - Copy & Run</h3>
             
             {/* API Key */}
