@@ -10,6 +10,7 @@ import { Toaster } from 'sonner';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { UnifiedNavigation } from '@/components/layout/UnifiedNavigation';
 import { BottomTabNavigation } from '@/components/mobile/BottomTabNavigation';
+import { CookieConsent } from '@/components/CookieConsent';
 
 interface ClientLayoutProps {
   children: ReactNode;
@@ -33,6 +34,7 @@ export function ClientLayout({ children }: ClientLayoutProps) {
         </Providers>
       </ErrorBoundary>
       <Toaster />
+      <CookieConsent />
     </ClerkProviderWrapper>
   );
 }

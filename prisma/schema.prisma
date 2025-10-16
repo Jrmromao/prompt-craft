@@ -1042,6 +1042,7 @@ model User {
   stripeSubscriptionId                                       String?
   planType                                                   PlanType                   @default(FREE)
   smartRoutingEnabled Boolean @default(true)
+  deletedAt DateTime?
   imageUrl                                                   String?
   bio                                                        String?
   company                                                    String?
@@ -1647,4 +1648,23 @@ model QualityFeedback {
   @@index([userId])
   @@index([runId])
   @@index([createdAt])
+}
+
+model BreachLog {
+  id                    String    @id @default(cuid())
+  detectedAt            DateTime  @default(now())
+  breachType            String
+  severity              String
+  affectedUsersCount    Int
+  dataCategories        String[]
+  containmentActions    String    @db.Text
+  authorityNotifiedAt   DateTime?
+  usersNotifiedAt       DateTime?
+  resolutionDate        DateTime?
+  lessonsLearned        String?   @db.Text
+  rootCause             String?   @db.Text
+  
+  @@index([detectedAt])
+  @@index([severity])
+  @@index([breachType])
 }

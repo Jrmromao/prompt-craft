@@ -43,7 +43,10 @@
     "seed-templates": "ts-node prisma/seed-templates.ts",
     "seed:templates": "ts-node prisma/seed-templates.ts",
     "test:bdd": "cucumber-js __tests__/bdd/features/**/*.feature",
-    "test:bdd:watch": "cucumber-js __tests__/bdd/features/**/*.feature --watch"
+    "test:bdd:watch": "cucumber-js __tests__/bdd/features/**/*.feature --watch",
+    "gdpr:report": "ts-node scripts/gdpr-compliance-report.ts",
+    "gdpr:cleanup": "ts-node scripts/data-retention-cleanup.ts",
+    "gdpr:export": "ts-node scripts/export-user-data.ts"
   },
   "prisma": {
     "seed": "ts-node prisma/seed.ts"
