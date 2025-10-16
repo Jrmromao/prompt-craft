@@ -37,11 +37,11 @@ export default function QuickStartPage() {
       </Link>
 
       <h1 className="text-4xl font-bold text-gray-900 mb-4">Quick Start Guide</h1>
-      <p className="text-xl text-gray-600 mb-8">Get started with PromptCraft in 5 minutes.</p>
+      <p className="text-xl text-gray-600 mb-8">Start saving 50-80% on AI costs in 5 minutes.</p>
 
       <div className="bg-blue-50 border border-blue-200 p-4 mb-12 rounded-lg">
-        <p className="text-blue-900 font-medium mb-1">⚡ Total time: 5 minutes</p>
-        <p className="text-blue-800 text-sm">Follow these 5 steps to start tracking your AI costs</p>
+        <p className="text-blue-900 font-medium mb-1">💰 Save money automatically</p>
+        <p className="text-blue-800 text-sm">Enable auto-optimization and smart routing to cut costs by 50-80%</p>
       </div>
 
       <div className="space-y-16">
@@ -103,7 +103,7 @@ export default function QuickStartPage() {
             <span className="text-sm text-gray-500 ml-auto">2 minutes</span>
           </div>
           
-          <h3 className="text-lg font-semibold text-gray-900 mb-3 ml-13">For OpenAI (Recommended - Auto-tracking):</h3>
+          <h3 className="text-lg font-semibold text-gray-900 mb-3 ml-13">For OpenAI (Recommended - Auto-saving):</h3>
           <CodeBlock 
             language="typescript"
             code={`import PromptCraft from 'promptcraft-sdk';
@@ -111,10 +111,14 @@ import OpenAI from 'openai';
 
 const openai = new OpenAI();
 const promptcraft = new PromptCraft({ 
-  apiKey: process.env.PROMPTCRAFT_API_KEY 
+  apiKey: process.env.PROMPTCRAFT_API_KEY,
+  autoOptimize: true,    // 🚀 Saves 50-80% on tokens
+  smartRouting: true,    // 🚀 Routes to cheapest model
+  enableCache: true,     // 🚀 Saves 80% on repeated queries
+  costLimit: 0.10        // 🚀 Prevents budget overruns
 });
 
-// Wrap your client - tracking happens automatically!
+// Wrap your client - savings happen automatically!
 const tracked = promptcraft.wrapOpenAI(openai);
 
 // Use it exactly like normal OpenAI
@@ -122,12 +126,12 @@ const result = await tracked.chat.completions.create({
   model: 'gpt-4',
   messages: [{ role: 'user', content: 'Hello!' }]
 });
-// ✅ Done! Automatically tracked with error handling!`}
+// ✅ Prompt optimized, routed to cheaper model, cached, and tracked!`}
           />
 
-          <div className="bg-blue-50 border-l-4 border-blue-400 p-4 mt-4 ml-13">
-            <p className="text-sm text-blue-900">
-              <strong>💡 Pro tip:</strong> The wrapper approach automatically handles tracking, errors, and retries. No timing code needed!
+          <div className="bg-green-50 border-l-4 border-green-400 p-4 mt-4 ml-13">
+            <p className="text-sm text-green-900">
+              <strong>💰 Money-saving features:</strong> autoOptimize reduces tokens by 50-80%, smartRouting uses GPT-3.5 for simple queries (20x cheaper), and caching saves 80% on repeated prompts.
             </p>
           </div>
 
@@ -175,15 +179,15 @@ const result = await tracked.messages.create({
         <div className="flex items-start gap-3">
           <CheckCircle className="w-6 h-6 text-green-600 flex-shrink-0 mt-1" />
           <div>
-            <h3 className="text-lg font-semibold text-green-900 mb-2">You're All Set!</h3>
+            <h3 className="text-lg font-semibold text-green-900 mb-2">You're Saving Money! 💰</h3>
             <p className="text-green-800 mb-3">
-              Your AI costs are now being tracked. Check your dashboard to see:
+              Your AI costs are being optimized automatically. Check your dashboard to see:
             </p>
             <ul className="text-green-800 space-y-1 list-disc list-inside">
-              <li>Total runs and costs</li>
-              <li>Cost per API call</li>
-              <li>Success rates</li>
-              <li>Cost trends over time</li>
+              <li>Real savings from smart routing</li>
+              <li>Token reduction from optimization</li>
+              <li>Cache hit rate and savings</li>
+              <li>Total $ saved this month</li>
             </ul>
           </div>
         </div>

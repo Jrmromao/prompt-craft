@@ -31,9 +31,14 @@ export default function SDKDocsPage() {
   return (
     <div className="max-w-4xl mx-auto px-6 py-12">
       <h1 className="text-4xl font-bold text-gray-900 mb-4">SDK Reference</h1>
-      <p className="text-xl text-gray-600 mb-12">
-        Complete reference for the PromptCraft SDK.
+      <p className="text-xl text-gray-600 mb-8">
+        Complete reference for the PromptCraft SDK - Save 50-80% on AI costs automatically.
       </p>
+
+      <div className="bg-green-50 border border-green-200 p-4 mb-12 rounded-lg">
+        <p className="text-green-900 font-medium mb-1">💰 Money-Saving Features</p>
+        <p className="text-green-800 text-sm">Enable autoOptimize, smartRouting, and caching to cut costs by 50-80%</p>
+      </div>
 
       <h2 className="text-2xl font-bold text-gray-900 mt-12 mb-4">Installation</h2>
       <CodeBlock code="npm install promptcraft-sdk" language="bash" />
@@ -59,11 +64,47 @@ export default function SDKDocsPage() {
               <td className="px-4 py-3 text-sm text-gray-600">Yes</td>
               <td className="px-4 py-3 text-sm text-gray-600">Your PromptCraft API key</td>
             </tr>
+            <tr className="bg-green-50">
+              <td className="px-4 py-3 text-sm"><code className="bg-green-100 px-2 py-1 rounded">autoOptimize</code></td>
+              <td className="px-4 py-3 text-sm text-gray-600">boolean</td>
+              <td className="px-4 py-3 text-sm text-gray-600">No</td>
+              <td className="px-4 py-3 text-sm text-gray-600">💰 Auto-optimize prompts (50-80% token reduction)</td>
+            </tr>
+            <tr className="bg-green-50">
+              <td className="px-4 py-3 text-sm"><code className="bg-green-100 px-2 py-1 rounded">smartRouting</code></td>
+              <td className="px-4 py-3 text-sm text-gray-600">boolean</td>
+              <td className="px-4 py-3 text-sm text-gray-600">No</td>
+              <td className="px-4 py-3 text-sm text-gray-600">💰 Route to cheapest model (20x savings)</td>
+            </tr>
+            <tr className="bg-green-50">
+              <td className="px-4 py-3 text-sm"><code className="bg-green-100 px-2 py-1 rounded">enableCache</code></td>
+              <td className="px-4 py-3 text-sm text-gray-600">boolean</td>
+              <td className="px-4 py-3 text-sm text-gray-600">No</td>
+              <td className="px-4 py-3 text-sm text-gray-600">💰 Cache responses (80% savings on repeats)</td>
+            </tr>
+            <tr className="bg-green-50">
+              <td className="px-4 py-3 text-sm"><code className="bg-green-100 px-2 py-1 rounded">costLimit</code></td>
+              <td className="px-4 py-3 text-sm text-gray-600">number</td>
+              <td className="px-4 py-3 text-sm text-gray-600">No</td>
+              <td className="px-4 py-3 text-sm text-gray-600">💰 Max cost per request (prevents overruns)</td>
+            </tr>
+            <tr>
+              <td className="px-4 py-3 text-sm"><code className="bg-gray-100 px-2 py-1 rounded">autoFallback</code></td>
+              <td className="px-4 py-3 text-sm text-gray-600">boolean</td>
+              <td className="px-4 py-3 text-sm text-gray-600">No</td>
+              <td className="px-4 py-3 text-sm text-gray-600">Auto-fallback on rate limits</td>
+            </tr>
+            <tr>
+              <td className="px-4 py-3 text-sm"><code className="bg-gray-100 px-2 py-1 rounded">maxRetries</code></td>
+              <td className="px-4 py-3 text-sm text-gray-600">number</td>
+              <td className="px-4 py-3 text-sm text-gray-600">No</td>
+              <td className="px-4 py-3 text-sm text-gray-600">Max retry attempts (default: 3)</td>
+            </tr>
             <tr>
               <td className="px-4 py-3 text-sm"><code className="bg-gray-100 px-2 py-1 rounded">baseUrl</code></td>
               <td className="px-4 py-3 text-sm text-gray-600">string</td>
               <td className="px-4 py-3 text-sm text-gray-600">No</td>
-              <td className="px-4 py-3 text-sm text-gray-600">Custom base URL (default: https://promptcraft.app)</td>
+              <td className="px-4 py-3 text-sm text-gray-600">Custom base URL (default: https://prompthive.co)</td>
             </tr>
           </tbody>
         </table>
@@ -72,7 +113,12 @@ export default function SDKDocsPage() {
       <h3 className="text-xl font-semibold text-gray-900 mt-8 mb-4">Example</h3>
       <CodeBlock code={`const promptcraft = new PromptCraft({
   apiKey: 'pc_your_api_key_here',
-  baseUrl: 'https://custom.promptcraft.app' // optional
+  autoOptimize: true,    // 💰 Save 50-80% on tokens
+  smartRouting: true,    // 💰 Route to cheapest model
+  enableCache: true,     // 💰 Cache repeated queries
+  costLimit: 0.10,       // 💰 Max $0.10 per request
+  autoFallback: true,    // Auto-retry on failures
+  maxRetries: 3          // Retry up to 3 times
 });`} />
 
       <h2 className="text-2xl font-bold text-gray-900 mt-16 mb-4">Methods</h2>
