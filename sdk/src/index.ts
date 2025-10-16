@@ -97,6 +97,25 @@ export class PromptCraft {
     return requestedModel;
   }
 
+  private async checkRoutingEnabled(): Promise<boolean> {
+    try {
+      const response = await fetch(`${this.config.baseUrl}/api/quality/routing`, {
+        headers: {
+          'Authorization': `Bearer ${this.config.apiKey}`,
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        return data.enabled;
+      }
+    } catch (error) {
+      console.warn('[PromptCraft] Failed to check routing status:', error);
+    }
+
+    return true; // Default to enabled if check fails
+  }
+
   private getDefaultFallbacks(model: string): string[] {
     const fallbacks: Record<string, string[]> = {
       'gpt-4': ['gpt-4-turbo', 'gpt-3.5-turbo'],
@@ -226,12 +245,17 @@ export class PromptCraft {
               }
             }
 
-            // Smart routing - select optimal model
+            // Smart routing - select optimal model (check if enabled first)
             const originalModel = params.model;
             if (self.config.smartRouting) {
-              params.model = self.selectOptimalModel(params.model, params.messages);
-              if (params.model !== originalModel) {
-                console.log(`[PromptCraft] Smart routing: ${originalModel} → ${params.model}`);
+              const routingEnabled = await self.checkRoutingEnabled();
+              if (routingEnabled) {
+                params.model = self.selectOptimalModel(params.model, params.messages);
+                if (params.model !== originalModel) {
+                  console.log(`[PromptCraft] Smart routing: ${originalModel} → ${params.model}`);
+                }
+              } else {
+                console.log('[PromptCraft] Smart routing disabled due to quality concerns');
               }
             }
 

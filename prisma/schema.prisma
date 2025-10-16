@@ -1041,6 +1041,7 @@ model User {
   stripeCustomerId                                           String?
   stripeSubscriptionId                                       String?
   planType                                                   PlanType                   @default(FREE)
+  smartRoutingEnabled Boolean @default(true)
   imageUrl                                                   String?
   bio                                                        String?
   company                                                    String?
@@ -1145,6 +1146,7 @@ model User {
   PromptRuns                                                 PromptRun[]                @relation("UserPromptRuns")
   Alerts                                                     Alert[]                    @relation("UserAlerts")
   PromptOptimizations                                        PromptOptimization[]
+  qualityFeedback QualityFeedback[]
 
   @@index([clerkId])
   @@index([dataRetentionPeriod])
@@ -1517,6 +1519,7 @@ model PromptRun {
   createdAt      DateTime @default(now())
   
   user        User     @relation("UserPromptRuns", fields: [userId], references: [id], onDelete: Cascade)
+  qualityFeedback QualityFeedback[]
   
   @@index([userId, createdAt])
   @@index([promptId])
@@ -1627,5 +1630,21 @@ model PromptOptimization {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   
   @@index([userId])
+  @@index([createdAt])
+}
+
+model QualityFeedback {
+  id        String   @id @default(cuid())
+  userId    String
+  runId     String
+  rating    Int
+  feedback  String?
+  createdAt DateTime @default(now())
+  
+  user User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  run  PromptRun @relation(fields: [runId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+  @@index([runId])
   @@index([createdAt])
 }
