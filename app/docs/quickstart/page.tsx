@@ -39,14 +39,9 @@ export default function QuickStartPage() {
       <h1 className="text-4xl font-bold text-gray-900 mb-4">Quick Start Guide</h1>
       <p className="text-xl text-gray-600 mb-8">Start saving 50-80% on AI costs in 5 minutes.</p>
 
-      <div className="bg-blue-50 border border-blue-200 p-4 mb-8 rounded-lg">
-        <p className="text-blue-900 font-medium mb-1">🎉 New in v3.0.0</p>
-        <p className="text-blue-800 text-sm">Redis caching, quality monitoring, AI optimization, and real-time savings tracking</p>
-      </div>
-
-      <div className="bg-green-50 border border-green-200 p-4 mb-12 rounded-lg">
-        <p className="text-green-900 font-medium mb-1">💰 Save money automatically</p>
-        <p className="text-green-800 text-sm">Enable auto-optimization and smart routing to cut costs by 50-80%</p>
+      <div className="bg-blue-50 border border-blue-200 p-4 mb-12 rounded-lg">
+        <p className="text-blue-900 font-medium mb-1">💰 Save money automatically</p>
+        <p className="text-blue-800 text-sm">Enable auto-optimization and smart routing to cut costs by 50-80%</p>
       </div>
 
       <div className="space-y-16">

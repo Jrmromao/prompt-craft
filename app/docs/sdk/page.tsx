@@ -36,7 +36,7 @@ export default function SDKDocsPage() {
       </p>
 
       <div className="bg-green-50 border border-green-200 p-4 mb-12 rounded-lg">
-        <p className="text-green-900 font-medium mb-1">🎉 New in v3.0.0</p>
+        <p className="text-green-900 font-medium mb-1">💰 Money-Saving Features</p>
         <p className="text-green-800 text-sm">
           Redis caching, quality monitoring, AI optimization, and real-time savings tracking
         </p>
@@ -285,7 +285,7 @@ await promptcraft.trackGrok(
 }`} />
       </div>
 
-      <h2 className="text-2xl font-bold text-gray-900 mt-16 mb-4">🎉 New in v3.0.0</h2>
+      <h2 className="text-2xl font-bold text-gray-900 mt-16 mb-4">💰 Money-Saving Features</h2>
 
       <div className="space-y-8">
         <div>
