@@ -1,7 +1,7 @@
 {
   "name": "promptcraft-sdk",
   "version": "2.2.0",
-  "description": "Official SDK for PromptCraft - Track and optimize your AI costs",
+  "description": "Save 50-80% on AI costs automatically - Auto-optimize prompts, smart routing, and cost tracking",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
@@ -21,24 +21,27 @@
     "ai",
     "openai",
     "anthropic",
+    "cost-optimization",
     "cost-tracking",
+    "prompt-optimization",
+    "smart-routing",
     "analytics",
     "llm",
     "gpt",
     "claude",
     "monitoring",
-    "observability"
+    "savings"
   ],
   "author": "PromptCraft",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/promptcraft/sdk"
+    "url": "https://github.com/yourusername/promptcraft"
   },
   "bugs": {
-    "url": "https://github.com/promptcraft/sdk/issues"
+    "url": "https://github.com/yourusername/promptcraft/issues"
   },
-  "homepage": "https://promptcraft.app",
+  "homepage": "https://yourdomain.com",
   "peerDependencies": {
     "@anthropic-ai/sdk": ">=0.20.0",
     "openai": ">=4.0.0"
