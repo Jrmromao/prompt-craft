@@ -132,11 +132,9 @@ export default function SettingsPage() {
               Copy this key now. You won't be able to see it again.
             </p>
             <div className="flex gap-2">
-              <Input
-                value={newKey}
-                readOnly
-                className="font-mono text-sm bg-white"
-              />
+              <div className="flex-1 p-3 bg-white border rounded-md font-mono text-sm break-all">
+                {newKey}
+              </div>
               <Button
                 onClick={() => copyKey(newKey, 'new')}
                 variant="outline"
