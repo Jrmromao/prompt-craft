@@ -53,9 +53,9 @@ export default function SettingsPage() {
       const data = await res.json();
       
       if (data.key) {
-        setNewKey(data.key);
+        setNewKey(data.key.key); // Get the actual key string from the response
         setNewKeyName('');
-        fetchKeys();
+        await fetchKeys(); // Wait for keys to refresh
       }
     } catch (error) {
       console.error('Failed to create key:', error);
