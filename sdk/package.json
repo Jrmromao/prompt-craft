@@ -1,6 +1,6 @@
 {
   "name": "promptcraft-sdk",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Save 50-80% on AI costs automatically - Auto-optimize prompts, smart routing, and cost tracking",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -10,7 +10,6 @@
   ],
   "scripts": {
     "build": "tsc",
-    "prepublishOnly": "npm run build",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
