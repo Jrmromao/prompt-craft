@@ -1,6 +1,6 @@
 {
   "name": "promptcraft-sdk",
-  "version": "2.2.1",
+  "version": "2.2.2",
   "description": "Save 50-80% on AI costs automatically - Auto-optimize prompts, smart routing, and cost tracking",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

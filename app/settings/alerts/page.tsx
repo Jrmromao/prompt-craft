@@ -21,11 +21,7 @@ export default function AlertsPage() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Email Alerts</h1>
-        <p className="text-gray-600 mt-1">Get notified when important events happen</p>
-      </div>
+    <div className="space-y-6">
 
       <Card>
         <CardHeader>
