@@ -49,13 +49,11 @@ export async function GET() {
     }
 
     // Count prompts created by the user
-    const promptCount = await prisma.prompt.count({ where: { userId: user.id } });
 
     // Check prompt creation limit
     const { allowed, limit, remaining } = await planLimitsService.checkLimit(
       user.planType,
       'prompt_creation',
-      promptCount
     );
 
     const canCreate = allowed;

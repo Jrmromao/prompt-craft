@@ -17,14 +17,6 @@ import {
 } from 'recharts';
 import { format } from 'date-fns';
 
-interface Prompt {
-  id: string;
-  title: string;
-  description: string;
-  createdAt: Date;
-  creditsUsed: number;
-}
-
 interface DashboardClientProps {
   user: {
     name: string;
@@ -33,10 +25,9 @@ interface DashboardClientProps {
     creditCap: number;
     planType: string;
   };
-  recentPrompts: Prompt[];
 }
 
-export function DashboardClient({ user, recentPrompts }: DashboardClientProps) {
+export function DashboardClient({ user }: DashboardClientProps) {
   const { data: creditData, loading: creditLoading } = useCreditUsage();
   const creditUsage = creditData ? (creditData.currentBalance / creditData.creditCap) * 100 : 0;
 
@@ -72,12 +63,10 @@ export function DashboardClient({ user, recentPrompts }: DashboardClientProps) {
         <Card className="p-6">
           <h3 className="mb-2 text-sm font-medium text-muted-foreground">Last Activity</h3>
           <div className="text-2xl font-bold">
-            {recentPrompts[0]?.createdAt
-              ? new Date(recentPrompts[0].createdAt).toLocaleDateString()
-              : 'No activity'}
+            No activity
           </div>
           <p className="mt-2 text-sm text-muted-foreground">
-            {recentPrompts.length} prompts this month
+            0 API calls this month
           </p>
         </Card>
       </div>
