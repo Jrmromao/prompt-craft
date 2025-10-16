@@ -67,7 +67,7 @@ export default function SettingsPage() {
     if (!confirm('Are you sure? This cannot be undone.')) return;
     
     try {
-      await fetch(`/api/settings/api-keys?id=${id}`, { method: 'DELETE' });
+      await fetch(`/api/settings/api-keys?keyId=${id}`, { method: 'DELETE' });
       fetchKeys();
     } catch (error) {
       console.error('Failed to delete key:', error);

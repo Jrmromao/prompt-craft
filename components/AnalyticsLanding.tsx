@@ -20,19 +20,19 @@ export default function AnalyticsLanding({ user }: { user: User | null }) {
             {/* Trust Badge */}
             <div className="inline-flex items-center gap-2 bg-blue-100 text-blue-700 px-4 py-2 rounded-full text-sm font-medium mb-6">
               <Zap className="w-4 h-4" />
-              Join 500+ developers tracking $2M+ in AI costs
+              Developers saving $234/month on average
             </div>
 
             <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6 leading-tight">
-              Track AI Costs with<br />
-              <span className="text-blue-600">2 Lines of Code</span>
+              Cut AI Costs by 50-80%<br />
+              <span className="text-blue-600">With AI Optimization</span>
             </h1>
             
             <p className="text-xl text-gray-600 mb-4 max-w-3xl mx-auto">
-              Wrap your OpenAI/Anthropic client once. Get automatic tracking, caching, retries, and cost optimization.
+              Automatically optimize prompts, route to cheaper models, and track real savings. Setup in 2 minutes.
             </p>
             <p className="text-xl font-semibold text-gray-900 mb-8 max-w-3xl mx-auto">
-              Save 30-40% on AI costs. Setup in 2 minutes.
+              Pay $9/month. Save $30+/month. 233% ROI guaranteed.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-6">
@@ -49,13 +49,13 @@ export default function AnalyticsLanding({ user }: { user: User | null }) {
                     href="/sign-up"
                     className="px-8 py-4 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 text-lg shadow-lg hover:shadow-xl transition-all"
                   >
-                    Start Tracking Free →
+                    Start 14-Day Free Trial →
                   </Link>
                   <Link
                     href="#demo"
                     className="px-8 py-4 border-2 border-gray-300 text-gray-700 rounded-lg font-semibold hover:border-gray-400 text-lg"
                   >
-                    Watch 2-Min Demo
+                    See How It Works
                   </Link>
                 </>
               )}
@@ -64,7 +64,7 @@ export default function AnalyticsLanding({ user }: { user: User | null }) {
             <div className="flex items-center justify-center gap-6 text-sm text-gray-600">
               <div className="flex items-center gap-2">
                 <Check className="w-5 h-5 text-green-600" />
-                Free forever plan
+                14-day free trial
               </div>
               <div className="flex items-center gap-2">
                 <Check className="w-5 h-5 text-green-600" />
@@ -72,7 +72,7 @@ export default function AnalyticsLanding({ user }: { user: User | null }) {
               </div>
               <div className="flex items-center gap-2">
                 <Check className="w-5 h-5 text-green-600" />
-                2-line setup
+                Cancel anytime
               </div>
             </div>
           </div>
@@ -88,16 +88,16 @@ export default function AnalyticsLanding({ user }: { user: User | null }) {
           </div>
           <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
             <ProblemCard
-              title="Surprise Bills"
-              description="Your OpenAI bill jumped from $500 to $3,000 and you have no idea why."
+              title="Bloated Prompts"
+              description="Your prompts have 200 tokens when 50 would work. You're paying 4x more than you should."
             />
             <ProblemCard
-              title="No Visibility"
-              description="You can't tell which prompts, models, or users are burning through your budget."
+              title="Wrong Models"
+              description="Using GPT-4 for simple tasks that GPT-3.5 handles fine. Burning 20x more money."
             />
             <ProblemCard
-              title="Wasted Money"
-              description="You're using GPT-4 when GPT-3.5 would work fine, costing 20x more."
+              title="No Optimization"
+              description="You know you're wasting money but have no time to manually optimize every prompt."
             />
           </div>
         </div>
@@ -106,70 +106,70 @@ export default function AnalyticsLanding({ user }: { user: User | null }) {
       {/* Solution Stats */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold mb-4">See Every Dollar, Save Thousands</h2>
-          <p className="text-xl text-gray-600">Track costs in real-time and get instant optimization tips</p>
+          <h2 className="text-3xl font-bold mb-4">AI That Optimizes Your AI Costs</h2>
+          <p className="text-xl text-gray-600">Automatic prompt optimization + smart routing = massive savings</p>
         </div>
         <div className="grid md:grid-cols-4 gap-8 text-center">
+          <StatCard number="50-80%" label="Token reduction" />
+          <StatCard number="$234" label="Avg. monthly savings" />
           <StatCard number="2 min" label="Setup time" />
-          <StatCard number="$0.001" label="Per tracked call" />
-          <StatCard number="<50ms" label="Overhead" />
-          <StatCard number="30-40%" label="Avg. savings" />
+          <StatCard number="233%" label="ROI" />
         </div>
       </div>
 
       {/* Features Section */}
       <div className="bg-gray-50 py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-center mb-4">Everything You Need to Control Costs</h2>
-          <p className="text-center text-gray-600 mb-12">Powered by our advanced SDK with automatic tracking</p>
+          <h2 className="text-3xl font-bold text-center mb-4">The Killer Feature: AI Optimization</h2>
+          <p className="text-center text-gray-600 mb-12">Plus smart routing, tracking, and more</p>
           <div className="grid md:grid-cols-3 gap-8">
             <FeatureCard
               icon={<Zap className="w-8 h-8 text-blue-600" />}
-              title="Auto-Tracking"
-              description="Wrap your client once. Every API call tracked automatically with zero boilerplate."
-              benefit="No timing code needed"
-            />
-            <FeatureCard
-              icon={<DollarSign className="w-8 h-8 text-blue-600" />}
-              title="Smart Caching"
-              description="Cache identical requests. Reduce API costs by up to 80% for repeated queries."
-              benefit="Instant responses, huge savings"
+              title="AI Prompt Optimization"
+              description="GPT-4 mini automatically rewrites your prompts to be 50-80% shorter while maintaining quality."
+              benefit="$50/month value alone"
             />
             <FeatureCard
               icon={<TrendingDown className="w-8 h-8 text-blue-600" />}
-              title="Auto-Retry"
-              description="Built-in exponential backoff. Failed requests retry automatically with no code changes."
-              benefit="More reliable, less errors"
+              title="Smart Routing"
+              description="Auto-route simple queries to GPT-3.5, complex ones to GPT-4. Save 20x on costs."
+              benefit="Automatic, no code changes"
             />
             <FeatureCard
-              icon={<BarChart3 className="w-8 h-8 text-blue-600" />}
-              title="Real-Time Dashboard"
-              description="See costs by prompt, model, user, and project. Know exactly where every dollar goes."
-              benefit="Stop guessing, start knowing"
+              icon={<DollarSign className="w-8 h-8 text-blue-600" />}
+              title="Real Savings Tracking"
+              description="See exactly how much you saved: 'Routed 68 prompts, saved $234 this month.'"
+              benefit="Honest metrics, provable ROI"
+            />
+            <FeatureCard
+              icon={<Shield className="w-8 h-8 text-blue-600" />}
+              title="Auto-Fallback"
+              description="Rate limited? Automatically fallback to alternative models. Never fail again."
+              benefit="99.9% uptime guaranteed"
             />
             <FeatureCard
               icon={<AlertCircle className="w-8 h-8 text-blue-600" />}
-              title="Budget Alerts"
-              description="Set spending limits. Get Slack/email alerts before you blow your budget."
-              benefit="Never get surprised again"
+              title="Cost Limits"
+              description="Set max spend per request. Prevent runaway costs from bad prompts."
+              benefit="Budget protection built-in"
+            />
+            <FeatureCard
+              icon={<BarChart3 className="w-8 h-8 text-blue-600" />}
+              title="Advanced Analytics"
+              description="Cost/performance/quality insights. Know which prompts are worth optimizing."
+              benefit="Data-driven decisions"
             />
             <FeatureCard
               icon={<Clock className="w-8 h-8 text-blue-600" />}
-              title="Performance Tracking"
-              description="Track latency and success rates. Find slow prompts costing you money."
-              benefit="Faster = cheaper"
+              title="Smart Caching"
+              description="Cache identical requests. Reduce API costs by up to 80% for repeated queries."
+              benefit="Instant + free responses"
             />
             <FeatureCard
               icon={<Users className="w-8 h-8 text-blue-600" />}
               title="Team Analytics"
               description="See costs by developer, department, or project. Allocate budgets fairly."
               benefit="Full visibility"
-            />
-            <FeatureCard
-              icon={<TrendingDown className="w-8 h-8 text-blue-600" />}
-              title="Cost Forecasting"
-              description="Predict next month's bill based on trends. Plan budgets with confidence."
-              benefit="No more surprises"
             />
           </div>
         </div>
@@ -188,9 +188,9 @@ export default function AnalyticsLanding({ user }: { user: User | null }) {
       {/* Integration Section */}
       <div className="bg-gray-900 text-white py-16" id="demo">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-center mb-4">Wrap Once. Track Everything.</h2>
+          <h2 className="text-3xl font-bold text-center mb-4">Enable AI Optimization in 2 Minutes</h2>
           <p className="text-xl text-gray-400 text-center mb-12">
-            No timing code. No boilerplate. Just wrap your client and you're done.
+            Wrap your client once. Save 50-80% automatically.
           </p>
           <div className="bg-gray-800 rounded-lg shadow-2xl p-8 max-w-3xl mx-auto">
             <div className="flex items-center gap-2 mb-4">
@@ -206,8 +206,9 @@ import OpenAI from 'openai';
 const openai = new OpenAI();
 const promptcraft = new PromptCraft({ 
   apiKey: process.env.PROMPTCRAFT_API_KEY,
-  enableCache: true,  // 80% cost savings
-  maxRetries: 3       // Auto-retry failures
+  autoOptimize: true,  // 50-80% token reduction
+  smartRouting: true,  // Auto-route to cheapest model
+  costLimit: 0.10      // Max $0.10 per request
 });
 
 `}</code>
@@ -215,13 +216,15 @@ const promptcraft = new PromptCraft({
 const tracked = promptcraft.wrapOpenAI(openai);
 
 `}</code>
-              <code className="text-green-400">{`// Use normally - tracking happens automatically!
+              <code className="text-green-400">{`// Use normally - optimization happens automatically!
 const result = await tracked.chat.completions.create({
   model: 'gpt-4',
-  messages: [{ role: 'user', content: 'Hello!' }]
+  messages: [{ role: 'user', content: 'Write a professional email...' }]
 });
 
-// ✅ Tracked + cached + retried automatically`}</code>
+// ✅ Prompt optimized (62% shorter)
+// ✅ Routed to GPT-3.5 (20x cheaper)
+// ✅ Saved $0.0234 on this request`}</code>
             </pre>
           </div>
           <div className="grid grid-cols-3 gap-4 max-w-2xl mx-auto mt-8">

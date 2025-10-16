@@ -35,67 +35,67 @@ export interface Plan {
 export const PLANS: Record<PlanType, Plan> = {
   [PlanType.FREE]: {
     id: PlanType.FREE,
-    name: 'Free',
-    description: 'Get started with the basics',
+    name: 'Free Trial',
+    description: '14-day trial with all Pro features',
     price: {
       monthly: 0,
       annual: 0
     },
     features: [
-      { name: 'Credits', description: '100 credits/month (resets monthly)' },
-      { name: 'Private Prompts', description: 'Up to 3 private prompts' },
-      { name: 'Public Prompts', description: 'Create unlimited public prompts' },
-      { name: 'Basic Testing', description: 'Basic prompt testing' },
-      { name: 'Community Support', description: 'Community support' },
+      { name: 'AI Prompt Optimization', description: '50-80% cost reduction' },
+      { name: 'Smart Routing', description: 'Auto-select cheapest model' },
+      { name: 'Cost Tracking', description: 'Real-time cost analytics' },
+      { name: 'Auto-Fallback', description: 'Never fail on rate limits' },
+      { name: '14-Day Trial', description: 'All Pro features included' },
     ],
     limits: {
-      promptRuns: 100,
+      promptRuns: 1000,
       testRuns: 0,
       tokens: 100000
-    },
-    models: {
-      gpt35: true,
-      gpt4: false
-    },
-    byok: {
-      enabled: false
-    },
-    credits: {
-      included: 100
-    }
-  },
-  [PlanType.PRO]: {
-    id: PlanType.PRO,
-    name: 'Pro',
-    description: 'For professionals and creators',
-    price: {
-      monthly: 15.99,
-      annual: 163.90 // ~$13.66/month when billed annually (15% savings)
-    },
-    features: [
-      { name: 'Credits', description: '500 credits/month (resets monthly)' },
-      { name: 'Private Prompts', description: 'Up to 20 private prompts' },
-      { name: 'Public Prompts', description: 'Create unlimited public prompts' },
-      { name: 'Version Control', description: 'Prompt version control' },
-      { name: 'Advanced Testing', description: 'Advanced prompt testing' },
-      { name: 'Analytics', description: 'Advanced analytics' },
-      { name: 'Premium Models', description: 'Access to premium AI models' },
-      { name: 'Priority Support', description: 'Priority support' },
-    ],
-    limits: {
-      promptRuns: 500,
-      testRuns: 0,
-      tokens: 0
     },
     models: {
       gpt35: true,
       gpt4: true
     },
     byok: {
-      enabled: false
+      enabled: true
     },
     credits: {
-      included: 500
+      included: 1000
+    }
+  },
+  [PlanType.PRO]: {
+    id: PlanType.PRO,
+    name: 'Pro',
+    description: 'Save $30+/month on AI costs',
+    price: {
+      monthly: 9,
+      annual: 86.40 // $7.20/month when billed annually (20% savings)
+    },
+    features: [
+      { name: 'AI Prompt Optimization', description: '50-80% token reduction' },
+      { name: 'Smart Routing', description: 'Auto-route to cheapest model' },
+      { name: 'Real Savings Tracking', description: 'See actual $ saved' },
+      { name: 'Auto-Fallback', description: 'Automatic failover chains' },
+      { name: 'Cost Limits', description: 'Prevent budget overruns' },
+      { name: 'Unlimited API Keys', description: 'Up to 5 keys' },
+      { name: 'Advanced Analytics', description: 'Cost/performance insights' },
+      { name: 'Priority Support', description: 'Email support' },
+    ],
+    limits: {
+      promptRuns: -1, // unlimited
+      testRuns: 0,
+      tokens: -1 // unlimited
+    },
+    models: {
+      gpt35: true,
+      gpt4: true
+    },
+    byok: {
+      enabled: true
+    },
+    credits: {
+      included: -1 // unlimited
     }
   },
 };
