@@ -107,12 +107,11 @@ export async function POST(request: Request) {
         userId: user.id,
         action: 'API_KEY_CREATED',
         resource: 'ApiKey',
-        resourceId: newKey.id,
-        metadata: {
+        details: {
           keyId: newKey.id,
           keyName: newKey.name,
+          message: `Created API key: ${newKey.name}`,
         },
-        details: `Created API key: ${newKey.name}`,
         timestamp: new Date(),
       },
     });
@@ -184,12 +183,11 @@ export async function DELETE(request: Request) {
         userId: user.id,
         action: 'API_KEY_DELETED',
         resource: 'ApiKey',
-        resourceId: keyId,
-        metadata: {
+        details: {
           keyId,
           keyName: apiKey.name,
+          message: `Deleted API key: ${apiKey.name}`,
         },
-        details: `Deleted API key: ${apiKey.name}`,
         timestamp: new Date(),
       },
     });
