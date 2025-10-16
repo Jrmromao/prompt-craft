@@ -95,6 +95,8 @@ export default function SettingsPage() {
       await fetch(`/api/settings/api-keys?keyId=${id}`, { method: 'DELETE' });
       fetchKeys();
       setDeleteKeyId(null);
+      // Clear the new key alert if the deleted key was just created
+      setNewKey(null);
     } catch (error) {
       console.error('Failed to delete key:', error);
     }
