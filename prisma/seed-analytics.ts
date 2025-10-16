@@ -5,53 +5,17 @@ const prisma = new PrismaClient();
 async function main() {
   console.log('🌱 Seeding analytics data...');
 
-  // Get or create test user
-  let user = await prisma.user.findFirst({
-    where: { email: 'demo@prompthive.co' },
+  // Use specific user
+  const user = await prisma.user.findUnique({
+    where: { id: 'cmgnyuzil00008o66zgu5ru66' }
   });
 
   if (!user) {
-    user = await prisma.user.create({
-      data: {
-        id: `user_${Date.now()}`,
-        clerkId: 'user_demo_123',
-        email: 'demo@prompthive.co',
-        name: 'Demo User',
-      },
-    });
-    console.log('✅ Created demo user');
+    console.error('❌ User not found.');
+    process.exit(1);
   }
 
-  // Create subscription
-  await prisma.subscription.upsert({
-    where: { userId: user.id },
-    create: {
-      id: `sub_${Date.now()}`,
-      userId: user.id,
-      plan: 'PRO',
-      status: 'ACTIVE',
-      currentPeriodStart: new Date(),
-      currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-    },
-    update: {
-      plan: 'PRO',
-      status: 'ACTIVE',
-    },
-  });
-  console.log('✅ Created Pro subscription');
-
-  // Create API key
-  await prisma.aPIKey.upsert({
-    where: { key: 'pc_demo_key_123' },
-    create: {
-      id: `key_${Date.now()}`,
-      userId: user.id,
-      key: 'pc_demo_key_123',
-      name: 'Demo API Key',
-    },
-    update: {},
-  });
-  console.log('✅ Created API key');
+  console.log(`✅ Using user: ${user.email}`);
 
   // Generate 90 days of prompt runs
   const runs = [];
@@ -111,14 +75,16 @@ async function main() {
         model,
         requestedModel,
         input: JSON.stringify({ prompt, messages: [{ role: 'user', content: prompt }] }),
-        output: success ? 'Generated response...' : null,
+        output: success ? 'Generated response...' : '',
         inputTokens,
         outputTokens,
+        tokensUsed: inputTokens + outputTokens,
+        totalTokens: inputTokens + outputTokens,
         cost: actualCost,
+        savings: cached ? cost : 0,
         latency,
         success,
-        cached,
-        error: success ? null : 'Rate limit exceeded',
+        ...(success ? {} : { error: 'Rate limit exceeded' }),
         createdAt: new Date(date.getTime() + i * 60000), // Spread throughout day
       });
     }
@@ -130,7 +96,7 @@ async function main() {
   for (let i = 0; i < runs.length; i += batchSize) {
     const batch = runs.slice(i, i + batchSize);
     await prisma.promptRun.createMany({
-      data: batch,
+      data: batch as any,
       skipDuplicates: true,
     });
     console.log(`   Inserted ${Math.min(i + batchSize, runs.length)}/${runs.length}`);
@@ -139,24 +105,20 @@ async function main() {
   // Calculate totals
   const totalRuns = runs.length;
   const totalCost = runs.reduce((sum, r) => sum + r.cost, 0);
-  const cachedRuns = runs.filter(r => r.cached).length;
+  const totalSavings = runs.reduce((sum, r) => sum + r.savings, 0);
   const routedRuns = runs.filter(r => r.requestedModel !== r.model).length;
   const successfulRuns = runs.filter(r => r.success).length;
 
   console.log('\n📈 Analytics Summary:');
   console.log(`   Total runs: ${totalRuns}`);
   console.log(`   Total cost: $${totalCost.toFixed(2)}`);
-  console.log(`   Cached runs: ${cachedRuns} (${((cachedRuns / totalRuns) * 100).toFixed(1)}%)`);
+  console.log(`   Total savings: $${totalSavings.toFixed(2)}`);
   console.log(`   Routed runs: ${routedRuns} (${((routedRuns / totalRuns) * 100).toFixed(1)}%)`);
   console.log(`   Success rate: ${((successfulRuns / totalRuns) * 100).toFixed(1)}%`);
   console.log(`   Avg cost per run: $${(totalCost / totalRuns).toFixed(4)}`);
 
   console.log('\n✅ Seeding complete!');
-  console.log('\n🎯 Now you can:');
-  console.log('   1. Login as demo@prompthive.co');
-  console.log('   2. View dashboard with real data');
-  console.log('   3. See analytics graphs');
-  console.log('   4. Check savings calculations');
+  console.log('\n🎯 Now check your dashboard to see the data!');
 }
 
 main()

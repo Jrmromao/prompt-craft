@@ -467,7 +467,7 @@ const result = await tracked.chat.completions.create({
           <CardContent className="space-y-3">
             <div className="flex items-center justify-between">
               <span className="text-sm text-gray-600">Total Tokens Used</span>
-              <span className="font-semibold">{stats.totalTokens.toLocaleString()}</span>
+              <span className="font-semibold">{stats.totalTokens?.toLocaleString() || '0'}</span>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-sm text-gray-600">Avg Response Time</span>

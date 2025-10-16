@@ -47,7 +47,7 @@
     "gdpr:report": "ts-node scripts/gdpr-compliance-report.ts",
     "gdpr:cleanup": "ts-node scripts/data-retention-cleanup.ts",
     "gdpr:export": "ts-node scripts/export-user-data.ts",
-    "seed:analytics": "tsx prisma/seed-analytics.ts"
+    "seed:analytics": "ts-node prisma/seed-analytics.ts"
   },
   "prisma": {
     "seed": "ts-node prisma/seed.ts"
