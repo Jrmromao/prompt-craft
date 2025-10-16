@@ -153,8 +153,8 @@ export default function PricingPage() {
           <Card className="border-2">
             <CardHeader className="text-center pb-4">
               <CardTitle className="text-xl mb-2">Enterprise</CardTitle>
-              <div className="text-4xl font-bold mb-2">$199</div>
-              <p className="text-gray-600 text-sm">per month</p>
+              <div className="text-4xl font-bold mb-2">Custom</div>
+              <p className="text-gray-600 text-sm">Contact us for pricing</p>
             </CardHeader>
             <CardContent>
               <p className="text-sm text-gray-600 mb-4">
@@ -169,11 +169,11 @@ export default function PricingPage() {
                 <Feature>Unlimited users</Feature>
                 <Feature>SLA guarantee</Feature>
               </ul>
-              <Link href="/sign-up">
-                <Button className="w-full" variant="outline">Contact Sales</Button>
+              <Link href="mailto:sales@promptcraft.ai">
+                <Button className="w-full bg-purple-600 hover:bg-purple-700">Contact Sales</Button>
               </Link>
               <p className="text-center text-xs text-purple-600 font-semibold mt-3">
-                💰 Save $1,000+/month = 12x ROI
+                💰 Custom pricing for your needs
               </p>
             </CardContent>
           </Card>
@@ -278,15 +278,11 @@ export default function PricingPage() {
                   <span>We Save:</span>
                   <span className="font-bold text-green-600">$2,400/month</span>
                 </div>
-                <div className="flex justify-between">
-                  <span>You Pay:</span>
-                  <span className="font-bold text-blue-600">$199/month</span>
-                </div>
                 <div className="border-t pt-2 flex justify-between">
                   <span className="font-semibold">Net Savings:</span>
-                  <span className="font-bold text-green-600">$2,201/month</span>
+                  <span className="font-bold text-green-600">$2,400+/month</span>
                 </div>
-                <p className="text-center text-xs text-gray-600 mt-2">ROI: 12x</p>
+                <p className="text-center text-xs text-gray-600 mt-2">Contact us for custom pricing 📞</p>
               </div>
             </div>
           </div>
