@@ -64,13 +64,19 @@ export default function SettingsPage() {
       });
       const data = await res.json();
       
-      if (data.key) {
+      console.log('API Response:', data); // Debug log
+      
+      if (res.ok && data.key) {
         setNewKey(data.key.key); // Get the actual key string from the response
         setNewKeyName('');
         await fetchKeys(); // Wait for keys to refresh
+      } else {
+        console.error('Failed to create key:', data.error || 'Unknown error');
+        alert(data.error || 'Failed to create API key');
       }
     } catch (error) {
       console.error('Failed to create key:', error);
+      alert('Failed to create API key. Please try again.');
     } finally {
       setCreating(false);
     }
