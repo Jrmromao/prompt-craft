@@ -2,6 +2,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Check, X, Sparkles, TrendingUp, Shield, Zap } from 'lucide-react';
 import Link from 'next/link';
+import { UpgradeButton } from '@/components/UpgradeButton';
 
 const Feature = ({ children, highlight }: { children: React.ReactNode; highlight?: boolean }) => (
   <li className="flex items-start gap-2">
@@ -106,9 +107,13 @@ export default function PricingPage() {
                 <Feature highlight>Email alerts</Feature>
                 <MissingFeature>Team collaboration (Coming Soon)</MissingFeature>
               </ul>
-              <Link href="/sign-up">
-                <Button className="w-full bg-green-600 hover:bg-green-700">Upgrade Now</Button>
-              </Link>
+              <UpgradeButton
+                priceId={process.env.NEXT_PUBLIC_STRIPE_STARTER_PRICE_ID!}
+                planName="Starter"
+                className="w-full bg-green-600 hover:bg-green-700"
+              >
+                Upgrade Now
+              </UpgradeButton>
               <p className="text-center text-xs text-green-600 font-semibold mt-3">
                 💰 Save $50-150/month = 3-8x ROI
               </p>
@@ -140,9 +145,13 @@ export default function PricingPage() {
                 <Feature>Team (5 users)</Feature>
                 <Feature>Custom alerts</Feature>
               </ul>
-              <Link href="/sign-up">
-                <Button className="w-full bg-blue-600 hover:bg-blue-700">Upgrade Now</Button>
-              </Link>
+              <UpgradeButton
+                priceId={process.env.NEXT_PUBLIC_STRIPE_PRO_PRICE_ID!}
+                planName="Pro"
+                className="w-full bg-blue-600 hover:bg-blue-700"
+              >
+                Upgrade Now
+              </UpgradeButton>
               <p className="text-center text-xs text-blue-600 font-semibold mt-3">
                 💰 Save $300-600/month = 9x ROI
               </p>
