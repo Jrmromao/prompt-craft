@@ -244,13 +244,31 @@ export class PromptCraft {
               }
             }
 
-            // Check cache
-            if (self.config.enableCache) {
-              const cacheKey = self.getCacheKey('openai', params);
-              const cached = self.getFromCache(cacheKey);
-              if (cached) {
-                console.log('[PromptCraft] Cache hit - $0 cost!');
-                return cached;
+            // Check cache (server-side only)
+            if (self.config.enableCache && typeof window === 'undefined') {
+              try {
+                const cacheResponse = await fetch(`${self.config.baseUrl}/api/cache/get`, {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${self.config.apiKey}`,
+                  },
+                  body: JSON.stringify({
+                    provider: 'openai',
+                    model: params.model,
+                    messages: params.messages,
+                  }),
+                });
+
+                if (cacheResponse.ok) {
+                  const cached = await cacheResponse.json();
+                  if (cached.hit) {
+                    console.log(`[PromptCraft] Cache hit - saved $${cached.savedCost.toFixed(4)}!`);
+                    return cached.response;
+                  }
+                }
+              } catch (error) {
+                console.warn('[PromptCraft] Cache check failed:', error);
               }
             }
 
@@ -280,10 +298,28 @@ export class PromptCraft {
                 // Run after middleware
                 const processedResult = await self.runMiddleware('after', result);
 
-                // Cache result
-                if (self.config.enableCache && options?.cacheTTL) {
-                  const cacheKey = self.getCacheKey('openai', params);
-                  self.setCache(cacheKey, processedResult, options.cacheTTL);
+                // Save to cache (server-side only)
+                if (self.config.enableCache && typeof window === 'undefined') {
+                  try {
+                    await fetch(`${self.config.baseUrl}/api/cache/set`, {
+                      method: 'POST',
+                      headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${self.config.apiKey}`,
+                      },
+                      body: JSON.stringify({
+                        provider: 'openai',
+                        model: currentModel,
+                        messages: params.messages,
+                        response: processedResult,
+                        tokens: processedResult.usage?.total_tokens || 0,
+                        cost: self.estimateCost(currentModel, params.messages),
+                        ttl: options?.cacheTTL || 3600,
+                      }),
+                    });
+                  } catch (error) {
+                    console.warn('[PromptCraft] Cache save failed:', error);
+                  }
                 }
 
                 // Track with fallback info

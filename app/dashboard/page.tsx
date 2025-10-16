@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Crown, Zap, DollarSign, TrendingUp, BarChart3, AlertCircle, Activity, Clock, Settings, Copy, Check, Key } from 'lucide-react';
 import Link from 'next/link';
+import { WelcomeModal } from '@/components/onboarding/WelcomeModal';
 
 interface DashboardStats {
   totalRuns: number;
@@ -86,7 +87,15 @@ export default function DashboardPage() {
   const isNearLimit = percentUsed > 80;
 
   return (
-    <div className="container mx-auto px-4 py-8 space-y-6">
+    <>
+      <WelcomeModal user={user ? {
+        id: user.id,
+        name: `${user.firstName} ${user.lastName}`,
+        email: user.emailAddresses[0]?.emailAddress || '',
+        createdAt: user.createdAt ? new Date(user.createdAt) : new Date(),
+      } : null} />
+      
+      <div className="container mx-auto px-4 py-8 space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Welcome back, {user?.firstName}!</h1>
@@ -395,7 +404,8 @@ const result = await tracked.chat.completions.create({
           </CardContent>
         </Card>
       )}
-    </div>
+      </div>
+    </>
   );
 }
 
@@ -417,7 +427,7 @@ function StatCard({ title, value, icon, subtitle }: { title: string; value: stri
 function Step({ number, title, completed, children }: { number: number; title: string; completed: boolean; children: React.ReactNode }) {
   return (
     <div className="flex gap-3">
-      <div className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold ${completed ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-600'}`}>
+      <div className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-between text-sm font-bold ${completed ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-600'}`}>
         {number}
       </div>
       <div className="flex-1">
