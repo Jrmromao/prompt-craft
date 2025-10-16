@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { prisma } from '@/lib/prisma';
-import { randomBytes } from 'crypto';
+import { randomBytes, createHash } from 'crypto';
 
 export async function POST() {
   try {
@@ -20,19 +20,26 @@ export async function POST() {
 
     // Generate API key
     const key = `pc_${randomBytes(32).toString('hex')}`;
+    
+    // Hash the key for storage
+    const hashedKey = createHash('sha256').update(key).digest('hex');
 
     // Create API key in database
     const apiKey = await prisma.apiKey.create({
       data: {
-        key,
+        id: randomBytes(16).toString('hex'),
         userId: user.id,
         name: 'Default API Key',
+        hashedKey,
+        lastRotatedAt: new Date(),
+        updatedAt: new Date(),
+        scopes: ['read', 'write'],
       },
     });
 
     return NextResponse.json({
       success: true,
-      apiKey: key,
+      apiKey: key, // Return the plain key (only time user sees it)
       id: apiKey.id,
     });
   } catch (error) {

@@ -21,14 +21,22 @@ export async function GET() {
       where: { userId: user.id },
       select: {
         id: true,
-        key: true,
+        hashedKey: true,
         name: true,
         createdAt: true,
       },
       orderBy: { createdAt: 'desc' },
     });
 
-    return NextResponse.json({ apiKeys });
+    // Return masked keys (we can't show the original key after creation)
+    const maskedKeys = apiKeys.map(key => ({
+      id: key.id,
+      key: `pc_${'*'.repeat(60)}`, // Masked key
+      name: key.name,
+      createdAt: key.createdAt,
+    }));
+
+    return NextResponse.json({ apiKeys: maskedKeys });
   } catch (error) {
     console.error('API keys fetch error:', error);
     return NextResponse.json(

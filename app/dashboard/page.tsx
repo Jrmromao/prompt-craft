@@ -46,14 +46,21 @@ export default function DashboardPage() {
         setLoading(false);
       });
 
-    // Fetch API key
-    fetch('/api/keys')
-      .then(res => res.json())
-      .then(data => {
-        if (data.apiKeys && data.apiKeys.length > 0) {
-          setApiKey(data.apiKeys[0].key);
-        }
-      });
+    // Check localStorage first for recently generated key
+    const savedKey = localStorage.getItem('promptcraft_api_key');
+    if (savedKey && savedKey.startsWith('pc_')) {
+      setApiKey(savedKey);
+    } else {
+      // Fetch API keys from server
+      fetch('/api/keys')
+        .then(res => res.json())
+        .then(data => {
+          if (data.apiKeys && data.apiKeys.length > 0) {
+            // If key exists but is masked, show message
+            setApiKey('existing'); // Flag that key exists
+          }
+        });
+    }
   }, []);
 
   const generateApiKey = async () => {
@@ -63,9 +70,12 @@ export default function DashboardPage() {
       const data = await res.json();
       if (data.apiKey) {
         setApiKey(data.apiKey);
+        // Store in localStorage so user can see it again (until they refresh)
+        localStorage.setItem('promptcraft_api_key', data.apiKey);
       }
     } catch (error) {
       console.error('Failed to generate API key:', error);
+      alert('Failed to generate API key. Please try again.');
     } finally {
       setGeneratingKey(false);
     }
@@ -116,6 +126,23 @@ export default function DashboardPage() {
                 </p>
                 <Button onClick={generateApiKey} disabled={generatingKey} size="lg">
                   {generatingKey ? 'Generating...' : 'Generate API Key'}
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      ) : apiKey === 'existing' ? (
+        <Card className="bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-950/20 dark:to-orange-950/20 border-yellow-200 dark:border-yellow-800">
+          <CardContent className="p-6">
+            <div className="flex items-start gap-4">
+              <Key className="w-8 h-8 text-yellow-600 flex-shrink-0" />
+              <div className="flex-1">
+                <h3 className="text-lg font-semibold mb-2">🔑 API Key Already Created</h3>
+                <p className="text-muted-foreground mb-4">
+                  You already have an API key. For security, we can't show it again. Generate a new one if needed.
+                </p>
+                <Button onClick={generateApiKey} disabled={generatingKey} size="lg" variant="outline">
+                  {generatingKey ? 'Generating...' : 'Generate New Key'}
                 </Button>
               </div>
             </div>
