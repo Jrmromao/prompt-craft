@@ -1,71 +1,64 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { prisma } from '@/lib/prisma';
-import { AICostOptimizer } from '@/lib/services/aiCostOptimizer';
+import { optimizePrompt } from '@/lib/services/promptOptimizer';
 
-export async function POST(request: Request) {
+export async function POST(req: Request) {
   try {
-    const { userId: clerkUserId } = await auth();
-    if (!clerkUserId) {
+    const { userId: clerkId } = await auth();
+    if (!clerkId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const user = await prisma.user.findUnique({
-      where: { clerkId: clerkUserId },
+      where: { clerkId },
     });
 
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    // Check if user has Pro plan or free trial
-    const optimizationCount = await prisma.promptOptimization.count({
-      where: { userId: user.id },
-    });
+    const { prompt } = await req.json();
 
-    if (user.planType === 'FREE' && optimizationCount >= 3) {
-      return NextResponse.json(
-        { error: 'Free plan limited to 3 optimizations. Upgrade to Pro for unlimited.' },
-        { status: 403 }
-      );
-    }
-
-    const body = await request.json();
-    const { prompt, targetModel = 'gpt-3.5-turbo' } = body;
-
-    if (!prompt) {
+    if (!prompt || typeof prompt !== 'string') {
       return NextResponse.json({ error: 'Prompt is required' }, { status: 400 });
     }
 
-    // Use real AI optimizer
-    const result = await AICostOptimizer.optimizePrompt(prompt, targetModel);
+    // Check usage limits for free tier
+    if (user.plan === 'FREE') {
+      const count = await prisma.promptRun.count({
+        where: {
+          userId: user.id,
+          createdAt: {
+            gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
+          },
+        },
+      });
 
-    // Save optimization
+      if (count >= 1000) {
+        return NextResponse.json(
+          { error: 'Monthly limit reached. Upgrade to continue.' },
+          { status: 429 }
+        );
+      }
+    }
+
+    const result = await optimizePrompt(prompt);
+
+    // Save optimization to database
     await prisma.promptOptimization.create({
       data: {
         userId: user.id,
         originalPrompt: result.original,
         optimizedPrompt: result.optimized,
-        tokenReduction: result.tokenReduction,
-        estimatedSavings: result.estimatedSavings,
-        targetModel,
+        tokensSaved: result.tokensSaved,
+        costSaved: result.costSaved,
       },
     });
 
-    return NextResponse.json({
-      original: result.original,
-      optimized: result.optimized,
-      tokenReduction: result.tokenReduction,
-      originalTokens: result.originalTokens,
-      optimizedTokens: result.optimizedTokens,
-      estimatedSavings: result.estimatedSavings,
-      qualityScore: result.quality,
-    });
+    return NextResponse.json(result);
   } catch (error) {
-    console.error('Prompt optimization error:', error);
-    return NextResponse.json(
-      { error: 'Failed to optimize prompt' },
-      { status: 500 }
-    );
+    console.error('Optimization error:', error);
+    return NextResponse.json({ error: 'Optimization failed' }, { status: 500 });
   }
 }
