@@ -45,7 +45,7 @@ export default function APIDocsPage() {
       <h2 className="text-2xl font-bold text-gray-900 mt-12 mb-4">Endpoints</h2>
 
       <div className="border-t border-gray-200 pt-8">
-        <h3 className="text-xl font-semibold text-gray-900 mb-4">POST /integrations/run</h3>
+        <h3 className="text-xl font-semibold text-gray-900 mb-4">POST /api/integrations/run</h3>
         <p className="text-gray-700 mb-4">Track an AI API call.</p>
 
         <h4 className="text-lg font-semibold text-gray-900 mb-3">Request</h4>
@@ -72,7 +72,7 @@ Authorization: Bearer pc_your_api_key_here
       </div>
 
       <div className="border-t border-gray-200 pt-8 mt-12">
-        <h3 className="text-xl font-semibold text-gray-900 mb-4">GET /analytics/overview</h3>
+        <h3 className="text-xl font-semibold text-gray-900 mb-4">GET /api/analytics/overview</h3>
         <p className="text-gray-700 mb-4">Get analytics overview.</p>
 
         <h4 className="text-lg font-semibold text-gray-900 mb-3">Query Parameters</h4>
@@ -93,7 +93,7 @@ Authorization: Bearer pc_your_api_key_here
       </div>
 
       <div className="border-t border-gray-200 pt-8 mt-12">
-        <h3 className="text-xl font-semibold text-gray-900 mb-4">GET /usage</h3>
+        <h3 className="text-xl font-semibold text-gray-900 mb-4">GET /api/usage</h3>
         <p className="text-gray-700 mb-4">Get current usage stats.</p>
 
         <h4 className="text-lg font-semibold text-gray-900 mb-3">Response</h4>
