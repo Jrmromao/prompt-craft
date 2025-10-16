@@ -88,6 +88,10 @@ export async function GET() {
     // Get plan limits
     const plan = PLANS[user.planType as keyof typeof PLANS] || PLANS.FREE;
 
+    // Get real-time savings
+    const { SavingsCalculator } = await import('@/lib/services/savingsCalculator');
+    const savingsSummary = await SavingsCalculator.getSummary(user.id);
+
     return NextResponse.json({
       totalRuns,
       monthlyRuns,
@@ -99,12 +103,15 @@ export async function GET() {
       successRate: Math.round(successRate * 10) / 10,
       plan: user.planType,
       savings: {
-        total: Math.round(totalSavings * 100) / 100,
-        smartRouting: Math.round(smartRoutingSavings * 100) / 100,
-        caching: Math.round(cachingSavings * 100) / 100,
+        total: savingsSummary.breakdown.totalSaved,
+        smartRouting: savingsSummary.breakdown.smartRouting,
+        caching: savingsSummary.breakdown.caching,
         routedCount,
-        roi: totalSavings > 0 && stats._sum.cost ? Math.round((totalSavings / (stats._sum.cost || 1)) * 100) : 0,
+        roi: savingsSummary.roi,
       },
+      todaySavings: savingsSummary.today,
+      baselineCost: savingsSummary.breakdown.baselineCost,
+      savingsRate: savingsSummary.breakdown.savingsRate,
     });
   } catch (error) {
     console.error('Dashboard stats error:', error);

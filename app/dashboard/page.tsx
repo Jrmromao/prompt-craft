@@ -22,9 +22,12 @@ interface DashboardStats {
     total: number;
     smartRouting: number;
     caching: number;
-    routedCount: number;
     roi: number;
+    routedCount: number;
   };
+  todaySavings: number;
+  baselineCost: number;
+  savingsRate: number;
 }
 
 export default function DashboardPage() {
@@ -296,6 +299,50 @@ const result = await tracked.chat.completions.create({
                   Upgrade Now
                 </Button>
               </Link>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Real-Time Savings Widget */}
+      {stats && stats.todaySavings !== undefined && (
+        <Card className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20 border-green-200 dark:border-green-800">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-green-700 dark:text-green-400 font-medium mb-1">
+                  💰 Saved Today
+                </p>
+                <p className="text-4xl font-bold text-green-600 dark:text-green-400">
+                  ${stats.todaySavings.toFixed(2)}
+                </p>
+                <p className="text-sm text-muted-foreground mt-2">
+                  This month: <span className="font-semibold text-green-600">${stats.savings.total.toFixed(2)}</span>
+                  {stats.baselineCost > 0 && (
+                    <span className="ml-2">
+                      ({stats.savingsRate.toFixed(0)}% savings)
+                    </span>
+                  )}
+                </p>
+              </div>
+              <div className="text-right">
+                <div className="text-sm text-muted-foreground mb-2">Breakdown:</div>
+                <div className="space-y-1 text-sm">
+                  <div className="flex items-center gap-2">
+                    <Zap className="w-3 h-3 text-blue-500" />
+                    <span>Smart Routing: ${stats.savings.smartRouting.toFixed(2)}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Activity className="w-3 h-3 text-purple-500" />
+                    <span>Caching: ${stats.savings.caching.toFixed(2)}</span>
+                  </div>
+                </div>
+                {stats.savings.roi > 0 && (
+                  <div className="mt-3 text-xs text-green-600 font-semibold">
+                    ROI: {stats.savings.roi}x
+                  </div>
+                )}
+              </div>
             </div>
           </CardContent>
         </Card>
