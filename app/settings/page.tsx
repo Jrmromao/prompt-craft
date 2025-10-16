@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Key, Plus, Trash2, Copy, Check, AlertTriangle } from 'lucide-react';
 import { EmptyState } from '@/components/EmptyState';
+import { toast } from 'sonner';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -70,13 +71,20 @@ export default function SettingsPage() {
         setNewKey(data.key.key); // Get the actual key string from the response
         setNewKeyName('');
         await fetchKeys(); // Wait for keys to refresh
+        toast.success('API Key created!', {
+          description: 'Copy it now - you won\'t see it again.',
+        });
       } else {
         console.error('Failed to create key:', data.error || 'Unknown error');
-        alert(data.error || 'Failed to create API key');
+        toast.error('Failed to create API key', {
+          description: data.error || 'Please try again or check the console for details.',
+        });
       }
     } catch (error) {
       console.error('Failed to create key:', error);
-      alert('Failed to create API key. Please try again.');
+      toast.error('Failed to create API key', {
+        description: 'Network error. Please try again.',
+      });
     } finally {
       setCreating(false);
     }
