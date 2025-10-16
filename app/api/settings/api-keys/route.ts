@@ -126,7 +126,14 @@ export async function POST(request: Request) {
     });
   } catch (error) {
     console.error('Failed to create API key:', error);
-    return NextResponse.json({ error: 'Failed to create API key' }, { status: 500 });
+    console.error('Error details:', {
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined,
+    });
+    return NextResponse.json({ 
+      error: 'Failed to create API key',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    }, { status: 500 });
   }
 }
 
