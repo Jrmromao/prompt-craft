@@ -1,10 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
+import { PromptCraft } from '@/sdk/src/index';
 import OpenAI from 'openai';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
+
+const promptcraft = new PromptCraft({
+  apiKey: process.env.PROMPTCRAFT_INTERNAL_API_KEY || 'internal',
+  baseUrl: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3001',
+});
+
+const wrappedOpenAI = promptcraft.wrapOpenAI(openai);
 
 export async function POST(request: NextRequest) {
   try {
@@ -36,7 +44,7 @@ export async function POST(request: NextRequest) {
         systemPrompt = `You are an AI assistant. Provide helpful suggestions for the given prompt. Return as a JSON array of strings.`;
     }
 
-    const completion = await openai.chat.completions.create({
+    const completion = await wrappedOpenAI.chat.completions.create({
       model: 'gpt-4',
       messages: [
         { role: 'system', content: systemPrompt },
@@ -44,6 +52,10 @@ export async function POST(request: NextRequest) {
       ],
       temperature: 0.7,
       max_tokens: 1000,
+    }, {
+      promptId: 'internal-suggestions',
+      userId,
+      metadata: { source: 'internal-suggestions', type }
     });
 
     const response = completion.choices[0]?.message?.content;

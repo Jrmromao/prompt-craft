@@ -55,7 +55,7 @@ export default function QuickStartPage() {
             <span className="text-sm text-gray-500 ml-auto">1 minute</span>
           </div>
           <ol className="space-y-2 text-gray-700 ml-13">
-            <li>1. Go to <a href="/" className="text-blue-600 hover:underline">promptcraft.app</a></li>
+            <li>1. Go to <a href="/" className="text-blue-600 hover:underline">prompthive.co</a></li>
             <li>2. Click "Start Tracking Free"</li>
             <li>3. Sign up with email or Google/GitHub</li>
             <li>4. You're in! Free tier includes 1,000 runs/month</li>
@@ -231,7 +231,7 @@ const result = await tracked.messages.create({
         <div className="space-y-2 text-sm text-gray-700">
           <p><strong>Full Guide:</strong> <Link href="/docs/openai" className="text-blue-600 hover:underline">OpenAI Integration</Link></p>
           <p><strong>API Docs:</strong> <Link href="/docs/api" className="text-blue-600 hover:underline">API Reference</Link></p>
-          <p><strong>Email:</strong> <a href="mailto:support@promptcraft.app" className="text-blue-600 hover:underline">support@promptcraft.app</a></p>
+          <p><strong>Email:</strong> <a href="mailto:support@prompthive.co" className="text-blue-600 hover:underline">support@prompthive.co</a></p>
         </div>
       </div>
     </div>

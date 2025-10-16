@@ -1,10 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
+import { PromptCraft } from '@/sdk/src/index';
 import OpenAI from 'openai';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
+
+const promptcraft = new PromptCraft({
+  apiKey: process.env.PROMPTCRAFT_INTERNAL_API_KEY || 'internal',
+  baseUrl: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3001',
+});
+
+const wrappedOpenAI = promptcraft.wrapOpenAI(openai);
 
 export async function POST(request: NextRequest) {
   try {
@@ -29,7 +37,7 @@ export async function POST(request: NextRequest) {
 
 Return ONLY a JSON object with these exact keys: clarity, specificity, effectiveness, cost.`;
 
-    const completion = await openai.chat.completions.create({
+    const completion = await wrappedOpenAI.chat.completions.create({
       model: 'gpt-4',
       messages: [
         { role: 'system', content: systemPrompt },
@@ -37,6 +45,10 @@ Return ONLY a JSON object with these exact keys: clarity, specificity, effective
       ],
       temperature: 0.3,
       max_tokens: 200,
+    }, {
+      promptId: 'internal-analyze',
+      userId,
+      metadata: { source: 'internal-analyze' }
     });
 
     const response = completion.choices[0]?.message?.content;

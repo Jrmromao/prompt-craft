@@ -354,7 +354,7 @@ npm run test:coverage # With coverage
 
 ## Get Your API Key
 
-1. Sign up at [promptcraft.app](https://promptcraft.app)
+1. Sign up at [prompthive.co](https://prompthive.co)
 2. Go to Settings → API Keys
 3. Generate a new API key
 

@@ -52,7 +52,7 @@ export const PLANS = {
     },
     features: [
       'Everything in Pro',
-      'Team collaboration',
+      'Team collaboration (Coming Soon)',
       'Custom limits',
       '90 days data retention',
       'Budget controls',

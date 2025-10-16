@@ -1,10 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
+import { PromptCraft } from '@/sdk/src/index';
 import OpenAI from 'openai';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
+
+const promptcraft = new PromptCraft({
+  apiKey: process.env.PROMPTCRAFT_INTERNAL_API_KEY || 'internal',
+  baseUrl: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3001',
+});
+
+// Wrap OpenAI with our SDK
+const wrappedOpenAI = promptcraft.wrapOpenAI(openai);
 
 export async function POST(request: NextRequest) {
   try {
@@ -23,35 +32,31 @@ export async function POST(request: NextRequest) {
 
     const startTime = Date.now();
     
-    // Combine the prompt with the input
-    const fullPrompt = `${prompt}\n\nInput: ${input}`;
-
-    const completion = await openai.chat.completions.create({
-      model: model,
-      messages: [
-        { role: 'user', content: fullPrompt }
-      ],
+    // Use SDK-wrapped OpenAI client
+    const completion = await wrappedOpenAI.chat.completions.create({
+      model,
+      messages: [{ role: 'user', content: `${prompt}\n\nInput: ${input}` }],
       temperature,
       max_tokens,
+    }, {
+      promptId: 'internal-test',
+      userId,
+      metadata: { source: 'internal-test' }
     });
 
     const duration = Date.now() - startTime;
     const output = completion.choices[0]?.message?.content || '';
     const tokens = completion.usage?.total_tokens || 0;
     
-    // Calculate cost based on model
     const costPerToken = getCostPerToken(model);
     const cost = (tokens / 1000) * costPerToken;
-
-    // Simple quality assessment
-    const quality = assessQuality(output, input);
 
     return NextResponse.json({
       output,
       tokens,
       cost,
       duration,
-      quality,
+      quality: assessQuality(output, input),
       model,
       timestamp: new Date().toISOString()
     });

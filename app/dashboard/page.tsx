@@ -7,6 +7,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Crown, Zap, DollarSign, TrendingUp, BarChart3, AlertCircle, Activity, Clock, Settings, Copy, Check, Key } from 'lucide-react';
 import Link from 'next/link';
 import { WelcomeModal } from '@/components/onboarding/WelcomeModal';
+import { MissedSavingsWidget } from '@/components/conversion/MissedSavingsWidget';
+import { SmartUpgradeModal } from '@/components/conversion/SmartUpgradeModal';
+import { SocialProofTicker } from '@/components/conversion/SocialProofTicker';
 
 interface DashboardStats {
   totalRuns: number;
@@ -97,6 +100,23 @@ export default function DashboardPage() {
         email: user.emailAddresses[0]?.emailAddress || '',
         createdAt: user.createdAt ? new Date(user.createdAt) : new Date(),
       } : null} />
+
+      {/* Conversion Components */}
+      {stats && stats.plan !== 'ENTERPRISE' && <SocialProofTicker />}
+      {stats && isNearLimit && (
+        <SmartUpgradeModal 
+          trigger="limit_warning"
+          currentPlan={stats.plan}
+          data={{ usagePercent: percentUsed }}
+        />
+      )}
+      {stats && stats.savings?.total > 50 && stats.plan === 'FREE' && (
+        <SmartUpgradeModal 
+          trigger="high_savings"
+          currentPlan={stats.plan}
+          data={{ potentialSavings: stats.savings.total * 2 }}
+        />
+      )}
       
       <div className="container mx-auto px-4 py-8 space-y-6">
       <div className="flex items-center justify-between">
@@ -253,6 +273,15 @@ const result = await tracked.chat.completions.create({
                     <Button size="lg" className="bg-green-600 hover:bg-green-700">
                       Upgrade to Pro - Save $500+/month
                     </Button>
+
+      {/* Missed Savings Widget */}
+      {stats && (
+        <MissedSavingsWidget 
+          currentPlan={stats.plan}
+          monthlySpend={stats.totalCost}
+          totalRuns={stats.totalRuns}
+        />
+      )}
                   </Link>
                 </div>
               )}
