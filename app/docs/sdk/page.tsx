@@ -36,8 +36,18 @@ export default function SDKDocsPage() {
       </p>
 
       <div className="bg-green-50 border border-green-200 p-4 mb-12 rounded-lg">
-        <p className="text-green-900 font-medium mb-1">💰 Money-Saving Features</p>
-        <p className="text-green-800 text-sm">Enable autoOptimize, smartRouting, and caching to cut costs by 50-80%</p>
+        <p className="text-green-900 font-medium mb-1">🎉 New in v3.0.0</p>
+        <p className="text-green-800 text-sm">
+          Redis caching, quality monitoring, AI optimization, and real-time savings tracking
+        </p>
+      </div>
+
+      <div className="bg-yellow-50 border border-yellow-200 p-4 mb-12 rounded-lg">
+        <p className="text-yellow-900 font-medium mb-1">⚠️ Server-Side Only</p>
+        <p className="text-yellow-800 text-sm">
+          Caching and optimization require server-side environment (Node.js, Next.js API routes). 
+          Browser usage works but skips these features for security.
+        </p>
       </div>
 
       <h2 className="text-2xl font-bold text-gray-900 mt-12 mb-4">Installation</h2>
@@ -273,6 +283,112 @@ await promptcraft.trackGrok(
   );
   throw error;
 }`} />
+      </div>
+
+      <h2 className="text-2xl font-bold text-gray-900 mt-16 mb-4">🎉 New in v3.0.0</h2>
+
+      <div className="space-y-8">
+        <div>
+          <h3 className="text-xl font-semibold text-gray-900 mb-4">Redis Caching</h3>
+          <p className="text-gray-700 mb-4">
+            Automatically cache responses to save money on repeated requests. Achieves 60-80% hit rates in production.
+          </p>
+          <CodeBlock code={`const promptcraft = new PromptCraft({
+  apiKey: process.env.PROMPTCRAFT_API_KEY,
+  enableCache: true, // Enable Redis caching
+});
+
+const tracked = promptcraft.wrapOpenAI(openai);
+
+// First call - cache miss, costs $0.05
+await tracked.chat.completions.create({
+  model: 'gpt-4',
+  messages: [{ role: 'user', content: 'What is 2+2?' }],
+});
+
+// Second call - cache hit, costs $0.00!
+await tracked.chat.completions.create({
+  model: 'gpt-4',
+  messages: [{ role: 'user', content: 'What is 2+2?' }],
+});`} />
+        </div>
+
+        <div>
+          <h3 className="text-xl font-semibold text-gray-900 mb-4">Quality Monitoring</h3>
+          <p className="text-gray-700 mb-4">
+            Smart routing automatically disables if response quality drops below 3.5/5 stars.
+          </p>
+          <CodeBlock code={`// SDK checks quality status before routing
+const tracked = promptcraft.wrapOpenAI(openai);
+
+// If quality is good: GPT-4 → GPT-3.5 (saves money)
+// If quality dropped: Uses GPT-4 (protects quality)
+await tracked.chat.completions.create({
+  model: 'gpt-4',
+  messages: [{ role: 'user', content: 'Complex task...' }],
+});
+
+// Submit feedback to improve routing
+await fetch('/api/quality/feedback', {
+  method: 'POST',
+  body: JSON.stringify({
+    runId: 'run_123',
+    rating: 5, // 1-5 stars
+    feedback: 'Great response!'
+  })
+});`} />
+        </div>
+
+        <div>
+          <h3 className="text-xl font-semibold text-gray-900 mb-4">AI-Powered Optimization</h3>
+          <p className="text-gray-700 mb-4">
+            Automatically compress prompts by 30-50% while preserving meaning.
+          </p>
+          <CodeBlock code={`const promptcraft = new PromptCraft({
+  apiKey: process.env.PROMPTCRAFT_API_KEY,
+  autoOptimize: true, // Enable AI compression
+});
+
+const tracked = promptcraft.wrapOpenAI(openai);
+
+// Original: 200 tokens
+// Optimized: 100 tokens (50% reduction)
+// Savings: $0.009 per request
+await tracked.chat.completions.create({
+  model: 'gpt-4',
+  messages: [{
+    role: 'user',
+    content: 'Please kindly help me understand what the weather will be like tomorrow in San Francisco, California, USA'
+  }],
+});
+// Compressed to: "Weather forecast for San Francisco tomorrow?"
+`} />
+        </div>
+
+        <div>
+          <h3 className="text-xl font-semibold text-gray-900 mb-4">Real-Time Savings</h3>
+          <p className="text-gray-700 mb-4">
+            Track exactly how much money you're saving with baseline cost comparison.
+          </p>
+          <CodeBlock code={`// View savings in dashboard
+const response = await fetch('/api/savings?period=today');
+const savings = await response.json();
+
+console.log(\`Saved today: $\${savings.totalSaved}\`);
+console.log(\`Breakdown:\`);
+console.log(\`  Smart Routing: $\${savings.smartRouting}\`);
+console.log(\`  Caching: $\${savings.caching}\`);
+console.log(\`  Optimization: $\${savings.optimization}\`);
+console.log(\`Savings Rate: \${savings.savingsRate}%\`);
+
+// Example output:
+// Saved today: $45.67
+// Breakdown:
+//   Smart Routing: $30.00
+//   Caching: $12.50
+//   Optimization: $3.17
+// Savings Rate: 68%`} />
+        </div>
       </div>
 
       <h2 className="text-2xl font-bold text-gray-900 mt-16 mb-4">Types</h2>
