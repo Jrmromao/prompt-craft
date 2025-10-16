@@ -1,18 +1,37 @@
 'use client';
 
+import { useState } from 'react';
 import { useUser } from '@clerk/nextjs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { User, Mail, Calendar, Shield, LogOut, Trash2, Lock } from 'lucide-react';
+import { User, Mail, Calendar, Shield, LogOut, Trash2, Lock, AlertTriangle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 export default function ProfilePage() {
   const { user } = useUser();
   const router = useRouter();
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showSignOutDialog, setShowSignOutDialog] = useState(false);
 
   const handleSignOut = async () => {
     await fetch('/api/auth/signout', { method: 'POST' });
     router.push('/');
+  };
+
+  const handleDeleteAccount = async () => {
+    // TODO: Implement account deletion
+    console.log('Delete account');
+    setShowDeleteDialog(false);
   };
 
   return (
@@ -79,7 +98,7 @@ export default function ProfilePage() {
           <Button 
             variant="outline" 
             className="w-full justify-start"
-            onClick={handleSignOut}
+            onClick={() => setShowSignOutDialog(true)}
           >
             <LogOut className="w-4 h-4 mr-2" />
             Sign Out
@@ -99,11 +118,7 @@ export default function ProfilePage() {
             <Button 
               variant="destructive" 
               className="w-full"
-              onClick={() => {
-                if (confirm('Are you absolutely sure? This action cannot be undone.')) {
-                  alert('Account deletion will be implemented with proper data cleanup.');
-                }
-              }}
+              onClick={() => setShowDeleteDialog(true)}
             >
               <Trash2 className="w-4 h-4 mr-2" />
               Delete Account
@@ -111,6 +126,57 @@ export default function ProfilePage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Sign Out Dialog */}
+      <AlertDialog open={showSignOutDialog} onOpenChange={setShowSignOutDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Sign out of your account?</AlertDialogTitle>
+            <AlertDialogDescription>
+              You will be redirected to the home page. You can sign back in anytime.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleSignOut}>
+              Sign Out
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Delete Account Dialog */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <div className="flex items-center gap-2 text-red-600">
+              <AlertTriangle className="w-6 h-6" />
+              <AlertDialogTitle>Delete Account Permanently?</AlertDialogTitle>
+            </div>
+            <AlertDialogDescription className="space-y-2">
+              <p className="font-semibold text-gray-900">This action cannot be undone. This will permanently:</p>
+              <ul className="list-disc list-inside space-y-1 text-sm">
+                <li>Delete all your API keys</li>
+                <li>Remove all usage data and analytics</li>
+                <li>Cancel your subscription</li>
+                <li>Delete your account information</li>
+              </ul>
+              <p className="text-red-600 font-medium mt-4">
+                Are you absolutely sure you want to continue?
+              </p>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleDeleteAccount}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              Yes, Delete My Account
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

@@ -8,6 +8,8 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Bell, DollarSign, AlertTriangle, Clock } from 'lucide-react';
 
+import { toast } from 'sonner';
+
 export default function AlertsPage() {
   const [alerts, setAlerts] = useState({
     costSpike: { enabled: false, threshold: 50 },
@@ -17,7 +19,9 @@ export default function AlertsPage() {
 
   const handleSave = async () => {
     // TODO: Save to API
-    alert('Alerts saved! You will receive email notifications.');
+    toast.success('Alert settings saved!', {
+      description: 'You will receive email notifications when alerts trigger.',
+    });
   };
 
   return (
