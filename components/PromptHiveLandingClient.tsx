@@ -1124,7 +1124,6 @@ const PromptHiveLandingClient = ({ user }: PromptHiveLandingClientProps) => {
               )}
               <div className="mt-8 text-center">
                 <Link
-                  href="/community-prompts"
                   className="inline-block text-lg font-semibold text-blue-800 hover:underline dark:text-blue-200"
                 >
                   See all community prompts &rarr;

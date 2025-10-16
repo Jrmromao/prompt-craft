@@ -32,7 +32,6 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
         </div>
         <nav className="mt-6 flex flex-col gap-2">
           <Link
-            href="/prompts/my-prompts"
             onClick={onClose}
             className={cn(
               'flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-accent',
@@ -45,7 +44,6 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
             My Prompts
           </Link>
           <Link
-            href="/community-prompts"
             onClick={onClose}
             className={cn(
               'flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-accent',

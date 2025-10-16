@@ -61,7 +61,6 @@ export function CookieConsent() {
             <p className="text-sm text-gray-600">
               We use necessary cookies to make our site work. We'd also like to set analytics cookies to help us improve it. 
               We won't set analytics cookies unless you enable them.{' '}
-              <a href="/legal/cookie-policy" className="text-blue-600 hover:underline">
                 Learn more
               </a>
             </p>

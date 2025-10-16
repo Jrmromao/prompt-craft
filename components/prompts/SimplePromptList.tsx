@@ -117,7 +117,6 @@ ${prompt.description ? `**Description:** ${prompt.description}\n\n` : ''}**Creat
             </Button>
           )}
           {(!userPlan || userPlan.planType === 'PRO' || userPlan.promptsRemaining > 0) ? (
-            <Link href="/prompts/create">
               <Button className="flex items-center gap-2">
                 <Plus className="w-4 h-4" />
                 Create New
@@ -137,7 +136,6 @@ ${prompt.description ? `**Description:** ${prompt.description}\n\n` : ''}**Creat
         <Card>
           <CardContent className="text-center py-12">
             <p className="text-muted-foreground mb-4">No prompts yet</p>
-            <Link href="/prompts/create">
               <Button>Create Your First Prompt</Button>
             </Link>
           </CardContent>

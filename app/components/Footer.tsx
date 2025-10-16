@@ -23,19 +23,14 @@ export function Footer() {
         {/* Center: Business & Legal Links */}
         <div className="flex flex-col items-center gap-2">
           <div className="flex flex-wrap justify-center gap-4 text-sm font-medium">
-            <Link href="/about" className="hover:underline">
               About
             </Link>
-            <Link href="/careers" className="hover:underline">
               Careers
             </Link>
-            <Link href="/blog" className="hover:underline">
               Blog
             </Link>
-            <Link href="/contact" className="hover:underline">
               Contact
             </Link>
-            <Link href="/support" className="hover:underline">
               Support
             </Link>
             <span className="text-muted-foreground">|</span>

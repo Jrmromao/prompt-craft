@@ -77,7 +77,6 @@ export function AnalyticsDashboard() {
     return (
       <div className="text-center py-12">
         <p className="text-gray-600 mb-4">No data yet. Connect your API key to get started.</p>
-        <a href="/settings/integrations" className="text-purple-600 hover:underline">
           Connect API Key →
         </a>
       </div>

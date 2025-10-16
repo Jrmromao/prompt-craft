@@ -104,14 +104,12 @@ export default function CookieBanner({ onPreferencesChange }: CookieBannerProps)
                 how you use our site so we can improve it. You can choose to accept all cookies, 
                 decline non-essential cookies, or customize your preferences.{' '}
                 <Link
-                  href="/legal/privacy"
                   className="text-emerald-600 underline-offset-2 hover:text-emerald-700 hover:underline dark:text-emerald-400 dark:hover:text-emerald-300"
                 >
                   Privacy Policy
                 </Link>{' '}
                 |{' '}
                 <Link
-                  href="/legal/cookie-policy"
                   className="text-emerald-600 underline-offset-2 hover:text-emerald-700 hover:underline dark:text-emerald-400 dark:hover:text-emerald-300"
                 >
                   Cookie Policy

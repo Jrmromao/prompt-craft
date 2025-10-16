@@ -34,16 +34,12 @@ export function PublicNavBar() {
             <Link href="/" className="transition-colors hover:text-blue-600">
               Home
             </Link>
-            <Link href="/blog" className="transition-colors hover:text-blue-600">
               Blog
             </Link>
-            <Link href="/about" className="transition-colors hover:text-blue-600">
               About
             </Link>
-            <Link href="/careers" className="transition-colors hover:text-blue-600">
               Careers
             </Link>
-            <Link href="/contact" className="transition-colors hover:text-blue-600">
               Contact
             </Link>
           </div>
@@ -113,16 +109,12 @@ export function PublicNavBar() {
           <Link href="/" className="transition-colors hover:text-blue-600">
             Home
           </Link>
-          <Link href="/blog" className="transition-colors hover:text-blue-600">
             Blog
           </Link>
-          <Link href="/about" className="transition-colors hover:text-blue-600">
             About
           </Link>
-          <Link href="/careers" className="transition-colors hover:text-blue-600">
             Careers
           </Link>
-          <Link href="/contact" className="transition-colors hover:text-blue-600">
             Contact
           </Link>
         </div>

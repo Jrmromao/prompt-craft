@@ -118,7 +118,7 @@ ${prompt.content}
         <Card>
           <CardContent className="py-12">
             <p className="text-muted-foreground mb-4">Prompt not found</p>
-            <Link href="/prompts">
+            <Link href="/dashboard">
               <Button>Back to Prompts</Button>
             </Link>
           </CardContent>
@@ -131,7 +131,7 @@ ${prompt.content}
     <div className="max-w-6xl mx-auto space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <Link href="/prompts">
+        <Link href="/dashboard">
           <Button variant="outline" size="sm" className="flex items-center gap-2">
             <ArrowLeft className="w-4 h-4" />
             Back to Prompts

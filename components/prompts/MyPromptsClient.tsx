@@ -138,7 +138,6 @@ export function MyPromptsClient({ prompts }: MyPromptsClientProps) {
                 size="lg"
                 className="bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-700"
               >
-                <Link href="/prompts">
                   <Sparkles className="mr-2 h-4 w-4" />
                   Create New Prompt
                 </Link>
@@ -149,7 +148,6 @@ export function MyPromptsClient({ prompts }: MyPromptsClientProps) {
                 asChild
                 className="border-blue-200 hover:bg-blue-100/40 dark:border-blue-500/20 dark:hover:bg-blue-500/10"
               >
-                <Link href="/community-prompts">
                   <Users className="mr-2 h-4 w-4" />
                   Browse Community
                 </Link>

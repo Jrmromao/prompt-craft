@@ -49,7 +49,7 @@ export default function CookieConsent() {
                     analyze our traffic. By clicking &quot;Accept All&quot;, you consent to our use of
                     cookies.{' '}
                     <a
-                      href="/legal/cookie-policy"
+                      href="/legal/privacy-policy"
                       className="font-medium text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300"
                     >
                       Read our Cookie Policy

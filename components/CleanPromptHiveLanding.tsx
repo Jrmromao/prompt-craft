@@ -70,7 +70,6 @@ const CleanPromptHiveLanding = ({ user }: CleanPromptHiveLandingProps) => {
               
               {user ? (
                 <div className="flex items-center space-x-4">
-                  <Link href="/prompts" className="text-blue-600 dark:text-blue-400 font-medium hover:text-blue-700 dark:hover:text-blue-300">
                     Dashboard
                   </Link>
                   <button
@@ -120,7 +119,6 @@ const CleanPromptHiveLanding = ({ user }: CleanPromptHiveLandingProps) => {
                 </a>
                 {user ? (
                   <>
-                    <Link href="/prompts" className="block text-blue-600 dark:text-blue-400 font-medium">
                       Dashboard
                     </Link>
                     <button onClick={handleSignOut} className="block text-gray-600 dark:text-gray-300">
@@ -173,7 +171,6 @@ const CleanPromptHiveLanding = ({ user }: CleanPromptHiveLandingProps) => {
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
               {user ? (
-                <Link href="/prompts" className="bg-blue-600 text-white px-8 py-4 rounded-lg font-semibold hover:bg-blue-700 transition-colors flex items-center gap-2">
                   Create Your First Prompt
                   <ArrowRight className="w-5 h-5" />
                 </Link>

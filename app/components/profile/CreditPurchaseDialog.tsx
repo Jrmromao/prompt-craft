@@ -87,7 +87,6 @@ export function CreditPurchaseDialog({ isOpen, onClose, isFreePlan = false, curr
               <Sparkles className="h-5 w-5 text-blue-500" />
             </div>
             <h2 className="text-xl font-bold tracking-tight flex items-center gap-2 bg-gradient-to-r from-blue-600 to-blue-500 bg-clip-text text-transparent">Add Credits</h2>
-            <a href="/support" className="ml-auto text-xs text-blue-600 underline hover:text-blue-500">Need help?</a>
           </div>
 
           {/* Success State */}
