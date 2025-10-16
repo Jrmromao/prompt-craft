@@ -36,7 +36,7 @@ export default function APIDocsPage() {
       </p>
 
       <h2 className="text-2xl font-bold text-gray-900 mt-12 mb-4">Base URL</h2>
-      <CodeBlock code="https://promptcraft.app/api" language="text" />
+      <CodeBlock code="https://prompthive.co/api" language="text" />
 
       <h2 className="text-2xl font-bold text-gray-900 mt-12 mb-4">Authentication</h2>
       <p className="text-gray-700 mb-4">All API requests require authentication via API key in the Authorization header:</p>
@@ -49,7 +49,7 @@ export default function APIDocsPage() {
         <p className="text-gray-700 mb-4">Track an AI API call.</p>
 
         <h4 className="text-lg font-semibold text-gray-900 mb-3">Request</h4>
-        <CodeBlock code={`POST /api/integrations/run
+        <CodeBlock code={`POST https://prompthive.co/api/integrations/run
 Content-Type: application/json
 Authorization: Bearer pc_your_api_key_here
 
@@ -75,7 +75,10 @@ Authorization: Bearer pc_your_api_key_here
         <h3 className="text-xl font-semibold text-gray-900 mb-4">GET /api/analytics/overview</h3>
         <p className="text-gray-700 mb-4">Get analytics overview.</p>
 
-        <h4 className="text-lg font-semibold text-gray-900 mb-3">Query Parameters</h4>
+        <h4 className="text-lg font-semibold text-gray-900 mb-3">Example Request</h4>
+        <CodeBlock code="GET https://prompthive.co/api/analytics/overview?startDate=2025-01-01&endDate=2025-01-31" language="text" />
+
+        <h4 className="text-lg font-semibold text-gray-900 mt-6 mb-3">Query Parameters</h4>
         <ul className="space-y-2 text-gray-700 list-disc list-inside mb-6">
           <li><code className="bg-gray-100 px-2 py-1 rounded text-sm">startDate</code> (ISO 8601) - Start date for analytics</li>
           <li><code className="bg-gray-100 px-2 py-1 rounded text-sm">endDate</code> (ISO 8601) - End date for analytics</li>
@@ -96,7 +99,10 @@ Authorization: Bearer pc_your_api_key_here
         <h3 className="text-xl font-semibold text-gray-900 mb-4">GET /api/usage</h3>
         <p className="text-gray-700 mb-4">Get current usage stats.</p>
 
-        <h4 className="text-lg font-semibold text-gray-900 mb-3">Response</h4>
+        <h4 className="text-lg font-semibold text-gray-900 mb-3">Example Request</h4>
+        <CodeBlock code="GET https://prompthive.co/api/usage" language="text" />
+
+        <h4 className="text-lg font-semibold text-gray-900 mt-6 mb-3">Response</h4>
         <CodeBlock code={`{
   "plan": "free",
   "runsThisMonth": 234,
@@ -175,7 +181,7 @@ Authorization: Bearer pc_your_api_key_here
       </div>
 
       <h2 className="text-2xl font-bold text-gray-900 mt-16 mb-4">Example: cURL</h2>
-      <CodeBlock code={`curl -X POST https://promptcraft.app/api/integrations/run \\
+      <CodeBlock code={`curl -X POST https://prompthive.co/api/integrations/run \\
   -H "Authorization: Bearer pc_your_api_key_here" \\
   -H "Content-Type: application/json" \\
   -d '{
@@ -192,7 +198,7 @@ Authorization: Bearer pc_your_api_key_here
       <CodeBlock code={`import requests
 
 response = requests.post(
-    'https://promptcraft.app/api/integrations/run',
+    'https://prompthive.co/api/integrations/run',
     headers={
         'Authorization': 'Bearer pc_your_api_key_here',
         'Content-Type': 'application/json'
