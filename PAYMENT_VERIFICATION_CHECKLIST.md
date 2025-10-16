@@ -3,6 +3,18 @@
 
 ### 🔴 CRITICAL - Test These First
 
+#### 0. Clerk Webhook (MUST BE FIRST!)
+- [ ] Setup Clerk webhook: `https://prompthive.co/api/webhooks/clerk`
+- [ ] Add CLERK_WEBHOOK_SECRET to `.env`
+- [ ] Sign up new test user
+- [ ] **CHECK CLERK DASHBOARD**: Webhook shows ✅ succeeded
+- [ ] **CHECK DATABASE**: User row created with clerkId
+- [ ] User can immediately login and see dashboard
+
+**If this fails, users can sign up but won't exist in database = can't upgrade = LOST REVENUE**
+
+See CLERK_WEBHOOK_SETUP.md for details.
+
 #### 1. Stripe Test Mode End-to-End
 - [ ] Create Stripe test account products
 - [ ] Add test price IDs to `.env.local`
