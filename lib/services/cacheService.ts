@@ -24,6 +24,51 @@ interface CacheStats {
 }
 
 export class CacheService {
+  private static instance: CacheService;
+
+  static getInstance(): CacheService {
+    if (!this.instance) {
+      this.instance = new CacheService();
+    }
+    return this.instance;
+  }
+
+  async set(key: string, value: any, ttl?: number): Promise<void> {
+    if (!redis) return;
+    try {
+      if (ttl) {
+        await redis.setex(key, ttl, JSON.stringify(value));
+      } else {
+        await redis.set(key, JSON.stringify(value));
+      }
+    } catch (error) {
+      console.error('Cache set error:', error);
+    }
+  }
+
+  async get(key: string): Promise<any> {
+    if (!redis) return null;
+    try {
+      const value = await redis.get(key);
+      return value ? JSON.parse(value as string) : null;
+    } catch (error) {
+      console.error('Cache get error:', error);
+      return null;
+    }
+  }
+
+  async invalidate(pattern: string): Promise<void> {
+    if (!redis) return;
+    try {
+      const keys = await redis.keys(pattern);
+      if (keys.length > 0) {
+        await redis.del(...keys);
+      }
+    } catch (error) {
+      console.error('Cache invalidate error:', error);
+    }
+  }
+
   private static generateKey(provider: string, model: string, messages: any[]): string {
     const content = JSON.stringify({ provider, model, messages });
     return `cache:${crypto.createHash('md5').update(content).digest('hex')}`;

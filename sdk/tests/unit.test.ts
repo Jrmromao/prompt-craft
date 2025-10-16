@@ -238,7 +238,7 @@ describe('PromptCraft SDK - Unit Tests', () => {
       );
 
       expect(global.fetch).toHaveBeenCalledWith(
-        'https://promptcraft.app/api/integrations/run',
+        'https://prompthive.co/api/integrations/run',
         expect.objectContaining({
           method: 'POST',
           headers: expect.objectContaining({
