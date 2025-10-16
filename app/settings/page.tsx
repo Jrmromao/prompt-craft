@@ -87,6 +87,21 @@ export default function SettingsPage() {
         <p className="text-gray-600 mt-1">Create and manage your API keys to integrate PromptCraft SDK</p>
       </div>
 
+      {/* Quick Links */}
+      <Card className="bg-blue-50 dark:bg-blue-950/20 border-blue-200">
+        <CardContent className="p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="font-medium">💡 Set up email alerts</p>
+              <p className="text-sm text-gray-600">Get notified when costs spike or errors increase</p>
+            </div>
+            <Link href="/settings/alerts">
+              <Button variant="outline">Configure Alerts</Button>
+            </Link>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* New Key Alert */}
       {newKey && (
         <Card className="border-green-200 bg-green-50">

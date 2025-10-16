@@ -78,6 +78,7 @@ export const PLANS: Record<PlanType, Plan> = {
       { name: 'Real Savings Tracking', description: 'See actual $ saved' },
       { name: 'Auto-Fallback', description: 'Automatic failover chains' },
       { name: 'Cost Limits', description: 'Prevent budget overruns' },
+      { name: 'Email Alerts', description: 'Cost spike & error notifications' },
       { name: 'Unlimited API Keys', description: 'Up to 5 keys' },
       { name: 'Advanced Analytics', description: 'Cost/performance insights' },
       { name: 'Priority Support', description: 'Email support' },

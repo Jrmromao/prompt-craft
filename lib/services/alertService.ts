@@ -72,7 +72,27 @@ export class AlertService {
       },
     });
 
-    // TODO: Send email via Resend
+    // Send email via Resend
+    try {
+      const user = await prisma.user.findUnique({ where: { id: userId } });
+      if (user?.email) {
+        const { Resend } = await import('resend');
+        const resend = new Resend(process.env.RESEND_API_KEY);
+        
+        await resend.emails.send({
+          from: 'PromptCraft Alerts <alerts@promptcraft.app>',
+          to: user.email,
+          subject: `Alert: ${alert.type.replace('_', ' ')}`,
+          html: `
+            <h2>PromptCraft Alert</h2>
+            <p>${this.getAlertMessage(alert)}</p>
+            <p><a href="${process.env.NEXT_PUBLIC_APP_URL}/dashboard">View Dashboard</a></p>
+          `,
+        });
+      }
+    } catch (error) {
+      console.error('Failed to send email alert:', error);
+    }
   }
 
   private getAlertMessage(alert: any): string {

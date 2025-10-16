@@ -148,10 +148,16 @@ export default function AnalyticsLanding({ user }: { user: User | null }) {
               benefit="99.9% uptime guaranteed"
             />
             <FeatureCard
-              icon={<AlertCircle className="w-8 h-8 text-blue-600" />}
+              icon={<Shield className="w-8 h-8 text-blue-600" />}
               title="Cost Limits"
               description="Set max spend per request. Prevent runaway costs from bad prompts."
               benefit="Budget protection built-in"
+            />
+            <FeatureCard
+              icon={<AlertCircle className="w-8 h-8 text-blue-600" />}
+              title="Email Alerts"
+              description="Get notified when costs spike, error rates increase, or you hit budget limits."
+              benefit="Never get surprised"
             />
             <FeatureCard
               icon={<BarChart3 className="w-8 h-8 text-blue-600" />}
