@@ -4,19 +4,19 @@ import { useEffect, useState } from 'react';
 import { TrendingUp, Users } from 'lucide-react';
 
 interface UpgradeEvent {
-  name: string;
+  location: string;
   plan: string;
   savings: number;
   timeAgo: string;
 }
 
 const mockEvents: UpgradeEvent[] = [
-  { name: 'Sarah M.', plan: 'Pro', savings: 847, timeAgo: '2 min ago' },
-  { name: 'Tech Corp', plan: 'Enterprise', savings: 3420, timeAgo: '5 min ago' },
-  { name: 'John D.', plan: 'Starter', savings: 156, timeAgo: '8 min ago' },
-  { name: 'AI Labs', plan: 'Pro', savings: 1240, timeAgo: '12 min ago' },
-  { name: 'Mike R.', plan: 'Starter', savings: 89, timeAgo: '15 min ago' },
-  { name: 'DevTeam', plan: 'Enterprise', savings: 5600, timeAgo: '18 min ago' },
+  { location: 'San Francisco', plan: 'Pro', savings: 847, timeAgo: '2 min ago' },
+  { location: 'London', plan: 'Enterprise', savings: 3420, timeAgo: '5 min ago' },
+  { location: 'New York', plan: 'Starter', savings: 156, timeAgo: '8 min ago' },
+  { location: 'Berlin', plan: 'Pro', savings: 1240, timeAgo: '12 min ago' },
+  { location: 'Tokyo', plan: 'Starter', savings: 89, timeAgo: '15 min ago' },
+  { location: 'Sydney', plan: 'Enterprise', savings: 5600, timeAgo: '18 min ago' },
 ];
 
 export function SocialProofTicker() {
@@ -51,7 +51,7 @@ export function SocialProofTicker() {
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-1">
               <Users className="w-4 h-4 text-gray-600" />
-              <span className="font-semibold text-sm">{event.name}</span>
+              <span className="font-semibold text-sm">Someone in {event.location}</span>
               <span className="text-xs text-muted-foreground">{event.timeAgo}</span>
             </div>
             <p className="text-sm text-gray-700 dark:text-gray-300">
