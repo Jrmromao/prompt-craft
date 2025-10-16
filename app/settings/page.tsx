@@ -108,22 +108,7 @@ export default function SettingsPage() {
 
   return (
     <div className="space-y-6">
-      {/* Quick Links */}
-      <Card className="bg-blue-50 dark:bg-blue-950/20 border-blue-200">
-        <CardContent className="p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="font-medium">💡 Set up email alerts</p>
-              <p className="text-sm text-gray-600">Get notified when costs spike or errors increase</p>
-            </div>
-            <Link href="/settings/alerts">
-              <Button variant="outline">Configure Alerts</Button>
-            </Link>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* New Key Alert */}
+      {/* New Key Alert - Show at top when created */}
       {newKey && (
         <Card className="border-green-200 bg-green-50">
           <CardContent className="p-6">
@@ -154,19 +139,55 @@ export default function SettingsPage() {
         </Card>
       )}
 
-      {/* API Keys */}
+      {/* Create New Key - Show at top */}
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle>Your API Keys</CardTitle>
-              <p className="text-sm text-gray-600 mt-1">Use these keys to integrate the PromptCraft SDK in your applications</p>
-            </div>
-            <Button onClick={() => document.getElementById('create-key')?.scrollIntoView({ behavior: 'smooth' })}>
-              <Plus className="w-4 h-4 mr-2" />
-              Create Key
+          <CardTitle>Create New API Key</CardTitle>
+          <p className="text-sm text-gray-600 mt-1">Generate a new key to use with the PromptCraft SDK</p>
+        </CardHeader>
+        <CardContent>
+          <div className="flex gap-3">
+            <Input
+              placeholder="e.g., Production, Development"
+              value={newKeyName}
+              onChange={(e) => setNewKeyName(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && createKey()}
+              className="flex-1"
+            />
+            <Button onClick={createKey} disabled={!newKeyName.trim() || creating}>
+              {creating ? (
+                <>Creating...</>
+              ) : (
+                <>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Create Key
+                </>
+              )}
             </Button>
           </div>
+        </CardContent>
+      </Card>
+
+      {/* Security Info */}
+      <Card className="bg-blue-50 dark:bg-blue-950/20 border-blue-200">
+        <CardContent className="p-4">
+          <div className="flex gap-3">
+            <Key className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+            <div className="text-sm">
+              <p className="font-medium text-blue-900 mb-1">🔒 Security Notice</p>
+              <p className="text-blue-800">
+                API keys are only shown once at creation. If you lose a key, delete it and create a new one. Maximum 5 keys per account.
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* API Keys List */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Your API Keys</CardTitle>
+          <p className="text-sm text-gray-600 mt-1">Manage your existing API keys</p>
         </CardHeader>
         <CardContent>
           {loading ? (
@@ -217,44 +238,6 @@ export default function SettingsPage() {
               ))}
             </div>
           )}
-        </CardContent>
-      </Card>
-
-      {/* Create New Key */}
-      <Card id="create-key">
-        <CardHeader>
-          <CardTitle>Create New API Key</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div>
-              <label className="text-sm font-medium mb-2 block">Key Name</label>
-              <Input
-                placeholder="e.g., Production, Development"
-                value={newKeyName}
-                onChange={(e) => setNewKeyName(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && createKey()}
-              />
-            </div>
-            <Button onClick={createKey} disabled={!newKeyName.trim() || creating}>
-              {creating ? 'Creating...' : 'Create Key'}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Security Info */}
-      <Card className="bg-blue-50 dark:bg-blue-950/20 border-blue-200">
-        <CardContent className="p-4">
-          <div className="flex gap-3">
-            <Key className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-            <div className="text-sm">
-              <p className="font-medium text-blue-900 mb-1">🔒 Security Notice</p>
-              <p className="text-blue-800">
-                For security reasons, API keys are only shown once at creation. If you lose a key, delete it and create a new one.
-              </p>
-            </div>
-          </div>
         </CardContent>
       </Card>
 
