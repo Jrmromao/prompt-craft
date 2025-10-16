@@ -60,9 +60,7 @@ export function CookieConsent() {
             <h3 className="font-semibold text-gray-900 mb-2">🍪 We use cookies</h3>
             <p className="text-sm text-gray-600">
               We use necessary cookies to make our site work. We'd also like to set analytics cookies to help us improve it. 
-              We won't set analytics cookies unless you enable them.{' '}
-                Learn more
-              </a>
+              We won't set analytics cookies unless you enable them.
             </p>
           </div>
           

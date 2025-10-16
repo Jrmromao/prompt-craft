@@ -20,23 +20,13 @@ export function Footer() {
           </span>
           <span className="text-xs text-muted-foreground">Create & share AI prompts</span>
         </div>
-        {/* Center: Business & Legal Links */}
+        {/* Center: Legal Links */}
         <div className="flex flex-col items-center gap-2">
           <div className="flex flex-wrap justify-center gap-4 text-sm font-medium">
-              About
-            </Link>
-              Careers
-            </Link>
-              Blog
-            </Link>
-              Contact
-            </Link>
-              Support
-            </Link>
-            <span className="text-muted-foreground">|</span>
             <Link href="/legal/terms-of-service" className="hover:underline">
               Terms of Service
             </Link>
+            <span className="text-muted-foreground">|</span>
             <Link href="/legal/privacy-policy" className="hover:underline">
               Privacy Policy
             </Link>
