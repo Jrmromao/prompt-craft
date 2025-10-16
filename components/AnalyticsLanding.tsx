@@ -52,10 +52,10 @@ export default function AnalyticsLanding({ user }: { user: User | null }) {
                     Start 14-Day Free Trial →
                   </Link>
                   <Link
-                    href="#demo"
+                    href="/docs"
                     className="px-8 py-4 border-2 border-gray-300 text-gray-700 rounded-lg font-semibold hover:border-gray-400 text-lg"
                   >
-                    See How It Works
+                    View Documentation
                   </Link>
                 </>
               )}

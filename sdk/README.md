@@ -1,6 +1,8 @@
 # PromptCraft SDK
 
-Official SDK for tracking OpenAI, Anthropic, Gemini, and Grok API usage with PromptCraft.
+Save 50-80% on AI costs automatically. Official SDK for OpenAI, Anthropic, Gemini, and Grok.
+
+📚 **[Full Documentation](https://prompthive.co/docs)** | 🚀 **[Quick Start](https://prompthive.co/docs/quickstart)**
 
 ## Installation
 
@@ -8,20 +10,18 @@ Official SDK for tracking OpenAI, Anthropic, Gemini, and Grok API usage with Pro
 npm install promptcraft-sdk
 ```
 
-## 🔥 Killer Features (v2.0)
+## 💰 Money-Saving Features
 
-- 🚀 **Auto-Fallback** - GPT-4 fails? Automatically tries GPT-3.5
-- 🧠 **Smart Routing** - Simple queries automatically use cheaper models (60x cost savings)
-- 💰 **Cost Limits** - Set max cost per request to prevent budget overruns
-- ⚡ **Smart Caching** - 80%+ cost savings on repeated queries
-- 🔄 **Auto-Retry** - Exponential backoff for failed requests
-- 📊 **Automatic Tracking** - Zero-config usage analytics
-- 🎯 **Middleware** - Custom logic before/after/on-error
-- 🌊 **Streaming** - Full support with automatic tracking
+- 🚀 **Auto-Optimize** - Reduce tokens by 50-80% automatically
+- 🧠 **Smart Routing** - Route to cheapest model (20x cost savings)
+- ⚡ **Smart Caching** - 80% savings on repeated queries
+- 💸 **Cost Limits** - Prevent budget overruns
+- 🔄 **Auto-Fallback** - Never fail on rate limits
+- 📊 **Real Savings Tracking** - See actual $ saved
 
 ## Quick Start
 
-### Basic Usage (Auto-Tracking)
+### Save Money Automatically
 
 ```typescript
 import OpenAI from 'openai';
@@ -30,13 +30,13 @@ import PromptCraft from 'promptcraft-sdk';
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 const promptcraft = new PromptCraft({ 
   apiKey: process.env.PROMPTCRAFT_API_KEY,
-  enableCache: true,
-  autoFallback: true,    // 🔥 NEW: Auto-fallback on errors
-  smartRouting: true,    // 🔥 NEW: Route to cheaper models
-  costLimit: 0.10        // 🔥 NEW: Max $0.10 per request
+  autoOptimize: true,    // 💰 Save 50-80% on tokens
+  smartRouting: true,    // 💰 Route to cheapest model
+  enableCache: true,     // 💰 80% savings on repeats
+  costLimit: 0.10        // 💰 Max $0.10 per request
 });
 
-// Wrap the client for automatic tracking
+// Wrap the client for automatic savings
 const trackedOpenAI = promptcraft.wrapOpenAI(openai);
 
 // Use it exactly like normal OpenAI!
@@ -44,10 +44,10 @@ const result = await trackedOpenAI.chat.completions.create({
   model: 'gpt-4',
   messages: [{ role: 'user', content: 'Hello!' }]
 });
-// ✅ Smart routing: Simple query → automatically uses GPT-3.5 (60x cheaper!)
-// ✅ Auto-fallback: If GPT-4 fails → tries GPT-4-turbo → tries GPT-3.5
-// ✅ Cost limit: Throws error if estimated cost > $0.10
-// ✅ Tracked automatically with zero config!
+// ✅ Prompt optimized (62% shorter)
+// ✅ Routed to GPT-3.5 (20x cheaper)
+// ✅ Cached for future use
+// ✅ Tracked automatically!
 ```
 
 ## 🔥 Killer Feature Examples
