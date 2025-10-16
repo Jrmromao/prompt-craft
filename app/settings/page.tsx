@@ -83,8 +83,8 @@ export default function SettingsPage() {
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Settings</h1>
-        <p className="text-gray-600 mt-1">Manage your API keys and account settings</p>
+        <h1 className="text-3xl font-bold">API Key Management</h1>
+        <p className="text-gray-600 mt-1">Create and manage your API keys to integrate PromptCraft SDK</p>
       </div>
 
       {/* New Key Alert */}
@@ -124,7 +124,10 @@ export default function SettingsPage() {
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle>API Keys</CardTitle>
+            <div>
+              <CardTitle>Your API Keys</CardTitle>
+              <p className="text-sm text-gray-600 mt-1">Use these keys to integrate the PromptCraft SDK in your applications</p>
+            </div>
             <Button onClick={() => document.getElementById('create-key')?.scrollIntoView({ behavior: 'smooth' })}>
               <Plus className="w-4 h-4 mr-2" />
               Create Key
@@ -142,7 +145,7 @@ export default function SettingsPage() {
             <EmptyState
               icon={Key}
               title="No API Keys"
-              description="Create your first API key to start tracking AI costs with the SDK"
+              description="Create your first API key to start using the PromptCraft SDK and save 50-80% on AI costs"
               actionLabel="Create Key"
               actionHref="#create-key"
               secondaryActionLabel="View Docs"

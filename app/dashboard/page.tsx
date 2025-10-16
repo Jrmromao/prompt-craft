@@ -117,11 +117,13 @@ export default function DashboardPage() {
               <div className="flex-1">
                 <h3 className="text-lg font-semibold mb-2">🚀 Get Started in 2 Minutes</h3>
                 <p className="text-muted-foreground mb-4">
-                  Generate your API key and start saving 30-60% on AI costs automatically.
+                  Generate your API key and start saving 50-80% on AI costs automatically.
                 </p>
-                <Button onClick={generateApiKey} disabled={generatingKey} size="lg">
-                  {generatingKey ? 'Generating...' : 'Generate API Key'}
-                </Button>
+                <Link href="/settings">
+                  <Button size="lg">
+                    Generate API Key
+                  </Button>
+                </Link>
               </div>
             </div>
           </CardContent>
@@ -132,13 +134,15 @@ export default function DashboardPage() {
             <div className="flex items-start gap-4">
               <Key className="w-8 h-8 text-yellow-600 flex-shrink-0" />
               <div className="flex-1">
-                <h3 className="text-lg font-semibold mb-2">🔑 API Key Already Created</h3>
+                <h3 className="text-lg font-semibold mb-2">🔑 API Keys Active</h3>
                 <p className="text-muted-foreground mb-4">
-                  You already have an API key. For security, we can't show it again. Generate a new one if needed.
+                  Your API keys are ready. Manage them in settings or generate a new one.
                 </p>
-                <Button onClick={generateApiKey} disabled={generatingKey} size="lg" variant="outline">
-                  {generatingKey ? 'Generating...' : 'Generate New Key'}
-                </Button>
+                <Link href="/settings">
+                  <Button size="lg" variant="outline">
+                    Manage API Keys
+                  </Button>
+                </Link>
               </div>
             </div>
           </CardContent>
