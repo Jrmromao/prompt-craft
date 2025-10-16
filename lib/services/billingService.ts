@@ -1,5 +1,4 @@
 import * as Sentry from '@sentry/nextjs';
-import { ProfileService } from '@/lib/services/profileService';
 import { stripe } from '@/lib/stripe';
 import { prisma } from '@/lib/prisma';
 
@@ -19,7 +18,7 @@ export class BillingService {
   public async getBillingOverview(userId: string) {
     this.logger.info('Fetching billing overview', { userId });
     try {
-      const user = await ProfileService.getInstance().getProfileByClerkId(userId);
+      const user = await prisma.user.findUnique({ where: { clerkId: userId } });
       if (!user) {
         this.logger.error('User not found', { userId });
         throw new Error('User not found');

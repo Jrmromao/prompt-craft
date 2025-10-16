@@ -1,13 +1,10 @@
 import { prisma } from '@/lib/prisma';
 import { User, DataExportRequest, DataRectificationRequest } from '@prisma/client';
 import { Prisma } from '@prisma/client';
-import { EmailService } from './emailService';
 
 export class GDPRService {
-  private emailService: EmailService;
 
   constructor() {
-    this.emailService = EmailService.getInstance();
   }
 
   async exportUserData(clerkId: string): Promise<UserDataExport> {
@@ -45,7 +42,7 @@ export class GDPRService {
     });
 
     // Send notification
-    await this.emailService.sendGDPRDataExportNotification(user.email, user.name || 'User');
+//     await this.emailService.sendGDPRDataExportNotification(user.email, user.name || 'User');
 
     // Process and return user data
     return this.formatUserData(user);
@@ -69,7 +66,7 @@ export class GDPRService {
     });
 
     // Send notification
-    await this.emailService.sendGDPRAccountDeletionNotification(user.email, user.name || 'User');
+//     await this.emailService.sendGDPRAccountDeletionNotification(user.email, user.name || 'User');
 
     // Implement deletion logic
     await this.anonymizeUserData(clerkId);
@@ -99,12 +96,8 @@ export class GDPRService {
     // Get the list of changed fields
     const changes = Object.keys(data).map(field => `${field} updated`);
 
-    // Send notification
-    await this.emailService.sendGDPRDataRectificationNotification({
-      email: user.email,
-      name: user.name || 'User',
-      changes,
-    });
+    // Email notification removed (EmailService deleted)
+    // TODO: Re-implement email notifications if needed
 
     // Implement rectification logic
     await prisma.user.update({
@@ -140,12 +133,8 @@ export class GDPRService {
       },
     });
 
-    // Send notification
-    await this.emailService.sendGDPRConsentChangeNotification({
-      email: user.email,
-      name: user.name || 'User',
-      changes: [{ purpose, granted }],
-    });
+    // Email notification removed (EmailService deleted)
+    // TODO: Re-implement email notifications if needed
   }
 
   async checkAndEnforceRetention(): Promise<void> {

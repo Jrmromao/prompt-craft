@@ -55,6 +55,8 @@ model User {
   ApiKey                ApiKey[]
   ApiUsage              ApiUsage[]
   AuditLog              AuditLog[]
+  Comment               Comment[]
+  CommentLike           CommentLike[]
   ConsentRecord         ConsentRecord[]
   CreditHistory         CreditHistory[]
   CreditPurchase        CreditPurchase[]
@@ -66,8 +68,15 @@ model User {
   EmailTemplate_updatedBy EmailTemplate[] @relation("EmailTemplate_updatedByIdToUser")
   Error                 Error[]
   FeatureUsage          FeatureUsage[]
+  Follow_follower       Follow[] @relation("Follow_followerIdToUser")
+  Follow_following      Follow[] @relation("Follow_followingIdToUser")
   Message               Message[]
   Notification          Notification[]
+  Prompt                Prompt[]
+  PromptCopy            PromptCopy[]
+  PromptGeneration      PromptGeneration[]
+  PromptTemplate        PromptTemplate[]
+  PromptUsage           PromptUsage[]
   Subscription          Subscription?
   SupportTicket_assignee SupportTicket[] @relation("SupportTicket_assigneeIdToUser")
   SupportTicket_user    SupportTicket[] @relation("SupportTicket_userIdToUser")
@@ -77,6 +86,13 @@ model User {
   UserCollection        UserCollection[]
   UserConsent           UserConsent[]
   UserOnboarding        UserOnboarding[]
+  Version               Version[]
+  Vote                  Vote[]
+  VoteAbuseDetection_investigated VoteAbuseDetection[] @relation("VoteAbuseDetection_investigatedByToUser")
+  VoteAbuseDetection_user VoteAbuseDetection[] @relation("VoteAbuseDetection_userIdToUser")
+  VotePattern           VotePattern[]
+  VoteReward_author     VoteReward[] @relation("VoteReward_promptAuthorIdToUser")
+  VoteReward_voter      VoteReward[] @relation("VoteReward_voterIdToUser")
   PromptRuns            PromptRun[] @relation("UserPromptRuns")
   Alerts                Alert[] @relation("UserAlerts")
   PromptOptimizations   PromptOptimization[]
@@ -114,6 +130,107 @@ model ApiKey {
 // PROMPTS & CONTENT
 // ============================================
 
+model Prompt {
+  id                  String    @id @default(cuid())
+  userId              String
+  name                String
+  slug                String    @unique
+  content             String
+  description         String?
+  model               String    @default("gpt-3.5-turbo")
+  promptType          String    @default("default")
+  metadata            Json?
+  
+  // Visibility & Status
+  isPublic            Boolean   @default(false)
+  isFeatured          Boolean   @default(false)
+  isVerified          Boolean   @default(false)
+  isPremium           Boolean   @default(false)
+  isArchived          Boolean   @default(false)
+  archivedAt          DateTime?
+  
+  // Metrics
+  upvotes             Int       @default(0)
+  downvotes           Int       @default(0)
+  usageCount          Int       @default(0)
+  viewCount           Int       @default(0)
+  copyCount           Int       @default(0)
+  
+  // GDPR
+  dataRetentionPolicy Json?     @default("{}")
+  
+  // Timestamps
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+  lastUsedAt          DateTime?
+  
+  // Relations
+  User                User      @relation(fields: [userId], references: [id])
+  ApiUsage            ApiUsage[]
+  Comment             Comment[]
+  CommentLike         CommentLike[]
+  PromptCopy          PromptCopy[]
+  PromptUsage         PromptUsage[]
+  Version             Version[]
+  Vote                Vote[]
+  VoteReward          VoteReward[]
+
+  @@index([userId])
+  @@index([slug])
+  @@index([isPublic])
+  @@index([isFeatured])
+  @@index([isPremium])
+  @@index([isVerified])
+  @@index([model])
+  @@index([promptType])
+  @@index([createdAt])
+  @@index([updatedAt])
+  @@index([lastUsedAt])
+}
+
+model Version {
+  id                String   @id @default(cuid())
+  promptId          String?
+  userId            String
+  version           Int      @default(1)
+  content           String
+  convertedToPrompt Boolean  @default(false)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  Prompt            Prompt?  @relation(fields: [promptId], references: [id])
+  User              User     @relation(fields: [userId], references: [id])
+
+  @@unique([promptId, version])
+  @@index([promptId])
+  @@index([userId])
+}
+
+model PromptTemplate {
+  id             String   @id
+  userId         String?
+  name           String
+  description    String
+  content        String
+  type           String?
+  complexity     String?
+  tags           String[]
+  isPublic       Boolean  @default(true)
+  usageCount     Int      @default(0)
+  rating         Float    @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime
+  
+  User           User?    @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([type])
+  @@index([complexity])
+  @@index([usageCount])
+  @@index([rating])
+}
+
+
 // ============================================
 // USAGE & ANALYTICS
 // ============================================
@@ -121,15 +238,33 @@ model ApiKey {
 model ApiUsage {
   id           String   @id
   userId       String
+  promptId     String?
   inputTokens  Int
   outputTokens Int
   isCacheHit   Boolean  @default(false)
   createdAt    DateTime @default(now())
   
   User         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  Prompt       Prompt?  @relation(fields: [promptId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+  @@index([promptId])
   @@index([createdAt])
+}
+
+model PromptUsage {
+  id         String   @id
+  promptId   String
+  userId     String
+  tokenCount Int      @default(0)
+  result     Json?
+  createdAt  DateTime @default(now())
+  
+  Prompt     Prompt   @relation(fields: [promptId], references: [id], onDelete: Cascade)
+  User       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([promptId])
+  @@index([userId])
 }
 
 model Usage {
@@ -164,6 +299,7 @@ model UsageMetrics {
 model PromptRun {
   id             String   @id @default(cuid())
   userId         String
+  promptId       String
   provider       String
   model          String
   requestedModel String?
@@ -184,6 +320,7 @@ model PromptRun {
   QualityFeedback QualityFeedback[]
   
   @@index([userId, createdAt])
+  @@index([promptId])
   @@index([provider])
   @@index([model])
   @@index([success])
@@ -367,9 +504,191 @@ model PremiumFeature {
   @@index([requiredTier])
 }
 
+
 // ============================================
 // COMMUNITY & SOCIAL
 // ============================================
+
+model Comment {
+  id            String        @id
+  userId        String
+  promptId      String
+  parentId      String?
+  content       String
+  hidden        Boolean       @default(false)
+  isEdited      Boolean?      @default(false)
+  editedAt      DateTime?
+  isArchived    Boolean?      @default(false)
+  archivedAt    DateTime?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime
+  
+  User          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  Prompt        Prompt        @relation(fields: [promptId], references: [id], onDelete: Cascade)
+  Parent        Comment?      @relation("CommentToComment", fields: [parentId], references: [id])
+  Replies       Comment[]     @relation("CommentToComment")
+  CommentLike   CommentLike[]
+
+  @@index([userId])
+  @@index([promptId])
+  @@index([parentId])
+  @@index([hidden])
+  @@index([createdAt])
+  @@index([userId, createdAt])
+  @@index([promptId, createdAt])
+}
+
+model CommentLike {
+  id        String   @id
+  userId    String
+  commentId String
+  promptId  String
+  createdAt DateTime @default(now())
+  
+  User      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  Comment   Comment  @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  Prompt    Prompt   @relation(fields: [promptId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, commentId])
+  @@index([userId])
+  @@index([commentId])
+  @@index([promptId])
+}
+
+model Vote {
+  id         String      @id
+  userId     String
+  promptId   String
+  value      Int
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime
+  
+  User       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  Prompt     Prompt      @relation(fields: [promptId], references: [id], onDelete: Cascade)
+  VoteReward VoteReward?
+
+  @@unique([userId, promptId])
+  @@index([userId])
+  @@index([promptId])
+}
+
+model VoteReward {
+  id             String   @id
+  voteId         String   @unique
+  voterId        String
+  promptAuthorId String
+  promptId       String
+  creditsAwarded Int
+  voterPlanType  PlanType
+  ipAddress      String?
+  userAgent      String?
+  createdAt      DateTime @default(now())
+  
+  Vote           Vote     @relation(fields: [voteId], references: [id], onDelete: Cascade)
+  Voter          User     @relation("VoteReward_voterIdToUser", fields: [voterId], references: [id], onDelete: Cascade)
+  Author         User     @relation("VoteReward_promptAuthorIdToUser", fields: [promptAuthorId], references: [id], onDelete: Cascade)
+  Prompt         Prompt   @relation(fields: [promptId], references: [id], onDelete: Cascade)
+
+  @@index([voterId])
+  @@index([promptAuthorId])
+  @@index([promptId])
+  @@index([voterPlanType])
+  @@index([ipAddress])
+  @@index([createdAt])
+}
+
+model VoteAbuseDetection {
+  id             String            @id
+  userId         String
+  abuseType      VoteAbuseType
+  severity       VoteAbuseSeverity
+  status         VoteAbuseStatus   @default(PENDING)
+  details        Json
+  detectedAt     DateTime          @default(now())
+  resolvedAt     DateTime?
+  investigatedBy String?
+  resolution     String?
+  
+  User           User              @relation("VoteAbuseDetection_userIdToUser", fields: [userId], references: [id], onDelete: Cascade)
+  Investigator   User?             @relation("VoteAbuseDetection_investigatedByToUser", fields: [investigatedBy], references: [id])
+
+  @@index([userId])
+  @@index([abuseType])
+  @@index([severity])
+  @@index([status])
+  @@index([investigatedBy])
+  @@index([detectedAt])
+}
+
+model VotePattern {
+  id                 String   @id
+  userId             String
+  timeWindow         String
+  votesCount         Int
+  upvotesCount       Int
+  downvotesCount     Int
+  uniquePromptsVoted Int
+  uniqueAuthorsVoted Int
+  creditsEarned      Int
+  suspiciousPatterns Json
+  riskScore          Float    @default(0.0)
+  lastUpdated        DateTime @default(now())
+  
+  User               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, timeWindow])
+  @@index([userId])
+  @@index([timeWindow])
+  @@index([riskScore])
+  @@index([lastUpdated])
+}
+
+model Follow {
+  id          String   @id
+  followerId  String
+  followingId String
+  createdAt   DateTime @default(now())
+  
+  Follower    User     @relation("Follow_followerIdToUser", fields: [followerId], references: [id], onDelete: Cascade)
+  Following   User     @relation("Follow_followingIdToUser", fields: [followingId], references: [id], onDelete: Cascade)
+
+  @@unique([followerId, followingId])
+  @@index([followerId])
+  @@index([followingId])
+  @@index([createdAt])
+}
+
+model PromptCopy {
+  id        String   @id
+  promptId  String
+  userId    String?
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+  
+  Prompt    Prompt   @relation(fields: [promptId], references: [id], onDelete: Cascade)
+  User      User?    @relation(fields: [userId], references: [id])
+
+  @@index([promptId])
+  @@index([userId])
+}
+
+model PromptGeneration {
+  id          String   @id
+  userId      String
+  promptType  String
+  input       String
+  output      String
+  creditsUsed Int
+  createdAt   DateTime @default(now())
+  
+  User        User     @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([promptType])
+  @@index([creditsUsed])
+  @@index([createdAt])
+}
 
 // ============================================
 // SUPPORT & NOTIFICATIONS
@@ -484,6 +803,7 @@ model EmailTemplate {
   @@index([createdById])
   @@index([updatedById])
 }
+
 
 // ============================================
 // GDPR & COMPLIANCE
@@ -963,3 +1283,30 @@ enum TeamRole {
   MEMBER
 }
 
+enum VoteAbuseType {
+  SOCKPUPPET_VOTING
+  VOTE_MANIPULATION
+  RAPID_VOTING
+  IP_CLUSTERING
+  DEVICE_FINGERPRINT_MATCH
+  TEMPORAL_PATTERN_ABUSE
+  COORDINATED_VOTING
+  SELF_VOTE_ATTEMPT
+  EXCESSIVE_VOTING_RATE
+  SUSPICIOUS_ACCOUNT_AGE
+}
+
+enum VoteAbuseSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum VoteAbuseStatus {
+  PENDING
+  INVESTIGATING
+  CONFIRMED
+  FALSE_POSITIVE
+  RESOLVED
+}

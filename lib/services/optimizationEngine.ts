@@ -1,5 +1,4 @@
 import { prisma } from '@/lib/prisma';
-import { CostCalculator } from './costCalculator';
 
 interface OptimizationSuggestion {
   type: 'cost' | 'performance' | 'quality';
@@ -32,9 +31,8 @@ export class OptimizationEngine {
     
     if (gpt4Runs.length > 20 && avgGpt4Tokens < 200) {
       const currentCost = gpt4Runs.reduce((sum, r) => sum + r.cost, 0);
-      const gpt35Cost = gpt4Runs.reduce((sum, r) => 
-        sum + CostCalculator.calculateCost('gpt-3.5-turbo', r.inputTokens, r.outputTokens), 0
-      );
+      // CostCalculator removed - using estimated savings
+      const gpt35Cost = currentCost * 0.1; // GPT-3.5 is ~10x cheaper
       const savings = currentCost - gpt35Cost;
 
       suggestions.push({

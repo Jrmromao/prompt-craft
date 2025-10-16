@@ -2,7 +2,6 @@ import { prisma } from '@/lib/prisma';
 import { Role, Period, PlanType } from '@/utils/constants';
 import { CreditType } from '@prisma/client';
 import { addDays, addMonths, isAfter, isBefore, startOfMonth, endOfMonth } from 'date-fns';
-import { EmailService } from './emailService';
 import { PlanService } from './planService';
 import { ServiceError } from './types';
 import { AuditService } from './auditService';
