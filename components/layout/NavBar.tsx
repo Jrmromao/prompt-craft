@@ -99,13 +99,6 @@ export function NavBar({ user, onMenuClick }: { user?: NavBarUser; onMenuClick?:
               )}
             </div>
             
-            {/* Global Search */}
-            {user && (
-              <div className="hidden md:flex flex-1 max-w-md mx-8">
-                <GlobalSearch />
-              </div>
-            )}
-            
             <div className="flex items-center gap-4">
               <ThemeToggle />
               {user ? (
