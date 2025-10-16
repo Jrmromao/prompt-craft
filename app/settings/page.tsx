@@ -5,8 +5,18 @@ import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Key, Plus, Trash2, Copy, Check } from 'lucide-react';
+import { Key, Plus, Trash2, Copy, Check, AlertTriangle } from 'lucide-react';
 import { EmptyState } from '@/components/EmptyState';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 interface ApiKey {
   id: string;
@@ -23,6 +33,8 @@ export default function SettingsPage() {
   const [newKeyName, setNewKeyName] = useState('');
   const [newKey, setNewKey] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [deleteKeyId, setDeleteKeyId] = useState<string | null>(null);
+  const [deleteKeyName, setDeleteKeyName] = useState<string>('');
 
   useEffect(() => {
     fetchKeys();
@@ -65,11 +77,10 @@ export default function SettingsPage() {
   };
 
   const deleteKey = async (id: string) => {
-    if (!confirm('Are you sure? This cannot be undone.')) return;
-    
     try {
       await fetch(`/api/settings/api-keys?keyId=${id}`, { method: 'DELETE' });
       fetchKeys();
+      setDeleteKeyId(null);
     } catch (error) {
       console.error('Failed to delete key:', error);
     }
@@ -181,7 +192,10 @@ export default function SettingsPage() {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => deleteKey(key.id)}
+                      onClick={() => {
+                        setDeleteKeyId(key.id);
+                        setDeleteKeyName(key.name);
+                      }}
                       className="text-red-600 hover:text-red-700"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -216,6 +230,48 @@ export default function SettingsPage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Security Info */}
+      <Card className="bg-blue-50 dark:bg-blue-950/20 border-blue-200">
+        <CardContent className="p-4">
+          <div className="flex gap-3">
+            <Key className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+            <div className="text-sm">
+              <p className="font-medium text-blue-900 mb-1">🔒 Security Notice</p>
+              <p className="text-blue-800">
+                For security reasons, API keys are only shown once at creation. If you lose a key, delete it and create a new one.
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Delete Dialog */}
+      <AlertDialog open={!!deleteKeyId} onOpenChange={(open) => !open && setDeleteKeyId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <div className="flex items-center gap-2 text-red-600">
+              <AlertTriangle className="w-6 h-6" />
+              <AlertDialogTitle>Delete API Key?</AlertDialogTitle>
+            </div>
+            <AlertDialogDescription className="space-y-2">
+              <p>Are you sure you want to delete <strong>{deleteKeyName}</strong>?</p>
+              <p className="text-red-600 font-medium">
+                This action cannot be undone. Any applications using this key will stop working immediately.
+              </p>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={() => deleteKeyId && deleteKey(deleteKeyId)}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              Delete Key
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
