@@ -291,6 +291,9 @@ const result = await tracked.chat.completions.create({
         </p>
       </div>
 
+      {/* Blog Section */}
+      <BlogSection />
+
       {/* Final CTA */}
       <div className="bg-blue-600 text-white py-16">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
@@ -370,6 +373,66 @@ function PricingCard({ name, price, features, cta, popular }: { name: string; pr
           {cta}
         </button>
       </Link>
+    </div>
+  );
+}
+
+// Blog Section Component
+function BlogSection() {
+  const posts = [
+    {
+      title: "How to Reduce OpenAI API Costs by 40%",
+      description: "Learn proven strategies to cut your OpenAI and LLM costs while maintaining response quality.",
+      slug: "reduce-openai-costs",
+      date: "Jan 15, 2025"
+    },
+    {
+      title: "OpenAI vs Anthropic Cost Comparison 2025",
+      description: "Complete cost breakdown of GPT-4, GPT-3.5, Claude 3 Opus, Sonnet, and Haiku with real pricing data.",
+      slug: "openai-vs-anthropic-cost-comparison",
+      date: "Jan 16, 2025"
+    },
+    {
+      title: "7 Cheaper Alternatives to GPT-4",
+      description: "Discover cost-effective GPT-4 alternatives that save up to 90% on LLM costs without losing performance.",
+      slug: "gpt-4-alternatives-cheaper",
+      date: "Jan 18, 2025"
+    }
+  ];
+
+  return (
+    <div className="bg-gray-50 py-16">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-12">
+          <h2 className="text-3xl font-bold mb-4">Learn How to Optimize LLM Costs</h2>
+          <p className="text-xl text-gray-600">
+            Practical guides and strategies from our team
+          </p>
+        </div>
+
+        <div className="grid md:grid-cols-3 gap-8 mb-8">
+          {posts.map((post) => (
+            <Link key={post.slug} href={`/blog/${post.slug}`}>
+              <div className="bg-white rounded-lg p-6 hover:shadow-lg transition-shadow cursor-pointer h-full">
+                <div className="text-sm text-gray-500 mb-2">{post.date}</div>
+                <h3 className="text-xl font-semibold mb-3 line-clamp-2">{post.title}</h3>
+                <p className="text-gray-600 mb-4 line-clamp-3">{post.description}</p>
+                <div className="text-blue-600 font-medium flex items-center gap-2">
+                  Read more <ArrowRight className="w-4 h-4" />
+                </div>
+              </div>
+            </Link>
+          ))}
+        </div>
+
+        <div className="text-center">
+          <Link href="/blog">
+            <button className="px-6 py-3 border-2 border-blue-600 text-blue-600 rounded-lg font-semibold hover:bg-blue-50 transition-colors">
+              View All Articles
+            </button>
+          </Link>
+        </div>
+      </div>
     </div>
   );
 }

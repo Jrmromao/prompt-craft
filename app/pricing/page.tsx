@@ -7,10 +7,10 @@ import { UpgradeButton } from '@/components/UpgradeButton';
 
 export const metadata: Metadata = {
   title: 'Pricing - Start Free',
-  description: 'Start free with 1,000 requests/month. Scale to Pro ($49/mo) or Enterprise (custom) as you grow. No credit card required.',
+  description: 'Start free with 1,000 requests/month. Scale to Starter ($9/mo), Pro ($49/mo) or Enterprise (custom) as you grow. No credit card required.',
   openGraph: {
     title: 'OptiRelay Pricing - Start Free',
-    description: 'Start free with 1,000 requests/month. Scale to Pro ($49/mo) or Enterprise (custom) as you grow.',
+    description: 'Start free with 1,000 requests/month. Scale to Starter ($9/mo), Pro ($49/mo) or Enterprise (custom) as you grow.',
   },
   alternates: {
     canonical: 'https://optirelay.com/pricing',
@@ -104,7 +104,7 @@ export default function PricingPage() {
             </div>
             <CardHeader className="text-center pb-4">
               <CardTitle className="text-xl mb-2">Starter</CardTitle>
-              <div className="text-4xl font-bold mb-2">$19</div>
+              <div className="text-4xl font-bold mb-2">$9</div>
               <p className="text-gray-600 text-sm">per month</p>
             </CardHeader>
             <CardContent>
