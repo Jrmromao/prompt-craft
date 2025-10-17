@@ -41,11 +41,11 @@ export default function AnthropicDocsPage() {
 
       <h2 className="text-2xl font-bold text-gray-900 mt-12 mb-4">Quick Start (Recommended)</h2>
       <p className="text-gray-700 mb-4">Use the wrapper for automatic tracking:</p>
-      <CodeBlock code={`import OptiRelay from 'optirelay-sdk';
+      <CodeBlock code={`import { CostLens } from 'costlens';
 import Anthropic from '@anthropic-ai/sdk';
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-const optirelay = new OptiRelay({ 
+const optirelay = new CostLens({ 
   apiKey: process.env.PROMPTCRAFT_API_KEY 
 });
 
@@ -68,7 +68,7 @@ const result = await tracked.messages.create({
 
       <h2 className="text-2xl font-bold text-gray-900 mt-12 mb-4">Advanced: Caching</h2>
       <p className="text-gray-700 mb-4">Save costs by caching responses:</p>
-      <CodeBlock code={`const optirelay = new OptiRelay({ 
+      <CodeBlock code={`const optirelay = new CostLens({ 
   apiKey: process.env.PROMPTCRAFT_API_KEY,
   enableCache: true
 });
@@ -82,11 +82,11 @@ const result = await tracked.messages.create(
 
       <h2 className="text-2xl font-bold text-gray-900 mt-12 mb-4">Manual Tracking (Legacy)</h2>
       <p className="text-gray-700 mb-4">For more control, track manually:</p>
-      <CodeBlock code={`import OptiRelay from 'optirelay-sdk';
+      <CodeBlock code={`import { CostLens } from 'costlens';
 import Anthropic from '@anthropic-ai/sdk';
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-const optirelay = new OptiRelay({ 
+const optirelay = new CostLens({ 
   apiKey: process.env.PROMPTCRAFT_API_KEY 
 });
 
@@ -101,11 +101,11 @@ const result = await anthropic.messages.create(params);
 await optirelay.trackAnthropic(params, result, Date.now() - start);`} />
 
       <h2 className="text-2xl font-bold text-gray-900 mt-12 mb-4">Basic Usage (Old Approach)</h2>
-      <CodeBlock code={`import OptiRelay from 'optirelay-sdk';
+      <CodeBlock code={`import { CostLens } from 'costlens';
 import Anthropic from '@anthropic-ai/sdk';
 
 // Initialize
-const optirelay = new OptiRelay({ 
+const optirelay = new CostLens({ 
   apiKey: process.env.PROMPTCRAFT_API_KEY 
 });
 const anthropic = new Anthropic({

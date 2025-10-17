@@ -45,9 +45,9 @@ export default function ErrorsDocsPage() {
       </ul>
 
       <h2 className="text-2xl font-bold text-gray-900 mt-12 mb-4">Basic Error Tracking</h2>
-      <CodeBlock code={`import OptiRelay from 'optirelay-sdk';
+      <CodeBlock code={`import { CostLens } from 'costlens';
 
-const optirelay = new OptiRelay({ 
+const optirelay = new CostLens({ 
   apiKey: process.env.PROMPTCRAFT_API_KEY 
 });
 
@@ -114,7 +114,7 @@ Solution: Verify your API key is correct and active`} language="text" />
       <h2 className="text-2xl font-bold text-gray-900 mt-12 mb-4">Best Practices</h2>
       <ol className="space-y-2 text-gray-700 list-decimal list-inside">
         <li><strong>Always use try/catch</strong> - Never skip error handling</li>
-        <li><strong>Track before re-throwing</strong> - Log to OptiRelay then handle in your app</li>
+        <li><strong>Track before re-throwing</strong> - Log to CostLens then handle in your app</li>
         <li><strong>Include context</strong> - Use promptId to identify problematic prompts</li>
         <li><strong>Set error rate alerts</strong> - Get notified when errors spike</li>
       </ol>

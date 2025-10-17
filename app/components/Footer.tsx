@@ -11,12 +11,12 @@ export function Footer() {
         <div className="flex flex-col items-center gap-2 md:items-start">
           <div
             className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-r from-blue-500 to-blue-500"
-            aria-label="OptiRelay Logo"
+            aria-label="CostLens Logo"
           >
             <Sparkles className="h-5 w-5 text-white" aria-hidden="true" />
           </div>
           <span className="bg-gradient-to-r from-blue-400 to-blue-400 bg-clip-text text-xl font-bold text-transparent">
-            OptiRelay
+            CostLens
           </span>
           <span className="text-xs text-muted-foreground">Create & share AI prompts</span>
         </div>
@@ -32,7 +32,7 @@ export function Footer() {
             </Link>
           </div>
           <div className="mt-1 text-xs">
-            &copy; {new Date().getFullYear()} OptiRelay. All rights reserved.
+            &copy; {new Date().getFullYear()} CostLens. All rights reserved.
           </div>
         </div>
         {/* Right: Social & Contact */}
@@ -68,8 +68,8 @@ export function Footer() {
           </div>
           <div className="text-xs">
             Legal:{' '}
-            <a href="mailto:egal@OptiRelay.co" className="underline">
-              legal@OptiRelay.co
+            <a href="mailto:egal@CostLens.co" className="underline">
+              legal@CostLens.co
             </a>
           </div>
         </div>

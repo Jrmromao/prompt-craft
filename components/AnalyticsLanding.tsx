@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { ArrowRight, BarChart3, DollarSign, Zap, Shield, Users, TrendingDown, Check, AlertCircle, Clock } from 'lucide-react';
+import { ArrowRight, BarChart3, DollarSign, Zap, Shield, Users, TrendingDown, Check, AlertCircle, Clock, Sparkles, BookOpen } from 'lucide-react';
 
 interface User {
   id: string;
@@ -13,6 +13,59 @@ interface User {
 export default function AnalyticsLanding({ user }: { user: User | null }) {
   return (
     <div className="min-h-screen bg-white">
+      {/* Navbar */}
+      <nav className="sticky top-0 z-50 w-full border-b border-gray-200 bg-white/80 backdrop-blur-md">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex h-16 items-center justify-between">
+            <Link href="/" className="flex items-center gap-2">
+              <Sparkles className="h-6 w-6 text-sky-500" />
+              <span className="bg-gradient-to-r from-sky-600 to-blue-500 bg-clip-text text-xl font-bold text-transparent">
+                CostLens
+              </span>
+            </Link>
+            
+            <div className="hidden md:flex items-center gap-6">
+              <Link href="/blog" className="text-gray-600 hover:text-gray-900 font-medium">
+                Blog
+              </Link>
+              <Link href="/docs" className="text-gray-600 hover:text-gray-900 font-medium flex items-center gap-1">
+                <BookOpen className="w-4 h-4" />
+                Docs
+              </Link>
+              <Link href="/pricing" className="text-gray-600 hover:text-gray-900 font-medium">
+                Pricing
+              </Link>
+            </div>
+
+            <div className="flex items-center gap-3">
+              {user ? (
+                <Link
+                  href="/dashboard"
+                  className="px-4 py-2 bg-sky-600 text-white rounded-lg font-medium hover:bg-sky-700 transition-colors"
+                >
+                  Dashboard
+                </Link>
+              ) : (
+                <>
+                  <Link
+                    href="/sign-in"
+                    className="px-4 py-2 text-gray-600 hover:text-gray-900 font-medium"
+                  >
+                    Sign In
+                  </Link>
+                  <Link
+                    href="/sign-up"
+                    className="px-4 py-2 bg-sky-600 text-white rounded-lg font-medium hover:bg-sky-700 transition-colors"
+                  >
+                    Start Free
+                  </Link>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      </nav>
+
       {/* Hero Section */}
       <div className="bg-gradient-to-b from-blue-50 to-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-16">
@@ -206,11 +259,11 @@ export default function AnalyticsLanding({ user }: { user: User | null }) {
               <span className="text-gray-400 text-sm ml-2">your-app.ts</span>
             </div>
             <pre className="text-sm overflow-x-auto">
-              <code className="text-green-400">{`import OptiRelay from 'optirelay-sdk';
+              <code className="text-green-400">{`import CostLens from 'optirelay-sdk';
 import OpenAI from 'openai';
 
 const openai = new OpenAI();
-const optirelay = new OptiRelay({ 
+const optirelay = new CostLens({ 
   apiKey: process.env.PROMPTCRAFT_API_KEY,
   autoOptimize: true,  // 50-80% token reduction
   smartRouting: true,  // Auto-route to cheapest model

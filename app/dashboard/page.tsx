@@ -215,9 +215,9 @@ export default function DashboardPage() {
                 <div>npm install optirelay-sdk</div>
                 <div className="text-gray-400 mt-4"># Use in your code</div>
                 <div>import OpenAI from 'openai';</div>
-                <div>import OptiRelay from 'optirelay-sdk';</div>
+                <div>import CostLens from 'optirelay-sdk';</div>
                 <div className="mt-2">const openai = new OpenAI();</div>
-                <div>const optirelay = new OptiRelay({'{'}</div>
+                <div>const optirelay = new CostLens({'{'}</div>
                 <div>  apiKey: '{apiKey}'</div>
                 <div>{'}'});</div>
                 <div className="mt-2">const tracked = optirelay.wrapOpenAI(openai);</div>
@@ -233,10 +233,10 @@ export default function DashboardPage() {
                 onClick={() => copyToClipboard(`npm install optirelay-sdk
 
 import OpenAI from 'openai';
-import OptiRelay from 'optirelay-sdk';
+import CostLens from 'optirelay-sdk';
 
 const openai = new OpenAI();
-const optirelay = new OptiRelay({ apiKey: '${apiKey}' });
+const optirelay = new CostLens({ apiKey: '${apiKey}' });
 const tracked = optirelay.wrapOpenAI(openai);
 
 const result = await tracked.chat.completions.create({

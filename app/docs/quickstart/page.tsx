@@ -106,11 +106,11 @@ export default function QuickStartPage() {
           <h3 className="text-lg font-semibold text-gray-900 mb-3 ml-13">For OpenAI (Recommended - Auto-saving):</h3>
           <CodeBlock 
             language="typescript"
-            code={`import OptiRelay from 'optirelay-sdk';
+            code={`import { CostLens } from 'costlens';
 import OpenAI from 'openai';
 
 const openai = new OpenAI();
-const optirelay = new OptiRelay({ 
+const optirelay = new CostLens({ 
   apiKey: process.env.PROMPTCRAFT_API_KEY,
   autoOptimize: true,    // 🚀 Saves 50-80% on tokens
   smartRouting: true,    // 🚀 Routes to cheapest model
@@ -138,11 +138,11 @@ const result = await tracked.chat.completions.create({
           <h3 className="text-lg font-semibold text-gray-900 mb-3 mt-8 ml-13">For Anthropic:</h3>
           <CodeBlock 
             language="typescript"
-            code={`import OptiRelay from 'optirelay-sdk';
+            code={`import { CostLens } from 'costlens';
 import Anthropic from '@anthropic-ai/sdk';
 
 const anthropic = new Anthropic();
-const optirelay = new OptiRelay({ 
+const optirelay = new CostLens({ 
   apiKey: process.env.PROMPTCRAFT_API_KEY 
 });
 

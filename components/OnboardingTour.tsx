@@ -5,7 +5,7 @@ import { X } from 'lucide-react';
 
 const TOUR_STEPS = [
   {
-    title: 'Welcome to OptiRelay! 🎉',
+    title: 'Welcome to CostLens! 🎉',
     content: 'You start with 100 free credits. Each prompt generation costs 5-15 credits depending on complexity.',
     target: 'credits',
   },

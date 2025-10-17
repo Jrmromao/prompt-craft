@@ -8,7 +8,7 @@ export default function PrivacyPolicyPage() {
         <section>
           <h2 className="text-2xl font-bold mb-4">1. Data Controller</h2>
           <p>
-            <strong>OptiRelay</strong><br />
+            <strong>CostLens</strong><br />
             Email: <a href="mailto:privacy@optirelay.com" className="text-blue-600">privacy@optirelay.com</a><br />
             Website: <a href="https://optirelay.com" className="text-blue-600">optirelay.com</a>
           </p>

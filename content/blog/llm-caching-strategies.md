@@ -1,7 +1,7 @@
 ---
 title: "LLM Caching: Save 40% on OpenAI and Anthropic Costs"
 description: "Complete guide to LLM response caching. Learn semantic caching, prompt caching, and implementation strategies to reduce AI API costs by 40%."
-author: "OptiRelay Team"
+author: "CostLens Team"
 date: "2025-01-17"
 image: "/blog/llm-caching.jpg"
 tags: ["caching", "optimization", "cost-reduction", "performance", "redis"]
@@ -92,9 +92,9 @@ All three get the same cached response.
 **Implementation:**
 
 ```javascript
-import { OptiRelay } from 'optirelay';
+import { CostLens } from 'optirelay';
 
-const client = new OptiRelay({
+const client = new CostLens({
   apiKey: process.env.OPTIRELAY_API_KEY,
   cache: {
     type: 'semantic',
@@ -126,23 +126,34 @@ Anthropic's native prompt caching for long contexts.
 - Cache writes: 25% markup
 - Break-even: 2+ uses
 
-**Implementation:**
+**Manual Implementation Challenges:**
+- Requires adding cache control markers to every prompt
+- Must manage cache ordering (cached content must be first)
+- Need to track cache hit rates manually
+- Complex to calculate actual ROI
+
+**The Easier Way:**
+
+CostLens handles Anthropic's prompt caching automatically without manual configuration:
 
 ```javascript
-const response = await anthropic.messages.create({
-  model: 'claude-3-sonnet',
-  system: [
-    {
-      type: 'text',
-      text: 'Long system prompt here...',
-      cache_control: { type: 'ephemeral' }
-    }
-  ],
-  messages: [{ role: 'user', content: 'Question' }]
+import { CostLens } from 'costlens';
+
+const client = new CostLens({
+  apiKey: process.env.COSTLENS_API_KEY,
+  enableCache: true,
+});
+
+// Automatic caching - no cache_control markers needed
+const response = await client.chat({
+  messages: [
+    { role: 'system', content: 'Long system prompt here...' },
+    { role: 'user', content: 'Question' }
+  ]
 });
 ```
 
-**Savings:** 30-50% for long-context applications
+**Savings:** 30-50% for long-context applications with zero configuration
 
 ## Cache Strategy by Use Case
 
@@ -269,14 +280,14 @@ setInterval(() => {
 }, 3600000);
 ```
 
-## OptiRelay: Automatic Caching
+## CostLens: Automatic Caching
 
-Don't want to build this yourself? OptiRelay handles it automatically:
+Don't want to build this yourself? CostLens handles it automatically:
 
 ```javascript
-import { OptiRelay } from 'optirelay';
+import { CostLens } from 'optirelay';
 
-const client = new OptiRelay({
+const client = new CostLens({
   apiKey: process.env.OPTIRELAY_API_KEY,
   cache: true // That's it!
 });
@@ -301,4 +312,4 @@ Start with exact match caching, then add semantic caching for bigger savings.
 
 ---
 
-**Want automatic caching?** [Try OptiRelay free](https://optirelay.com) - caching included out of the box.
+**Want automatic caching?** [Try CostLens free](https://optirelay.com) - caching included out of the box.

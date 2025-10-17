@@ -39,7 +39,7 @@ export default function DocsHomePage() {
         </div>
         <h1 className="text-5xl font-bold mb-4 text-gray-900">Documentation</h1>
         <p className="text-xl text-gray-600 max-w-3xl">
-          Everything you need to integrate OptiRelay and start tracking your AI costs in minutes.
+          Everything you need to integrate CostLens and start tracking your AI costs in minutes.
         </p>
       </div>
 
@@ -135,11 +135,11 @@ export default function DocsHomePage() {
         <p className="text-gray-600 mb-4">
           Wrap your client and get automatic tracking:
         </p>
-        <CodeBlock code={`import OptiRelay from 'optirelay-sdk';
+        <CodeBlock code={`import { CostLens } from 'costlens';
 import OpenAI from 'openai';
 
 const openai = new OpenAI();
-const optirelay = new OptiRelay({ 
+const optirelay = new CostLens({ 
   apiKey: process.env.PROMPTCRAFT_API_KEY,
   enableCache: true,  // Optional: enable caching
   maxRetries: 3       // Optional: auto-retry

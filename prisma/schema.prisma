@@ -1064,6 +1064,7 @@ model BlogPost {
   publishedAt   DateTime?
   readTime      Int?        // minutes
   views         Int         @default(0)
+  likes         Int         @default(0)
   tags          String[]
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt

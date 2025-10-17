@@ -1,7 +1,7 @@
 ---
 title: "OpenAI vs Anthropic Cost Comparison 2025: Which LLM is Cheaper?"
 description: "Complete cost breakdown of OpenAI GPT-4, GPT-3.5, Claude 3 Opus, Sonnet, and Haiku. Real pricing data, performance benchmarks, and cost optimization strategies."
-author: "OptiRelay Team"
+author: "CostLens Team"
 date: "2025-01-16"
 image: "/blog/openai-anthropic-costs.jpg"
 tags: ["cost-comparison", "openai", "anthropic", "claude", "gpt-4", "pricing"]
@@ -118,9 +118,9 @@ Choosing between OpenAI and Anthropic? Cost is a major factor. Here's a complete
 **Don't stick to one model.** Use intelligent routing:
 
 ```javascript
-import { OptiRelay } from 'optirelay';
+import { CostLens } from 'optirelay';
 
-const client = new OptiRelay({
+const client = new CostLens({
   apiKey: process.env.OPTIRELAY_API_KEY,
   routing: {
     simple: 'claude-3-haiku',      // Cheapest
@@ -129,10 +129,10 @@ const client = new OptiRelay({
   }
 });
 
-// OptiRelay automatically routes to optimal model
+// CostLens automatically routes to optimal model
 const response = await client.chat.completions.create({
   messages: [{ role: 'user', content: 'Your prompt' }],
-  complexity: 'auto' // Let OptiRelay decide
+  complexity: 'auto' // Let CostLens decide
 });
 ```
 
@@ -146,7 +146,7 @@ const response = await client.chat.completions.create({
 ### 2. Caching
 - Anthropic offers prompt caching (50% discount on cached tokens)
 - OpenAI doesn't have native caching
-- **Use OptiRelay for automatic caching across both**
+- **Use CostLens for automatic caching across both**
 
 ### 3. Rate Limits
 - OpenAI: Stricter rate limits on free tier
@@ -170,10 +170,10 @@ const response = await client.chat.completions.create({
 
 **For most applications:** Start with Claude 3 Sonnet, fall back to Haiku for simple tasks, and use GPT-4 Turbo only when necessary.
 
-**Best cost optimization:** Use OptiRelay to automatically route requests to the optimal model based on complexity.
+**Best cost optimization:** Use CostLens to automatically route requests to the optimal model based on complexity.
 
 **Average savings:** 40-60% compared to using GPT-4 for everything.
 
 ---
 
-**Ready to optimize your LLM costs?** [Try OptiRelay free](https://optirelay.com) and start saving today.
+**Ready to optimize your LLM costs?** [Try CostLens free](https://optirelay.com) and start saving today.

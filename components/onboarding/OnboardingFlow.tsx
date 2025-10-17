@@ -9,7 +9,7 @@ import { Zap, Target, Sparkles, CreditCard } from 'lucide-react';
 const ONBOARDING_STEPS = [
   {
     id: 'welcome',
-    title: 'Welcome to OptiRelay',
+    title: 'Welcome to CostLens',
     description: 'Transform your ideas into optimized AI prompts',
     icon: Sparkles
   },

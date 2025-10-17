@@ -69,7 +69,7 @@ export default function SignUpPage() {
             <CheckCircle className="w-8 h-8 text-white" />
           </div>
           <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-500 bg-clip-text text-transparent mb-2">
-            Welcome to OptiRelay!
+            Welcome to CostLens!
           </h2>
           <p className="text-gray-600 dark:text-gray-400">Your account has been created successfully.</p>
           <p className="text-sm text-gray-500 dark:text-gray-500 mt-2">Redirecting you to your dashboard...</p>
@@ -97,7 +97,7 @@ export default function SignUpPage() {
             Create your account
           </h2>
           <p className="text-gray-600 dark:text-gray-400">
-            Join OptiRelay and start creating amazing prompts
+            Join CostLens and start creating amazing prompts
           </p>
         </div>
       </div>
