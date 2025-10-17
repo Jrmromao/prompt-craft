@@ -1,30 +1,30 @@
 # API Reference
 
-Complete reference for the PromptCraft SDK and REST API.
+Complete reference for the CostLens SDK and REST API.
 
 ## SDK Reference
 
 ### Installation
 
 ```bash
-npm install promptcraft-sdk
+npm install costlens
 ```
 
 ### Constructor
 
 ```typescript
-new PromptCraft(config: PromptCraftConfig)
+new CostLens(config: CostLensConfig)
 ```
 
 **Parameters:**
-- `config.apiKey` (string, required) - Your PromptCraft API key
-- `config.baseUrl` (string, optional) - Custom base URL (default: `https://promptcraft.app`)
+- `config.apiKey` (string, required) - Your CostLens API key
+- `config.baseUrl` (string, optional) - Custom base URL (default: `https://costlens.dev`)
 
 **Example:**
 ```typescript
-const promptcraft = new PromptCraft({
-  apiKey: 'pc_your_api_key_here',
-  baseUrl: 'https://custom.promptcraft.app' // optional
+const costlens = new CostLens({
+  apiKey: 'cl_your_api_key_here',
+  baseUrl: 'https://api.costlens.dev' // optional
 });
 ```
 

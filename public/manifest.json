@@ -1,15 +1,15 @@
 {
-  "name": "PromptCraft - AI Prompt Engineering Platform",
-  "short_name": "PromptCraft",
-  "description": "Create, share, and discover AI prompts for various use cases",
+  "name": "CostLens.dev - AI Cost Analytics Platform",
+  "short_name": "CostLens",
+  "description": "Track, analyze, and optimize your AI API costs across OpenAI, Anthropic, and Claude",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
-  "theme_color": "#7c3aed",
+  "theme_color": "#0ea5e9",
   "orientation": "portrait-primary",
   "scope": "/",
   "lang": "en",
-  "categories": ["productivity", "utilities", "education"],
+  "categories": ["productivity", "utilities", "developer-tools"],
   "icons": [
     {
       "src": "/icon-72x72.png",
@@ -62,39 +62,39 @@
   ],
   "shortcuts": [
     {
-      "name": "Create Prompt",
-      "short_name": "Create",
-      "description": "Create a new AI prompt",
-      "url": "/prompts/create",
+      "name": "Dashboard",
+      "short_name": "Dashboard",
+      "description": "View AI cost analytics dashboard",
+      "url": "/dashboard",
       "icons": [
         {
-          "src": "/shortcut-create.png",
+          "src": "/shortcut-dashboard.png",
           "sizes": "96x96",
           "type": "image/png"
         }
       ]
     },
     {
-      "name": "Playground",
-      "short_name": "Test",
-      "description": "Test prompts in the playground",
-      "url": "/playground",
+      "name": "Analytics",
+      "short_name": "Analytics",
+      "description": "Analyze AI spending patterns",
+      "url": "/analytics",
       "icons": [
         {
-          "src": "/shortcut-playground.png",
+          "src": "/shortcut-analytics.png",
           "sizes": "96x96",
           "type": "image/png"
         }
       ]
     },
     {
-      "name": "Community",
-      "short_name": "Explore",
-      "description": "Explore community prompts",
-      "url": "/community-prompts",
+      "name": "Settings",
+      "short_name": "Settings",
+      "description": "Configure cost tracking settings",
+      "url": "/settings",
       "icons": [
         {
-          "src": "/shortcut-community.png",
+          "src": "/shortcut-settings.png",
           "sizes": "96x96",
           "type": "image/png"
         }
@@ -107,14 +107,14 @@
       "sizes": "1280x720",
       "type": "image/png",
       "form_factor": "wide",
-      "label": "PromptCraft Desktop View"
+      "label": "CostLens.dev Desktop Dashboard"
     },
     {
       "src": "/screenshot-mobile.png",
       "sizes": "375x812",
       "type": "image/png",
       "form_factor": "narrow",
-      "label": "PromptCraft Mobile View"
+      "label": "CostLens.dev Mobile Analytics"
     }
   ],
   "related_applications": [],

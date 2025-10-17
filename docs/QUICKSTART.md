@@ -1,13 +1,13 @@
 # Quick Start Guide
 
-Get started with PromptCraft in 5 minutes.
+Get started with CostLens.dev in 5 minutes.
 
 ## Step 1: Sign Up (1 minute)
 
-1. Go to [promptcraft.app](https://promptcraft.app)
+1. Go to [costlens.dev](https://costlens.dev)
 2. Click "Start Free Trial"
 3. Sign up with email or Google/GitHub
-4. You're in! Free tier includes 1,000 runs/month
+4. You're in! Free tier includes 1,000 tracked calls/month
 
 ## Step 2: Get Your API Key (1 minute)
 

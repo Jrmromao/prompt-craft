@@ -18,28 +18,28 @@ export default function AnalyticsLanding({ user }: { user: User | null }) {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-16">
           <div className="text-center">
             {/* Trust Badge */}
-            <div className="inline-flex items-center gap-2 bg-blue-100 text-blue-700 px-4 py-2 rounded-full text-sm font-medium mb-6">
+            <div className="inline-flex items-center gap-2 bg-sky-100 text-sky-700 px-4 py-2 rounded-full text-sm font-medium mb-6">
               <Zap className="w-4 h-4" />
-              Developers saving $234/month on average
+              Developers tracking $50K+ in AI costs monthly
             </div>
 
             <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6 leading-tight">
-              Cut AI Costs by 50-80%<br />
-              <span className="text-blue-600">With AI Optimization</span>
+              See Every Dollar<br />
+              <span className="text-sky-600">Your AI Spends</span>
             </h1>
             
             <p className="text-xl text-gray-600 mb-4 max-w-3xl mx-auto">
-              Automatically optimize prompts, route to cheaper models, and track real savings. Setup in 2 minutes.
+              Track AI costs across OpenAI, Anthropic, and Claude. Real-time analytics, budget alerts, and optimization insights.
             </p>
             <p className="text-xl font-semibold text-gray-900 mb-8 max-w-3xl mx-auto">
-              Pay $9/month. Save $30+/month. 233% ROI guaranteed.
+              Start free. Scale with confidence. Never overspend again.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-6">
               {user ? (
                 <Link
                   href="/dashboard"
-                  className="px-8 py-4 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 flex items-center justify-center gap-2 text-lg"
+                  className="px-8 py-4 bg-sky-600 text-white rounded-lg font-semibold hover:bg-sky-700 flex items-center justify-center gap-2 text-lg"
                 >
                   Go to Dashboard <ArrowRight className="w-5 h-5" />
                 </Link>
@@ -47,7 +47,7 @@ export default function AnalyticsLanding({ user }: { user: User | null }) {
                 <>
                   <Link
                     href="/sign-up"
-                    className="px-8 py-4 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 text-lg shadow-lg hover:shadow-xl transition-all"
+                    className="px-8 py-4 bg-sky-600 text-white rounded-lg font-semibold hover:bg-sky-700 text-lg shadow-lg hover:shadow-xl transition-all"
                   >
                     Start 14-Day Free Trial →
                   </Link>

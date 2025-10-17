@@ -1,20 +1,20 @@
-# PromptCraft Developer Guide
+# CostLens.dev Developer Guide
 
-Complete guide for integrating PromptCraft into your application to track AI costs.
+Complete guide for integrating CostLens.dev into your application to track AI costs.
 
 ## Quick Start
 
 ### 1. Installation
 
 ```bash
-npm install promptcraft-sdk
+npm install costlens
 # or
-yarn add promptcraft-sdk
+yarn add costlens
 ```
 
 ### 2. Get Your API Key
 
-1. Sign up at [promptcraft.app](https://promptcraft.app)
+1. Sign up at [costlens.dev](https://costlens.dev)
 2. Go to Settings → API Keys
 3. Create a new API key
 4. Copy it (you'll only see it once!)

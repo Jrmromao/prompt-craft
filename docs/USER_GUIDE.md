@@ -1,17 +1,17 @@
-# PromptCraft User Guide
+# CostLens.dev User Guide
 
-Complete guide to tracking and optimizing your AI costs.
+Complete guide to tracking and analyzing your AI costs.
 
 ## Table of Contents
 
 1. [Getting Started](#getting-started)
 2. [Connecting API Keys](#connecting-api-keys)
 3. [Installing the SDK](#installing-the-sdk)
-4. [Tracking AI Calls](#tracking-ai-calls)
+4. [Tracking AI Costs](#tracking-ai-costs)
 5. [Viewing Analytics](#viewing-analytics)
-6. [Setting Up Alerts](#setting-up-alerts)
+6. [Setting Up Budget Alerts](#setting-up-budget-alerts)
 7. [Team Collaboration](#team-collaboration)
-8. [Exporting Data](#exporting-data)
+8. [Exporting Cost Data](#exporting-cost-data)
 9. [Subscription Plans](#subscription-plans)
 
 ---
