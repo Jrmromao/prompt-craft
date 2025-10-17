@@ -32,7 +32,7 @@ export default function SDKDocsPage() {
     <div className="max-w-4xl mx-auto px-6 py-12">
       <h1 className="text-4xl font-bold text-gray-900 mb-4">SDK Reference</h1>
       <p className="text-xl text-gray-600 mb-8">
-        Complete reference for the PromptCraft SDK - Save 50-80% on AI costs automatically.
+        Complete reference for the OptiRelay SDK - Save 50-80% on AI costs automatically.
       </p>
 
       <div className="bg-green-50 border border-green-200 p-4 mb-12 rounded-lg">
@@ -51,10 +51,10 @@ export default function SDKDocsPage() {
       </div>
 
       <h2 className="text-2xl font-bold text-gray-900 mt-12 mb-4">Installation</h2>
-      <CodeBlock code="npm install promptcraft-sdk" language="bash" />
+      <CodeBlock code="npm install optirelay-sdk" language="bash" />
 
       <h2 className="text-2xl font-bold text-gray-900 mt-12 mb-4">Constructor</h2>
-      <CodeBlock code="new PromptCraft(config: PromptCraftConfig)" />
+      <CodeBlock code="new OptiRelay(config: OptiRelayConfig)" />
 
       <h3 className="text-xl font-semibold text-gray-900 mt-8 mb-4">Parameters</h3>
       <div className="overflow-x-auto mb-6">
@@ -72,7 +72,7 @@ export default function SDKDocsPage() {
               <td className="px-4 py-3 text-sm"><code className="bg-gray-100 px-2 py-1 rounded">apiKey</code></td>
               <td className="px-4 py-3 text-sm text-gray-600">string</td>
               <td className="px-4 py-3 text-sm text-gray-600">Yes</td>
-              <td className="px-4 py-3 text-sm text-gray-600">Your PromptCraft API key</td>
+              <td className="px-4 py-3 text-sm text-gray-600">Your OptiRelay API key</td>
             </tr>
             <tr className="bg-green-50">
               <td className="px-4 py-3 text-sm"><code className="bg-green-100 px-2 py-1 rounded">autoOptimize</code></td>
@@ -114,14 +114,14 @@ export default function SDKDocsPage() {
               <td className="px-4 py-3 text-sm"><code className="bg-gray-100 px-2 py-1 rounded">baseUrl</code></td>
               <td className="px-4 py-3 text-sm text-gray-600">string</td>
               <td className="px-4 py-3 text-sm text-gray-600">No</td>
-              <td className="px-4 py-3 text-sm text-gray-600">Custom base URL (default: https://prompthive.co)</td>
+              <td className="px-4 py-3 text-sm text-gray-600">Custom base URL (default: https://optirelay.com)</td>
             </tr>
           </tbody>
         </table>
       </div>
 
       <h3 className="text-xl font-semibold text-gray-900 mt-8 mb-4">Example</h3>
-      <CodeBlock code={`const promptcraft = new PromptCraft({
+      <CodeBlock code={`const optirelay = new OptiRelay({
   apiKey: 'pc_your_api_key_here',
   autoOptimize: true,    // 💰 Save 50-80% on tokens
   smartRouting: true,    // 💰 Route to cheapest model
@@ -154,7 +154,7 @@ export default function SDKDocsPage() {
         <h4 className="text-lg font-semibold text-gray-900 mb-3">Example</h4>
         <CodeBlock code={`const start = Date.now();
 const result = await openai.chat.completions.create(params);
-await promptcraft.trackOpenAI(
+await optirelay.trackOpenAI(
   params, 
   result, 
   Date.now() - start,
@@ -183,7 +183,7 @@ await promptcraft.trackOpenAI(
         <h4 className="text-lg font-semibold text-gray-900 mb-3">Example</h4>
         <CodeBlock code={`const start = Date.now();
 const result = await anthropic.messages.create(params);
-await promptcraft.trackAnthropic(
+await optirelay.trackAnthropic(
   params,
   result,
   Date.now() - start,
@@ -212,7 +212,7 @@ await promptcraft.trackAnthropic(
         <h4 className="text-lg font-semibold text-gray-900 mb-3">Example</h4>
         <CodeBlock code={`const start = Date.now();
 const result = await model.generateContent(params);
-await promptcraft.trackGemini(
+await optirelay.trackGemini(
   { model: 'gemini-pro', ...params },
   result.response,
   Date.now() - start,
@@ -241,7 +241,7 @@ await promptcraft.trackGemini(
         <h4 className="text-lg font-semibold text-gray-900 mb-3">Example</h4>
         <CodeBlock code={`const start = Date.now();
 const result = await grok.chat.completions.create(params);
-await promptcraft.trackGrok(
+await optirelay.trackGrok(
   params,
   result,
   Date.now() - start,
@@ -272,9 +272,9 @@ await promptcraft.trackGrok(
         <h4 className="text-lg font-semibold text-gray-900 mb-3">Example</h4>
         <CodeBlock code={`try {
   const result = await openai.chat.completions.create(params);
-  await promptcraft.trackOpenAI(params, result, latency);
+  await optirelay.trackOpenAI(params, result, latency);
 } catch (error) {
-  await promptcraft.trackError(
+  await optirelay.trackError(
     'openai',
     params.model,
     JSON.stringify(params.messages),
@@ -293,12 +293,12 @@ await promptcraft.trackGrok(
           <p className="text-gray-700 mb-4">
             Automatically cache responses to save money on repeated requests. Achieves 60-80% hit rates in production.
           </p>
-          <CodeBlock code={`const promptcraft = new PromptCraft({
+          <CodeBlock code={`const optirelay = new OptiRelay({
   apiKey: process.env.PROMPTCRAFT_API_KEY,
   enableCache: true, // Enable Redis caching
 });
 
-const tracked = promptcraft.wrapOpenAI(openai);
+const tracked = optirelay.wrapOpenAI(openai);
 
 // First call - cache miss, costs $0.05
 await tracked.chat.completions.create({
@@ -319,7 +319,7 @@ await tracked.chat.completions.create({
             Smart routing automatically disables if response quality drops below 3.5/5 stars.
           </p>
           <CodeBlock code={`// SDK checks quality status before routing
-const tracked = promptcraft.wrapOpenAI(openai);
+const tracked = optirelay.wrapOpenAI(openai);
 
 // If quality is good: GPT-4 → GPT-3.5 (saves money)
 // If quality dropped: Uses GPT-4 (protects quality)
@@ -344,12 +344,12 @@ await fetch('/api/quality/feedback', {
           <p className="text-gray-700 mb-4">
             Automatically compress prompts by 30-50% while preserving meaning.
           </p>
-          <CodeBlock code={`const promptcraft = new PromptCraft({
+          <CodeBlock code={`const optirelay = new OptiRelay({
   apiKey: process.env.PROMPTCRAFT_API_KEY,
   autoOptimize: true, // Enable AI compression
 });
 
-const tracked = promptcraft.wrapOpenAI(openai);
+const tracked = optirelay.wrapOpenAI(openai);
 
 // Original: 200 tokens
 // Optimized: 100 tokens (50% reduction)
@@ -393,8 +393,8 @@ console.log(\`Savings Rate: \${savings.savingsRate}%\`);
 
       <h2 className="text-2xl font-bold text-gray-900 mt-16 mb-4">Types</h2>
 
-      <h3 className="text-xl font-semibold text-gray-900 mt-8 mb-4">PromptCraftConfig</h3>
-      <CodeBlock code={`interface PromptCraftConfig {
+      <h3 className="text-xl font-semibold text-gray-900 mt-8 mb-4">OptiRelayConfig</h3>
+      <CodeBlock code={`interface OptiRelayConfig {
   apiKey: string;
   baseUrl?: string;
 }`} />

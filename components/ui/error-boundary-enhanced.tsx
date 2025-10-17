@@ -193,7 +193,7 @@ export default class EnhancedErrorBoundary extends Component<Props, State> {
                 <Button
                   onClick={() => {
                     // Open support or report issue
-                    window.open('mailto:support@prompthive.co?subject=Error Report', '_blank')
+                    window.open('mailto:support@optirelay.com?subject=Error Report', '_blank')
                   }}
                   variant="ghost"
                   size="sm"

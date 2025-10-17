@@ -53,7 +53,7 @@ export function NavBar({ user, onMenuClick }: { user?: NavBarUser; onMenuClick?:
               <Link href="/account" className="flex items-center gap-2">
                 <Sparkles className="h-6 w-6 text-blue-500" />
                 <span className="bg-gradient-to-r from-blue-600 to-blue-500 bg-clip-text text-xl font-bold text-transparent">
-                  PromptHive
+                  OptiRelay
                 </span>
               </Link>
               {user && (

@@ -1,7 +1,7 @@
 import { MetadataRoute } from 'next';
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = 'https://prompthive.co';
+  const baseUrl = 'https://optirelay.com';
   
   return [
     {

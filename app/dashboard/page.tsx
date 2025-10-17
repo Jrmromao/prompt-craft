@@ -212,15 +212,15 @@ export default function DashboardPage() {
               <label className="text-sm font-medium mb-2 block">Install & Use</label>
               <div className="bg-gray-900 text-gray-100 p-4 rounded-lg text-sm font-mono space-y-2">
                 <div className="text-gray-400"># Install SDK</div>
-                <div>npm install promptcraft-sdk</div>
+                <div>npm install optirelay-sdk</div>
                 <div className="text-gray-400 mt-4"># Use in your code</div>
                 <div>import OpenAI from 'openai';</div>
-                <div>import PromptCraft from 'promptcraft-sdk';</div>
+                <div>import OptiRelay from 'optirelay-sdk';</div>
                 <div className="mt-2">const openai = new OpenAI();</div>
-                <div>const promptcraft = new PromptCraft({'{'}</div>
+                <div>const optirelay = new OptiRelay({'{'}</div>
                 <div>  apiKey: '{apiKey}'</div>
                 <div>{'}'});</div>
-                <div className="mt-2">const tracked = promptcraft.wrapOpenAI(openai);</div>
+                <div className="mt-2">const tracked = optirelay.wrapOpenAI(openai);</div>
                 <div className="mt-2 text-gray-400">// Use exactly like normal OpenAI!</div>
                 <div>const result = await tracked.chat.completions.create({'{'}</div>
                 <div>  model: 'gpt-4',</div>
@@ -230,14 +230,14 @@ export default function DashboardPage() {
               </div>
               <Button
                 className="w-full mt-4"
-                onClick={() => copyToClipboard(`npm install promptcraft-sdk
+                onClick={() => copyToClipboard(`npm install optirelay-sdk
 
 import OpenAI from 'openai';
-import PromptCraft from 'promptcraft-sdk';
+import OptiRelay from 'optirelay-sdk';
 
 const openai = new OpenAI();
-const promptcraft = new PromptCraft({ apiKey: '${apiKey}' });
-const tracked = promptcraft.wrapOpenAI(openai);
+const optirelay = new OptiRelay({ apiKey: '${apiKey}' });
+const tracked = optirelay.wrapOpenAI(openai);
 
 const result = await tracked.chat.completions.create({
   model: 'gpt-4',
@@ -441,7 +441,7 @@ const result = await tracked.chat.completions.create({
           <CardContent className="space-y-4">
             <div className="space-y-3">
               <Step number={1} title="Install SDK" completed={false}>
-                <code className="text-sm bg-gray-100 px-2 py-1 rounded">npm install promptcraft-sdk</code>
+                <code className="text-sm bg-gray-100 px-2 py-1 rounded">npm install optirelay-sdk</code>
               </Step>
               <Step number={2} title="Get API Key" completed={false}>
                 <Link href="/settings" className="text-blue-600 hover:underline text-sm">

@@ -275,7 +275,7 @@ export const WelcomeModal = ({ user }: WelcomeModalProps) => {
                     <div>
                       <div className="font-medium">Install SDK</div>
                       <code className="block mt-1 p-2 bg-gray-900 text-green-400 rounded text-xs">
-                        npm install promptcraft-sdk
+                        npm install optirelay-sdk
                       </code>
                     </div>
                   </div>

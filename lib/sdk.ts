@@ -1,1 +1,1 @@
-export { PromptCraft } from '../sdk/src/index';
+export { OptiRelay } from '../sdk/src/index';

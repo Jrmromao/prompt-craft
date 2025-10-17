@@ -206,11 +206,11 @@ export default function AnalyticsLanding({ user }: { user: User | null }) {
               <span className="text-gray-400 text-sm ml-2">your-app.ts</span>
             </div>
             <pre className="text-sm overflow-x-auto">
-              <code className="text-green-400">{`import PromptCraft from 'promptcraft-sdk';
+              <code className="text-green-400">{`import OptiRelay from 'optirelay-sdk';
 import OpenAI from 'openai';
 
 const openai = new OpenAI();
-const promptcraft = new PromptCraft({ 
+const optirelay = new OptiRelay({ 
   apiKey: process.env.PROMPTCRAFT_API_KEY,
   autoOptimize: true,  // 50-80% token reduction
   smartRouting: true,  // Auto-route to cheapest model
@@ -219,7 +219,7 @@ const promptcraft = new PromptCraft({
 
 `}</code>
               <code className="text-yellow-400">{`// Wrap once
-const tracked = promptcraft.wrapOpenAI(openai);
+const tracked = optirelay.wrapOpenAI(openai);
 
 `}</code>
               <code className="text-green-400">{`// Use normally - optimization happens automatically!

@@ -39,7 +39,7 @@ export default function DocsHomePage() {
         </div>
         <h1 className="text-5xl font-bold mb-4 text-gray-900">Documentation</h1>
         <p className="text-xl text-gray-600 max-w-3xl">
-          Everything you need to integrate PromptCraft and start tracking your AI costs in minutes.
+          Everything you need to integrate OptiRelay and start tracking your AI costs in minutes.
         </p>
       </div>
 
@@ -135,18 +135,18 @@ export default function DocsHomePage() {
         <p className="text-gray-600 mb-4">
           Wrap your client and get automatic tracking:
         </p>
-        <CodeBlock code={`import PromptCraft from 'promptcraft-sdk';
+        <CodeBlock code={`import OptiRelay from 'optirelay-sdk';
 import OpenAI from 'openai';
 
 const openai = new OpenAI();
-const promptcraft = new PromptCraft({ 
+const optirelay = new OptiRelay({ 
   apiKey: process.env.PROMPTCRAFT_API_KEY,
   enableCache: true,  // Optional: enable caching
   maxRetries: 3       // Optional: auto-retry
 });
 
 // Wrap once
-const tracked = promptcraft.wrapOpenAI(openai);
+const tracked = optirelay.wrapOpenAI(openai);
 
 // Use normally - tracking happens automatically!
 const result = await tracked.chat.completions.create({

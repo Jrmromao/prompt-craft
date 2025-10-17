@@ -50,7 +50,7 @@ export default function Error({
         <div className="mt-12 pt-8 border-t">
           <p className="text-sm text-gray-600 mb-2">Need help?</p>
           <a
-            href="mailto:support@promptcraft.app"
+            href="mailto:support@optirelay.app"
             className="text-sm text-blue-600 hover:underline"
           >
             Contact Support

@@ -1,18 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
-import { PromptCraft } from '@/sdk/src/index';
+import { OptiRelay } from '@/sdk/src/index';
 import OpenAI from 'openai';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-const promptcraft = new PromptCraft({
+const optirelay = new OptiRelay({
   apiKey: process.env.PROMPTCRAFT_INTERNAL_API_KEY || 'internal',
   baseUrl: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3001',
 });
 
-const wrappedOpenAI = promptcraft.wrapOpenAI(openai);
+const wrappedOpenAI = optirelay.wrapOpenAI(openai);
 
 export async function POST(request: NextRequest) {
   try {

@@ -76,7 +76,7 @@ export default function SignInPage() {
             Welcome back
           </h2>
           <p className="text-gray-600 dark:text-gray-400">
-            Sign in to your PromptCraft account
+            Sign in to your OptiRelay account
           </p>
         </div>
       </div>

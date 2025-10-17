@@ -9,7 +9,7 @@ import { Zap, Target, Sparkles, CreditCard } from 'lucide-react';
 const ONBOARDING_STEPS = [
   {
     id: 'welcome',
-    title: 'Welcome to PromptCraft',
+    title: 'Welcome to OptiRelay',
     description: 'Transform your ideas into optimized AI prompts',
     icon: Sparkles
   },

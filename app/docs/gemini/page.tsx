@@ -37,14 +37,14 @@ export default function GeminiDocsPage() {
       </p>
 
       <h2 className="text-2xl font-bold text-gray-900 mt-12 mb-4">Installation</h2>
-      <CodeBlock code="npm install promptcraft-sdk @google/generative-ai" language="bash" />
+      <CodeBlock code="npm install optirelay-sdk @google/generative-ai" language="bash" />
 
       <h2 className="text-2xl font-bold text-gray-900 mt-12 mb-4">Basic Usage</h2>
       <CodeBlock code={`import { GoogleGenerativeAI } from '@google/generative-ai';
-import PromptCraft from 'promptcraft-sdk';
+import OptiRelay from 'optirelay-sdk';
 
 // Initialize
-const promptcraft = new PromptCraft({ 
+const optirelay = new OptiRelay({ 
   apiKey: process.env.PROMPTCRAFT_API_KEY 
 });
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
@@ -59,7 +59,7 @@ const start = Date.now();
 const result = await model.generateContent(params);
 
 // Track the call
-await promptcraft.trackGemini(
+await optirelay.trackGemini(
   { model: 'gemini-pro', ...params },
   result.response,
   Date.now() - start
@@ -71,7 +71,7 @@ console.log(result.response.text());`} />
       <p className="text-gray-700 mb-4">
         Pass a <code className="bg-gray-100 px-2 py-1 rounded text-sm">promptId</code> to group and analyze specific prompts:
       </p>
-      <CodeBlock code={`await promptcraft.trackGemini(
+      <CodeBlock code={`await optirelay.trackGemini(
   { model: 'gemini-pro', ...params },
   result.response,
   Date.now() - start,
@@ -82,14 +82,14 @@ console.log(result.response.text());`} />
       <CodeBlock code={`const start = Date.now();
 try {
   const result = await model.generateContent(params);
-  await promptcraft.trackGemini(
+  await optirelay.trackGemini(
     { model: 'gemini-pro', ...params },
     result.response,
     Date.now() - start
   );
   return result;
 } catch (error) {
-  await promptcraft.trackError(
+  await optirelay.trackError(
     'gemini',
     'gemini-pro',
     JSON.stringify(params),

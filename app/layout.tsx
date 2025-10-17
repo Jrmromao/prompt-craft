@@ -6,16 +6,16 @@ import { ClientLayout } from '../components/ClientLayout';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://prompthive.co'),
+  metadataBase: new URL('https://optirelay.com'),
   title: {
-    default: 'PromptCraft - Cut AI Costs by 40% | LLM Cost Optimization',
-    template: '%s | PromptCraft'
+    default: 'OptiRelay - Cut AI Costs by 40% | LLM Cost Optimization',
+    template: '%s | OptiRelay'
   },
   description: 'Reduce your OpenAI, Anthropic, and Claude API costs by 40% with intelligent routing, caching, and real-time analytics. Track every dollar spent on AI.',
   keywords: ['AI cost optimization', 'LLM cost tracking', 'OpenAI cost reduction', 'Anthropic API costs', 'Claude API pricing', 'AI analytics', 'prompt optimization', 'AI spending tracker'],
-  authors: [{ name: 'PromptCraft' }],
-  creator: 'PromptCraft',
-  publisher: 'PromptCraft',
+  authors: [{ name: 'OptiRelay' }],
+  creator: 'OptiRelay',
+  publisher: 'OptiRelay',
   formatDetection: {
     email: false,
     address: false,
@@ -27,30 +27,30 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
-    title: 'PromptCraft'
+    title: 'OptiRelay'
   },
   openGraph: {
     type: 'website',
     locale: 'en_US',
-    url: 'https://prompthive.co',
-    siteName: 'PromptCraft',
-    title: 'PromptCraft - Cut AI Costs by 40%',
+    url: 'https://optirelay.com',
+    siteName: 'OptiRelay',
+    title: 'OptiRelay - Cut AI Costs by 40%',
     description: 'Reduce your OpenAI, Anthropic, and Claude API costs by 40% with intelligent routing, caching, and real-time analytics.',
     images: [
       {
         url: '/og-image.png',
         width: 1200,
         height: 630,
-        alt: 'PromptCraft - AI Cost Optimization Platform',
+        alt: 'OptiRelay - AI Cost Optimization Platform',
       }
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'PromptCraft - Cut AI Costs by 40%',
+    title: 'OptiRelay - Cut AI Costs by 40%',
     description: 'Reduce your OpenAI, Anthropic, and Claude API costs by 40% with intelligent routing, caching, and real-time analytics.',
     images: ['/og-image.png'],
-    creator: '@promptcraft',
+    creator: '@optirelay',
   },
   robots: {
     index: true,
@@ -64,7 +64,7 @@ export const metadata: Metadata = {
     },
   },
   alternates: {
-    canonical: 'https://prompthive.co',
+    canonical: 'https://optirelay.com',
   },
   other: {
     'mobile-web-app-capable': 'yes',
@@ -77,7 +77,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'SoftwareApplication',
-    name: 'PromptCraft',
+    name: 'OptiRelay',
     applicationCategory: 'DeveloperApplication',
     operatingSystem: 'Web',
     offers: {

@@ -67,19 +67,19 @@ export const breachNotificationTemplate = {
       </div>
       
       <div class="section">
-        <a href="https://promptcraft.ai/security/incident" class="cta">View Full Security Update</a>
+        <a href="https://optirelay.ai/security/incident" class="cta">View Full Security Update</a>
       </div>
       
-      <p>If you have any questions or concerns, please contact our security team at <strong>security@promptcraft.ai</strong> or our Data Protection Officer at <strong>dpo@promptcraft.ai</strong>.</p>
+      <p>If you have any questions or concerns, please contact our security team at <strong>security@optirelay.ai</strong> or our Data Protection Officer at <strong>dpo@optirelay.ai</strong>.</p>
       
       <p>We sincerely apologize for this incident and any inconvenience it may cause. Your trust is important to us, and we are committed to protecting your data.</p>
       
-      <p>Sincerely,<br>The PromptCraft Security Team</p>
+      <p>Sincerely,<br>The OptiRelay Security Team</p>
     </div>
     
     <div class="footer">
       <p>This is a mandatory security notification required by GDPR Article 34.</p>
-      <p>PromptCraft | security@promptcraft.ai | <a href="https://promptcraft.ai/privacy">Privacy Policy</a></p>
+      <p>OptiRelay | security@optirelay.ai | <a href="https://optirelay.ai/privacy">Privacy Policy</a></p>
     </div>
   </div>
 </body>
@@ -111,14 +111,14 @@ ${data.actionsTaken.map(action => `- ${action}`).join('\n')}
 WHAT YOU SHOULD DO:
 ${data.userActions.map(action => `- ${action}`).join('\n')}
 
-For more information, visit: https://promptcraft.ai/security/incident
+For more information, visit: https://optirelay.ai/security/incident
 
 Contact us:
-- Security Team: security@promptcraft.ai
-- Data Protection Officer: dpo@promptcraft.ai
+- Security Team: security@optirelay.ai
+- Data Protection Officer: dpo@optirelay.ai
 
 We sincerely apologize for this incident.
 
-The PromptCraft Security Team
+The OptiRelay Security Team
   `
 };

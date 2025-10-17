@@ -8,9 +8,9 @@ export default function PrivacyPolicyPage() {
         <section>
           <h2 className="text-2xl font-bold mb-4">1. Data Controller</h2>
           <p>
-            <strong>PromptCraft</strong><br />
-            Email: <a href="mailto:privacy@prompthive.co" className="text-blue-600">privacy@prompthive.co</a><br />
-            Website: <a href="https://prompthive.co" className="text-blue-600">prompthive.co</a>
+            <strong>OptiRelay</strong><br />
+            Email: <a href="mailto:privacy@optirelay.com" className="text-blue-600">privacy@optirelay.com</a><br />
+            Website: <a href="https://optirelay.com" className="text-blue-600">optirelay.com</a>
           </p>
         </section>
 
@@ -164,7 +164,7 @@ export default function PrivacyPolicyPage() {
           </ul>
           <p className="mt-4">
             To exercise your rights, visit your <a href="/settings" className="text-blue-600 hover:underline">account settings</a> or email{' '}
-            <a href="mailto:privacy@prompthive.co" className="text-blue-600">privacy@prompthive.co</a>
+            <a href="mailto:privacy@optirelay.com" className="text-blue-600">privacy@optirelay.com</a>
           </p>
           <p className="mt-2 text-sm text-gray-600">
             We will respond within 30 days. You also have the right to lodge a complaint with your local supervisory authority.
@@ -207,7 +207,7 @@ export default function PrivacyPolicyPage() {
           <h2 className="text-2xl font-bold mb-4">12. Contact Us</h2>
           <p>
             For privacy questions or to exercise your rights:<br />
-            Email: <a href="mailto:privacy@prompthive.co" className="text-blue-600">privacy@prompthive.co</a><br />
+            Email: <a href="mailto:privacy@optirelay.com" className="text-blue-600">privacy@optirelay.com</a><br />
             Response time: Within 30 days
           </p>
         </section>

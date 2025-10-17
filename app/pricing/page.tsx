@@ -9,11 +9,11 @@ export const metadata: Metadata = {
   title: 'Pricing - Start Free',
   description: 'Start free with 1,000 requests/month. Scale to Pro ($49/mo) or Enterprise (custom) as you grow. No credit card required.',
   openGraph: {
-    title: 'PromptCraft Pricing - Start Free',
+    title: 'OptiRelay Pricing - Start Free',
     description: 'Start free with 1,000 requests/month. Scale to Pro ($49/mo) or Enterprise (custom) as you grow.',
   },
   alternates: {
-    canonical: 'https://prompthive.co/pricing',
+    canonical: 'https://optirelay.com/pricing',
   },
 };
 
@@ -191,7 +191,7 @@ export default function PricingPage() {
                 <Feature>Unlimited users</Feature>
                 <Feature>SLA guarantee</Feature>
               </ul>
-              <Link href="mailto:sales@promptcraft.ai">
+              <Link href="mailto:sales@optirelay.ai">
                 <Button className="w-full bg-purple-600 hover:bg-purple-700">Contact Sales</Button>
               </Link>
               <p className="text-center text-xs text-purple-600 font-semibold mt-3">
