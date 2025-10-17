@@ -23,14 +23,16 @@ export default async function BlogPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white dark:from-gray-950 dark:to-gray-900">
       {/* Header with gradient */}
-      <div className="border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950">
-        <div className="max-w-4xl mx-auto px-6 py-20">
-          <h1 className="text-6xl font-serif font-bold text-gray-900 dark:text-white mb-4 tracking-tight">
-            Blog
-          </h1>
-          <p className="text-xl text-gray-600 dark:text-gray-400">
-            Insights on AI cost optimization and smart routing strategies.
-          </p>
+      <div className="border-b border-gray-200 dark:border-gray-800 bg-gradient-to-br from-white via-sky-50/30 to-blue-50/30 dark:from-gray-950 dark:via-sky-950/10 dark:to-blue-950/10">
+        <div className="max-w-4xl mx-auto px-6 py-24">
+          <div className="max-w-3xl">
+            <h1 className="text-6xl font-serif font-bold text-gray-900 dark:text-white mb-6 tracking-tight leading-tight">
+              The CostLens Blog
+            </h1>
+            <p className="text-2xl text-gray-600 dark:text-gray-400 leading-relaxed">
+              Real-world strategies for cutting AI costs, optimizing LLM performance, and building smarter applications.
+            </p>
+          </div>
         </div>
       </div>
 
