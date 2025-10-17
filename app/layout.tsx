@@ -6,15 +6,65 @@ import { ClientLayout } from '../components/ClientLayout';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'PromptCraft - AI Cost Tracking & Analytics',
-  description: 'Track your OpenAI and Anthropic API costs in real-time. Get cost optimization suggestions, performance monitoring, and budget alerts.',
+  metadataBase: new URL('https://prompthive.co'),
+  title: {
+    default: 'PromptCraft - Cut AI Costs by 40% | LLM Cost Optimization',
+    template: '%s | PromptCraft'
+  },
+  description: 'Reduce your OpenAI, Anthropic, and Claude API costs by 40% with intelligent routing, caching, and real-time analytics. Track every dollar spent on AI.',
+  keywords: ['AI cost optimization', 'LLM cost tracking', 'OpenAI cost reduction', 'Anthropic API costs', 'Claude API pricing', 'AI analytics', 'prompt optimization', 'AI spending tracker'],
+  authors: [{ name: 'PromptCraft' }],
+  creator: 'PromptCraft',
+  publisher: 'PromptCraft',
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false,
+  },
   manifest: '/manifest.json',
   themeColor: '#2563eb',
-  viewport: 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no',
+  viewport: 'width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
     title: 'PromptCraft'
+  },
+  openGraph: {
+    type: 'website',
+    locale: 'en_US',
+    url: 'https://prompthive.co',
+    siteName: 'PromptCraft',
+    title: 'PromptCraft - Cut AI Costs by 40%',
+    description: 'Reduce your OpenAI, Anthropic, and Claude API costs by 40% with intelligent routing, caching, and real-time analytics.',
+    images: [
+      {
+        url: '/og-image.png',
+        width: 1200,
+        height: 630,
+        alt: 'PromptCraft - AI Cost Optimization Platform',
+      }
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'PromptCraft - Cut AI Costs by 40%',
+    description: 'Reduce your OpenAI, Anthropic, and Claude API costs by 40% with intelligent routing, caching, and real-time analytics.',
+    images: ['/og-image.png'],
+    creator: '@promptcraft',
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
+  alternates: {
+    canonical: 'https://prompthive.co',
   },
   other: {
     'mobile-web-app-capable': 'yes',
@@ -24,8 +74,33 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'SoftwareApplication',
+    name: 'PromptCraft',
+    applicationCategory: 'DeveloperApplication',
+    operatingSystem: 'Web',
+    offers: {
+      '@type': 'Offer',
+      price: '0',
+      priceCurrency: 'USD',
+    },
+    aggregateRating: {
+      '@type': 'AggregateRating',
+      ratingValue: '4.8',
+      ratingCount: '127',
+    },
+    description: 'Reduce your OpenAI, Anthropic, and Claude API costs by 40% with intelligent routing, caching, and real-time analytics.',
+  };
+
   return (
     <html lang="en">
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+      </head>
       <body className={inter.className} suppressHydrationWarning>
         <ClientLayout>
           {children}

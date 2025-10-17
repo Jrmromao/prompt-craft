@@ -1,3 +1,9 @@
 User-agent: *
 Allow: /
-Sitemap: http://PromptHive.co/sitemap.xml 
+
+# Disallow admin and API routes
+Disallow: /api/
+Disallow: /dashboard/
+Disallow: /settings/
+
+Sitemap: https://prompthive.co/sitemap.xml

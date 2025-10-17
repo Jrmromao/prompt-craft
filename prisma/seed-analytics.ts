@@ -5,7 +5,7 @@ const prisma = new PrismaClient();
 async function main() {
   console.log('🌱 Seeding analytics data...');
 
-  // Use specific user
+  // Use specific production user
   const user = await prisma.user.findUnique({
     where: { id: 'cmgnyuzil00008o66zgu5ru66' }
   });

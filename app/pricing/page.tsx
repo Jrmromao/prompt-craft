@@ -1,8 +1,21 @@
+import { Metadata } from 'next';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Check, X, Sparkles, TrendingUp, Shield, Zap } from 'lucide-react';
 import Link from 'next/link';
 import { UpgradeButton } from '@/components/UpgradeButton';
+
+export const metadata: Metadata = {
+  title: 'Pricing - Start Free',
+  description: 'Start free with 1,000 requests/month. Scale to Pro ($49/mo) or Enterprise (custom) as you grow. No credit card required.',
+  openGraph: {
+    title: 'PromptCraft Pricing - Start Free',
+    description: 'Start free with 1,000 requests/month. Scale to Pro ($49/mo) or Enterprise (custom) as you grow.',
+  },
+  alternates: {
+    canonical: 'https://prompthive.co/pricing',
+  },
+};
 
 const Feature = ({ children, highlight }: { children: React.ReactNode; highlight?: boolean }) => (
   <li className="flex items-start gap-2">
