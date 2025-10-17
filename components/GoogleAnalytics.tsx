@@ -12,11 +12,10 @@ function GoogleAnalyticsInner({ measurementId }: GoogleAnalyticsProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   
-  // Use provided measurementId or fallback to your GA4 ID
-  const gaId = measurementId || 'G-NH6L4KNMGP';
+  const gaId = measurementId;
 
   useEffect(() => {
-    if (typeof window !== 'undefined' && window.gtag) {
+    if (typeof window !== 'undefined' && window.gtag && gaId) {
       const url = pathname + (searchParams?.toString() ? `?${searchParams.toString()}` : '');
       window.gtag('config', gaId, {
         page_path: url,
