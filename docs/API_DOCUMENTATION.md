@@ -1,10 +1,10 @@
-# PromptCraft API Documentation
+# CostLens.dev API Documentation
 
 ## Overview
 
-The PromptCraft API provides programmatic access to all platform features including prompt management, user authentication, subscription handling, and community interactions.
+The CostLens.dev API provides programmatic access to all cost tracking features including AI cost analytics, budget monitoring, usage reports, and team collaboration.
 
-**Base URL**: `https://api.promptcraft.com`
+**Base URL**: `https://api.costlens.dev`
 **API Version**: `v1`
 **Authentication**: Bearer token (Clerk session)
 
@@ -14,7 +14,7 @@ All API requests require authentication using Clerk session tokens:
 
 ```bash
 curl -H "Authorization: Bearer <clerk_session_token>" \
-     https://api.promptcraft.com/api/prompts
+     https://api.costlens.dev/api/costs
 ```
 
 ### Getting Authentication Token

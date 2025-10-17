@@ -1,63 +1,64 @@
-# PromptCraft SDK
+# CostLens SDK
 
-Save 50-80% on AI costs automatically. Official SDK for OpenAI, Anthropic, Gemini, and Grok.
+Track and analyze AI API costs across OpenAI, Anthropic, and Claude. Real-time cost monitoring for developers.
 
-📚 **[Full Documentation](https://prompthive.co/docs)** | 🚀 **[Quick Start](https://prompthive.co/docs/quickstart)**
+📚 **[Full Documentation](https://costlens.dev/docs)** | 🚀 **[Quick Start](https://costlens.dev/docs/quickstart)**
 
 ## Installation
 
 ```bash
-npm install promptcraft-sdk
+npm install costlens
 ```
 
-## 💰 Money-Saving Features
+## 💰 Cost Tracking Features
 
-- 🚀 **Auto-Optimize** - Reduce tokens by 50-80% automatically
-- 🧠 **Smart Routing** - Route to cheapest model (20x cost savings)
-- ⚡ **Smart Caching** - 80% savings on repeated queries
-- 💸 **Cost Limits** - Prevent budget overruns
-- 🔄 **Auto-Fallback** - Never fail on rate limits
-- 📊 **Real Savings Tracking** - See actual $ saved
+- 📊 **Real-time Tracking** - Monitor AI costs as they happen
+- 🔍 **Multi-Provider** - OpenAI, Anthropic, Claude support
+- 📈 **Cost Analytics** - Detailed spending insights
+- 🚨 **Budget Alerts** - Get notified when costs spike
+- 📋 **Usage Reports** - Export cost data and reports
+- 🎯 **Feature Tracking** - Track costs by feature/user
 
 ## Quick Start
 
-### Save Money Automatically
+### Track AI Costs Automatically
 
 ```typescript
 import OpenAI from 'openai';
-import PromptCraft from 'promptcraft-sdk';
+import CostLens from 'costlens';
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-const promptcraft = new PromptCraft({ 
-  apiKey: process.env.PROMPTCRAFT_API_KEY,
-  autoOptimize: true,    // 💰 Save 50-80% on tokens
-  smartRouting: true,    // 💰 Route to cheapest model
-  enableCache: true,     // 💰 80% savings on repeats
-  costLimit: 0.10        // 💰 Max $0.10 per request
+const costlens = new CostLens({ 
+  apiKey: process.env.COSTLENS_API_KEY,
+  trackCosts: true,      // 📊 Track all API costs
+  budgetAlerts: true,    // 🚨 Get budget notifications
+  exportData: true,      // 📋 Enable data exports
+  costLimit: 100.00      // 💰 Max $100 per month
 });
 
-// Wrap the client for automatic savings
-const trackedOpenAI = promptcraft.wrapOpenAI(openai);
+// Wrap the client for automatic cost tracking
+const trackedOpenAI = costlens.wrapOpenAI(openai);
 
 // Use it exactly like normal OpenAI!
 const result = await trackedOpenAI.chat.completions.create({
   model: 'gpt-4',
-  messages: [{ role: 'user', content: 'Hello!' }]
+  messages: [{ role: 'user', content: 'Hello!' }],
+  metadata: { feature: 'chat', user: 'user123' }
 });
-// ✅ Prompt optimized (62% shorter)
-// ✅ Routed to GPT-3.5 (20x cheaper)
-// ✅ Cached for future use
-// ✅ Tracked automatically!
+// ✅ Cost tracked automatically
+// ✅ Usage analytics recorded
+// ✅ Budget monitoring active
+// ✅ Feature-level insights!
 ```
 
-## 🔥 Killer Feature Examples
+## 🔥 Key Features
 
-### Auto-Fallback
+### Budget Monitoring
 
-Never lose a request due to API errors:
+Set spending limits and get alerts:
 
 ```typescript
-const promptcraft = new PromptCraft({ 
+const costlens = new CostLens({ 
   apiKey: process.env.PROMPTCRAFT_API_KEY,
   autoFallback: true  // Enable auto-fallback
 });

@@ -6,16 +6,16 @@ import { ClientLayout } from '../components/ClientLayout';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://optirelay.com'),
+  metadataBase: new URL('https://costlens.dev'),
   title: {
-    default: 'OptiRelay - Cut AI Costs by 40% | LLM Cost Optimization',
-    template: '%s | OptiRelay'
+    default: 'CostLens.dev - Cut AI Costs by 60-80% | Smart Routing & Optimization',
+    template: '%s | CostLens.dev'
   },
-  description: 'Reduce your OpenAI, Anthropic, and Claude API costs by 40% with intelligent routing, caching, and real-time analytics. Track every dollar spent on AI.',
-  keywords: ['AI cost optimization', 'LLM cost tracking', 'OpenAI cost reduction', 'Anthropic API costs', 'Claude API pricing', 'AI analytics', 'prompt optimization', 'AI spending tracker'],
-  authors: [{ name: 'OptiRelay' }],
-  creator: 'OptiRelay',
-  publisher: 'OptiRelay',
+  description: 'Automatically reduce AI costs by 60-80% with smart routing, caching, and optimization. Track spending across OpenAI, Anthropic, and Claude in real-time.',
+  keywords: ['AI cost tracking', 'LLM cost analytics', 'OpenAI cost monitoring', 'Anthropic API costs', 'Claude API pricing', 'AI spending analytics', 'cost optimization', 'developer tools'],
+  authors: [{ name: 'CostLens.dev' }],
+  creator: 'CostLens.dev',
+  publisher: 'CostLens.dev',
   formatDetection: {
     email: false,
     address: false,
@@ -27,30 +27,30 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
-    title: 'OptiRelay'
+    title: 'CostLens.dev'
   },
   openGraph: {
     type: 'website',
     locale: 'en_US',
-    url: 'https://optirelay.com',
-    siteName: 'OptiRelay',
-    title: 'OptiRelay - Cut AI Costs by 40%',
-    description: 'Reduce your OpenAI, Anthropic, and Claude API costs by 40% with intelligent routing, caching, and real-time analytics.',
+    url: 'https://costlens.dev',
+    siteName: 'CostLens.dev',
+    title: 'CostLens.dev - Cut AI Costs by 60-80%',
+    description: 'Automatically reduce AI costs by 60-80% with smart routing, caching, and optimization. Track spending in real-time.',
     images: [
       {
         url: '/og-image.png',
         width: 1200,
         height: 630,
-        alt: 'OptiRelay - AI Cost Optimization Platform',
+        alt: 'CostLens.dev - AI Cost Analytics Platform',
       }
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'OptiRelay - Cut AI Costs by 40%',
-    description: 'Reduce your OpenAI, Anthropic, and Claude API costs by 40% with intelligent routing, caching, and real-time analytics.',
+    title: 'CostLens.dev - Cut AI Costs by 60-80%',
+    description: 'Automatically reduce AI costs by 60-80% with smart routing, caching, and optimization. Track spending in real-time.',
     images: ['/og-image.png'],
-    creator: '@optirelay',
+    creator: '@costlensdev',
   },
   robots: {
     index: true,
@@ -64,7 +64,7 @@ export const metadata: Metadata = {
     },
   },
   alternates: {
-    canonical: 'https://optirelay.com',
+    canonical: 'https://costlens.dev',
   },
   other: {
     'mobile-web-app-capable': 'yes',
@@ -77,7 +77,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'SoftwareApplication',
-    name: 'OptiRelay',
+    name: 'CostLens.dev',
     applicationCategory: 'DeveloperApplication',
     operatingSystem: 'Web',
     offers: {
@@ -90,7 +90,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       ratingValue: '4.8',
       ratingCount: '127',
     },
-    description: 'Reduce your OpenAI, Anthropic, and Claude API costs by 40% with intelligent routing, caching, and real-time analytics.',
+    description: 'Track, analyze, and optimize your AI API costs across OpenAI, Anthropic, and Claude. Real-time cost monitoring for developers.',
   };
 
   return (

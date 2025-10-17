@@ -1,4 +1,4 @@
-# API Documentation
+# CostLens.dev API Documentation
 
 ## Authentication
 

@@ -1,63 +1,74 @@
-# PromptCraft Analytics
+# CostLens.dev
 
-AI cost tracking and optimization platform. Track every AI API call, analyze costs, and get optimization suggestions.
+AI cost tracking and **automatic cost reduction** platform. Track every dollar AND cut costs by 60-80% with smart routing, caching, and optimization.
 
 ## 🚀 Features
 
-- **Cost Tracking** - Track costs across OpenAI, Anthropic, and other providers
-- **Analytics Dashboard** - Real-time insights into AI spending
-- **Optimization Suggestions** - AI-powered recommendations to reduce costs
-- **Team Collaboration** - Invite team members and share insights
-- **Alerts & Notifications** - Get notified when costs spike or errors increase
-- **Export & Reporting** - Export data to CSV/JSON, generate reports
+- **Smart Model Routing** - Automatically route simple queries to cheaper models (60x cost savings)
+- **Real-time Cost Tracking** - Monitor AI API costs as they happen
+- **Intelligent Caching** - 80% savings on repeated queries
+- **Auto-Fallback** - Never fail on rate limits, auto-switch to backup models
+- **Prompt Optimization** - Reduce token usage by 50-80% automatically
+- **Multi-Provider Support** - OpenAI, Anthropic, Claude, and more
+- **Cost Analytics Dashboard** - Detailed insights into spending and savings
+- **Budget Alerts** - Get notified when costs exceed thresholds
+- **Team Collaboration** - Share cost insights and savings across your team
 
 ## 📦 Quick Start
 
 ### 1. Install SDK
 
 ```bash
-npm install promptcraft-sdk
+npm install costlens
 ```
 
-### 2. Integrate with Your App
+### 2. Integrate with Auto-Optimization
 
 ```typescript
-import { PromptCraft } from 'promptcraft-sdk';
+import CostLens from 'costlens';
 import OpenAI from 'openai';
 
-// Initialize SDK
-const promptCraft = new PromptCraft({
-  apiKey: process.env.PROMPTCRAFT_API_KEY,
+// Initialize with cost reduction features
+const costlens = new CostLens({
+  apiKey: process.env.COSTLENS_API_KEY,
+  smartRouting: true,    // 60x cost savings on simple queries
+  autoOptimize: true,    // 50-80% token reduction
+  enableCache: true,     // 80% savings on repeats
+  autoFallback: true,    // Never fail on rate limits
+  costLimit: 0.10        // Max $0.10 per request
 });
 
 // Wrap your OpenAI client
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-promptCraft.wrapOpenAI(openai);
+const optimizedOpenAI = costlens.wrapOpenAI(openai);
 
-// Use OpenAI normally - tracking happens automatically
-const response = await openai.chat.completions.create({
+// Use normally - optimization happens automatically
+const response = await optimizedOpenAI.chat.completions.create({
   model: 'gpt-4',
-  messages: [{ role: 'user', content: 'Hello!' }],
-  promptId: 'greeting', // Track which prompt
+  messages: [{ role: 'user', content: 'Hello!' }]
 });
+// ✅ Automatically routed to gpt-3.5-turbo (60x cheaper)
+// ✅ Prompt optimized (50% fewer tokens)
+// ✅ Cached for future use
+// ✅ Cost tracked in real-time
 ```
 
-### 3. View Analytics
+### 3. View Savings & Analytics
 
-Visit your dashboard at `https://promptcraft.app/dashboard` to see:
+Visit your dashboard at `https://costlens.dev/dashboard` to see:
 - Real-time cost tracking
-- Model performance comparison
-- Optimization suggestions
-- Usage trends
+- **Actual dollars saved** with smart routing
+- Model performance vs cost analysis
+- Budget alerts and notifications
+- Usage trends and optimization insights
 
 ## 💰 Pricing
 
-| Plan | Price | Tracked Runs | Prompts | Retention |
-|------|-------|--------------|---------|-----------|
-| Free | $0 | 1,000/mo | 5 | 7 days |
-| Starter | $9/mo | 10,000/mo | 25 | 30 days |
-| Pro | $29/mo | 100,000/mo | Unlimited | 90 days |
-| Enterprise | $99/mo | Unlimited | Unlimited | 1 year |
+| Plan | Price | Tracked Calls | Features | Retention |
+|------|-------|---------------|----------|-----------|
+| Free | $0 | 1,000/mo | Basic tracking | 7 days |
+| Starter | $9/mo | 10,000/mo | Alerts, exports | 30 days |
+| Pro | $29/mo | 100,000/mo | Team features | 90 days |
+| Enterprise | $99/mo | Unlimited | Custom integrations | 1 year |
 
 ## 🔧 Development
 
@@ -71,8 +82,8 @@ Visit your dashboard at `https://promptcraft.app/dashboard` to see:
 
 ```bash
 # Clone repo
-git clone https://github.com/yourusername/promptcraft.git
-cd promptcraft
+git clone https://github.com/yourusername/costlens.git
+cd costlens
 
 # Install dependencies
 yarn install
@@ -108,28 +119,27 @@ REDIS_URL="redis://..."
 
 ## 📚 API Reference
 
-### Track Run
+### Track API Call
 
 ```typescript
-POST /api/integrations/run
+POST /api/track
 {
-  "promptId": "greeting",
-  "model": "gpt-4",
   "provider": "openai",
-  "input": "Hello",
-  "output": "Hi there!",
-  "tokensUsed": 10,
-  "success": true
+  "model": "gpt-4",
+  "input_tokens": 10,
+  "output_tokens": 15,
+  "cost": 0.0012,
+  "metadata": { "feature": "chat" }
 }
 ```
 
-### Get Analytics
+### Get Cost Analytics
 
 ```typescript
-GET /api/analytics/overview?startDate=2024-01-01&endDate=2024-01-31
+GET /api/analytics/costs?startDate=2024-01-01&endDate=2024-01-31
 ```
 
-### Export Data
+### Export Cost Data
 
 ```typescript
 GET /api/export?format=csv&days=30
@@ -159,8 +169,8 @@ vercel deploy
 ### Docker
 
 ```bash
-docker build -t promptcraft .
-docker run -p 3000:3000 promptcraft
+docker build -t costlens .
+docker run -p 3000:3000 costlens
 ```
 
 ## 📄 License
@@ -173,6 +183,6 @@ Contributions welcome! Please read [CONTRIBUTING.md](CONTRIBUTING.md) first.
 
 ## 📞 Support
 
-- Email: support@promptcraft.app
-- Discord: [Join our community](https://discord.gg/promptcraft)
-- Docs: [docs.promptcraft.app](https://docs.promptcraft.app)
+- Email: support@costlens.dev
+- Discord: [Join our community](https://discord.gg/costlens)
+- Docs: [docs.costlens.dev](https://docs.costlens.dev)

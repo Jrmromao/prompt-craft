@@ -1,7 +1,7 @@
 {
-  "name": "promptcraft-sdk",
+  "name": "costlens",
   "version": "1.0.1",
-  "description": "Save 50-80% on AI costs automatically - Auto-optimize prompts, smart routing, and cost tracking",
+  "description": "Track and analyze AI API costs across OpenAI, Anthropic, and Claude. Real-time cost monitoring for developers.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
@@ -18,29 +18,29 @@
   },
   "keywords": [
     "ai",
+    "cost-tracking",
+    "cost-analytics",
     "openai",
     "anthropic",
+    "claude",
+    "api-monitoring",
     "cost-optimization",
-    "cost-tracking",
-    "prompt-optimization",
-    "smart-routing",
     "analytics",
     "llm",
     "gpt",
-    "claude",
     "monitoring",
-    "savings"
+    "developer-tools"
   ],
-  "author": "PromptCraft",
+  "author": "CostLens.dev",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Jrmromao/prompt-craft"
+    "url": "git+https://github.com/Jrmromao/costlens.git"
   },
   "bugs": {
-    "url": "https://github.com/Jrmromao/prompt-craft/issues"
+    "url": "https://github.com/Jrmromao/costlens/issues"
   },
-  "homepage": "https://prompthive.co",
+  "homepage": "https://costlens.dev",
   "peerDependencies": {
     "@anthropic-ai/sdk": ">=0.20.0",
     "openai": ">=4.0.0"
