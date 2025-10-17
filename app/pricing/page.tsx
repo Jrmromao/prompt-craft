@@ -7,10 +7,10 @@ import { UpgradeButton } from '@/components/UpgradeButton';
 
 export const metadata: Metadata = {
   title: 'Pricing - Start Free',
-  description: 'Start free with 1,000 requests/month. Scale to Starter ($9/mo), Pro ($49/mo) or Enterprise (custom) as you grow. No credit card required.',
+  description: 'Start free with 1,000 requests/month. Scale to Starter ($9/mo), Pro ($29/mo) or Enterprise (custom) as you grow. No credit card required.',
   openGraph: {
     title: 'CostLens Pricing - Start Free',
-    description: 'Start free with 1,000 requests/month. Scale to Starter ($9/mo), Pro ($49/mo) or Enterprise (custom) as you grow.',
+    description: 'Start free with 1,000 requests/month. Scale to Starter ($9/mo), Pro ($29/mo) or Enterprise (custom) as you grow.',
   },
   alternates: {
     canonical: 'https://costlens.dev/pricing',
@@ -279,13 +279,13 @@ export default function PricingPage() {
                 </div>
                 <div className="flex justify-between">
                   <span>You Pay:</span>
-                  <span className="font-bold text-blue-600">$49/month</span>
+                  <span className="font-bold text-blue-600">$29/month</span>
                 </div>
                 <div className="border-t pt-2 flex justify-between">
                   <span className="font-semibold">Net Savings:</span>
-                  <span className="font-bold text-green-600">$401/month</span>
+                  <span className="font-bold text-green-600">$421/month</span>
                 </div>
-                <p className="text-center text-xs text-gray-600 mt-2">ROI: 9.2x 🎯</p>
+                <p className="text-center text-xs text-gray-600 mt-2">ROI: 15.5x 🎯</p>
               </div>
             </div>
 
@@ -317,7 +317,7 @@ export default function PricingPage() {
             If we don't save you at least 10x what you pay us, we'll refund your money. No questions asked.
           </p>
           <p className="text-center text-sm text-gray-600">
-            We're confident because our average customer saves $400/month while paying $49/month.
+            We're confident because our average customer saves $400/month while paying $29/month.
           </p>
         </div>
 

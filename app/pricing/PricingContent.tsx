@@ -498,19 +498,19 @@ export default function PricingContent() {
             <div className="rounded-lg border border-gray-200 p-4 dark:border-gray-800">
               <h3 className="mb-2 font-medium">How does token usage work?</h3>
               <p className="text-sm text-gray-600 dark:text-gray-400">
-                Each plan includes a monthly token allowance that resets at the beginning of your billing cycle. Tokens are used for all AI operations - the more complex the operation, the more tokens it uses. Elite and Enterprise plans include unlimited tokens. You can purchase additional tokens at any time if you need more than your monthly allowance.
+                Each plan includes a monthly token allowance that resets at the beginning of your billing cycle. Tokens are used for all AI operations - the more complex the operation, the more tokens it uses. Pro and Enterprise plans include unlimited tokens. You can purchase additional tokens at any time if you need more than your monthly allowance.
               </p>
             </div>
             <div className="rounded-lg border border-gray-200 p-4 dark:border-gray-800">
               <h3 className="mb-2 font-medium">What happens if I run out of tokens?</h3>
               <p className="text-sm text-gray-600 dark:text-gray-400">
-                You can purchase additional tokens at any time, or upgrade to a higher tier plan for a larger monthly token allowance. Elite and Enterprise plans include unlimited tokens. Basic features remain available even when you run out of tokens. Your token allowance will automatically reset at the start of your next billing cycle.
+                You can purchase additional tokens at any time, or upgrade to a higher tier plan for a larger monthly token allowance. Pro and Enterprise plans include unlimited tokens. Basic features remain available even when you run out of tokens. Your token allowance will automatically reset at the start of your next billing cycle.
               </p>
             </div>
             <div className="rounded-lg border border-gray-200 p-4 dark:border-gray-800">
               <h3 className="mb-2 font-medium">How many tokens do I need?</h3>
               <p className="text-sm text-gray-600 dark:text-gray-400">
-                A typical prompt uses 100-500 tokens. The Free plan's 10,000 tokens are perfect for testing and small projects. The Pro plan's 100,000 tokens are ideal for regular usage at just $19/month. If you need more, the Elite plan offers 500,000 tokens for $49/month, or you can purchase additional tokens as needed.
+                A typical prompt uses 100-500 tokens. The Free plan is perfect for testing. The Starter plan ($9/month) handles regular usage. The Pro plan ($29/month) offers unlimited tokens for power users. Enterprise provides custom solutions for teams.
               </p>
             </div>
           </div>
