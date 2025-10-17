@@ -2,7 +2,7 @@ import type OpenAI from 'openai';
 import type Anthropic from '@anthropic-ai/sdk';
 import { SmartCall } from './smartCall';
 
-interface PromptCraftConfig {
+interface CostLensConfig {
   apiKey: string;
   baseUrl?: string;
   enableCache?: boolean;
@@ -50,21 +50,21 @@ interface CacheEntry {
   ttl: number;
 }
 
-export class PromptCraft {
-  private config: PromptCraftConfig;
+export class CostLens {
+  private config: CostLensConfig;
   private cache: Map<string, CacheEntry> = new Map();
   private optimizationCache: Map<string, string> = new Map();
   private rateLimitQueue: Array<() => Promise<any>> = [];
   private isProcessingQueue = false;
 
-  constructor(config: PromptCraftConfig) {
+  constructor(config: CostLensConfig) {
     // Validate API key but don't throw - just warn
     if (!config.apiKey || config.apiKey.trim() === '') {
-      console.warn('[PromptCraft] Warning: No API key provided. Tracking and optimization features will be disabled, but your app will continue to work.');
+      console.warn('[CostLens] Warning: No API key provided. Tracking and optimization features will be disabled, but your app will continue to work.');
     }
 
     this.config = {
-      baseUrl: 'https://prompthive.co',
+      baseUrl: 'https://costlens.dev',
       enableCache: false,
       maxRetries: 3,
       middleware: [],
@@ -121,12 +121,12 @@ export class PromptCraft {
       
       // Invalid API key - disable routing but don't break
       if (response.status === 401 || response.status === 403) {
-        console.warn('[PromptCraft] Invalid API key - smart routing disabled');
+        console.warn('[CostLens] Invalid API key - smart routing disabled');
         return false;
       }
     } catch (error) {
       // Network error - fail gracefully
-      console.warn('[PromptCraft] Routing check failed (non-fatal):', error);
+      console.warn('[CostLens] Routing check failed (non-fatal):', error);
     }
 
     return true; // Default to enabled if check fails
@@ -180,14 +180,14 @@ export class PromptCraft {
       if (!response.ok) {
         // Don't throw on tracking errors - just log
         if (response.status === 401 || response.status === 403) {
-          console.warn('[PromptCraft] Invalid API key - tracking disabled. Your app will continue to work.');
+          console.warn('[CostLens] Invalid API key - tracking disabled. Your app will continue to work.');
         } else {
-          console.warn('[PromptCraft] Tracking failed:', response.statusText);
+          console.warn('[CostLens] Tracking failed:', response.statusText);
         }
       }
     } catch (error) {
       // Never throw on tracking errors - silently fail
-      console.warn('[PromptCraft] Tracking error (non-fatal):', error);
+      console.warn('[CostLens] Tracking error (non-fatal):', error);
     }
   }
 
@@ -274,10 +274,10 @@ export class PromptCraft {
               if (routingEnabled) {
                 params.model = self.selectOptimalModel(params.model, params.messages);
                 if (params.model !== originalModel) {
-                  console.log(`[PromptCraft] Smart routing: ${originalModel} → ${params.model}`);
+                  console.log(`[CostLens] Smart routing: ${originalModel} → ${params.model}`);
                 }
               } else {
-                console.log('[PromptCraft] Smart routing disabled due to quality concerns');
+                console.log('[CostLens] Smart routing disabled due to quality concerns');
               }
             }
 
@@ -309,12 +309,12 @@ export class PromptCraft {
                 if (cacheResponse.ok) {
                   const cached = await cacheResponse.json() as { hit: boolean; savedCost: number; response: any };
                   if (cached.hit) {
-                    console.log(`[PromptCraft] Cache hit - saved $${cached.savedCost.toFixed(4)}!`);
+                    console.log(`[CostLens] Cache hit - saved $${cached.savedCost.toFixed(4)}!`);
                     return cached.response;
                   }
                 }
               } catch (error) {
-                console.warn('[PromptCraft] Cache check failed:', error);
+                console.warn('[CostLens] Cache check failed:', error);
               }
             }
 
@@ -364,7 +364,7 @@ export class PromptCraft {
                       }),
                     });
                   } catch (error) {
-                    console.warn('[PromptCraft] Cache save failed:', error);
+                    console.warn('[CostLens] Cache save failed:', error);
                   }
                 }
 
@@ -396,7 +396,7 @@ export class PromptCraft {
                 });
 
                 if (!isOriginal) {
-                  console.log(`[PromptCraft] Fallback success: ${originalModel} → ${currentModel}`);
+                  console.log(`[CostLens] Fallback success: ${originalModel} → ${currentModel}`);
                 }
 
                 return processedResult;
@@ -411,7 +411,7 @@ export class PromptCraft {
                 }
 
                 // Otherwise, try next fallback
-                console.log(`[PromptCraft] Fallback: ${currentModel} failed, trying ${modelsToTry[i + 1]}...`);
+                console.log(`[CostLens] Fallback: ${currentModel} failed, trying ${modelsToTry[i + 1]}...`);
               }
             }
 
@@ -474,7 +474,7 @@ export class PromptCraft {
           if (self.config.smartRouting) {
             params.model = self.selectOptimalModel(params.model, params.messages);
             if (params.model !== originalModel) {
-              console.log(`[PromptCraft] Smart routing: ${originalModel} → ${params.model}`);
+              console.log(`[CostLens] Smart routing: ${originalModel} → ${params.model}`);
             }
           }
 
@@ -490,7 +490,7 @@ export class PromptCraft {
             const cacheKey = self.getCacheKey('anthropic', params);
             const cached = self.getFromCache(cacheKey);
             if (cached) {
-              console.log('[PromptCraft] Cache hit - $0 cost!');
+              console.log('[CostLens] Cache hit - $0 cost!');
               return cached;
             }
           }
@@ -535,7 +535,7 @@ export class PromptCraft {
               });
 
               if (!isOriginal) {
-                console.log(`[PromptCraft] Fallback success: ${originalModel} → ${currentModel}`);
+                console.log(`[CostLens] Fallback success: ${originalModel} → ${currentModel}`);
               }
 
               return processedResult;
@@ -548,7 +548,7 @@ export class PromptCraft {
                 throw error;
               }
 
-              console.log(`[PromptCraft] Fallback: ${currentModel} failed, trying ${modelsToTry[i + 1]}...`);
+              console.log(`[CostLens] Fallback: ${currentModel} failed, trying ${modelsToTry[i + 1]}...`);
             }
           }
 
@@ -608,17 +608,17 @@ export class PromptCraft {
         // Cache the optimization
         this.optimizationCache.set(content, optimized);
         
-        console.log(`[PromptCraft] Optimized prompt: ${data.tokenReduction}% reduction`);
+        console.log(`[CostLens] Optimized prompt: ${data.tokenReduction}% reduction`);
         return optimized;
       }
       
       // Invalid API key - use original prompt
       if (response.status === 401 || response.status === 403) {
-        console.warn('[PromptCraft] Invalid API key - optimization disabled');
+        console.warn('[CostLens] Invalid API key - optimization disabled');
       }
     } catch (error) {
       // Network error - fail gracefully, use original prompt
-      console.warn('[PromptCraft] Optimization failed (non-fatal), using original prompt');
+      console.warn('[CostLens] Optimization failed (non-fatal), using original prompt');
     }
 
     return content;
@@ -716,5 +716,5 @@ export class PromptCraft {
   }
 }
 
-export default PromptCraft;
-export { PromptCraft as CostLens };
+export default CostLens;
+export { CostLens as PromptCraft };

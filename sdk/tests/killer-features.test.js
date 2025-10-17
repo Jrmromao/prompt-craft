@@ -10,14 +10,14 @@ describe('SDK v2.0 Killer Features', () => {
             json: async () => ({ success: true }),
         });
         global.fetch = mockFetch;
-        promptcraft = new index_1.PromptCraft({
+        promptcraft = new index_1.CostLens({
             apiKey: 'test-key',
             baseUrl: 'http://localhost:3000',
         });
     });
     describe('Smart Routing', () => {
         it('should route simple queries to cheaper models', () => {
-            const promptcraft = new index_1.PromptCraft({
+            const promptcraft = new index_1.CostLens({
                 apiKey: 'test-key',
                 smartRouting: true,
             });
@@ -26,7 +26,7 @@ describe('SDK v2.0 Killer Features', () => {
             expect(result).toBe('gpt-3.5-turbo');
         });
         it('should keep complex queries on expensive models', () => {
-            const promptcraft = new index_1.PromptCraft({
+            const promptcraft = new index_1.CostLens({
                 apiKey: 'test-key',
                 smartRouting: true,
             });
@@ -38,7 +38,7 @@ describe('SDK v2.0 Killer Features', () => {
             expect(result).toBe('gpt-4');
         });
         it('should route Claude Opus simple queries to Haiku', () => {
-            const promptcraft = new index_1.PromptCraft({
+            const promptcraft = new index_1.CostLens({
                 apiKey: 'test-key',
                 smartRouting: true,
             });
@@ -47,7 +47,7 @@ describe('SDK v2.0 Killer Features', () => {
             expect(result).toBe('claude-3-haiku');
         });
         it('should route Claude Opus medium queries to Sonnet', () => {
-            const promptcraft = new index_1.PromptCraft({
+            const promptcraft = new index_1.CostLens({
                 apiKey: 'test-key',
                 smartRouting: true,
             });
@@ -120,7 +120,7 @@ describe('SDK v2.0 Killer Features', () => {
     });
     describe('Integration', () => {
         it('should enable all killer features together', () => {
-            const promptcraft = new index_1.PromptCraft({
+            const promptcraft = new index_1.CostLens({
                 apiKey: 'test-key',
                 enableCache: true,
                 autoFallback: true,
@@ -184,7 +184,7 @@ describe('SDK v2.0 Killer Features', () => {
             expect(trackData.savings).toBeGreaterThan(0);
         });
         it('should calculate savings when routing to cheaper model', () => {
-            const promptcraft = new index_1.PromptCraft({
+            const promptcraft = new index_1.CostLens({
                 apiKey: 'test-key',
                 smartRouting: true,
             });
@@ -198,7 +198,7 @@ describe('SDK v2.0 Killer Features', () => {
             expect(savings).toBeGreaterThan(0);
         });
         it('should have zero savings when no routing occurs', () => {
-            const promptcraft = new index_1.PromptCraft({
+            const promptcraft = new index_1.CostLens({
                 apiKey: 'test-key',
                 smartRouting: true,
             });
@@ -214,20 +214,20 @@ describe('SDK v2.0 Killer Features', () => {
     });
     describe('Smart Routing ON by Default (NEW)', () => {
         it('should enable smart routing by default', () => {
-            const promptcraft = new index_1.PromptCraft({
+            const promptcraft = new index_1.CostLens({
                 apiKey: 'test-key',
             });
             expect(promptcraft.config.smartRouting).toBe(true);
         });
         it('should allow disabling smart routing', () => {
-            const promptcraft = new index_1.PromptCraft({
+            const promptcraft = new index_1.CostLens({
                 apiKey: 'test-key',
                 smartRouting: false,
             });
             expect(promptcraft.config.smartRouting).toBe(false);
         });
         it('should route automatically when enabled by default', () => {
-            const promptcraft = new index_1.PromptCraft({
+            const promptcraft = new index_1.CostLens({
                 apiKey: 'test-key',
                 // smartRouting not specified, should be true by default
             });

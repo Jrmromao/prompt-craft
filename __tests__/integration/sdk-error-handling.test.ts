@@ -1,18 +1,18 @@
 describe('SDK Error Handling Integration', () => {
   describe('Invalid API Key Handling', () => {
     it('should not throw when API key is invalid', () => {
-      const PromptCraft = require('@/sdk/src/index').PromptCraft;
+      const CostLens = require('@/sdk/src/index').CostLens;
       
       expect(() => {
-        new PromptCraft({ apiKey: 'invalid_key' });
+        new CostLens({ apiKey: 'invalid_key' });
       }).not.toThrow();
     });
 
     it('should warn about invalid API key', () => {
       const consoleSpy = jest.spyOn(console, 'warn').mockImplementation();
-      const PromptCraft = require('@/sdk/src/index').PromptCraft;
+      const CostLens = require('@/sdk/src/index').CostLens;
       
-      new PromptCraft({ apiKey: '' });
+      new CostLens({ apiKey: '' });
       
       expect(consoleSpy).toHaveBeenCalledWith(
         expect.stringContaining('No API key provided')
@@ -26,8 +26,8 @@ describe('SDK Error Handling Integration', () => {
     it('should not break app when tracking fails', async () => {
       global.fetch = jest.fn().mockRejectedValue(new Error('Network error'));
       
-      const PromptCraft = require('@/sdk/src/index').PromptCraft;
-      const pc = new PromptCraft({ apiKey: 'test_key' });
+      const CostLens = require('@/sdk/src/index').CostLens;
+      const pc = new CostLens({ apiKey: 'test_key' });
       
       // Should not throw
       await expect(
@@ -51,8 +51,8 @@ describe('SDK Error Handling Integration', () => {
         status: 401,
       });
       
-      const PromptCraft = require('@/sdk/src/index').PromptCraft;
-      const pc = new PromptCraft({ apiKey: 'invalid', autoOptimize: true });
+      const CostLens = require('@/sdk/src/index').CostLens;
+      const pc = new CostLens({ apiKey: 'invalid', autoOptimize: true });
       
       const result = await pc['optimizePromptContent']('test prompt');
       
@@ -63,8 +63,8 @@ describe('SDK Error Handling Integration', () => {
     it('should continue working when routing check fails', async () => {
       global.fetch = jest.fn().mockRejectedValue(new Error('Timeout'));
       
-      const PromptCraft = require('@/sdk/src/index').PromptCraft;
-      const pc = new PromptCraft({ apiKey: 'test', smartRouting: true });
+      const CostLens = require('@/sdk/src/index').CostLens;
+      const pc = new CostLens({ apiKey: 'test', smartRouting: true });
       
       const result = await pc['checkRoutingEnabled']();
       

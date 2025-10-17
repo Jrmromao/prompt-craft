@@ -1,7 +1,7 @@
-import { PromptCraft } from '../src/index';
+import { CostLens } from '../src/index';
 
 describe('SDK v2.0 Killer Features', () => {
-  let promptcraft: PromptCraft;
+  let promptcraft: CostLens;
   let mockFetch: jest.Mock;
 
   beforeEach(() => {
@@ -11,7 +11,7 @@ describe('SDK v2.0 Killer Features', () => {
     });
     global.fetch = mockFetch;
 
-    promptcraft = new PromptCraft({
+    promptcraft = new CostLens({
       apiKey: 'test-key',
       baseUrl: 'http://localhost:3000',
     });
@@ -19,7 +19,7 @@ describe('SDK v2.0 Killer Features', () => {
 
   describe('Smart Routing', () => {
     it('should route simple queries to cheaper models', () => {
-      const promptcraft = new PromptCraft({
+      const promptcraft = new CostLens({
         apiKey: 'test-key',
         smartRouting: true,
       });
@@ -31,7 +31,7 @@ describe('SDK v2.0 Killer Features', () => {
     });
 
     it('should keep complex queries on expensive models', () => {
-      const promptcraft = new PromptCraft({
+      const promptcraft = new CostLens({
         apiKey: 'test-key',
         smartRouting: true,
       });
@@ -46,7 +46,7 @@ describe('SDK v2.0 Killer Features', () => {
     });
 
     it('should route Claude Opus simple queries to Haiku', () => {
-      const promptcraft = new PromptCraft({
+      const promptcraft = new CostLens({
         apiKey: 'test-key',
         smartRouting: true,
       });
@@ -58,7 +58,7 @@ describe('SDK v2.0 Killer Features', () => {
     });
 
     it('should route Claude Opus medium queries to Sonnet', () => {
-      const promptcraft = new PromptCraft({
+      const promptcraft = new CostLens({
         apiKey: 'test-key',
         smartRouting: true,
       });
@@ -150,7 +150,7 @@ describe('SDK v2.0 Killer Features', () => {
 
   describe('Integration', () => {
     it('should enable all killer features together', () => {
-      const promptcraft = new PromptCraft({
+      const promptcraft = new CostLens({
         apiKey: 'test-key',
         enableCache: true,
         autoFallback: true,
@@ -229,7 +229,7 @@ describe('SDK v2.0 Killer Features', () => {
     });
 
     it('should calculate savings when routing to cheaper model', () => {
-      const promptcraft = new PromptCraft({
+      const promptcraft = new CostLens({
         apiKey: 'test-key',
         smartRouting: true,
       });
@@ -248,7 +248,7 @@ describe('SDK v2.0 Killer Features', () => {
     });
 
     it('should have zero savings when no routing occurs', () => {
-      const promptcraft = new PromptCraft({
+      const promptcraft = new CostLens({
         apiKey: 'test-key',
         smartRouting: true,
       });
@@ -269,7 +269,7 @@ describe('SDK v2.0 Killer Features', () => {
 
   describe('Smart Routing ON by Default (NEW)', () => {
     it('should enable smart routing by default', () => {
-      const promptcraft = new PromptCraft({
+      const promptcraft = new CostLens({
         apiKey: 'test-key',
       });
 
@@ -277,7 +277,7 @@ describe('SDK v2.0 Killer Features', () => {
     });
 
     it('should allow disabling smart routing', () => {
-      const promptcraft = new PromptCraft({
+      const promptcraft = new CostLens({
         apiKey: 'test-key',
         smartRouting: false,
       });
@@ -286,7 +286,7 @@ describe('SDK v2.0 Killer Features', () => {
     });
 
     it('should route automatically when enabled by default', () => {
-      const promptcraft = new PromptCraft({
+      const promptcraft = new CostLens({
         apiKey: 'test-key',
         // smartRouting not specified, should be true by default
       });

@@ -3,10 +3,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const index_1 = require("../src/index");
 // Mock fetch
 global.fetch = jest.fn();
-describe('PromptCraft SDK - Unit Tests', () => {
+describe('CostLens SDK - Unit Tests', () => {
     let promptcraft;
     beforeEach(() => {
-        promptcraft = new index_1.PromptCraft({ apiKey: 'test-key' });
+        promptcraft = new index_1.CostLens({ apiKey: 'test-key' });
         global.fetch.mockClear();
         global.fetch.mockResolvedValue({
             ok: true,
@@ -18,14 +18,14 @@ describe('PromptCraft SDK - Unit Tests', () => {
             expect(promptcraft).toBeDefined();
         });
         it('should accept custom baseUrl', () => {
-            const custom = new index_1.PromptCraft({
+            const custom = new index_1.CostLens({
                 apiKey: 'test',
                 baseUrl: 'https://custom.com',
             });
             expect(custom).toBeDefined();
         });
         it('should enable cache when configured', () => {
-            const cached = new index_1.PromptCraft({
+            const cached = new index_1.CostLens({
                 apiKey: 'test',
                 enableCache: true,
             });
@@ -34,7 +34,7 @@ describe('PromptCraft SDK - Unit Tests', () => {
     });
     describe.skip('Cache', () => {
         it('should cache results when enabled', async () => {
-            const cached = new index_1.PromptCraft({
+            const cached = new index_1.CostLens({
                 apiKey: 'test',
                 enableCache: true,
             });
@@ -56,7 +56,7 @@ describe('PromptCraft SDK - Unit Tests', () => {
             expect(mockClient.chat.completions.create).toHaveBeenCalledTimes(1);
         });
         it('should clear cache', () => {
-            const cached = new index_1.PromptCraft({
+            const cached = new index_1.CostLens({
                 apiKey: 'test',
                 enableCache: true,
             });
@@ -109,7 +109,7 @@ describe('PromptCraft SDK - Unit Tests', () => {
                 ...params,
                 modified: true,
             }));
-            const withMiddleware = new index_1.PromptCraft({
+            const withMiddleware = new index_1.CostLens({
                 apiKey: 'test',
                 middleware: [{ before: beforeFn }],
             });
@@ -132,7 +132,7 @@ describe('PromptCraft SDK - Unit Tests', () => {
         });
         it('should run after middleware', async () => {
             const afterFn = jest.fn((result) => result);
-            const withMiddleware = new index_1.PromptCraft({
+            const withMiddleware = new index_1.CostLens({
                 apiKey: 'test',
                 middleware: [{ after: afterFn }],
             });
@@ -155,7 +155,7 @@ describe('PromptCraft SDK - Unit Tests', () => {
         });
         it('should run error middleware', async () => {
             const errorFn = jest.fn();
-            const withMiddleware = new index_1.PromptCraft({
+            const withMiddleware = new index_1.CostLens({
                 apiKey: 'test',
                 maxRetries: 1,
                 middleware: [{ onError: errorFn }],
@@ -185,7 +185,7 @@ describe('PromptCraft SDK - Unit Tests', () => {
                 choices: [{ message: { role: 'assistant', content: 'test', refusal: null }, index: 0, finish_reason: 'stop' }],
                 usage: { prompt_tokens: 5, completion_tokens: 5, total_tokens: 10 },
             }, 100);
-            expect(global.fetch).toHaveBeenCalledWith('https://prompthive.co/api/integrations/run', expect.objectContaining({
+            expect(global.fetch).toHaveBeenCalledWith('https://costlens.dev/api/integrations/run', expect.objectContaining({
                 method: 'POST',
                 headers: expect.objectContaining({
                     'Authorization': 'Bearer test-key',

@@ -3,10 +3,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const index_1 = require("../src/index");
 // Mock fetch for integration tests
 global.fetch = jest.fn();
-describe('PromptCraft SDK - Integration Tests', () => {
+describe('CostLens SDK - Integration Tests', () => {
     let promptcraft;
     beforeEach(() => {
-        promptcraft = new index_1.PromptCraft({
+        promptcraft = new index_1.CostLens({
             apiKey: 'test-integration-key',
             enableCache: true,
             maxRetries: 2,
@@ -195,7 +195,7 @@ describe('PromptCraft SDK - Integration Tests', () => {
     describe('Middleware Integration', () => {
         it('should apply multiple middleware in order', async () => {
             const calls = [];
-            const pc = new index_1.PromptCraft({
+            const pc = new index_1.CostLens({
                 apiKey: 'test',
                 middleware: [
                     {

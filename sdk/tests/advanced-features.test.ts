@@ -1,7 +1,7 @@
-import { PromptCraft } from '../src/index';
+import { CostLens } from '../src/index';
 
 describe('SDK Advanced LLM Features', () => {
-  let promptcraft: PromptCraft;
+  let promptcraft: CostLens;
   let mockFetch: jest.Mock;
 
   beforeEach(() => {
@@ -11,7 +11,7 @@ describe('SDK Advanced LLM Features', () => {
     });
     global.fetch = mockFetch;
 
-    promptcraft = new PromptCraft({
+    promptcraft = new CostLens({
       apiKey: 'test-key',
       baseUrl: 'http://localhost:3000',
     });
@@ -208,7 +208,7 @@ describe('SDK Advanced LLM Features', () => {
     });
 
     it('should not apply smart routing to vision models', () => {
-      const pc = new PromptCraft({
+      const pc = new CostLens({
         apiKey: 'test',
         smartRouting: true,
       });
@@ -307,7 +307,7 @@ describe('SDK Advanced LLM Features', () => {
 
   describe('Cost Estimation', () => {
     it('should estimate costs for different models', () => {
-      const pc = new PromptCraft({ apiKey: 'test' });
+      const pc = new CostLens({ apiKey: 'test' });
       
       const messages = [{ role: 'user', content: 'test' }];
       
@@ -318,7 +318,7 @@ describe('SDK Advanced LLM Features', () => {
     });
 
     it('should block requests exceeding cost limit', async () => {
-      const pc = new PromptCraft({
+      const pc = new CostLens({
         apiKey: 'test',
         costLimit: 0.001,
       });

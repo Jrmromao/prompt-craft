@@ -1,13 +1,13 @@
-import { PromptCraft } from '../src/index';
+import { CostLens } from '../src/index';
 
 // Mock fetch for integration tests
 global.fetch = jest.fn();
 
-describe('PromptCraft SDK - Integration Tests', () => {
-  let promptcraft: PromptCraft;
+describe('CostLens SDK - Integration Tests', () => {
+  let promptcraft: CostLens;
 
   beforeEach(() => {
-    promptcraft = new PromptCraft({
+    promptcraft = new CostLens({
       apiKey: 'test-integration-key',
       enableCache: true,
       maxRetries: 2,
@@ -243,7 +243,7 @@ describe('PromptCraft SDK - Integration Tests', () => {
     it('should apply multiple middleware in order', async () => {
       const calls: string[] = [];
 
-      const pc = new PromptCraft({
+      const pc = new CostLens({
         apiKey: 'test',
         middleware: [
           {

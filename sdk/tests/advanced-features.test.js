@@ -10,7 +10,7 @@ describe('SDK Advanced LLM Features', () => {
             json: async () => ({ success: true }),
         });
         global.fetch = mockFetch;
-        promptcraft = new index_1.PromptCraft({
+        promptcraft = new index_1.CostLens({
             apiKey: 'test-key',
             baseUrl: 'http://localhost:3000',
         });
@@ -175,7 +175,7 @@ describe('SDK Advanced LLM Features', () => {
             expect(mockClient.chat.completions.create).toHaveBeenCalled();
         });
         it('should not apply smart routing to vision models', () => {
-            const pc = new index_1.PromptCraft({
+            const pc = new index_1.CostLens({
                 apiKey: 'test',
                 smartRouting: true,
             });
@@ -253,14 +253,14 @@ describe('SDK Advanced LLM Features', () => {
     });
     describe('Cost Estimation', () => {
         it('should estimate costs for different models', () => {
-            const pc = new index_1.PromptCraft({ apiKey: 'test' });
+            const pc = new index_1.CostLens({ apiKey: 'test' });
             const messages = [{ role: 'user', content: 'test' }];
             const gpt4Cost = pc.estimateCost('gpt-4', messages);
             const gpt35Cost = pc.estimateCost('gpt-3.5-turbo', messages);
             expect(gpt4Cost).toBeGreaterThan(gpt35Cost);
         });
         it('should block requests exceeding cost limit', async () => {
-            const pc = new index_1.PromptCraft({
+            const pc = new index_1.CostLens({
                 apiKey: 'test',
                 costLimit: 0.001,
             });
