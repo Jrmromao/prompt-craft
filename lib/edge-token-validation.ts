@@ -64,16 +64,27 @@ export async function validateApiTokenEdge(token: string): Promise<boolean> {
 
 async function validateTokenWithExternalService(token: string): Promise<boolean> {
   try {
-    // This could be replaced with a call to your validation API
-    // or a Redis lookup, or any other edge-compatible service
+    // For Edge Functions, we need to call the validation API
+    // This is the most secure approach that works with the database
+    const baseUrl = process.env.NEXTAUTH_URL || process.env.VERCEL_URL 
+      ? `https://${process.env.VERCEL_URL}` 
+      : 'http://localhost:3000';
     
-    // For now, we'll do a simple validation
-    // In production, you might want to:
-    // 1. Call your validation API endpoint
-    // 2. Use a Redis cache
-    // 3. Use environment variables for known tokens
-    
-    return true; // Placeholder - replace with actual validation logic
+    const response = await fetch(`${baseUrl}/api/validate-token`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ token }),
+    });
+
+    if (!response.ok) {
+      console.error('Token validation API error:', response.status);
+      return false;
+    }
+
+    const result = await response.json();
+    return result.valid === true;
   } catch (error) {
     console.error('External token validation error:', error);
     return false;
