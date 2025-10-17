@@ -19,6 +19,7 @@ interface WrapperOptions {
   cacheTTL?: number;
   fallbackModels?: string[];
   maxCost?: number;
+  userId?: string;
 }
 
 interface TrackRunData {
@@ -716,3 +717,4 @@ export class PromptCraft {
 }
 
 export default PromptCraft;
+export { PromptCraft as CostLens };

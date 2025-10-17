@@ -13,7 +13,7 @@ export async function GET(req: NextRequest) {
       where: { clerkId: userId },
       include: {
         Subscription: true,
-        PromptRun: {
+        PromptRuns: {
           where: {
             createdAt: {
               gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1), // Start of current month
@@ -27,8 +27,8 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    const plan = user.Subscription?.plan || 'FREE';
-    const runsThisMonth = user.PromptRun.length;
+    const plan = user.planType || 'FREE';
+    const runsThisMonth = user.PromptRuns.length;
     
     // Plan limits
     const limits: Record<string, number> = {

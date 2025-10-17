@@ -51,7 +51,7 @@ export default function GoogleAnalytics({ measurementId }: GoogleAnalyticsProps)
 // Extend the Window interface to include gtag
 declare global {
   interface Window {
-    gtag: (
+    gtag?: (
       command: 'config' | 'event' | 'js' | 'set',
       targetId: string | Date,
       config?: Record<string, any>

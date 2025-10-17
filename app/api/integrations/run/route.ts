@@ -52,6 +52,7 @@ export async function POST(req: Request) {
         requestedModel: data.requestedModel || data.model,
         input: data.input,
         output: data.output,
+        tokensUsed: data.tokensUsed || (data.inputTokens || 0) + (data.outputTokens || 0),
         inputTokens: data.inputTokens || 0,
         outputTokens: data.outputTokens || 0,
         cost: cost,

@@ -14,16 +14,14 @@ async function main() {
       clerkId: 'user_33xNKHf1ie8YONDlpf2j3YgHFQH',
       name: 'Joao Filipe Romao',
       role: 'SUPER_ADMIN',
-      monthlyRunLimit: 100000,
       status: 'ACTIVE',
       username: '@user490035',
-      emailVerified: true,
       emailPreferences: {
         productUpdates: true,
         securityAlerts: true,
         marketingEmails: true,
       },
-      notificationPreferences: {
+      notificationSettings: {
         pushNotifications: true,
         emailNotifications: true,
         browserNotifications: true,
@@ -32,22 +30,19 @@ async function main() {
         sessionTimeout: 30,
         twoFactorEnabled: false,
       },
-      uiPreferences: {
+      themeSettings: {
         theme: 'system',
         accentColor: 'purple',
       },
-      dataRetentionSettings: {
+      dataRetentionPolicy: {
         autoDelete: false,
-        dataCategories: ['personal', 'usage', 'analytics'],
         retentionPeriod: 365,
       },
-      consentSettings: {
+      dataProcessingConsent: {
         analytics: false,
         marketing: false,
         thirdParty: false,
       },
-      totalCredits: 999999,
-      creditsUsed: 0,
     },
   });
 

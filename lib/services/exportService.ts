@@ -7,7 +7,11 @@ export class ExportService {
       include: {
         PromptRuns: true,
         ApiKey: true,
-        Subscription: true,
+        Subscription: {
+          include: {
+            Plan: true,
+          },
+        },
       },
     });
 
@@ -21,7 +25,7 @@ export class ExportService {
         email: user.email,
         name: user.name,
         createdAt: user.createdAt,
-        plan: user.plan,
+        plan: user.planType,
       },
       promptRuns: user.PromptRuns.map(run => ({
         id: run.id,
@@ -38,7 +42,7 @@ export class ExportService {
         createdAt: key.createdAt,
       })),
       subscription: user.Subscription ? {
-        plan: user.Subscription.plan,
+        plan: user.Subscription.Plan.name,
         status: user.Subscription.status,
         createdAt: user.Subscription.createdAt,
       } : null,

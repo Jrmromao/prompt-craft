@@ -54,8 +54,7 @@ export async function POST(request: NextRequest) {
       max_tokens: 1000,
     }, {
       promptId: 'internal-suggestions',
-      userId,
-      metadata: { source: 'internal-suggestions', type }
+      userId
     });
 
     const response = completion.choices[0]?.message?.content;
