@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   title: 'Pricing - Start Free',
   description: 'Start free with 1,000 requests/month. Scale to Starter ($9/mo), Pro ($49/mo) or Enterprise (custom) as you grow. No credit card required.',
   openGraph: {
-    title: 'OptiRelay Pricing - Start Free',
+    title: 'CostLens Pricing - Start Free',
     description: 'Start free with 1,000 requests/month. Scale to Starter ($9/mo), Pro ($49/mo) or Enterprise (custom) as you grow.',
   },
   alternates: {

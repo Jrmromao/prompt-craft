@@ -1,14 +1,18 @@
 import { MetadataRoute } from 'next';
-import { getAllPosts } from '@/lib/blog';
+import { prisma } from '@/lib/prisma';
 
-export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = 'https://optirelay.com';
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const baseUrl = 'https://costlens.dev';
   
-  // Get all blog posts
-  const posts = getAllPosts();
+  // Get blog posts from database
+  const posts = await prisma.blogPost.findMany({
+    where: { published: true },
+    select: { slug: true, updatedAt: true },
+  });
+  
   const blogPosts = posts.map((post) => ({
     url: `${baseUrl}/blog/${post.slug}`,
-    lastModified: new Date(post.date),
+    lastModified: post.updatedAt,
     changeFrequency: 'monthly' as const,
     priority: 0.7,
   }));

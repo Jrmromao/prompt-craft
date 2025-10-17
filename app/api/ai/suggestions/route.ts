@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
-import { OptiRelay } from '@/sdk/src/index';
+import { CostLens } from '@/sdk/src/index';
 import OpenAI from 'openai';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-const optirelay = new OptiRelay({
+const optirelay = new CostLens({
   apiKey: process.env.PROMPTCRAFT_INTERNAL_API_KEY || 'internal',
   baseUrl: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3001',
 });

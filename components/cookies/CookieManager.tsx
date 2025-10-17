@@ -48,13 +48,13 @@ const cookieCategories: CookieCategory[] = [
     cookies: [
       {
         name: 'session',
-        provider: 'OptiRelay',
+        provider: 'CostLens',
         purpose: 'Maintains user session',
         expiry: 'Session',
       },
       {
         name: 'csrf',
-        provider: 'OptiRelay',
+        provider: 'CostLens',
         purpose: 'Security protection',
         expiry: 'Session',
       },
@@ -90,13 +90,13 @@ const cookieCategories: CookieCategory[] = [
     cookies: [
       {
         name: 'theme',
-        provider: 'OptiRelay',
+        provider: 'CostLens',
         purpose: 'Stores user theme preference',
         expiry: '1 year',
       },
       {
         name: 'language',
-        provider: 'OptiRelay',
+        provider: 'CostLens',
         purpose: 'Stores user language preference',
         expiry: '1 year',
       },

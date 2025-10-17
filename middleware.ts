@@ -10,8 +10,10 @@ const isPublicRoute = createRouteMatcher([
   '/pricing(.*)',
   '/legal(.*)',
   '/docs(.*)',
+  '/blog(.*)',
   '/api/webhooks(.*)',
   '/api/health(.*)',
+  '/api/blog(.*)',
 ]);
 
 export default clerkMiddleware(async (auth, request) => {

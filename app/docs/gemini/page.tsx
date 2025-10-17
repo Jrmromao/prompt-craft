@@ -41,10 +41,10 @@ export default function GeminiDocsPage() {
 
       <h2 className="text-2xl font-bold text-gray-900 mt-12 mb-4">Basic Usage</h2>
       <CodeBlock code={`import { GoogleGenerativeAI } from '@google/generative-ai';
-import OptiRelay from 'optirelay-sdk';
+import { CostLens } from 'costlens';
 
 // Initialize
-const optirelay = new OptiRelay({ 
+const optirelay = new CostLens({ 
   apiKey: process.env.PROMPTCRAFT_API_KEY 
 });
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);

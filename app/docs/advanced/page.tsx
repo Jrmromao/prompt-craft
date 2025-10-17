@@ -33,14 +33,14 @@ export default function AdvancedFeaturesPage() {
     <div className="max-w-4xl mx-auto px-6 py-12">
       <h1 className="text-4xl font-bold text-gray-900 mb-4">Advanced Features</h1>
       <p className="text-xl text-gray-600 mb-12">
-        Unlock the full power of OptiRelay SDK with caching, middleware, retries, and more.
+        Unlock the full power of CostLens SDK with caching, middleware, retries, and more.
       </p>
 
       <h2 className="text-2xl font-bold text-gray-900 mt-12 mb-4">Smart Caching</h2>
       <p className="text-gray-700 mb-4">
         Reduce API costs by up to 80% by caching identical requests:
       </p>
-      <CodeBlock code={`const optirelay = new OptiRelay({ 
+      <CodeBlock code={`const optirelay = new CostLens({ 
   apiKey: process.env.PROMPTCRAFT_API_KEY,
   enableCache: true  // Enable caching globally
 });
@@ -72,7 +72,7 @@ optirelay.clearCache();`} />
       <p className="text-gray-700 mb-4">
         Automatically retry failed requests with exponential backoff:
       </p>
-      <CodeBlock code={`const optirelay = new OptiRelay({ 
+      <CodeBlock code={`const optirelay = new CostLens({ 
   apiKey: process.env.PROMPTCRAFT_API_KEY,
   maxRetries: 3  // Retry up to 3 times
 });
@@ -89,7 +89,7 @@ const result = await tracked.chat.completions.create({
       <p className="text-gray-700 mb-4">
         Add custom logic before/after API calls:
       </p>
-      <CodeBlock code={`const optirelay = new OptiRelay({
+      <CodeBlock code={`const optirelay = new CostLens({
   apiKey: process.env.PROMPTCRAFT_API_KEY,
   middleware: [
     {
@@ -176,7 +176,7 @@ const result = await tracked.chat.completions.create(
 // Compare performance across different prompt versions`} />
 
       <h2 className="text-2xl font-bold text-gray-900 mt-12 mb-4">Configuration Reference</h2>
-      <CodeBlock code={`interface OptiRelayConfig {
+      <CodeBlock code={`interface CostLensConfig {
   apiKey: string;           // Required: Your API key
   baseUrl?: string;         // Optional: Custom endpoint
   enableCache?: boolean;    // Optional: Enable caching (default: false)

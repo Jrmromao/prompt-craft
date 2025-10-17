@@ -1,7 +1,7 @@
 ---
 title: "How to Reduce OpenAI API Costs by 40% Without Sacrificing Quality"
 description: "Learn proven strategies to cut your OpenAI and LLM costs while maintaining response quality. Real examples and code included."
-author: "OptiRelay Team"
+author: "CostLens Team"
 date: "2025-01-15"
 image: "/blog/openai-costs.jpg"
 tags: ["cost-optimization", "openai", "llm", "tutorial"]
@@ -24,15 +24,15 @@ Not every request needs GPT-4. Many tasks work perfectly with GPT-3.5-turbo at 1
 - Summarization → GPT-3.5-turbo
 
 ```javascript
-import { OptiRelay } from 'optirelay';
+import { CostLens } from 'optirelay';
 
-const client = new OptiRelay({
+const client = new CostLens({
   apiKey: process.env.OPTIRELAY_API_KEY,
   routing: 'smart' // Automatically routes to optimal model
 });
 
 const response = await client.chat.completions.create({
-  model: 'gpt-4', // OptiRelay may route to gpt-3.5 if appropriate
+  model: 'gpt-4', // CostLens may route to gpt-3.5 if appropriate
   messages: [{ role: 'user', content: 'Summarize this article' }]
 });
 ```
@@ -44,7 +44,7 @@ const response = await client.chat.completions.create({
 Identical requests shouldn't cost you twice. Cache responses for common queries.
 
 ```javascript
-const client = new OptiRelay({
+const client = new CostLens({
   apiKey: process.env.OPTIRELAY_API_KEY,
   cache: {
     enabled: true,
@@ -91,8 +91,8 @@ One of our customers reduced their monthly OpenAI bill from $12,000 to $7,200 us
 
 ## Get Started
 
-Want to implement these optimizations without the hassle? [Try OptiRelay free](https://optirelay.com) - we handle routing, caching, and optimization automatically.
+Want to implement these optimizations without the hassle? [Try CostLens free](https://optirelay.com) - we handle routing, caching, and optimization automatically.
 
 ---
 
-**About the Author:** The OptiRelay team helps companies reduce their LLM costs by 40% on average through intelligent routing, caching, and optimization.
+**About the Author:** The CostLens team helps companies reduce their LLM costs by 40% on average through intelligent routing, caching, and optimization.

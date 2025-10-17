@@ -32,7 +32,7 @@ export default function SDKDocsPage() {
     <div className="max-w-4xl mx-auto px-6 py-12">
       <h1 className="text-4xl font-bold text-gray-900 mb-4">SDK Reference</h1>
       <p className="text-xl text-gray-600 mb-8">
-        Complete reference for the OptiRelay SDK - Save 50-80% on AI costs automatically.
+        Complete reference for the CostLens SDK - Save 50-80% on AI costs automatically.
       </p>
 
       <div className="bg-green-50 border border-green-200 p-4 mb-12 rounded-lg">
@@ -54,7 +54,7 @@ export default function SDKDocsPage() {
       <CodeBlock code="npm install optirelay-sdk" language="bash" />
 
       <h2 className="text-2xl font-bold text-gray-900 mt-12 mb-4">Constructor</h2>
-      <CodeBlock code="new OptiRelay(config: OptiRelayConfig)" />
+      <CodeBlock code="new CostLens(config: CostLensConfig)" />
 
       <h3 className="text-xl font-semibold text-gray-900 mt-8 mb-4">Parameters</h3>
       <div className="overflow-x-auto mb-6">
@@ -72,7 +72,7 @@ export default function SDKDocsPage() {
               <td className="px-4 py-3 text-sm"><code className="bg-gray-100 px-2 py-1 rounded">apiKey</code></td>
               <td className="px-4 py-3 text-sm text-gray-600">string</td>
               <td className="px-4 py-3 text-sm text-gray-600">Yes</td>
-              <td className="px-4 py-3 text-sm text-gray-600">Your OptiRelay API key</td>
+              <td className="px-4 py-3 text-sm text-gray-600">Your CostLens API key</td>
             </tr>
             <tr className="bg-green-50">
               <td className="px-4 py-3 text-sm"><code className="bg-green-100 px-2 py-1 rounded">autoOptimize</code></td>
@@ -121,7 +121,7 @@ export default function SDKDocsPage() {
       </div>
 
       <h3 className="text-xl font-semibold text-gray-900 mt-8 mb-4">Example</h3>
-      <CodeBlock code={`const optirelay = new OptiRelay({
+      <CodeBlock code={`const optirelay = new CostLens({
   apiKey: 'pc_your_api_key_here',
   autoOptimize: true,    // 💰 Save 50-80% on tokens
   smartRouting: true,    // 💰 Route to cheapest model
@@ -293,7 +293,7 @@ await optirelay.trackGrok(
           <p className="text-gray-700 mb-4">
             Automatically cache responses to save money on repeated requests. Achieves 60-80% hit rates in production.
           </p>
-          <CodeBlock code={`const optirelay = new OptiRelay({
+          <CodeBlock code={`const optirelay = new CostLens({
   apiKey: process.env.PROMPTCRAFT_API_KEY,
   enableCache: true, // Enable Redis caching
 });
@@ -344,7 +344,7 @@ await fetch('/api/quality/feedback', {
           <p className="text-gray-700 mb-4">
             Automatically compress prompts by 30-50% while preserving meaning.
           </p>
-          <CodeBlock code={`const optirelay = new OptiRelay({
+          <CodeBlock code={`const optirelay = new CostLens({
   apiKey: process.env.PROMPTCRAFT_API_KEY,
   autoOptimize: true, // Enable AI compression
 });
@@ -393,8 +393,8 @@ console.log(\`Savings Rate: \${savings.savingsRate}%\`);
 
       <h2 className="text-2xl font-bold text-gray-900 mt-16 mb-4">Types</h2>
 
-      <h3 className="text-xl font-semibold text-gray-900 mt-8 mb-4">OptiRelayConfig</h3>
-      <CodeBlock code={`interface OptiRelayConfig {
+      <h3 className="text-xl font-semibold text-gray-900 mt-8 mb-4">CostLensConfig</h3>
+      <CodeBlock code={`interface CostLensConfig {
   apiKey: string;
   baseUrl?: string;
 }`} />

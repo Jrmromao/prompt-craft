@@ -1,7 +1,7 @@
 ---
 title: "7 Cheaper Alternatives to GPT-4 That Don't Sacrifice Quality"
 description: "Discover cost-effective GPT-4 alternatives including Claude 3, Gemini Pro, and open-source models. Save up to 90% on LLM costs without losing performance."
-author: "OptiRelay Team"
+author: "CostLens Team"
 date: "2025-01-18"
 image: "/blog/gpt4-alternatives.jpg"
 tags: ["gpt-4", "alternatives", "cost-optimization", "claude", "gemini", "llama"]
@@ -194,9 +194,9 @@ const result = await model.generateContent('Your prompt');
 Don't pick one model. Use the right model for each task:
 
 ```javascript
-import { OptiRelay } from 'optirelay';
+import { CostLens } from 'optirelay';
 
-const client = new OptiRelay({
+const client = new CostLens({
   apiKey: process.env.OPTIRELAY_API_KEY,
   routing: {
     // Simple tasks → Cheapest models
@@ -261,7 +261,7 @@ Switching from GPT-4? Follow these steps:
 2. **Test alternatives** on sample data
 3. **Measure quality** (human eval or automated)
 4. **Calculate savings** (cost per task)
-5. **Implement routing** (use OptiRelay or build custom)
+5. **Implement routing** (use CostLens or build custom)
 6. **Monitor performance** (quality + cost metrics)
 
 ## Conclusion
@@ -277,4 +277,4 @@ You don't need GPT-4 for everything. Smart model selection can save 60-80% while
 
 ---
 
-**Want automatic model routing?** [Try OptiRelay free](https://optirelay.com) - we handle the complexity for you.
+**Want automatic model routing?** [Try CostLens free](https://optirelay.com) - we handle the complexity for you.
