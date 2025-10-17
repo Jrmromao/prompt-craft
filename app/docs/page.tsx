@@ -139,14 +139,14 @@ export default function DocsHomePage() {
 import OpenAI from 'openai';
 
 const openai = new OpenAI();
-const optirelay = new CostLens({ 
+const costlens = new CostLens({ 
   apiKey: process.env.PROMPTCRAFT_API_KEY,
   enableCache: true,  // Optional: enable caching
   maxRetries: 3       // Optional: auto-retry
 });
 
 // Wrap once
-const tracked = optirelay.wrapOpenAI(openai);
+const tracked = costlens.wrapOpenAI(openai);
 
 // Use normally - tracking happens automatically!
 const result = await tracked.chat.completions.create({

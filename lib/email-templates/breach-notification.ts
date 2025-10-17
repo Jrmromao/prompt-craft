@@ -67,19 +67,19 @@ export const breachNotificationTemplate = {
       </div>
       
       <div class="section">
-        <a href="https://optirelay.ai/security/incident" class="cta">View Full Security Update</a>
+        <a href="https://costlens.dev/security/incident" class="cta">View Full Security Update</a>
       </div>
       
-      <p>If you have any questions or concerns, please contact our security team at <strong>security@optirelay.ai</strong> or our Data Protection Officer at <strong>dpo@optirelay.ai</strong>.</p>
+      <p>If you have any questions or concerns, please contact our security team at <strong>security@costlens.dev</strong> or our Data Protection Officer at <strong>dpo@costlens.dev</strong>.</p>
       
       <p>We sincerely apologize for this incident and any inconvenience it may cause. Your trust is important to us, and we are committed to protecting your data.</p>
       
-      <p>Sincerely,<br>The OptiRelay Security Team</p>
+      <p>Sincerely,<br>The CostLens Security Team</p>
     </div>
     
     <div class="footer">
       <p>This is a mandatory security notification required by GDPR Article 34.</p>
-      <p>OptiRelay | security@optirelay.ai | <a href="https://optirelay.ai/privacy">Privacy Policy</a></p>
+      <p>CostLens | security@costlens.dev | <a href="https://costlens.dev/privacy">Privacy Policy</a></p>
     </div>
   </div>
 </body>
@@ -111,14 +111,14 @@ ${data.actionsTaken.map(action => `- ${action}`).join('\n')}
 WHAT YOU SHOULD DO:
 ${data.userActions.map(action => `- ${action}`).join('\n')}
 
-For more information, visit: https://optirelay.ai/security/incident
+For more information, visit: https://costlens.dev/security/incident
 
 Contact us:
-- Security Team: security@optirelay.ai
-- Data Protection Officer: dpo@optirelay.ai
+- Security Team: security@costlens.dev
+- Data Protection Officer: dpo@costlens.dev
 
 We sincerely apologize for this incident.
 
-The OptiRelay Security Team
+The CostLens Security Team
   `
 };

@@ -13,7 +13,7 @@ export const metadata: Metadata = {
     description: 'Start free with 1,000 requests/month. Scale to Starter ($9/mo), Pro ($49/mo) or Enterprise (custom) as you grow.',
   },
   alternates: {
-    canonical: 'https://optirelay.com/pricing',
+    canonical: 'https://costlens.dev/pricing',
   },
 };
 
@@ -191,7 +191,7 @@ export default function PricingPage() {
                 <Feature>Unlimited users</Feature>
                 <Feature>SLA guarantee</Feature>
               </ul>
-              <Link href="mailto:sales@optirelay.ai">
+              <Link href="mailto:sales@costlens.dev">
                 <Button className="w-full bg-purple-600 hover:bg-purple-700">Contact Sales</Button>
               </Link>
               <p className="text-center text-xs text-purple-600 font-semibold mt-3">

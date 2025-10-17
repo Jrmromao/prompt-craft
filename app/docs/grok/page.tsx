@@ -40,14 +40,14 @@ export default function GrokDocsPage() {
       <p className="text-gray-700 mb-4">
         Grok uses the OpenAI SDK (compatible API). Install both packages:
       </p>
-      <CodeBlock code="npm install optirelay-sdk openai" language="bash" />
+      <CodeBlock code="npm install costlens openai" language="bash" />
 
       <h2 className="text-2xl font-bold text-gray-900 mt-12 mb-4">Basic Usage</h2>
       <CodeBlock code={`import OpenAI from 'openai';
 import { CostLens } from 'costlens';
 
 // Initialize
-const optirelay = new CostLens({ 
+const costlens = new CostLens({ 
   apiKey: process.env.PROMPTCRAFT_API_KEY 
 });
 const grok = new OpenAI({
@@ -68,7 +68,7 @@ const start = Date.now();
 const result = await grok.chat.completions.create(params);
 
 // Track the call
-await optirelay.trackGrok(params, result, Date.now() - start);
+await costlens.trackGrok(params, result, Date.now() - start);
 
 console.log(result.choices[0].message.content);`} />
 
@@ -76,7 +76,7 @@ console.log(result.choices[0].message.content);`} />
       <p className="text-gray-700 mb-4">
         Pass a <code className="bg-gray-100 px-2 py-1 rounded text-sm">promptId</code> to group and analyze specific prompts:
       </p>
-      <CodeBlock code={`await optirelay.trackGrok(
+      <CodeBlock code={`await costlens.trackGrok(
   params,
   result,
   Date.now() - start,
@@ -87,10 +87,10 @@ console.log(result.choices[0].message.content);`} />
       <CodeBlock code={`const start = Date.now();
 try {
   const result = await grok.chat.completions.create(params);
-  await optirelay.trackGrok(params, result, Date.now() - start);
+  await costlens.trackGrok(params, result, Date.now() - start);
   return result;
 } catch (error) {
-  await optirelay.trackError(
+  await costlens.trackError(
     'grok',
     params.model,
     JSON.stringify(params.messages),

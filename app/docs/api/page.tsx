@@ -32,26 +32,82 @@ export default function APIDocsPage() {
     <div className="max-w-4xl mx-auto px-6 py-12">
       <h1 className="text-4xl font-bold text-gray-900 mb-4">REST API Reference</h1>
       <p className="text-xl text-gray-600 mb-12">
-        Direct API integration without the SDK.
+        Direct API integration with clean subdomain URLs and Bearer token authentication.
       </p>
 
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-8">
+        <h3 className="text-lg font-semibold text-blue-900 mb-2">🚀 New Subdomain API</h3>
+        <p className="text-blue-800 mb-2">
+          All API endpoints are now available at <code className="bg-blue-100 px-2 py-1 rounded">api.costlens.dev</code> 
+          with cleaner URLs and Bearer token authentication.
+        </p>
+        <p className="text-blue-700 text-sm mb-3">
+          Get your API key from Settings → API Keys in your dashboard.
+        </p>
+        <div className="bg-blue-100 border border-blue-300 rounded p-3">
+          <p className="text-blue-900 text-sm font-medium mb-2">Quick Test:</p>
+          <CodeBlock code={`curl -X POST https://api.costlens.dev/cost-analysis \\
+  -H "Authorization: Bearer YOUR_API_KEY" \\
+  -H "Content-Type: application/json" \\
+  -d '{"prompt": "Hello", "model": "gpt-4", "provider": "openai"}'`} language="bash" />
+        </div>
+      </div>
+
       <h2 className="text-2xl font-bold text-gray-900 mt-12 mb-4">Base URL</h2>
-      <CodeBlock code="https://optirelay.com/api" language="text" />
+      <CodeBlock code="https://api.costlens.dev" language="text" />
 
       <h2 className="text-2xl font-bold text-gray-900 mt-12 mb-4">Authentication</h2>
       <p className="text-gray-700 mb-4">All API requests require authentication via API key in the Authorization header:</p>
-      <CodeBlock code="Authorization: Bearer pc_your_api_key_here" language="text" />
+      <CodeBlock code="Authorization: Bearer your_api_key_here" language="text" />
 
       <h2 className="text-2xl font-bold text-gray-900 mt-12 mb-4">Endpoints</h2>
 
       <div className="border-t border-gray-200 pt-8">
-        <h3 className="text-xl font-semibold text-gray-900 mb-4">POST /api/integrations/run</h3>
+        <h3 className="text-xl font-semibold text-gray-900 mb-4">POST /cost-analysis</h3>
+        <p className="text-gray-700 mb-4">Analyze AI costs and get optimization recommendations.</p>
+
+        <h4 className="text-lg font-semibold text-gray-900 mb-3">Request</h4>
+        <CodeBlock code={`POST https://api.costlens.dev/cost-analysis
+Content-Type: application/json
+Authorization: Bearer your_api_key_here
+
+{
+  "prompt": "Your AI prompt here",
+  "model": "gpt-4",
+  "provider": "openai"
+}`} language="json" />
+
+        <h4 className="text-lg font-semibold text-gray-900 mt-6 mb-3">Response</h4>
+        <CodeBlock code={`{
+  "prompt": "Your AI prompt here",
+  "model": "gpt-4",
+  "provider": "openai",
+  "estimatedTokens": 25,
+  "estimatedCost": 0.00075,
+  "recommendations": [
+    "Consider using GPT-3.5-turbo for 90% cost savings on simple tasks",
+    "Use prompt caching to reduce repeated costs",
+    "Consider batch processing for multiple requests"
+  ],
+  "timestamp": "2025-01-15T10:30:00.000Z"
+}`} language="json" />
+
+        <h4 className="text-lg font-semibold text-gray-900 mt-6 mb-3">Supported Models & Providers</h4>
+        <ul className="space-y-2 text-gray-700 list-disc list-inside mb-6">
+          <li><strong>OpenAI:</strong> gpt-4, gpt-3.5-turbo</li>
+          <li><strong>Anthropic:</strong> claude-3-5-sonnet, claude-3-haiku</li>
+          <li><strong>Google:</strong> gemini-pro</li>
+        </ul>
+      </div>
+
+      <div className="border-t border-gray-200 pt-8 mt-12">
+        <h3 className="text-xl font-semibold text-gray-900 mb-4">POST /integrations/run</h3>
         <p className="text-gray-700 mb-4">Track an AI API call.</p>
 
         <h4 className="text-lg font-semibold text-gray-900 mb-3">Request</h4>
-        <CodeBlock code={`POST https://optirelay.com/api/integrations/run
+        <CodeBlock code={`POST https://api.costlens.dev/integrations/run
 Content-Type: application/json
-Authorization: Bearer pc_your_api_key_here
+Authorization: Bearer your_api_key_here
 
 {
   "provider": "openai",
@@ -72,11 +128,11 @@ Authorization: Bearer pc_your_api_key_here
       </div>
 
       <div className="border-t border-gray-200 pt-8 mt-12">
-        <h3 className="text-xl font-semibold text-gray-900 mb-4">GET /api/analytics/overview</h3>
+        <h3 className="text-xl font-semibold text-gray-900 mb-4">GET /analytics/overview</h3>
         <p className="text-gray-700 mb-4">Get analytics overview.</p>
 
         <h4 className="text-lg font-semibold text-gray-900 mb-3">Example Request</h4>
-        <CodeBlock code="GET https://optirelay.com/api/analytics/overview?startDate=2025-01-01&endDate=2025-01-31" language="text" />
+        <CodeBlock code="GET https://api.costlens.dev/analytics/overview?startDate=2025-01-01&endDate=2025-01-31" language="text" />
 
         <h4 className="text-lg font-semibold text-gray-900 mt-6 mb-3">Query Parameters</h4>
         <ul className="space-y-2 text-gray-700 list-disc list-inside mb-6">
@@ -96,11 +152,11 @@ Authorization: Bearer pc_your_api_key_here
       </div>
 
       <div className="border-t border-gray-200 pt-8 mt-12">
-        <h3 className="text-xl font-semibold text-gray-900 mb-4">GET /api/usage</h3>
+        <h3 className="text-xl font-semibold text-gray-900 mb-4">GET /usage</h3>
         <p className="text-gray-700 mb-4">Get current usage stats.</p>
 
         <h4 className="text-lg font-semibold text-gray-900 mb-3">Example Request</h4>
-        <CodeBlock code="GET https://optirelay.com/api/usage" language="text" />
+        <CodeBlock code="GET https://api.costlens.dev/usage" language="text" />
 
         <h4 className="text-lg font-semibold text-gray-900 mt-6 mb-3">Response</h4>
         <CodeBlock code={`{
@@ -181,8 +237,19 @@ Authorization: Bearer pc_your_api_key_here
       </div>
 
       <h2 className="text-2xl font-bold text-gray-900 mt-16 mb-4">Example: cURL</h2>
-      <CodeBlock code={`curl -X POST https://optirelay.com/api/integrations/run \\
-  -H "Authorization: Bearer pc_your_api_key_here" \\
+      <CodeBlock code={`# Cost Analysis
+curl -X POST https://api.costlens.dev/cost-analysis \\
+  -H "Authorization: Bearer your_api_key_here" \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "prompt": "Explain quantum computing",
+    "model": "gpt-4",
+    "provider": "openai"
+  }'
+
+# Track AI Call
+curl -X POST https://api.costlens.dev/integrations/run \\
+  -H "Authorization: Bearer your_api_key_here" \\
   -H "Content-Type: application/json" \\
   -d '{
     "provider": "openai",
@@ -197,10 +264,25 @@ Authorization: Bearer pc_your_api_key_here
       <h2 className="text-2xl font-bold text-gray-900 mt-16 mb-4">Example: Python</h2>
       <CodeBlock code={`import requests
 
+# Cost Analysis
 response = requests.post(
-    'https://optirelay.com/api/integrations/run',
+    'https://api.costlens.dev/cost-analysis',
     headers={
-        'Authorization': 'Bearer pc_your_api_key_here',
+        'Authorization': 'Bearer your_api_key_here',
+        'Content-Type': 'application/json'
+    },
+    json={
+        'prompt': 'Explain quantum computing',
+        'model': 'gpt-4',
+        'provider': 'openai'
+    }
+)
+
+# Track AI Call
+response = requests.post(
+    'https://api.costlens.dev/integrations/run',
+    headers={
+        'Authorization': 'Bearer your_api_key_here',
         'Content-Type': 'application/json'
     },
     json={

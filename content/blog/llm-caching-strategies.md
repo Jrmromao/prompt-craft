@@ -92,7 +92,7 @@ All three get the same cached response.
 **Implementation:**
 
 ```javascript
-import { CostLens } from 'optirelay';
+import { CostLens } from 'costlens';
 
 const client = new CostLens({
   apiKey: process.env.OPTIRELAY_API_KEY,
@@ -285,7 +285,7 @@ setInterval(() => {
 Don't want to build this yourself? CostLens handles it automatically:
 
 ```javascript
-import { CostLens } from 'optirelay';
+import { CostLens } from 'costlens';
 
 const client = new CostLens({
   apiKey: process.env.OPTIRELAY_API_KEY,
@@ -312,4 +312,4 @@ Start with exact match caching, then add semantic caching for bigger savings.
 
 ---
 
-**Want automatic caching?** [Try CostLens free](https://optirelay.com) - caching included out of the box.
+**Want automatic caching?** [Try CostLens free](https://costlens.dev) - caching included out of the box.

@@ -1,5 +1,6 @@
 import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
 import { NextResponse } from 'next/server';
+import { validateApiToken } from './lib/api-auth';
 
 // Public routes that don't require authentication
 const isPublicRoute = createRouteMatcher([
@@ -20,6 +21,34 @@ export default clerkMiddleware(async (auth, request) => {
   const { userId } = await auth();
   const isSignInPage = request.nextUrl.pathname.startsWith('/sign-in');
   const isSignUpPage = request.nextUrl.pathname.startsWith('/sign-up');
+  const hostname = request.headers.get('host') || '';
+  const isApiSubdomain = hostname.startsWith('api.');
+
+  // Handle API subdomain requests
+  if (isApiSubdomain) {
+    // Check for Bearer token in Authorization header
+    const authHeader = request.headers.get('authorization');
+    const token = authHeader?.replace('Bearer ', '');
+    
+    if (!token) {
+      return NextResponse.json(
+        { error: 'Missing or invalid API token' }, 
+        { status: 401 }
+      );
+    }
+
+    // Validate API token (you'll need to implement this)
+    const isValidToken = await validateApiToken(token);
+    if (!isValidToken) {
+      return NextResponse.json(
+        { error: 'Invalid API token' }, 
+        { status: 401 }
+      );
+    }
+
+    // Allow API requests with valid token
+    return NextResponse.next();
+  }
 
   // If user is logged in and trying to access sign-in/sign-up, redirect to dashboard
   if (userId && (isSignInPage || isSignUpPage)) {

@@ -47,17 +47,17 @@ export default function ErrorsDocsPage() {
       <h2 className="text-2xl font-bold text-gray-900 mt-12 mb-4">Basic Error Tracking</h2>
       <CodeBlock code={`import { CostLens } from 'costlens';
 
-const optirelay = new CostLens({ 
+const costlens = new CostLens({ 
   apiKey: process.env.PROMPTCRAFT_API_KEY 
 });
 
 const start = Date.now();
 try {
   const result = await openai.chat.completions.create(params);
-  await optirelay.trackOpenAI(params, result, Date.now() - start);
+  await costlens.trackOpenAI(params, result, Date.now() - start);
 } catch (error) {
   // Track the error
-  await optirelay.trackError(
+  await costlens.trackError(
     'openai',
     params.model,
     JSON.stringify(params.messages),

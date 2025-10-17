@@ -1,13 +1,16 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { MessageCircle, X, Send, Star } from 'lucide-react';
+import { MessageCircle, X, Send, Star, LogIn } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { FeedbackType, FeedbackCategory } from '@prisma/client';
+import { useUser } from '@clerk/nextjs';
+import Link from 'next/link';
+import { useAnalytics } from '@/hooks/useAnalytics';
 
 interface FeedbackData {
   type: FeedbackType;
@@ -19,12 +22,21 @@ interface FeedbackData {
 }
 
 export default function FeedbackWidget() {
+  const { user, isLoaded } = useUser();
+  const { trackUserEngagement, trackFeatureUsage } = useAnalytics();
   const [isOpen, setIsOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [rating, setRating] = useState<number>(0);
   const [showPulse, setShowPulse] = useState(true);
   const [shouldBounce, setShouldBounce] = useState(false);
   const [showNotificationBadge, setShowNotificationBadge] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+
+  // Prevent hydration mismatch by only rendering after mount
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
 
   // Periodic bounce animation to draw attention
   useEffect(() => {
@@ -53,6 +65,22 @@ export default function FeedbackWidget() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Check if user is authenticated
+    if (!isLoaded) {
+      toast.error('Please wait', {
+        description: 'Authentication is still loading...',
+      });
+      return;
+    }
+    
+    if (!user) {
+      toast.error('Authentication Required', {
+        description: 'Please sign in to send feedback.',
+      });
+      return;
+    }
+    
     setIsSubmitting(true);
 
     try {
@@ -71,6 +99,10 @@ export default function FeedbackWidget() {
       const result = await response.json();
 
       if (result.success) {
+        // Track successful feedback submission
+        trackUserEngagement('Feedback Submitted', `Type: ${formData.type}, Category: ${formData.category}`);
+        trackFeatureUsage('Feedback System', 'Submit Feedback');
+        
         toast.success('Feedback sent!', {
           description: 'Thank you for your feedback. We\'ll review it soon.',
         });
@@ -133,6 +165,9 @@ export default function FeedbackWidget() {
         
         <Button
           onClick={() => {
+            // Track feedback widget click
+            trackUserEngagement('Feedback Widget Clicked', 'User opened feedback modal');
+            // Always open the modal - let the modal handle authentication states
             setIsOpen(true);
             setShowPulse(false);
           }}
@@ -183,8 +218,64 @@ export default function FeedbackWidget() {
               </Button>
             </div>
 
-            {/* Form */}
-            <form onSubmit={handleSubmit} className="p-6 space-y-4">
+
+            {/* Authentication Check */}
+            {!isMounted ? (
+              <div className="p-6 text-center">
+                <div className="mb-4">
+                  <div className="h-12 w-12 bg-gray-200 rounded-full mx-auto mb-3 animate-pulse"></div>
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                    Loading...
+                  </h3>
+                  <p className="text-gray-600 dark:text-gray-400 mb-4">
+                    Please wait while we check your authentication status...
+                  </p>
+                </div>
+                <Button variant="outline" onClick={() => setIsOpen(false)}>
+                  Cancel
+                </Button>
+              </div>
+            ) : !isLoaded ? (
+              <div className="p-6 text-center">
+                <div className="mb-4">
+                  <div className="h-12 w-12 bg-gray-200 rounded-full mx-auto mb-3 animate-pulse"></div>
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                    Loading...
+                  </h3>
+                  <p className="text-gray-600 dark:text-gray-400 mb-4">
+                    Please wait while we check your authentication status...
+                  </p>
+                </div>
+                <Button variant="outline" onClick={() => setIsOpen(false)}>
+                  Cancel
+                </Button>
+              </div>
+            ) : !user ? (
+              <div className="p-6 text-center">
+                <div className="mb-4">
+                  <LogIn className="h-12 w-12 text-gray-400 mx-auto mb-3" />
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                    Sign in Required
+                  </h3>
+                  <p className="text-gray-600 dark:text-gray-400 mb-4">
+                    Please sign in to send feedback and help us improve the platform.
+                  </p>
+                </div>
+                <div className="flex gap-3 justify-center">
+                  <Link href="/sign-in" onClick={() => setIsOpen(false)}>
+                    <Button className="bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700">
+                      <LogIn className="h-4 w-4 mr-2" />
+                      Sign In
+                    </Button>
+                  </Link>
+                  <Button variant="outline" onClick={() => setIsOpen(false)}>
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              /* Form */
+              <form onSubmit={handleSubmit} className="p-6 space-y-4">
               {/* Type */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -283,18 +374,6 @@ export default function FeedbackWidget() {
                 />
               </div>
 
-              {/* Email (for anonymous users) */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Email (optional)
-                </label>
-                <Input
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  placeholder="your@email.com"
-                />
-              </div>
 
               {/* Submit */}
               <Button
@@ -315,6 +394,7 @@ export default function FeedbackWidget() {
                 )}
               </Button>
             </form>
+            )}
           </div>
         </div>
       )}

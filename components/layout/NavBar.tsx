@@ -19,6 +19,7 @@ import { cn } from '@/lib/utils';
 import { GlobalSearch } from '@/components/search/GlobalSearch';
 import { CommandPalette } from '@/components/ui/command-palette';
 import { useClerk } from '@clerk/nextjs';
+import LogoutDialog from '@/components/LogoutDialog';
 
 export interface NavBarUser {
   name: string;
@@ -31,6 +32,7 @@ export function NavBar({ user, onMenuClick }: { user?: NavBarUser; onMenuClick?:
   const router = useRouter();
   const { signOut } = useClerk();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [showLogoutDialog, setShowLogoutDialog] = useState(false);
   const { isCommandPaletteOpen, setIsCommandPaletteOpen } = { 
     isCommandPaletteOpen: false, 
     setIsCommandPaletteOpen: () => {} 
@@ -50,7 +52,7 @@ export function NavBar({ user, onMenuClick }: { user?: NavBarUser; onMenuClick?:
         <div className="container mx-auto px-4">
           <div className="flex h-16 items-center justify-between">
             <div className="flex items-center gap-8">
-              <Link href="/account" className="flex items-center gap-2">
+              <Link href={user ? "/dashboard" : "/"} className="flex items-center gap-2">
                 <Sparkles className="h-6 w-6 text-blue-500" />
                 <span className="bg-gradient-to-r from-blue-600 to-blue-500 bg-clip-text text-xl font-bold text-transparent">
                   CostLens
@@ -115,7 +117,7 @@ export function NavBar({ user, onMenuClick }: { user?: NavBarUser; onMenuClick?:
                     <DropdownMenuSeparator />
                     <DropdownMenuItem 
                       className="cursor-pointer text-red-600 focus:text-red-600"
-                      onClick={() => signOut(() => router.push('/'))}
+                      onClick={() => setShowLogoutDialog(true)}
                     >
                       <LogOut className="mr-2 h-4 w-4" />
                       Sign Out
@@ -144,6 +146,12 @@ export function NavBar({ user, onMenuClick }: { user?: NavBarUser; onMenuClick?:
         open={isCommandPaletteOpen} 
         onOpenChange={setIsCommandPaletteOpen} 
       /> */}
+      
+      {/* Logout Confirmation Dialog */}
+      <LogoutDialog 
+        isOpen={showLogoutDialog} 
+        onClose={() => setShowLogoutDialog(false)} 
+      />
     </>
   );
 }

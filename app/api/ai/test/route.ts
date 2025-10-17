@@ -7,13 +7,13 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-const optirelay = new CostLens({
+const costlens = new CostLens({
   apiKey: process.env.PROMPTCRAFT_INTERNAL_API_KEY || 'internal',
   baseUrl: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3001',
 });
 
 // Wrap OpenAI with our SDK
-const wrappedOpenAI = optirelay.wrapOpenAI(openai);
+const wrappedOpenAI = costlens.wrapOpenAI(openai);
 
 export async function POST(request: NextRequest) {
   try {
