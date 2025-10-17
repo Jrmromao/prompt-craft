@@ -51,6 +51,42 @@ export default clerkMiddleware(async (auth, request) => {
     return NextResponse.next();
   }
 
+  // Handle API routes that need Bearer token validation (for SDK)
+  // Only protect specific API endpoints that require Bearer tokens
+  const bearerTokenRoutes = [
+    '/api/quality/routing',
+    '/api/integrations/run', 
+    '/api/cache/get',
+    '/api/cache/set',
+    '/api/prompts/optimize'
+  ];
+  
+  const needsBearerToken = bearerTokenRoutes.some(route => 
+    request.nextUrl.pathname.startsWith(route)
+  );
+  
+  if (needsBearerToken) {
+    // Check for Bearer token in Authorization header
+    const authHeader = request.headers.get('authorization');
+    const token = authHeader?.replace('Bearer ', '');
+    
+    if (!token) {
+      return NextResponse.json(
+        { error: 'Missing or invalid API token' }, 
+        { status: 401 }
+      );
+    }
+
+    // Validate API token with edge-compatible validation
+    const isValidToken = await validateApiTokenEdge(token);
+    if (!isValidToken) {
+      return NextResponse.json(
+        { error: 'Invalid API token' }, 
+        { status: 401 }
+      );
+    }
+  }
+
   // If user is logged in and trying to access sign-in/sign-up, redirect to dashboard
   if (userId && (isSignInPage || isSignUpPage)) {
     return NextResponse.redirect(new URL('/dashboard', request.url));

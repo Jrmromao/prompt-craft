@@ -66,9 +66,15 @@ async function validateTokenWithExternalService(token: string): Promise<boolean>
   try {
     // For Edge Functions, we need to call the validation API
     // This is the most secure approach that works with the database
-    const baseUrl = process.env.NEXTAUTH_URL || process.env.VERCEL_URL 
-      ? `https://${process.env.VERCEL_URL}` 
-      : 'http://localhost:3000';
+    let baseUrl = process.env.NEXTAUTH_URL;
+    
+    if (!baseUrl) {
+      if (process.env.VERCEL_URL) {
+        baseUrl = `https://${process.env.VERCEL_URL}`;
+      } else {
+        baseUrl = 'http://localhost:3000';
+      }
+    }
     
     const response = await fetch(`${baseUrl}/api/validate-token`, {
       method: 'POST',
