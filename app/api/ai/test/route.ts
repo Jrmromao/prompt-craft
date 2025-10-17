@@ -40,8 +40,7 @@ export async function POST(request: NextRequest) {
       max_tokens,
     }, {
       promptId: 'internal-test',
-      userId,
-      metadata: { source: 'internal-test' }
+      userId
     });
 
     const duration = Date.now() - startTime;

@@ -6,9 +6,9 @@ export class SettingsService {
       where: { id: userId },
       select: {
         emailPreferences: true,
-        notificationPreferences: true,
+        notificationSettings: true,
         securitySettings: true,
-        uiPreferences: true,
+        themeSettings: true,
       },
     });
 

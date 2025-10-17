@@ -25,7 +25,7 @@ export async function POST(req: Request) {
     }
 
     // Check usage limits for free tier
-    if (user.plan === 'FREE') {
+    if (user.planType === 'FREE') {
       const count = await prisma.promptRun.count({
         where: {
           userId: user.id,
@@ -51,8 +51,9 @@ export async function POST(req: Request) {
         userId: user.id,
         originalPrompt: result.original,
         optimizedPrompt: result.optimized,
-        tokensSaved: result.tokensSaved,
-        costSaved: result.costSaved,
+        tokenReduction: result.tokensSaved,
+        estimatedSavings: result.costSaved,
+        targetModel: 'gpt-4',
       },
     });
 

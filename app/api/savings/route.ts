@@ -34,7 +34,7 @@ export async function GET(request: Request) {
       startDate = new Date(user.createdAt);
     }
 
-    const savings = await SavingsCalculator.getSavings(user.id, startDate, endDate);
+    const savings = await SavingsCalculator.getSavings(user.id);
 
     return NextResponse.json(savings);
   } catch (error) {

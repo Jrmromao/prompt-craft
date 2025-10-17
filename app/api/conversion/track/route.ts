@@ -11,16 +11,11 @@ export async function POST(req: NextRequest) {
 
     const { event, trigger, data } = await req.json();
 
-    // Track conversion events
+    // Track conversion events - update lastActiveAt
     await prisma.user.update({
       where: { clerkId: userId },
       data: {
-        metadata: {
-          lastConversionEvent: event,
-          lastConversionTrigger: trigger,
-          lastConversionData: data,
-          lastConversionAt: new Date().toISOString(),
-        }
+        lastActiveAt: new Date(),
       }
     });
 

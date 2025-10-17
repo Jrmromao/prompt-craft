@@ -47,8 +47,7 @@ Return ONLY a JSON object with these exact keys: clarity, specificity, effective
       max_tokens: 200,
     }, {
       promptId: 'internal-analyze',
-      userId,
-      metadata: { source: 'internal-analyze' }
+      userId
     });
 
     const response = completion.choices[0]?.message?.content;

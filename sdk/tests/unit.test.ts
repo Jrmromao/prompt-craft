@@ -1,13 +1,13 @@
-import { PromptCraft } from '../src/index';
+import { CostLens } from '../src/index';
 
 // Mock fetch
 global.fetch = jest.fn();
 
-describe('PromptCraft SDK - Unit Tests', () => {
-  let promptcraft: PromptCraft;
+describe('CostLens SDK - Unit Tests', () => {
+  let promptcraft: CostLens;
 
   beforeEach(() => {
-    promptcraft = new PromptCraft({ apiKey: 'test-key' });
+    promptcraft = new CostLens({ apiKey: 'test-key' });
     (global.fetch as jest.Mock).mockClear();
     (global.fetch as jest.Mock).mockResolvedValue({
       ok: true,
@@ -21,7 +21,7 @@ describe('PromptCraft SDK - Unit Tests', () => {
     });
 
     it('should accept custom baseUrl', () => {
-      const custom = new PromptCraft({
+      const custom = new CostLens({
         apiKey: 'test',
         baseUrl: 'https://custom.com',
       });
@@ -29,7 +29,7 @@ describe('PromptCraft SDK - Unit Tests', () => {
     });
 
     it('should enable cache when configured', () => {
-      const cached = new PromptCraft({
+      const cached = new CostLens({
         apiKey: 'test',
         enableCache: true,
       });
@@ -39,7 +39,7 @@ describe('PromptCraft SDK - Unit Tests', () => {
 
   describe.skip('Cache', () => {
     it('should cache results when enabled', async () => {
-      const cached = new PromptCraft({
+      const cached = new CostLens({
         apiKey: 'test',
         enableCache: true,
       });
@@ -73,7 +73,7 @@ describe('PromptCraft SDK - Unit Tests', () => {
     });
 
     it('should clear cache', () => {
-      const cached = new PromptCraft({
+      const cached = new CostLens({
         apiKey: 'test',
         enableCache: true,
       });
@@ -139,7 +139,7 @@ describe('PromptCraft SDK - Unit Tests', () => {
         modified: true,
       }));
 
-      const withMiddleware = new PromptCraft({
+      const withMiddleware = new CostLens({
         apiKey: 'test',
         middleware: [{ before: beforeFn }],
       });
@@ -167,7 +167,7 @@ describe('PromptCraft SDK - Unit Tests', () => {
     it('should run after middleware', async () => {
       const afterFn = jest.fn((result) => result);
 
-      const withMiddleware = new PromptCraft({
+      const withMiddleware = new CostLens({
         apiKey: 'test',
         middleware: [{ after: afterFn }],
       });
@@ -195,7 +195,7 @@ describe('PromptCraft SDK - Unit Tests', () => {
     it('should run error middleware', async () => {
       const errorFn = jest.fn();
 
-      const withMiddleware = new PromptCraft({
+      const withMiddleware = new CostLens({
         apiKey: 'test',
         maxRetries: 1,
         middleware: [{ onError: errorFn }],
@@ -238,7 +238,7 @@ describe('PromptCraft SDK - Unit Tests', () => {
       );
 
       expect(global.fetch).toHaveBeenCalledWith(
-        'https://prompthive.co/api/integrations/run',
+        'https://costlens.dev/api/integrations/run',
         expect.objectContaining({
           method: 'POST',
           headers: expect.objectContaining({

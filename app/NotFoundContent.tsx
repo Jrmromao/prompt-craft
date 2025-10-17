@@ -1,11 +1,12 @@
 'use client';
 
+import { Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { AlertCircle } from 'lucide-react';
 
-export default function NotFoundContent() {
+function NotFoundContentInner() {
   const searchParams = useSearchParams();
   const message = searchParams.get('message') || 'The page you are looking for does not exist.';
 
@@ -29,5 +30,17 @@ export default function NotFoundContent() {
         </div>
       </Card>
     </div>
+  );
+}
+
+export default function NotFoundContent() {
+  return (
+    <Suspense fallback={
+      <div className="flex min-h-screen items-center justify-center">
+        <p>Loading...</p>
+      </div>
+    }>
+      <NotFoundContentInner />
+    </Suspense>
   );
 }
