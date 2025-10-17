@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { FeedbackType, FeedbackCategory } from '@prisma/client';
 
 interface FeedbackData {
@@ -25,7 +25,6 @@ export default function FeedbackWidget() {
   const [showPulse, setShowPulse] = useState(true);
   const [shouldBounce, setShouldBounce] = useState(false);
   const [showNotificationBadge, setShowNotificationBadge] = useState(false);
-  const { toast } = useToast();
 
   // Periodic bounce animation to draw attention
   useEffect(() => {
@@ -72,8 +71,7 @@ export default function FeedbackWidget() {
       const result = await response.json();
 
       if (result.success) {
-        toast({
-          title: 'Feedback sent!',
+        toast.success('Feedback sent!', {
           description: 'Thank you for your feedback. We\'ll review it soon.',
         });
         
@@ -92,10 +90,8 @@ export default function FeedbackWidget() {
         throw new Error(result.error || 'Failed to send feedback');
       }
     } catch (error) {
-      toast({
-        title: 'Error',
+      toast.error('Error', {
         description: 'Failed to send feedback. Please try again.',
-        variant: 'destructive',
       });
     } finally {
       setIsSubmitting(false);

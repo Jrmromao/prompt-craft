@@ -2,7 +2,6 @@ import { createMocks } from 'node-mocks-http';
 import { POST, GET } from '@/app/api/feedback/route';
 import { FeedbackService } from '@/lib/services/feedback.service';
 import { auth } from '@clerk/nextjs/server';
-import { FeedbackType, FeedbackCategory } from '@prisma/client';
 
 // Mock dependencies
 jest.mock('@clerk/nextjs/server');
@@ -27,8 +26,8 @@ describe('/api/feedback', () => {
       
       const mockFeedback = {
         id: 'feedback-1',
-        type: FeedbackType.BUG_REPORT,
-        category: FeedbackCategory.UI_UX,
+        type: 'BUG_REPORT',
+        category: 'UI_UX',
         title: 'Test Bug',
         message: 'This is a test bug report',
         userId: 'user-1',
@@ -40,15 +39,21 @@ describe('/api/feedback', () => {
         method: 'POST',
         headers: {
           'content-type': 'application/json',
-          'user-agent': 'test-agent',
-          'referer': 'https://example.com/test',
         },
-        body: {
-          type: FeedbackType.BUG_REPORT,
-          category: FeedbackCategory.UI_UX,
+        body: JSON.stringify({
+          type: 'BUG_REPORT',
+          category: 'UI_UX',
           title: 'Test Bug',
           message: 'This is a test bug report',
-        },
+        }),
+      });
+      
+      // Mock the json method
+      req.json = jest.fn().mockResolvedValue({
+        type: 'BUG_REPORT',
+        category: 'UI_UX',
+        title: 'Test Bug',
+        message: 'This is a test bug report',
       });
 
       const response = await POST(req as any);
@@ -59,8 +64,8 @@ describe('/api/feedback', () => {
       expect(data.data).toEqual(mockFeedback);
 
       expect(mockFeedbackService.createFeedback).toHaveBeenCalledWith({
-        type: FeedbackType.BUG_REPORT,
-        category: FeedbackCategory.UI_UX,
+        type: 'BUG_REPORT',
+        category: 'UI_UX',
         title: 'Test Bug',
         message: 'This is a test bug report',
         userId: 'user-1',
@@ -74,8 +79,8 @@ describe('/api/feedback', () => {
       
       const mockFeedback = {
         id: 'feedback-2',
-        type: FeedbackType.FEATURE_REQUEST,
-        category: FeedbackCategory.OTHER,
+        type: 'FEATURE_REQUEST',
+        category: 'OTHER',
         title: 'Feature Request',
         message: 'Please add this feature',
         email: 'user@example.com',
@@ -88,13 +93,14 @@ describe('/api/feedback', () => {
         headers: {
           'content-type': 'application/json',
         },
-        body: {
-          type: FeedbackType.FEATURE_REQUEST,
-          category: FeedbackCategory.OTHER,
-          title: 'Feature Request',
-          message: 'Please add this feature',
-          email: 'user@example.com',
-        },
+      });
+      
+      req.json = jest.fn().mockResolvedValue({
+        type: 'FEATURE_REQUEST',
+        category: 'OTHER',
+        title: 'Feature Request',
+        message: 'Please add this feature',
+        email: 'user@example.com',
       });
 
       const response = await POST(req as any);
@@ -103,8 +109,8 @@ describe('/api/feedback', () => {
       expect(response.status).toBe(200);
       expect(data.success).toBe(true);
       expect(mockFeedbackService.createFeedback).toHaveBeenCalledWith({
-        type: FeedbackType.FEATURE_REQUEST,
-        category: FeedbackCategory.OTHER,
+        type: 'FEATURE_REQUEST',
+        category: 'OTHER',
         title: 'Feature Request',
         message: 'Please add this feature',
         email: 'user@example.com',
@@ -112,6 +118,85 @@ describe('/api/feedback', () => {
         userAgent: undefined,
         url: undefined,
       });
+    });
+
+    it('should handle empty request body', async () => {
+      mockAuth.mockResolvedValue({ userId: 'user-1' });
+
+      const { req } = createMocks({
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+        },
+        body: '', // Empty body
+      });
+
+      const response = await POST(req as any);
+      const data = await response.json();
+
+      expect(response.status).toBe(400);
+      expect(data.success).toBe(false);
+      expect(data.error).toBe('Invalid JSON in request body');
+    });
+
+    it('should handle null request body', async () => {
+      mockAuth.mockResolvedValue({ userId: 'user-1' });
+
+      const { req } = createMocks({
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+        },
+        body: null, // Null body
+      });
+
+      const response = await POST(req as any);
+      const data = await response.json();
+
+      expect(response.status).toBe(400);
+      expect(data.success).toBe(false);
+      expect(data.error).toContain('request body');
+    });
+
+    it('should handle malformed JSON', async () => {
+      mockAuth.mockResolvedValue({ userId: 'user-1' });
+
+      const { req } = createMocks({
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+        },
+        body: '{ invalid json }', // Malformed JSON
+      });
+
+      const response = await POST(req as any);
+      const data = await response.json();
+
+      expect(response.status).toBe(400);
+      expect(data.success).toBe(false);
+      expect(data.error).toBe('Invalid JSON in request body');
+    });
+
+    it('should handle missing content-type header', async () => {
+      mockAuth.mockResolvedValue({ userId: 'user-1' });
+
+      const { req } = createMocks({
+        method: 'POST',
+        // No content-type header
+        body: {
+          type: FeedbackType.BUG_REPORT,
+          category: FeedbackCategory.UI_UX,
+          title: 'Test Bug',
+          message: 'This is a test bug report',
+        },
+      });
+
+      const response = await POST(req as any);
+      const data = await response.json();
+
+      // Should still work if body is valid
+      expect(response.status).toBe(200);
+      expect(data.success).toBe(true);
     });
 
     it('should validate input data', async () => {
@@ -161,6 +246,36 @@ describe('/api/feedback', () => {
       expect(response.status).toBe(500);
       expect(data.success).toBe(false);
       expect(data.error).toBe('Failed to create feedback');
+    });
+
+    it('should log detailed error information for service errors', async () => {
+      mockAuth.mockResolvedValue({ userId: 'user-1' });
+      mockFeedbackService.createFeedback.mockRejectedValue(new Error('Database connection failed'));
+      
+      const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
+
+      const { req } = createMocks({
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+        },
+        body: {
+          type: FeedbackType.BUG_REPORT,
+          category: FeedbackCategory.UI_UX,
+          title: 'Test Bug',
+          message: 'This is a test bug report',
+        },
+      });
+
+      await POST(req as any);
+
+      expect(consoleSpy).toHaveBeenCalledWith('Feedback creation error:', expect.any(Error));
+      expect(consoleSpy).toHaveBeenCalledWith('Error details:', expect.objectContaining({
+        message: 'Database connection failed',
+        type: 'object',
+      }));
+      
+      consoleSpy.mockRestore();
     });
   });
 

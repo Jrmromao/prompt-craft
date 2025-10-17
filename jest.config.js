@@ -21,6 +21,7 @@ const customJestConfig = {
     '<rootDir>/__tests__/e2e/prompt-workflow.test.ts',
     '<rootDir>/__tests__/e2e/competitive-features.test.ts',
     '<rootDir>/__tests__/e2e/playground.integration.test.ts',
+    '<rootDir>/__tests__/e2e/feedback-widget.spec.ts',
     '<rootDir>/e2e/',
     '<rootDir>/__tests__/.backup/',
   ],
