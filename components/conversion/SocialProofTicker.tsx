@@ -1,8 +1,22 @@
 'use client';
 
-import { TrendingUp, Users, DollarSign } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { TrendingUp, Users, DollarSign, X } from 'lucide-react';
 
 export function SocialProofTicker() {
+  const [isVisible, setIsVisible] = useState(true);
+
+  // Auto-dismiss after 8 seconds
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsVisible(false);
+    }, 8000);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (!isVisible) return null;
+
   // Real aggregate stats - no fake data
   const stats = {
     totalUsers: 1247,
@@ -11,7 +25,7 @@ export function SocialProofTicker() {
   };
 
   return (
-    <div className="fixed bottom-6 left-6 z-50 max-w-sm">
+    <div className="fixed bottom-6 left-6 z-50 max-w-sm animate-in slide-in-from-left duration-500">
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-2xl border border-gray-200 dark:border-gray-700 p-4">
         <div className="flex items-start gap-3">
           <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
@@ -32,6 +46,12 @@ export function SocialProofTicker() {
               </p>
             </div>
           </div>
+          <button
+            onClick={() => setIsVisible(false)}
+            className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
+          >
+            <X className="w-4 h-4 text-gray-400" />
+          </button>
         </div>
       </div>
     </div>

@@ -8,10 +8,10 @@ const inter = Inter({ subsets: ['latin'] });
 export const metadata: Metadata = {
   metadataBase: new URL('https://costlens.dev'),
   title: {
-    default: 'CostLens.dev - Cut AI Costs by 60-80% | Smart Routing & Optimization',
+    default: 'CostLens.dev - Reduce AI Costs by up to 60-80% | Smart Routing & Optimization',
     template: '%s | CostLens.dev'
   },
-  description: 'Automatically reduce AI costs by 60-80% with smart routing, caching, and optimization. Track spending across OpenAI, Anthropic, and Claude in real-time.',
+  description: 'Reduce AI costs by up to 60-80% with smart routing, caching, and optimization. Track spending across OpenAI, Anthropic, and Claude in real-time.',
   keywords: ['AI cost tracking', 'LLM cost analytics', 'OpenAI cost monitoring', 'Anthropic API costs', 'Claude API pricing', 'AI spending analytics', 'cost optimization', 'developer tools'],
   authors: [{ name: 'CostLens.dev' }],
   creator: 'CostLens.dev',
@@ -34,8 +34,8 @@ export const metadata: Metadata = {
     locale: 'en_US',
     url: 'https://costlens.dev',
     siteName: 'CostLens.dev',
-    title: 'CostLens.dev - Cut AI Costs by 60-80%',
-    description: 'Automatically reduce AI costs by 60-80% with smart routing, caching, and optimization. Track spending in real-time.',
+    title: 'CostLens.dev - Reduce AI Costs by up to 60-80%',
+    description: 'Reduce AI costs by up to 60-80% with smart routing, caching, and optimization. Track spending in real-time.',
     images: [
       {
         url: '/og-image.png',
@@ -47,8 +47,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'CostLens.dev - Cut AI Costs by 60-80%',
-    description: 'Automatically reduce AI costs by 60-80% with smart routing, caching, and optimization. Track spending in real-time.',
+    title: 'CostLens.dev - Reduce AI Costs by up to 60-80%',
+    description: 'Reduce AI costs by up to 60-80% with smart routing, caching, and optimization. Track spending in real-time.',
     images: ['/og-image.png'],
     creator: '@costlensdev',
   },

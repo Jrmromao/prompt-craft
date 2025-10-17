@@ -29,7 +29,7 @@ export default function AnalyticsLanding({ user }: { user: User | null }) {
             </h1>
             
             <p className="text-xl text-gray-600 mb-4 max-w-3xl mx-auto">
-              Track AI costs across OpenAI, Anthropic, and Claude. Real-time analytics, budget alerts, and optimization insights.
+              Track AI costs across OpenAI, Anthropic, and Claude. Real-time analytics, budget alerts, and smart routing to reduce costs by up to 60-80%.
             </p>
             <p className="text-xl font-semibold text-gray-900 mb-8 max-w-3xl mx-auto">
               Start free. Scale with confidence. Never overspend again.

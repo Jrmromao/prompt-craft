@@ -11,6 +11,7 @@ import ErrorBoundary from '@/components/ErrorBoundary';
 import { UnifiedNavigation } from '@/components/layout/UnifiedNavigation';
 import { BottomTabNavigation } from '@/components/mobile/BottomTabNavigation';
 import { CookieConsent } from '@/components/CookieConsent';
+import FeedbackWidget from '@/components/FeedbackWidget';
 
 interface ClientLayoutProps {
   children: ReactNode;
@@ -35,6 +36,7 @@ export function ClientLayout({ children }: ClientLayoutProps) {
       </ErrorBoundary>
       <Toaster />
       <CookieConsent />
+      <FeedbackWidget />
     </ClerkProviderWrapper>
   );
 }
