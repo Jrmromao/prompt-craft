@@ -40,12 +40,12 @@ export default function AdvancedFeaturesPage() {
       <p className="text-gray-700 mb-4">
         Reduce API costs by up to 80% by caching identical requests:
       </p>
-      <CodeBlock code={`const optirelay = new CostLens({ 
+      <CodeBlock code={`const costlens = new CostLens({ 
   apiKey: process.env.PROMPTCRAFT_API_KEY,
   enableCache: true  // Enable caching globally
 });
 
-const tracked = optirelay.wrapOpenAI(openai);
+const tracked = costlens.wrapOpenAI(openai);
 
 // Cache this specific request for 1 hour
 const result = await tracked.chat.completions.create(
@@ -60,7 +60,7 @@ const cached = await tracked.chat.completions.create(
 );
 
 // Clear cache when needed
-optirelay.clearCache();`} />
+costlens.clearCache();`} />
 
       <div className="bg-blue-50 border-l-4 border-blue-400 p-4 my-6 rounded-r">
         <p className="text-sm text-blue-900">
@@ -72,13 +72,13 @@ optirelay.clearCache();`} />
       <p className="text-gray-700 mb-4">
         Automatically retry failed requests with exponential backoff:
       </p>
-      <CodeBlock code={`const optirelay = new CostLens({ 
+      <CodeBlock code={`const costlens = new CostLens({ 
   apiKey: process.env.PROMPTCRAFT_API_KEY,
   maxRetries: 3  // Retry up to 3 times
 });
 
 // Automatically retries on 5xx errors with backoff: 1s, 2s, 4s
-const tracked = optirelay.wrapOpenAI(openai);
+const tracked = costlens.wrapOpenAI(openai);
 const result = await tracked.chat.completions.create({
   model: 'gpt-4',
   messages: [...]
@@ -89,7 +89,7 @@ const result = await tracked.chat.completions.create({
       <p className="text-gray-700 mb-4">
         Add custom logic before/after API calls:
       </p>
-      <CodeBlock code={`const optirelay = new CostLens({
+      <CodeBlock code={`const costlens = new CostLens({
   apiKey: process.env.PROMPTCRAFT_API_KEY,
   middleware: [
     {
@@ -131,7 +131,7 @@ const result = await tracked.chat.completions.create({
       <p className="text-gray-700 mb-4">
         Track streaming responses automatically:
       </p>
-      <CodeBlock code={`const tracked = optirelay.wrapOpenAI(openai);
+      <CodeBlock code={`const tracked = costlens.wrapOpenAI(openai);
 
 const stream = await tracked.chat.completions.stream({
   model: 'gpt-4',
@@ -152,7 +152,7 @@ for await (const chunk of stream) {
         Efficiently track multiple calls at once:
       </p>
       <CodeBlock code={`// Track multiple calls in one request
-await optirelay.trackBatch([
+await costlens.trackBatch([
   { provider: 'openai', model: 'gpt-4', tokens: 100, latency: 500 },
   { provider: 'openai', model: 'gpt-3.5-turbo', tokens: 50, latency: 200 },
   { provider: 'anthropic', model: 'claude-3-opus', tokens: 150, latency: 600 }
@@ -164,7 +164,7 @@ await optirelay.trackBatch([
       <p className="text-gray-700 mb-4">
         Tag prompts to analyze by use case:
       </p>
-      <CodeBlock code={`const tracked = optirelay.wrapOpenAI(openai);
+      <CodeBlock code={`const tracked = costlens.wrapOpenAI(openai);
 
 // Tag with promptId for analytics
 const result = await tracked.chat.completions.create(

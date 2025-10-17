@@ -37,7 +37,7 @@ export default function AnthropicDocsPage() {
       </p>
 
       <h2 className="text-2xl font-bold text-gray-900 mt-12 mb-4">Installation</h2>
-      <CodeBlock code="npm install optirelay-sdk @anthropic-ai/sdk" language="bash" />
+      <CodeBlock code="npm install costlens @anthropic-ai/sdk" language="bash" />
 
       <h2 className="text-2xl font-bold text-gray-900 mt-12 mb-4">Quick Start (Recommended)</h2>
       <p className="text-gray-700 mb-4">Use the wrapper for automatic tracking:</p>
@@ -45,12 +45,12 @@ export default function AnthropicDocsPage() {
 import Anthropic from '@anthropic-ai/sdk';
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-const optirelay = new CostLens({ 
+const costlens = new CostLens({ 
   apiKey: process.env.PROMPTCRAFT_API_KEY 
 });
 
 // Wrap your client
-const tracked = optirelay.wrapAnthropic(anthropic);
+const tracked = costlens.wrapAnthropic(anthropic);
 
 // Use it exactly like normal Anthropic
 const result = await tracked.messages.create({
@@ -68,12 +68,12 @@ const result = await tracked.messages.create({
 
       <h2 className="text-2xl font-bold text-gray-900 mt-12 mb-4">Advanced: Caching</h2>
       <p className="text-gray-700 mb-4">Save costs by caching responses:</p>
-      <CodeBlock code={`const optirelay = new CostLens({ 
+      <CodeBlock code={`const costlens = new CostLens({ 
   apiKey: process.env.PROMPTCRAFT_API_KEY,
   enableCache: true
 });
 
-const tracked = optirelay.wrapAnthropic(anthropic);
+const tracked = costlens.wrapAnthropic(anthropic);
 
 const result = await tracked.messages.create(
   { model: 'claude-3-opus', max_tokens: 1024, messages: [...] },
@@ -86,7 +86,7 @@ const result = await tracked.messages.create(
 import Anthropic from '@anthropic-ai/sdk';
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-const optirelay = new CostLens({ 
+const costlens = new CostLens({ 
   apiKey: process.env.PROMPTCRAFT_API_KEY 
 });
 
@@ -98,14 +98,14 @@ const params = {
 
 const start = Date.now();
 const result = await anthropic.messages.create(params);
-await optirelay.trackAnthropic(params, result, Date.now() - start);`} />
+await costlens.trackAnthropic(params, result, Date.now() - start);`} />
 
       <h2 className="text-2xl font-bold text-gray-900 mt-12 mb-4">Basic Usage (Old Approach)</h2>
       <CodeBlock code={`import { CostLens } from 'costlens';
 import Anthropic from '@anthropic-ai/sdk';
 
 // Initialize
-const optirelay = new CostLens({ 
+const costlens = new CostLens({ 
   apiKey: process.env.PROMPTCRAFT_API_KEY 
 });
 const anthropic = new Anthropic({
@@ -125,7 +125,7 @@ const start = Date.now();
 const result = await anthropic.messages.create(params);
 
 // Track the call
-await optirelay.trackAnthropic(params, result, Date.now() - start);
+await costlens.trackAnthropic(params, result, Date.now() - start);
 
 console.log(result.content[0].text);`} />
 
@@ -143,7 +143,7 @@ const start = Date.now();
 const result = await anthropic.messages.create(params);
 
 // Pass promptId as 4th parameter
-await optirelay.trackAnthropic(
+await costlens.trackAnthropic(
   params,
   result,
   Date.now() - start,
@@ -154,10 +154,10 @@ await optirelay.trackAnthropic(
       <CodeBlock code={`const start = Date.now();
 try {
   const result = await anthropic.messages.create(params);
-  await optirelay.trackAnthropic(params, result, Date.now() - start);
+  await costlens.trackAnthropic(params, result, Date.now() - start);
   return result;
 } catch (error) {
-  await optirelay.trackError(
+  await costlens.trackError(
     'anthropic',
     params.model,
     JSON.stringify(params.messages),

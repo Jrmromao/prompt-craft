@@ -4,5 +4,27 @@
       "path": "/api/cron/reset-limits",
       "schedule": "0 0 1 * *"
     }
+  ],
+  "rewrites": [
+    {
+      "source": "/cost-analysis",
+      "destination": "/api/cost-analysis",
+      "has": [
+        {
+          "type": "host",
+          "value": "api.costlens.dev"
+        }
+      ]
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/api/$1",
+      "has": [
+        {
+          "type": "host",
+          "value": "api.costlens.dev"
+        }
+      ]
+    }
   ]
 } 

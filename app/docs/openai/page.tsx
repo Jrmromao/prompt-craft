@@ -37,7 +37,7 @@ export default function OpenAIDocsPage() {
       </p>
 
       <h2 className="text-2xl font-bold text-gray-900 mt-12 mb-4">Installation</h2>
-      <CodeBlock code="npm install optirelay-sdk openai" language="bash" />
+      <CodeBlock code="npm install costlens openai" language="bash" />
 
       <h2 className="text-2xl font-bold text-gray-900 mt-12 mb-4">Quick Start (Recommended)</h2>
       <p className="text-gray-700 mb-4">Use the wrapper for automatic tracking:</p>
@@ -45,12 +45,12 @@ export default function OpenAIDocsPage() {
 import OpenAI from 'openai';
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-const optirelay = new CostLens({ 
+const costlens = new CostLens({ 
   apiKey: process.env.PROMPTCRAFT_API_KEY 
 });
 
 // Wrap your client
-const tracked = optirelay.wrapOpenAI(openai);
+const tracked = costlens.wrapOpenAI(openai);
 
 // Use it exactly like normal OpenAI
 const result = await tracked.chat.completions.create({
@@ -71,7 +71,7 @@ const result = await tracked.chat.completions.create({
 import OpenAI from 'openai';
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-const optirelay = new CostLens({ 
+const costlens = new CostLens({ 
   apiKey: process.env.PROMPTCRAFT_API_KEY 
 });
 
@@ -82,18 +82,18 @@ const params = {
 
 const start = Date.now();
 const result = await openai.chat.completions.create(params);
-await optirelay.trackOpenAI(params, result, Date.now() - start);`} />
+await costlens.trackOpenAI(params, result, Date.now() - start);`} />
 
       <h2 className="text-2xl font-bold text-gray-900 mt-12 mb-4">Advanced Features</h2>
       
       <h3 className="text-xl font-semibold text-gray-900 mt-8 mb-3">Caching</h3>
       <p className="text-gray-700 mb-4">Save costs by caching responses:</p>
-      <CodeBlock code={`const optirelay = new CostLens({ 
+      <CodeBlock code={`const costlens = new CostLens({ 
   apiKey: process.env.PROMPTCRAFT_API_KEY,
   enableCache: true  // Enable caching
 });
 
-const tracked = optirelay.wrapOpenAI(openai);
+const tracked = costlens.wrapOpenAI(openai);
 
 // Cache this response for 1 hour
 const result = await tracked.chat.completions.create(
@@ -118,7 +118,7 @@ for await (const chunk of stream) {
 import OpenAI from 'openai';
 
 // Initialize
-const optirelay = new CostLens({ 
+const costlens = new CostLens({ 
   apiKey: process.env.PROMPTCRAFT_API_KEY 
 });
 const openai = new OpenAI({
@@ -138,7 +138,7 @@ const start = Date.now();
 const result = await openai.chat.completions.create(params);
 
 // Track the call
-await optirelay.trackOpenAI(params, result, Date.now() - start);
+await costlens.trackOpenAI(params, result, Date.now() - start);
 
 console.log(result.choices[0].message.content);`} />
 
@@ -155,7 +155,7 @@ const start = Date.now();
 const result = await openai.chat.completions.create(params);
 
 // Pass promptId as 4th parameter
-await optirelay.trackOpenAI(
+await costlens.trackOpenAI(
   params, 
   result, 
   Date.now() - start,
@@ -167,10 +167,10 @@ await optirelay.trackOpenAI(
       <CodeBlock code={`const start = Date.now();
 try {
   const result = await openai.chat.completions.create(params);
-  await optirelay.trackOpenAI(params, result, Date.now() - start);
+  await costlens.trackOpenAI(params, result, Date.now() - start);
   return result;
 } catch (error) {
-  await optirelay.trackError(
+  await costlens.trackError(
     'openai',
     params.model,
     JSON.stringify(params.messages),

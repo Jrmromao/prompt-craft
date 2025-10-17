@@ -17,7 +17,7 @@ export class EmailService {
       }
 
       const { data, error } = await resend.emails.send({
-        from: 'OptiRelay <alerts@optirelay.app>',
+        from: 'CostLens <alerts@costlens.dev>',
         to,
         subject,
         html,
@@ -53,7 +53,7 @@ export class EmailService {
 
         <h3>Action Required:</h3>
         <ol>
-          <li>Log in to your <a href="https://optirelay.app/settings">OptiRelay dashboard</a></li>
+          <li>Log in to your <a href="https://costlens.dev/settings">CostLens dashboard</a></li>
           <li>Generate a new API key</li>
           <li>Update your application with the new key</li>
         </ol>
@@ -66,7 +66,7 @@ export class EmailService {
 
     return this.sendEmail({
       to: userEmail,
-      subject: '⚠️ OptiRelay: Invalid API Key Detected',
+      subject: '⚠️ CostLens: Invalid API Key Detected',
       html,
     });
   }
@@ -84,21 +84,21 @@ export class EmailService {
 
         <h3>Recommended Actions:</h3>
         <ul>
-          <li>Review your <a href="https://optirelay.app/analytics">usage analytics</a></li>
+          <li>Review your <a href="https://costlens.dev/analytics">usage analytics</a></li>
           <li>Check for unexpected API calls</li>
           <li>Enable smart routing to reduce costs</li>
           <li>Optimize your prompts</li>
         </ul>
 
         <p style="color: #666; font-size: 14px; margin-top: 30px;">
-          You can adjust your alert threshold in <a href="https://optirelay.app/settings/alerts">settings</a>.
+          You can adjust your alert threshold in <a href="https://costlens.dev/settings/alerts">settings</a>.
         </p>
       </div>
     `;
 
     return this.sendEmail({
       to: userEmail,
-      subject: '💰 OptiRelay: Cost Spike Alert',
+      subject: '💰 CostLens: Cost Spike Alert',
       html,
     });
   }
@@ -123,7 +123,7 @@ export class EmailService {
         </ul>
 
         <p>
-          <a href="https://optirelay.app/analytics" style="background: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
+          <a href="https://costlens.dev/analytics" style="background: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
             View Error Details
           </a>
         </p>
@@ -132,7 +132,7 @@ export class EmailService {
 
     return this.sendEmail({
       to: userEmail,
-      subject: '🚨 OptiRelay: High Error Rate Alert',
+      subject: '🚨 CostLens: High Error Rate Alert',
       html,
     });
   }

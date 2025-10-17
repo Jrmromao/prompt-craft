@@ -86,6 +86,9 @@ export class PromptCraft {
   private selectOptimalModel(requestedModel: string, messages: any[]): string {
     if (!this.config.smartRouting) return requestedModel;
 
+    // Don't route vision models
+    if (requestedModel.includes('vision')) return requestedModel;
+
     const complexity = this.estimateComplexity(messages);
 
     // Smart routing rules
@@ -108,11 +111,10 @@ export class PromptCraft {
         headers: {
           'Authorization': `Bearer ${this.config.apiKey}`,
         },
-        timeout: 2000, // 2 second timeout
       });
 
       if (response.ok) {
-        const data = await response.json();
+        const data = await response.json() as { enabled: boolean };
         return data.enabled;
       }
       
@@ -288,7 +290,7 @@ export class PromptCraft {
             }
 
             // Check cache (server-side only)
-            if (self.config.enableCache && typeof window === 'undefined') {
+            if (self.config.enableCache && typeof process !== 'undefined' && process.versions && process.versions.node) {
               try {
                 const cacheResponse = await fetch(`${self.config.baseUrl}/api/cache/get`, {
                   method: 'POST',
@@ -304,7 +306,7 @@ export class PromptCraft {
                 });
 
                 if (cacheResponse.ok) {
-                  const cached = await cacheResponse.json();
+                  const cached = await cacheResponse.json() as { hit: boolean; savedCost: number; response: any };
                   if (cached.hit) {
                     console.log(`[PromptCraft] Cache hit - saved $${cached.savedCost.toFixed(4)}!`);
                     return cached.response;
@@ -342,7 +344,7 @@ export class PromptCraft {
                 const processedResult = await self.runMiddleware('after', result);
 
                 // Save to cache (server-side only)
-                if (self.config.enableCache && typeof window === 'undefined') {
+                if (self.config.enableCache && typeof process !== 'undefined' && process.versions && process.versions.node) {
                   try {
                     await fetch(`${self.config.baseUrl}/api/cache/set`, {
                       method: 'POST',
@@ -596,11 +598,10 @@ export class PromptCraft {
           'Authorization': `Bearer ${this.config.apiKey}`,
         },
         body: JSON.stringify({ prompt: content }),
-        timeout: 3000, // 3 second timeout
       });
 
       if (response.ok) {
-        const data = await response.json();
+        const data = await response.json() as { optimized: string; tokenReduction: number };
         const optimized = data.optimized;
         
         // Cache the optimization

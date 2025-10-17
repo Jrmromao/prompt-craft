@@ -17,7 +17,9 @@ export function UnifiedNavigation() {
   }, [])
   
   const isLandingPage = pathname === '/'
-  if (isLandingPage || !isClient) {
+  const isAuthPage = pathname.startsWith('/sign-in') || pathname.startsWith('/sign-up') || pathname.startsWith('/sso-callback') || pathname === '/unauthorized'
+  
+  if (isLandingPage || isAuthPage || !isClient) {
     return null
   }
 

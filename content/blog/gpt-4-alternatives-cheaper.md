@@ -194,7 +194,7 @@ const result = await model.generateContent('Your prompt');
 Don't pick one model. Use the right model for each task:
 
 ```javascript
-import { CostLens } from 'optirelay';
+import { CostLens } from 'costlens';
 
 const client = new CostLens({
   apiKey: process.env.OPTIRELAY_API_KEY,
@@ -277,4 +277,4 @@ You don't need GPT-4 for everything. Smart model selection can save 60-80% while
 
 ---
 
-**Want automatic model routing?** [Try CostLens free](https://optirelay.com) - we handle the complexity for you.
+**Want automatic model routing?** [Try CostLens free](https://costlens.dev) - we handle the complexity for you.

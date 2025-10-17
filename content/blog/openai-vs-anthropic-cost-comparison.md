@@ -118,7 +118,7 @@ Choosing between OpenAI and Anthropic? Cost is a major factor. Here's a complete
 **Don't stick to one model.** Use intelligent routing:
 
 ```javascript
-import { CostLens } from 'optirelay';
+import { CostLens } from 'costlens';
 
 const client = new CostLens({
   apiKey: process.env.OPTIRELAY_API_KEY,
@@ -176,4 +176,4 @@ const response = await client.chat.completions.create({
 
 ---
 
-**Ready to optimize your LLM costs?** [Try CostLens free](https://optirelay.com) and start saving today.
+**Ready to optimize your LLM costs?** [Try CostLens free](https://costlens.dev) and start saving today.

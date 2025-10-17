@@ -259,11 +259,11 @@ export default function AnalyticsLanding({ user }: { user: User | null }) {
               <span className="text-gray-400 text-sm ml-2">your-app.ts</span>
             </div>
             <pre className="text-sm overflow-x-auto">
-              <code className="text-green-400">{`import CostLens from 'optirelay-sdk';
+              <code className="text-green-400">{`import CostLens from 'costlens';
 import OpenAI from 'openai';
 
 const openai = new OpenAI();
-const optirelay = new CostLens({ 
+const costlens = new CostLens({ 
   apiKey: process.env.PROMPTCRAFT_API_KEY,
   autoOptimize: true,  // 50-80% token reduction
   smartRouting: true,  // Auto-route to cheapest model
@@ -272,7 +272,7 @@ const optirelay = new CostLens({
 
 `}</code>
               <code className="text-yellow-400">{`// Wrap once
-const tracked = optirelay.wrapOpenAI(openai);
+const tracked = costlens.wrapOpenAI(openai);
 
 `}</code>
               <code className="text-green-400">{`// Use normally - optimization happens automatically!

@@ -12,17 +12,17 @@
 
 **Problem:**
 - Root layout uses: `https://costlens.dev`
-- Sitemap uses: `https://optirelay.com`
-- Robots.txt uses: `https://optirelay.com`
+- Sitemap uses: `https://costlens.dev`
+- Robots.txt uses: `https://costlens.dev`
 
 **Fix Required:**
 ```typescript
 // app/sitemap.ts - Line 5
-- const baseUrl = 'https://optirelay.com';
+- const baseUrl = 'https://costlens.dev';
 + const baseUrl = 'https://costlens.dev';
 
 // public/robots.txt - Last line
-- Sitemap: https://optirelay.com/sitemap.xml
+- Sitemap: https://costlens.dev/sitemap.xml
 + Sitemap: https://costlens.dev/sitemap.xml
 ```
 
@@ -438,7 +438,7 @@ If you have customer testimonials, add Review schema.
 ## 🎯 PRIORITY ACTION PLAN
 
 ### Week 1 (Critical Fixes)
-1. ✅ Fix domain mismatch (costlens.dev vs optirelay.com)
+1. ✅ Fix domain mismatch (costlens.dev vs costlens.dev)
 2. ✅ Fix sitemap to use Prisma database
 3. ✅ Add OpenGraph images to blog posts
 4. ✅ Add Article schema to blog posts

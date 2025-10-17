@@ -1,1 +1,1 @@
-export { OptiRelay } from '../sdk/src/index';
+export { CostLens } from '../sdk/src/index';

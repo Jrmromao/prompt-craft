@@ -24,7 +24,7 @@ Not every request needs GPT-4. Many tasks work perfectly with GPT-3.5-turbo at 1
 - Summarization → GPT-3.5-turbo
 
 ```javascript
-import { CostLens } from 'optirelay';
+import { CostLens } from 'costlens';
 
 const client = new CostLens({
   apiKey: process.env.OPTIRELAY_API_KEY,
@@ -91,7 +91,7 @@ One of our customers reduced their monthly OpenAI bill from $12,000 to $7,200 us
 
 ## Get Started
 
-Want to implement these optimizations without the hassle? [Try CostLens free](https://optirelay.com) - we handle routing, caching, and optimization automatically.
+Want to implement these optimizations without the hassle? [Try CostLens free](https://costlens.dev) - we handle routing, caching, and optimization automatically.
 
 ---
 

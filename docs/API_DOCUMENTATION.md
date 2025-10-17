@@ -10,27 +10,53 @@ The CostLens.dev API provides programmatic access to all cost tracking features 
 
 ## Authentication
 
-All API requests require authentication using Clerk session tokens:
+All API requests require authentication using API keys. The API is available at the `api.costlens.dev` subdomain for clean separation from the main application.
+
+### API Key Authentication
 
 ```bash
-curl -H "Authorization: Bearer <clerk_session_token>" \
-     https://api.costlens.dev/api/costs
+curl -H "Authorization: Bearer <your_api_key>" \
+     https://api.costlens.dev/cost-analysis
 ```
 
-### Getting Authentication Token
+### Getting API Keys
+
+1. **Via Dashboard**: Go to Settings → API Keys in your dashboard
+2. **Via API**: Use the existing `/api/settings/api-keys` endpoint
+
+### Example Usage
 ```javascript
-// Frontend (Next.js)
-import { useAuth } from '@clerk/nextjs';
-
-const { getToken } = useAuth();
-const token = await getToken();
-
-// API Request
-const response = await fetch('/api/prompts', {
+// Using fetch
+const response = await fetch('https://api.costlens.dev/cost-analysis', {
+  method: 'POST',
   headers: {
-    'Authorization': `Bearer ${token}`,
+    'Authorization': 'Bearer your_api_key_here',
     'Content-Type': 'application/json'
-  }
+  },
+  body: JSON.stringify({
+    prompt: "Your AI prompt here",
+    model: "gpt-4",
+    provider: "openai"
+  })
+});
+
+const data = await response.json();
+```
+
+### SDK Usage
+```typescript
+import { PromptCraftAPI } from '@promptcraft/sdk';
+
+const api = new PromptCraftAPI({
+  apiKey: 'your-api-key',
+  baseUrl: 'https://api.costlens.dev'  // Use subdomain
+});
+
+// All API calls automatically use the subdomain
+const result = await api.costAnalysis({
+  prompt: "Your prompt",
+  model: "gpt-4",
+  provider: "openai"
 });
 ```
 
@@ -768,7 +794,45 @@ GET /api/user/analytics?startDate=2025-01-01&endDate=2025-01-31
 }
 ```
 
-### 8. Admin Endpoints
+### 8. Cost Analysis
+
+#### Analyze AI Cost
+```http
+POST /cost-analysis
+```
+
+**Request Body:**
+```json
+{
+  "prompt": "Your AI prompt here",
+  "model": "gpt-4",
+  "provider": "openai"
+}
+```
+
+**Response:**
+```json
+{
+  "prompt": "Your AI prompt here",
+  "model": "gpt-4",
+  "provider": "openai",
+  "estimatedTokens": 25,
+  "estimatedCost": 0.00075,
+  "recommendations": [
+    "Consider using GPT-3.5-turbo for 90% cost savings on simple tasks",
+    "Use prompt caching to reduce repeated costs",
+    "Consider batch processing for multiple requests"
+  ],
+  "timestamp": "2025-01-15T10:30:00.000Z"
+}
+```
+
+**Supported Models & Providers:**
+- **OpenAI**: `gpt-4`, `gpt-3.5-turbo`
+- **Anthropic**: `claude-3-5-sonnet`, `claude-3-haiku`
+- **Google**: `gemini-pro`
+
+### 9. Admin Endpoints
 
 #### Get All Users (Admin Only)
 ```http

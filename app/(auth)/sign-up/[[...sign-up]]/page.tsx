@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useSignUp } from '@clerk/nextjs';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Sparkles, ArrowLeft, Eye, EyeOff, Calendar, CheckCircle } from 'lucide-react';
+import { Sparkles, ArrowLeft, Eye, EyeOff, CheckCircle } from 'lucide-react';
 
 export default function SignUpPage() {
   const { signUp, isLoaded } = useSignUp();
@@ -13,7 +13,6 @@ export default function SignUpPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [dateOfBirth, setDateOfBirth] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -29,9 +28,6 @@ export default function SignUpPage() {
       const result = await signUp.create({
         emailAddress: email,
         password,
-        unsafeMetadata: {
-          dateOfBirth,
-        },
       });
       
       if (result.status === 'complete') {
@@ -173,22 +169,6 @@ export default function SignUpPage() {
               </div>
             </div>
 
-            <div>
-              <label htmlFor="dateOfBirth" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Date of Birth
-              </label>
-              <div className="relative">
-                <input
-                  id="dateOfBirth"
-                  type="date"
-                  value={dateOfBirth}
-                  onChange={(e) => setDateOfBirth(e.target.value)}
-                  required
-                  className="w-full px-4 py-3 pl-12 border border-gray-300 dark:border-gray-600 rounded-xl shadow-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                />
-                <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-              </div>
-            </div>
 
             {error && (
               <div className="text-red-600 dark:text-red-400 text-sm bg-red-50 dark:bg-red-900/20 p-3 rounded-xl border border-red-200 dark:border-red-800">

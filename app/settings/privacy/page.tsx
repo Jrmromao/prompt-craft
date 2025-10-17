@@ -157,8 +157,8 @@ export default function PrivacySettingsPage() {
           </p>
           <p>
             <strong>Contact:</strong>{' '}
-            <a href="mailto:privacy@optirelay.com" className="text-blue-600 hover:underline">
-              privacy@optirelay.com
+            <a href="mailto:privacy@costlens.dev" className="text-blue-600 hover:underline">
+              privacy@costlens.dev
             </a>
           </p>
           <p>

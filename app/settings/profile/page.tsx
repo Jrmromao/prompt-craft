@@ -16,12 +16,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import LogoutDialog from '@/components/LogoutDialog';
 
 export default function ProfilePage() {
   const { user } = useUser();
   const router = useRouter();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [showSignOutDialog, setShowSignOutDialog] = useState(false);
+  const [showLogoutDialog, setShowLogoutDialog] = useState(false);
 
   const handleSignOut = async () => {
     await fetch('/api/auth/signout', { method: 'POST' });
@@ -98,7 +99,7 @@ export default function ProfilePage() {
           <Button 
             variant="outline" 
             className="w-full justify-start"
-            onClick={() => setShowSignOutDialog(true)}
+            onClick={() => setShowLogoutDialog(true)}
           >
             <LogOut className="w-4 h-4 mr-2" />
             Sign Out
@@ -127,23 +128,11 @@ export default function ProfilePage() {
         </CardContent>
       </Card>
 
-      {/* Sign Out Dialog */}
-      <AlertDialog open={showSignOutDialog} onOpenChange={setShowSignOutDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Sign out of your account?</AlertDialogTitle>
-            <AlertDialogDescription>
-              You will be redirected to the home page. You can sign back in anytime.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleSignOut}>
-              Sign Out
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      {/* Logout Confirmation Dialog */}
+      <LogoutDialog 
+        isOpen={showLogoutDialog} 
+        onClose={() => setShowLogoutDialog(false)} 
+      />
 
       {/* Delete Account Dialog */}
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>

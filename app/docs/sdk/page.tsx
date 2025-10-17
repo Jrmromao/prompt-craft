@@ -51,7 +51,7 @@ export default function SDKDocsPage() {
       </div>
 
       <h2 className="text-2xl font-bold text-gray-900 mt-12 mb-4">Installation</h2>
-      <CodeBlock code="npm install optirelay-sdk" language="bash" />
+      <CodeBlock code="npm install costlens" language="bash" />
 
       <h2 className="text-2xl font-bold text-gray-900 mt-12 mb-4">Constructor</h2>
       <CodeBlock code="new CostLens(config: CostLensConfig)" />
@@ -114,14 +114,14 @@ export default function SDKDocsPage() {
               <td className="px-4 py-3 text-sm"><code className="bg-gray-100 px-2 py-1 rounded">baseUrl</code></td>
               <td className="px-4 py-3 text-sm text-gray-600">string</td>
               <td className="px-4 py-3 text-sm text-gray-600">No</td>
-              <td className="px-4 py-3 text-sm text-gray-600">Custom base URL (default: https://optirelay.com)</td>
+              <td className="px-4 py-3 text-sm text-gray-600">Custom base URL (default: https://costlens.dev)</td>
             </tr>
           </tbody>
         </table>
       </div>
 
       <h3 className="text-xl font-semibold text-gray-900 mt-8 mb-4">Example</h3>
-      <CodeBlock code={`const optirelay = new CostLens({
+      <CodeBlock code={`const costlens = new CostLens({
   apiKey: 'pc_your_api_key_here',
   autoOptimize: true,    // 💰 Save 50-80% on tokens
   smartRouting: true,    // 💰 Route to cheapest model
@@ -154,7 +154,7 @@ export default function SDKDocsPage() {
         <h4 className="text-lg font-semibold text-gray-900 mb-3">Example</h4>
         <CodeBlock code={`const start = Date.now();
 const result = await openai.chat.completions.create(params);
-await optirelay.trackOpenAI(
+await costlens.trackOpenAI(
   params, 
   result, 
   Date.now() - start,
@@ -183,7 +183,7 @@ await optirelay.trackOpenAI(
         <h4 className="text-lg font-semibold text-gray-900 mb-3">Example</h4>
         <CodeBlock code={`const start = Date.now();
 const result = await anthropic.messages.create(params);
-await optirelay.trackAnthropic(
+await costlens.trackAnthropic(
   params,
   result,
   Date.now() - start,
@@ -212,7 +212,7 @@ await optirelay.trackAnthropic(
         <h4 className="text-lg font-semibold text-gray-900 mb-3">Example</h4>
         <CodeBlock code={`const start = Date.now();
 const result = await model.generateContent(params);
-await optirelay.trackGemini(
+await costlens.trackGemini(
   { model: 'gemini-pro', ...params },
   result.response,
   Date.now() - start,
@@ -241,7 +241,7 @@ await optirelay.trackGemini(
         <h4 className="text-lg font-semibold text-gray-900 mb-3">Example</h4>
         <CodeBlock code={`const start = Date.now();
 const result = await grok.chat.completions.create(params);
-await optirelay.trackGrok(
+await costlens.trackGrok(
   params,
   result,
   Date.now() - start,
@@ -272,9 +272,9 @@ await optirelay.trackGrok(
         <h4 className="text-lg font-semibold text-gray-900 mb-3">Example</h4>
         <CodeBlock code={`try {
   const result = await openai.chat.completions.create(params);
-  await optirelay.trackOpenAI(params, result, latency);
+  await costlens.trackOpenAI(params, result, latency);
 } catch (error) {
-  await optirelay.trackError(
+  await costlens.trackError(
     'openai',
     params.model,
     JSON.stringify(params.messages),
@@ -293,12 +293,12 @@ await optirelay.trackGrok(
           <p className="text-gray-700 mb-4">
             Automatically cache responses to save money on repeated requests. Achieves 60-80% hit rates in production.
           </p>
-          <CodeBlock code={`const optirelay = new CostLens({
+          <CodeBlock code={`const costlens = new CostLens({
   apiKey: process.env.PROMPTCRAFT_API_KEY,
   enableCache: true, // Enable Redis caching
 });
 
-const tracked = optirelay.wrapOpenAI(openai);
+const tracked = costlens.wrapOpenAI(openai);
 
 // First call - cache miss, costs $0.05
 await tracked.chat.completions.create({
@@ -319,7 +319,7 @@ await tracked.chat.completions.create({
             Smart routing automatically disables if response quality drops below 3.5/5 stars.
           </p>
           <CodeBlock code={`// SDK checks quality status before routing
-const tracked = optirelay.wrapOpenAI(openai);
+const tracked = costlens.wrapOpenAI(openai);
 
 // If quality is good: GPT-4 → GPT-3.5 (saves money)
 // If quality dropped: Uses GPT-4 (protects quality)
@@ -344,12 +344,12 @@ await fetch('/api/quality/feedback', {
           <p className="text-gray-700 mb-4">
             Automatically compress prompts by 30-50% while preserving meaning.
           </p>
-          <CodeBlock code={`const optirelay = new CostLens({
+          <CodeBlock code={`const costlens = new CostLens({
   apiKey: process.env.PROMPTCRAFT_API_KEY,
   autoOptimize: true, // Enable AI compression
 });
 
-const tracked = optirelay.wrapOpenAI(openai);
+const tracked = costlens.wrapOpenAI(openai);
 
 // Original: 200 tokens
 // Optimized: 100 tokens (50% reduction)

