@@ -25,7 +25,7 @@
     "dev:debug:ui": "next dev --turbopack --turbo --experimental-https",
     "dev:ngrok": "ngrok http 3000",
     "dev:debug": "NODE_ENV=development DEBUG=* yarn dev",
-    "build": "next build",
+    "build": "prisma generate && next build",
     "start": "next start",
     "format": "prettier --write .",
     "prepare": "husky install",
