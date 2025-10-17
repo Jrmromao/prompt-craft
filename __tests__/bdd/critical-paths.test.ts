@@ -89,7 +89,7 @@ describe('Critical Path: Sign Up to First Prompt', () => {
     });
 
     it('And I should see welcome message', () => {
-      const welcomeMessage = 'Welcome to PromptCraft!';
+      const welcomeMessage = 'Welcome to CostLens!';
       expect(welcomeMessage).toContain('Welcome');
     });
 
