@@ -1,6 +1,6 @@
 import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
 import { NextResponse } from 'next/server';
-import { validateApiToken } from './lib/api-auth';
+import { validateApiTokenEdge } from './lib/edge-token-validation';
 
 // Public routes that don't require authentication
 const isPublicRoute = createRouteMatcher([
@@ -16,6 +16,7 @@ const isPublicRoute = createRouteMatcher([
   '/api/health(.*)',
   '/api/blog(.*)',
 ]);
+
 
 export default clerkMiddleware(async (auth, request) => {
   const { userId } = await auth();
@@ -37,8 +38,8 @@ export default clerkMiddleware(async (auth, request) => {
       );
     }
 
-    // Validate API token (you'll need to implement this)
-    const isValidToken = await validateApiToken(token);
+    // Validate API token with edge-compatible validation
+    const isValidToken = await validateApiTokenEdge(token);
     if (!isValidToken) {
       return NextResponse.json(
         { error: 'Invalid API token' }, 

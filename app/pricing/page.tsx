@@ -142,7 +142,7 @@ export default function PricingPage() {
             </div>
             <CardHeader className="text-center pb-4">
               <CardTitle className="text-xl mb-2">Pro</CardTitle>
-              <div className="text-4xl font-bold mb-2">$49</div>
+              <div className="text-4xl font-bold mb-2">$29</div>
               <p className="text-gray-600 text-sm">per month</p>
             </CardHeader>
             <CardContent>
@@ -166,7 +166,7 @@ export default function PricingPage() {
                 Upgrade Now
               </UpgradeButton>
               <p className="text-center text-xs text-blue-600 font-semibold mt-3">
-                💰 Save $300-600/month = 9x ROI
+                💰 Save $300-600/month = 10x+ ROI
               </p>
             </CardContent>
           </Card>
@@ -175,8 +175,8 @@ export default function PricingPage() {
           <Card className="border-2">
             <CardHeader className="text-center pb-4">
               <CardTitle className="text-xl mb-2">Enterprise</CardTitle>
-              <div className="text-4xl font-bold mb-2">Custom</div>
-              <p className="text-gray-600 text-sm">Contact us for pricing</p>
+              <div className="text-4xl font-bold mb-2">$99</div>
+              <p className="text-gray-600 text-sm">per month</p>
             </CardHeader>
             <CardContent>
               <p className="text-sm text-gray-600 mb-4">
@@ -191,11 +191,15 @@ export default function PricingPage() {
                 <Feature>Unlimited users</Feature>
                 <Feature>SLA guarantee</Feature>
               </ul>
-              <Link href="mailto:sales@costlens.dev">
-                <Button className="w-full bg-purple-600 hover:bg-purple-700">Contact Sales</Button>
-              </Link>
+              <UpgradeButton
+                priceId={process.env.NEXT_PUBLIC_STRIPE_ENTERPRISE_PRICE_ID!}
+                planName="Enterprise"
+                className="w-full bg-purple-600 hover:bg-purple-700"
+              >
+                Upgrade Now
+              </UpgradeButton>
               <p className="text-center text-xs text-purple-600 font-semibold mt-3">
-                💰 Custom pricing for your needs
+                💰 Save $1,000+/month = 10x+ ROI
               </p>
             </CardContent>
           </Card>
