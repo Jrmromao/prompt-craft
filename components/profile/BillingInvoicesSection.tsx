@@ -5,7 +5,7 @@ import { useToast } from '@/components/ui/use-toast';
 import FreeBillingSection from './billing/FreeBillingSection';
 import ProBillingSection from './billing/ProBillingSection';
 import EnterpriseBillingSection from './billing/EnterpriseBillingSection';
-import EliteBillingSection from './billing/EliteBillingSection';
+import StarterBillingSection from './billing/StarterBillingSection';
 
 interface Invoice {
   id: string;
@@ -95,8 +95,8 @@ export default function BillingInvoicesSection() {
       return <ProBillingSection billingData={billingDataWithCredits} />;    
     case 'enterprise':  
       return <EnterpriseBillingSection billingData={billingDataWithCredits} />;
-    case 'elite':
-      return <EliteBillingSection billingData={billingDataWithCredits} />;
+    case 'starter':
+      return <StarterBillingSection billingData={billingDataWithCredits} />;
     default:
       return <FreeBillingSection billingData={billingDataWithCredits} />;
   }

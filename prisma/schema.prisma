@@ -848,8 +848,8 @@ enum Role {
 
 enum PlanType {
   FREE
+  STARTER
   PRO
-  ELITE
   ENTERPRISE
 }
 

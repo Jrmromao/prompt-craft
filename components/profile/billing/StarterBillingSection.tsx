@@ -13,7 +13,7 @@ interface Invoice {
   type: 'subscription' | 'credit_purchase';
 }
 
-interface EliteBillingSectionProps {
+interface StarterBillingSectionProps {
   billingData: {
     subscription: {
       status: string;
@@ -37,7 +37,7 @@ interface EliteBillingSectionProps {
   };
 }
 
-export default function EliteBillingSection({ billingData }: EliteBillingSectionProps) {
+export default function StarterBillingSection({ billingData }: StarterBillingSectionProps) {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
@@ -62,7 +62,7 @@ export default function EliteBillingSection({ billingData }: EliteBillingSection
     }
   };
 
-  const plan = billingData.subscription?.items?.data?.[0]?.price?.nickname || 'Elite';
+  const plan = billingData.subscription?.items?.data?.[0]?.price?.nickname || 'Starter';
   const price = billingData.subscription?.items?.data?.[0]?.price?.unit_amount 
     ? (billingData.subscription.items.data[0].price.unit_amount / 100).toFixed(2)
     : '0.00';
@@ -71,12 +71,12 @@ export default function EliteBillingSection({ billingData }: EliteBillingSection
     : 'N/A';
 
   return (
-    <div className="space-y-6 font-inter" role="region" aria-label="Elite Billing Overview">
+    <div className="space-y-6 font-inter" role="region" aria-label="Starter Billing Overview">
       {/* Subscription Overview */}
       <Card className="p-6">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h2 className="text-xl font-semibold font-inter">Elite Subscription</h2>
+            <h2 className="text-xl font-semibold font-inter">Starter Subscription</h2>
             <p className="text-gray-600 font-inter">Active Plan</p>
           </div>
           <Button 
@@ -110,9 +110,9 @@ export default function EliteBillingSection({ billingData }: EliteBillingSection
       </Card>
 
 
-      {/* Elite Features */}
+      {/* Starter Features */}
       <Card className="p-6">
-        <h2 className="text-xl font-semibold mb-4 font-inter">Elite Features</h2>
+        <h2 className="text-xl font-semibold mb-4 font-inter">Starter Features</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="p-4 bg-blue-50/40 dark:bg-blue-950/20 rounded-lg">
             <Crown className="h-6 w-6 text-blue-600 mb-2" />
