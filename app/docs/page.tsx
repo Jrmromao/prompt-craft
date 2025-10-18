@@ -39,7 +39,7 @@ export default function DocsHomePage() {
         </div>
         <h1 className="text-5xl font-bold mb-4 text-gray-900">Documentation</h1>
         <p className="text-xl text-gray-600 max-w-3xl">
-          Everything you need to integrate CostLens and start tracking your AI costs in minutes.
+          Everything you need to integrate CostLens and start saving money on AI costs with automatic optimization.
         </p>
       </div>
 
@@ -140,7 +140,7 @@ import OpenAI from 'openai';
 
 const openai = new OpenAI();
 const costlens = new CostLens({ 
-  apiKey: process.env.PROMPTCRAFT_API_KEY,
+  apiKey: process.env.COSTLENS_API_KEY,
   enableCache: true,  // Optional: enable caching
   maxRetries: 3       // Optional: auto-retry
 });

@@ -122,7 +122,7 @@ export default function SDKDocsPage() {
 
       <h3 className="text-xl font-semibold text-gray-900 mt-8 mb-4">Example</h3>
       <CodeBlock code={`const costlens = new CostLens({
-  apiKey: 'pc_your_api_key_here',
+  apiKey: 'cl_your_api_key_here',
   autoOptimize: true,    // 💰 Save 50-80% on tokens
   smartRouting: true,    // 💰 Route to cheapest model
   enableCache: true,     // 💰 Cache repeated queries
@@ -294,7 +294,7 @@ await costlens.trackGrok(
             Automatically cache responses to save money on repeated requests. Achieves 60-80% hit rates in production.
           </p>
           <CodeBlock code={`const costlens = new CostLens({
-  apiKey: process.env.PROMPTCRAFT_API_KEY,
+  apiKey: process.env.COSTLENS_API_KEY,
   enableCache: true, // Enable Redis caching
 });
 
@@ -345,7 +345,7 @@ await fetch('/api/quality/feedback', {
             Automatically compress prompts by 30-50% while preserving meaning.
           </p>
           <CodeBlock code={`const costlens = new CostLens({
-  apiKey: process.env.PROMPTCRAFT_API_KEY,
+  apiKey: process.env.COSTLENS_API_KEY,
   autoOptimize: true, // Enable AI compression
 });
 
@@ -401,7 +401,7 @@ console.log(\`Savings Rate: \${savings.savingsRate}%\`);
 
       <h2 className="text-2xl font-bold text-gray-900 mt-16 mb-4">Environment Variables</h2>
       <CodeBlock code={`# .env
-PROMPTCRAFT_API_KEY=pc_your_api_key_here
+COSTLENS_API_KEY=cl_your_api_key_here
 OPENAI_API_KEY=sk-your_openai_key
 ANTHROPIC_API_KEY=sk-ant-your_anthropic_key`} language="bash" />
     </div>

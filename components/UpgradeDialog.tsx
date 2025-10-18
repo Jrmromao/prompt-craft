@@ -45,7 +45,7 @@ export function UpgradeDialog({ currentCredits, requiredCredits, onClose }: Upgr
                 <p className="text-sm text-gray-600">Best value for regular users</p>
               </div>
               <div className="text-right">
-                <div className="text-3xl font-bold">$19</div>
+                <div className="text-3xl font-bold">$29</div>
                 <div className="text-sm text-gray-600">/month</div>
               </div>
             </div>

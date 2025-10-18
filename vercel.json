@@ -1,6 +1,6 @@
 {
-  "buildCommand": "prisma generate && prisma migrate deploy && next build",
-  "installCommand": "npm install",
+  "buildCommand": "yarn prisma generate && yarn prisma migrate deploy && yarn build",
+  "installCommand": "yarn install",
   "crons": [
     {
       "path": "/api/cron/reset-limits",

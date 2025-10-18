@@ -27,7 +27,7 @@ import OpenAI from 'openai';
 
 // Initialize PromptCraft
 const promptcraft = new PromptCraft({
-  apiKey: process.env.PROMPTCRAFT_API_KEY
+  apiKey: process.env.COSTLENS_API_KEY
 });
 
 // Initialize OpenAI
@@ -57,7 +57,7 @@ import OpenAI from 'openai';
 import PromptCraft from 'promptcraft-sdk';
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-const promptcraft = new PromptCraft({ apiKey: process.env.PROMPTCRAFT_API_KEY });
+const promptcraft = new PromptCraft({ apiKey: process.env.COSTLENS_API_KEY });
 
 const params = {
   model: 'gpt-4',
@@ -83,7 +83,7 @@ import Anthropic from '@anthropic-ai/sdk';
 import PromptCraft from 'promptcraft-sdk';
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-const promptcraft = new PromptCraft({ apiKey: process.env.PROMPTCRAFT_API_KEY });
+const promptcraft = new PromptCraft({ apiKey: process.env.COSTLENS_API_KEY });
 
 const params = {
   model: 'claude-3-opus-20240229',
@@ -142,7 +142,7 @@ try {
 
 ```bash
 # .env
-PROMPTCRAFT_API_KEY=pc_your_api_key_here
+COSTLENS_API_KEY=cl_your_api_key_here
 OPENAI_API_KEY=sk-your_openai_key
 ANTHROPIC_API_KEY=sk-ant-your_anthropic_key
 ```
@@ -151,7 +151,7 @@ ANTHROPIC_API_KEY=sk-ant-your_anthropic_key
 
 ```typescript
 const promptcraft = new PromptCraft({
-  apiKey: process.env.PROMPTCRAFT_API_KEY,
+  apiKey: process.env.COSTLENS_API_KEY,
   baseUrl: 'https://your-instance.com' // Optional
 });
 ```
@@ -226,7 +226,7 @@ Check your dashboard to identify:
 
 ### API Key Not Working
 
-1. Check the key is correct (starts with `pc_`)
+1. Check the key is correct (starts with `cl_`)
 2. Verify it hasn't been deleted
 3. Check your plan limits (Free: 1,000 runs/month)
 

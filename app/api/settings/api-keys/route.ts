@@ -53,7 +53,7 @@ export async function POST(req: Request) {
 
     const { name } = await req.json();
 
-    const key = `pc_${crypto.randomBytes(32).toString('hex')}`;
+    const key = `cl_${crypto.randomBytes(32).toString('hex')}`;
     const hashedKey = crypto.createHash('sha256').update(key).digest('hex');
 
     const apiKey = await prisma.apiKey.create({

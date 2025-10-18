@@ -33,20 +33,27 @@ export default function AnthropicDocsPage() {
     <div className="max-w-4xl mx-auto px-6 py-12">
       <h1 className="text-4xl font-bold text-gray-900 mb-4">Anthropic (Claude) Integration</h1>
       <p className="text-xl text-gray-600 mb-12">
-        Track your Anthropic API costs including Claude 3 Opus, Sonnet, and Haiku.
+        Track and optimize your Anthropic API costs with automatic smart routing between Claude models.
       </p>
+
+      <div className="bg-blue-50 border-l-4 border-blue-400 p-4 my-6 rounded-r">
+        <p className="text-sm text-blue-900">
+          <strong>💰 Cost Optimization:</strong> CostLens automatically routes Claude Opus requests to cheaper models when safe - save up to 98% on simple tasks!
+        </p>
+      </div>
 
       <h2 className="text-2xl font-bold text-gray-900 mt-12 mb-4">Installation</h2>
       <CodeBlock code="npm install costlens @anthropic-ai/sdk" language="bash" />
 
       <h2 className="text-2xl font-bold text-gray-900 mt-12 mb-4">Quick Start (Recommended)</h2>
-      <p className="text-gray-700 mb-4">Use the wrapper for automatic tracking:</p>
+      <p className="text-gray-700 mb-4">Use the wrapper for automatic tracking and cost optimization:</p>
       <CodeBlock code={`import { CostLens } from 'costlens';
 import Anthropic from '@anthropic-ai/sdk';
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 const costlens = new CostLens({ 
-  apiKey: process.env.PROMPTCRAFT_API_KEY 
+  apiKey: process.env.COSTLENS_API_KEY,
+  smartRouting: true  // Enable cost optimization
 });
 
 // Wrap your client
@@ -54,22 +61,33 @@ const tracked = costlens.wrapAnthropic(anthropic);
 
 // Use it exactly like normal Anthropic
 const result = await tracked.messages.create({
-  model: 'claude-3-opus-20240229',
+  model: 'claude-3-opus-20240229',  // May be auto-routed to claude-3-haiku
   max_tokens: 1024,
-  messages: [{ role: 'user', content: 'Hello!' }]
+  messages: [{ role: 'user', content: 'Simple summary please' }]
 });
-// ✅ Automatically tracked!`} />
+// ✅ Automatically tracked and optimized!`} />
 
       <div className="bg-green-50 border-l-4 border-green-400 p-4 my-6 rounded-r">
         <p className="text-sm text-green-900">
-          <strong>✨ Benefits:</strong> No timing code, automatic error tracking, built-in retries, and optional caching!
+          <strong>✨ Smart Routing Benefits:</strong> Simple tasks automatically use Claude Haiku (98% cheaper), medium complexity uses Claude Sonnet (93% cheaper), complex tasks stay on Claude Opus for quality.
         </p>
+      </div>
+
+      <h2 className="text-2xl font-bold text-gray-900 mt-12 mb-4">Cost Optimization Rules</h2>
+      <div className="bg-gray-50 p-4 rounded-lg mb-6">
+        <h3 className="font-semibold mb-2">Automatic Routing:</h3>
+        <ul className="space-y-1 text-sm text-gray-700">
+          <li><strong>Simple tasks:</strong> Claude Opus → Claude Haiku (98% savings)</li>
+          <li><strong>Medium tasks:</strong> Claude Opus → Claude Sonnet (93% savings)</li>
+          <li><strong>Simple tasks:</strong> Claude Sonnet → Claude Haiku (92% savings)</li>
+          <li><strong>Complex/Critical tasks:</strong> No routing (quality preserved)</li>
+        </ul>
       </div>
 
       <h2 className="text-2xl font-bold text-gray-900 mt-12 mb-4">Advanced: Caching</h2>
       <p className="text-gray-700 mb-4">Save costs by caching responses:</p>
       <CodeBlock code={`const costlens = new CostLens({ 
-  apiKey: process.env.PROMPTCRAFT_API_KEY,
+  apiKey: process.env.COSTLENS_API_KEY,
   enableCache: true
 });
 
@@ -87,7 +105,7 @@ import Anthropic from '@anthropic-ai/sdk';
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 const costlens = new CostLens({ 
-  apiKey: process.env.PROMPTCRAFT_API_KEY 
+  apiKey: process.env.COSTLENS_API_KEY 
 });
 
 const params = {
@@ -106,7 +124,7 @@ import Anthropic from '@anthropic-ai/sdk';
 
 // Initialize
 const costlens = new CostLens({ 
-  apiKey: process.env.PROMPTCRAFT_API_KEY 
+  apiKey: process.env.COSTLENS_API_KEY 
 });
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY

@@ -78,7 +78,7 @@ export default function QuickStartPage() {
             <li>4. <strong>Copy the key now</strong> - you won't see it again!</li>
             <li>5. Save it to your <code className="bg-gray-100 px-2 py-1 rounded text-sm">.env</code> file</li>
           </ol>
-          <CodeBlock code="PROMPTCRAFT_API_KEY=pc_your_key_here" />
+          <CodeBlock code="COSTLENS_API_KEY=cl_your_key_here" />
         </div>
 
         {/* Step 3 */}
@@ -111,7 +111,7 @@ import OpenAI from 'openai';
 
 const openai = new OpenAI();
 const costlens = new CostLens({ 
-  apiKey: process.env.PROMPTCRAFT_API_KEY,
+  apiKey: process.env.COSTLENS_API_KEY,
   autoOptimize: true,    // 🚀 Saves 50-80% on tokens
   smartRouting: true,    // 🚀 Routes to cheapest model
   enableCache: true,     // 🚀 Saves 80% on repeated queries
@@ -143,7 +143,7 @@ import Anthropic from '@anthropic-ai/sdk';
 
 const anthropic = new Anthropic();
 const costlens = new CostLens({ 
-  apiKey: process.env.PROMPTCRAFT_API_KEY 
+  apiKey: process.env.COSTLENS_API_KEY 
 });
 
 // Wrap and use
@@ -211,7 +211,7 @@ const result = await tracked.messages.create({
         <div className="border border-gray-200 rounded-lg p-5">
           <h4 className="font-semibold text-gray-900 mb-3">API key not working</h4>
           <ul className="space-y-1 text-sm text-gray-700 list-disc list-inside">
-            <li>Check it starts with <code className="bg-gray-100 px-2 py-1 rounded">pc_</code></li>
+            <li>Check it starts with <code className="bg-gray-100 px-2 py-1 rounded">cl_</code></li>
             <li>Make sure you copied the whole key</li>
             <li>Verify it wasn't deleted in Settings</li>
           </ul>

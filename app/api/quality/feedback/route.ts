@@ -1,36 +1,42 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
-import { prisma } from '@/lib/prisma';
+import { QualityAwareRouter } from '@/lib/services/qualityAwareRouter';
 
-export async function POST(req: Request) {
+export async function POST(request: Request) {
   try {
     const { userId } = await auth();
     if (!userId) {
-      return new NextResponse('Unauthorized', { status: 401 });
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const user = await prisma.user.findUnique({
-      where: { clerkId: userId },
-    });
+    const { 
+      originalModel, 
+      selectedModel, 
+      qualityRating, 
+      wasHelpful 
+    } = await request.json();
 
-    if (!user) {
-      return new NextResponse('User not found', { status: 404 });
+    if (!originalModel || !selectedModel || qualityRating === undefined) {
+      return NextResponse.json(
+        { error: 'Missing required fields' },
+        { status: 400 }
+      );
     }
 
-    const { runId, rating, feedback } = await req.json();
+    await QualityAwareRouter.recordFeedback(
+      userId,
+      originalModel,
+      selectedModel,
+      qualityRating,
+      wasHelpful
+    );
 
-    const qualityFeedback = await prisma.qualityFeedback.create({
-      data: {
-        userId: user.id,
-        runId,
-        rating,
-        feedback,
-      },
-    });
-
-    return NextResponse.json(qualityFeedback);
+    return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Error submitting feedback:', error);
-    return new NextResponse('Internal Server Error', { status: 500 });
+    console.error('Feedback recording error:', error);
+    return NextResponse.json(
+      { error: 'Failed to record feedback' },
+      { status: 500 }
+    );
   }
 }

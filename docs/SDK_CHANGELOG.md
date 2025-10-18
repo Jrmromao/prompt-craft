@@ -33,7 +33,7 @@ import PromptCraft from 'promptcraft-sdk';
 import OpenAI from 'openai';
 
 const promptcraft = new PromptCraft({
-  apiKey: process.env.PROMPTCRAFT_API_KEY,
+  apiKey: process.env.COSTLENS_API_KEY,
   enableCache: true,      // Redis caching
   smartRouting: true,     // Auto-route to cheaper models
   autoOptimize: true,     // AI compression
@@ -54,7 +54,7 @@ const response = await tracked.chat.completions.create({
 
 ```bash
 # Required
-PROMPTCRAFT_API_KEY=pc_your_key_here
+COSTLENS_API_KEY=cl_your_key_here
 
 # Optional (for optimization)
 OPENAI_API_KEY=sk-proj-your_key

@@ -46,7 +46,7 @@ import OpenAI from 'openai';
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 const costlens = new CostLens({ 
-  apiKey: process.env.PROMPTCRAFT_API_KEY 
+  apiKey: process.env.COSTLENS_API_KEY 
 });
 
 // Wrap your client
@@ -72,7 +72,7 @@ import OpenAI from 'openai';
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 const costlens = new CostLens({ 
-  apiKey: process.env.PROMPTCRAFT_API_KEY 
+  apiKey: process.env.COSTLENS_API_KEY 
 });
 
 const params = {
@@ -89,7 +89,7 @@ await costlens.trackOpenAI(params, result, Date.now() - start);`} />
       <h3 className="text-xl font-semibold text-gray-900 mt-8 mb-3">Caching</h3>
       <p className="text-gray-700 mb-4">Save costs by caching responses:</p>
       <CodeBlock code={`const costlens = new CostLens({ 
-  apiKey: process.env.PROMPTCRAFT_API_KEY,
+  apiKey: process.env.COSTLENS_API_KEY,
   enableCache: true  // Enable caching
 });
 
@@ -119,7 +119,7 @@ import OpenAI from 'openai';
 
 // Initialize
 const costlens = new CostLens({ 
-  apiKey: process.env.PROMPTCRAFT_API_KEY 
+  apiKey: process.env.COSTLENS_API_KEY 
 });
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY

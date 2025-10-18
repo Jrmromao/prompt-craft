@@ -161,7 +161,7 @@ A **frictionless, emotion-driven onboarding** that users will love.
 │ 4. Welcome Modal - Step 2                                   │
 │    ┌─────────────────────────────────────────────────────┐ │
 │    │ ⚠️ Save this key - shown only once!                 │ │
-│    │ pc_xxxx... [Copy] ← INSTANT COPY                   │ │
+│    │ cl_xxxx... [Copy] ← INSTANT COPY                   │ │
 │    │                                                     │ │
 │    │ Quick Start (2 minutes):                           │ │
 │    │ 1️⃣ npm install promptcraft-sdk                     │ │

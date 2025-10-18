@@ -23,7 +23,7 @@ const completion = await openai.chat.completions.create({
 import { PromptCraft } from '@/sdk/src/index';
 
 const promptcraft = new PromptCraft({
-  apiKey: process.env.PROMPTCRAFT_INTERNAL_API_KEY,
+  apiKey: process.env.COSTLENS_INTERNAL_API_KEY,
   baseURL: process.env.NEXT_PUBLIC_APP_URL,
 });
 
@@ -75,7 +75,7 @@ const result = await promptcraft.run({
 ### 2. Add to Environment
 ```bash
 # .env.local
-PROMPTCRAFT_INTERNAL_API_KEY="pc_live_your_key_here"
+COSTLENS_INTERNAL_API_KEY="cl_live_your_key_here"
 NEXT_PUBLIC_APP_URL="http://localhost:3001"
 ```
 

@@ -1,6 +1,7 @@
 import type OpenAI from 'openai';
 import type Anthropic from '@anthropic-ai/sdk';
 import { SmartCall } from './smartCall';
+import { QualityDetector } from './qualityDetector';
 
 interface CostLensConfig {
   apiKey: string;
@@ -96,29 +97,51 @@ export class CostLens {
     return 'complex';
   }
 
-  private selectOptimalModel(requestedModel: string, messages: any[]): string {
+  private async selectOptimalModel(requestedModel: string, messages: any[]): Promise<string> {
     if (!this.config.smartRouting) return requestedModel;
 
     // Don't route vision models
     if (requestedModel.includes('vision')) return requestedModel;
 
-    const complexity = this.estimateComplexity(messages);
+    // PRIORITY 1: OpenAI routing (works for 90% of users)
+    if (requestedModel.includes('gpt')) {
+      const complexity = this.estimateComplexity(messages);
+      
+      // Simple tasks: GPT-4 → GPT-3.5-turbo (98% savings)
+      if (complexity === 'simple' && requestedModel.includes('gpt-4')) {
+        return 'gpt-3.5-turbo';
+      }
+      
+      // Medium tasks: GPT-4 → GPT-4o (86% savings)
+      if (complexity === 'medium' && requestedModel === 'gpt-4') {
+        return 'gpt-4o';
+      }
+    }
 
-    // Smart routing rules - prioritize 2025 models for cost savings
-    if (requestedModel.includes('gpt-4') && complexity === 'simple') {
-      return 'deepseek-chat'; // 128x cheaper than GPT-4!
+    // PRIORITY 1.5: Anthropic routing (for Claude users)
+    if (requestedModel.includes('claude')) {
+      const complexity = this.estimateComplexity(messages);
+      
+      // Simple tasks: Claude Opus → Claude Haiku (98% savings)
+      if (complexity === 'simple' && requestedModel.includes('claude-3-opus')) {
+        return 'claude-3-haiku';
+      }
+      
+      // Medium tasks: Claude Opus → Claude 3.5 Sonnet (93% savings)
+      if (complexity === 'medium' && requestedModel.includes('claude-3-opus')) {
+        return 'claude-3.5-sonnet';
+      }
+      
+      // Simple tasks: Claude Sonnet → Claude Haiku (92% savings)
+      if (complexity === 'simple' && requestedModel.includes('claude-3-sonnet')) {
+        return 'claude-3-haiku';
+      }
     }
-    if (requestedModel.includes('claude-3-opus') && complexity === 'simple') {
-      return 'deepseek-chat'; // 128x cheaper than Claude Opus!
-    }
-    if (requestedModel.includes('gpt-4') && complexity === 'medium') {
-      return 'gpt-4o'; // 7x cheaper than GPT-4!
-    }
-    if (requestedModel.includes('claude-3-opus') && complexity === 'medium') {
-      return 'claude-3.5-sonnet'; // 15x cheaper than Opus!
-    }
-    if (requestedModel.includes('gpt-4-turbo') && complexity === 'simple') {
-      return 'gemini-1.5-flash'; // 20x cheaper than GPT-4 Turbo!
+
+    // PRIORITY 2: Cross-provider routing (for power users with multiple keys)
+    const routingDecision = QualityDetector.shouldRoute(requestedModel, messages, 0.8);
+    if (routingDecision.shouldRoute && routingDecision.confidence > 0.8) {
+      return routingDecision.targetModel;
     }
 
     return requestedModel;
@@ -370,7 +393,7 @@ export class CostLens {
             if (self.config.smartRouting) {
               const routingEnabled = await self.checkRoutingEnabled();
               if (routingEnabled) {
-                params.model = self.selectOptimalModel(params.model, params.messages);
+                params.model = await self.selectOptimalModel(params.model, params.messages);
                 if (params.model !== originalModel) {
                   console.log(`[CostLens] Smart routing: ${originalModel} → ${params.model}`);
                 }
@@ -441,6 +464,26 @@ export class CostLens {
 
                 // Run after middleware
                 const processedResult = await self.runMiddleware('after', result);
+
+                // Automatic quality validation for routed responses
+                if (originalModel !== currentModel) {
+                  const quality = QualityDetector.analyzeResponse(
+                    processedResult.choices[0]?.message?.content || '',
+                    JSON.stringify(params.messages)
+                  );
+                  
+                  // If quality is too low, retry with original model
+                  if (quality.qualityScore < 0.7) {
+                    console.log(`[CostLens] Quality too low (${quality.qualityScore.toFixed(2)}), retrying with ${originalModel}`);
+                    const fallbackResult = await client.chat.completions.create({
+                      ...params,
+                      model: originalModel,
+                    });
+                    return await self.runMiddleware('after', fallbackResult);
+                  }
+                  
+                  console.log(`[CostLens] Quality validated: ${quality.qualityScore.toFixed(2)} score`);
+                }
 
                 // Save to cache (server-side only)
                 if (self.config.enableCache && typeof process !== 'undefined' && process.versions && process.versions.node) {
@@ -581,7 +624,7 @@ export class CostLens {
         async create(params: any, options?: WrapperOptions) {
           const originalModel = params.model;
           if (self.config.smartRouting) {
-            params.model = self.selectOptimalModel(params.model, params.messages);
+            params.model = await self.selectOptimalModel(params.model, params.messages);
             if (params.model !== originalModel) {
               console.log(`[CostLens] Smart routing: ${originalModel} → ${params.model}`);
             }

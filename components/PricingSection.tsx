@@ -1,153 +1,165 @@
 'use client'
-import React, { useState } from 'react';
-import { Check } from 'lucide-react';
-import { Switch } from '@/components/ui/switch';
-import { cn } from '@/lib/utils';
+import React from 'react';
+import { Check, X } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import Link from 'next/link';
 
-// Helper to render features, underlining post-MVP ones
-function renderFeature(feature: string, isPostMVP: boolean, index: number) {
-  if (isPostMVP) {
-    return (
-      <li key={index} className="flex items-center gap-3">
-        <Check className="h-5 w-5 text-green-500 flex-shrink-0" />
-        <span
-          className="underline decoration-dashed decoration-2 underline-offset-2 text-gray-500 cursor-help"
-          title="Coming Soon"
-        >
-          {feature}
-        </span>
-      </li>
-    );
-  }
-  return (
-    <li key={index} className="flex items-center gap-3">
-      <Check className="h-5 w-5 text-green-500 flex-shrink-0" />
-      <span>{feature}</span>
-    </li>
-  );
-}
+const Feature = ({ children }: { children: React.ReactNode }) => (
+  <li className="flex items-start gap-2">
+    <Check className="w-5 h-5 flex-shrink-0 mt-0.5 text-green-600" />
+    <span className="text-sm">{children}</span>
+  </li>
+);
 
-// 1. Define core features for each plan (lean, conversion-focused)
-const coreFeatures = {
-  FREE: [
-    '10 AI-generated prompts',
-    'Personal prompt library',
-    'Basic prompt editor',
-    'Export prompts',
-    'Community support',
-  ],
-  PRO: [
-    'Unlimited AI-generated prompts',
-    'Personal prompt library',
-    'Advanced prompt editor with AI optimization',
-    'Prompt version control',
-    'Advanced analytics dashboard',
-    'Priority support',
-    'Access to premium AI models (GPT-4, Claude)',
-    'Export & import prompts',
-    'Custom prompt templates',
-  ],
-};
-
-// 2. Post-MVP features (for tooltip or coming soon note)
-const postMVPFeatures = [
-  'Team collaboration',
-  'Custom Integrations',
-  'White-label Solutions',
-  'Dedicated Account Manager',
-  'Advanced Security',
-  'Compliance Features',
-];
-
-const subscriptionPlans = [
-  {
-    name: 'FREE',
-    price: 0,
-    description: 'Perfect for trying AI prompt generation',
-    features: coreFeatures.FREE,
-    popular: false,
-    isEnterprise: false,
-    cta: 'Start Free',
-  },
-  {
-    name: 'PRO',
-    price: 29.99,
-    description: 'For professionals and power users',
-    features: coreFeatures.PRO,
-    popular: true,
-    isEnterprise: false,
-    cta: 'Upgrade to Pro',
-  },
-];
-
-// Update annual discount to 15%
-const ANNUAL_DISCOUNT = 0.15;
+const MissingFeature = ({ children }: { children: React.ReactNode }) => (
+  <li className="flex items-start gap-2 text-gray-400">
+    <X className="w-5 h-5 flex-shrink-0 mt-0.5" />
+    <span className="text-sm">{children}</span>
+  </li>
+);
 
 export default function PricingSection() {
-  const [isAnnual, setIsAnnual] = useState(false);
-
   return (
-    <section className="py-24 bg-gradient-to-b from-white to-gray-50 dark:from-black dark:to-gray-900">
+    <section className="py-16 bg-gradient-to-b from-gray-50 to-white">
       <div className="container mx-auto px-4">
-        <div className="text-center mb-16">
-          <h2 className="text-4xl font-bold mb-4">Simple, Transparent Pricing</h2>
-          <p className="text-xl text-gray-600 dark:text-gray-400">
-            Start free with 10 AI-generated prompts. Upgrade for unlimited access.
+        <div className="text-center mb-12">
+          <h2 className="text-4xl font-bold mb-4">Save 70-95% on AI Costs</h2>
+          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+            Start free. Upgrade when you're saving hundreds per month. Cancel anytime.
           </p>
-          <div className="flex items-center justify-center gap-4 mt-8">
-            <span className={cn("text-sm", !isAnnual && "text-blue-600 font-semibold")}>Monthly</span>
-            <Switch
-              checked={isAnnual}
-              onCheckedChange={setIsAnnual}
-              className="data-[state=checked]:bg-blue-600"
-            />
-            <span className={cn("text-sm", isAnnual && "text-blue-600 font-semibold")}>Annual <span className="text-green-500">(Save 15%)</span></span>
+        </div>
+
+        <div className="grid md:grid-cols-4 gap-6 max-w-7xl mx-auto">
+          {/* Free */}
+          <div className="bg-white rounded-lg p-6 shadow-lg border-2">
+            <div className="text-center mb-6">
+              <h3 className="text-xl font-bold mb-2">Free</h3>
+              <div className="text-3xl font-bold mb-2">$0</div>
+              <p className="text-gray-600 text-sm">Forever free</p>
+            </div>
+            <p className="text-sm text-gray-600 mb-4">
+              Optimize up to <strong>$100/month</strong> in AI costs
+            </p>
+            <ul className="space-y-2 mb-6">
+              <Feature>OpenAI cost optimization</Feature>
+              <Feature>Anthropic (Claude) support</Feature>
+              <Feature>Basic analytics</Feature>
+              <Feature>7-day retention</Feature>
+              <MissingFeature>Advanced caching</MissingFeature>
+              <MissingFeature>Email alerts</MissingFeature>
+            </ul>
+            <Button className="w-full" variant="outline" asChild>
+              <Link href="/sign-up">Start Free</Link>
+            </Button>
+          </div>
+
+          {/* Starter */}
+          <div className="bg-white rounded-lg p-6 shadow-lg border-2 border-green-200 relative">
+            <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+              <span className="bg-green-600 text-white px-3 py-1 rounded-full text-xs font-semibold">
+                Best Value
+              </span>
+            </div>
+            <div className="text-center mb-6">
+              <h3 className="text-xl font-bold mb-2">Starter</h3>
+              <div className="text-3xl font-bold mb-2">$9</div>
+              <p className="text-gray-600 text-sm">per month</p>
+            </div>
+            <p className="text-sm text-gray-600 mb-4">
+              Optimize up to <strong>$500/month</strong> in AI costs
+            </p>
+            <ul className="space-y-2 mb-6">
+              <Feature>Everything in Free</Feature>
+              <Feature>Advanced model routing</Feature>
+              <Feature>Response caching (40% savings)</Feature>
+              <Feature>30-day retention</Feature>
+              <Feature>Email alerts</Feature>
+              <Feature>Savings reports</Feature>
+            </ul>
+            <Button className="w-full bg-green-600 hover:bg-green-700" asChild>
+              <Link href="/pricing">Upgrade Now</Link>
+            </Button>
+            <p className="text-center text-xs text-green-600 font-semibold mt-3">
+              💰 Save $50-150/month = 5-15x ROI
+            </p>
+          </div>
+
+          {/* Pro */}
+          <div className="bg-blue-600 text-white rounded-lg p-6 shadow-lg relative scale-105">
+            <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+              <span className="bg-yellow-400 text-black px-3 py-1 rounded-full text-xs font-semibold">
+                Most Popular
+              </span>
+            </div>
+            <div className="text-center mb-6">
+              <h3 className="text-xl font-bold mb-2">Pro</h3>
+              <div className="text-3xl font-bold mb-2">$29</div>
+              <p className="text-blue-100 text-sm">per month</p>
+            </div>
+            <p className="text-sm text-blue-100 mb-4">
+              Optimize up to <strong>$2,000/month</strong> in AI costs
+            </p>
+            <ul className="space-y-2 mb-6">
+              <li className="flex items-start gap-2">
+                <Check className="w-5 h-5 flex-shrink-0 mt-0.5 text-green-400" />
+                <span className="text-sm">Everything in Starter</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <Check className="w-5 h-5 flex-shrink-0 mt-0.5 text-green-400" />
+                <span className="text-sm">Automatic prompt optimization</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <Check className="w-5 h-5 flex-shrink-0 mt-0.5 text-green-400" />
+                <span className="text-sm">Multi-provider support</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <Check className="w-5 h-5 flex-shrink-0 mt-0.5 text-green-400" />
+                <span className="text-sm">Quality monitoring</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <Check className="w-5 h-5 flex-shrink-0 mt-0.5 text-green-400" />
+                <span className="text-sm">Priority support</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <Check className="w-5 h-5 flex-shrink-0 mt-0.5 text-green-400" />
+                <span className="text-sm">Team (5 users)</span>
+              </li>
+            </ul>
+            <Button className="w-full bg-white text-blue-600 hover:bg-gray-100" asChild>
+              <Link href="/pricing">Upgrade Now</Link>
+            </Button>
+            <p className="text-center text-xs text-blue-100 font-semibold mt-3">
+              💰 Save $300-600/month = 10x+ ROI
+            </p>
+          </div>
+
+          {/* Enterprise */}
+          <div className="bg-white rounded-lg p-6 shadow-lg border-2">
+            <div className="text-center mb-6">
+              <h3 className="text-xl font-bold mb-2">Enterprise</h3>
+              <div className="text-3xl font-bold mb-2">Custom</div>
+              <p className="text-gray-600 text-sm">Contact us</p>
+            </div>
+            <p className="text-sm text-gray-600 mb-4">
+              <strong>Unlimited</strong> AI cost optimization
+            </p>
+            <ul className="space-y-2 mb-6">
+              <Feature>Everything in Pro</Feature>
+              <Feature>SSO (SAML)</Feature>
+              <Feature>Dedicated support</Feature>
+              <Feature>Custom integrations</Feature>
+              <Feature>Unlimited users</Feature>
+              <Feature>SLA guarantee</Feature>
+            </ul>
+            <Button className="w-full bg-purple-600 hover:bg-purple-700" asChild>
+              <Link href="mailto:sales@costlens.dev">Contact Sales</Link>
+            </Button>
           </div>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-7xl mx-auto mb-32">
-          {subscriptionPlans.map((plan) => (
-            <div
-              key={plan.name}
-              className={cn(
-                "relative rounded-2xl p-8 border transition-all duration-300 h-full flex flex-col shadow-lg hover:shadow-xl",
-                plan.isEnterprise
-                  ? "border-blue-500 bg-blue-50 dark:bg-blue-950/20"
-                  : "border-gray-200 dark:border-gray-800 hover:border-blue-500 dark:hover:border-blue-500 bg-white/80 backdrop-blur-sm dark:bg-gray-900/80",
-                plan.popular && "ring-2 ring-blue-500 scale-105"
-              )}
-            >
-              {plan.popular && (
-                <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-10">
-                  <span className="inline-block rounded-full bg-blue-100 px-3 py-1 text-sm font-semibold text-blue-700 dark:bg-blue-900/50 dark:text-blue-300 shadow-md border border-blue-200 dark:border-blue-800">
-                    Most Popular
-                  </span>
-                </div>
-              )}
-              <div className="mb-8">
-                <h3 className="text-2xl font-bold mb-2 text-center">{plan.name}</h3>
-                <p className="text-gray-600 dark:text-gray-400 mb-4 text-center">{plan.description}</p>
-                <div className="flex flex-col items-center justify-center gap-1">
-                  {plan.price === null ? (
-                    <>
-                      <span className="text-4xl font-bold">Custom</span>
-                    </>
-                  ) : plan.name === 'FREE' ? (
-                    <>
-                      <span className="text-4xl font-bold">$0.00</span>
-                      <span className="text-sm text-gray-500 dark:text-gray-400">/{isAnnual ? 'year' : 'month'}</span>
-                    </>
-                  ) : isAnnual ? (
-                    <>
-                      <span className="text-4xl font-bold">${((plan.price * 12 * (1 - ANNUAL_DISCOUNT)) / 12).toFixed(2)}/mo</span>
-                      <span className="text-xs text-gray-500 dark:text-gray-400">Billed ${(plan.price * 12 * (1 - ANNUAL_DISCOUNT)).toFixed(2)}/year (save 15%)</span>
-                      <span className="text-xs text-gray-400">Original: ${(plan.price).toFixed(2)}/mo</span>
-                    </>
-                  ) : (
-                    <>
-                      <span className="text-4xl font-bold">${plan.price.toFixed(2)}/mo</span>
-                    </>
-                  )}
-                </div>
+      </div>
+    </section>
+  );
+}
               </div>
               <ul className="space-y-4 mb-8 flex-grow">
                 {plan.features.map((feature, index) => (

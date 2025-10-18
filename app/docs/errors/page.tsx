@@ -48,7 +48,7 @@ export default function ErrorsDocsPage() {
       <CodeBlock code={`import { CostLens } from 'costlens';
 
 const costlens = new CostLens({ 
-  apiKey: process.env.PROMPTCRAFT_API_KEY 
+  apiKey: process.env.COSTLENS_API_KEY 
 });
 
 const start = Date.now();

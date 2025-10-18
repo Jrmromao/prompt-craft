@@ -264,7 +264,7 @@ import OpenAI from 'openai';
 
 const openai = new OpenAI();
 const costlens = new CostLens({ 
-  apiKey: process.env.PROMPTCRAFT_API_KEY,
+  apiKey: process.env.COSTLENS_API_KEY,
   autoOptimize: true,  // 50-80% token reduction
   smartRouting: true,  // Auto-route to cheapest model
   costLimit: 0.10      // Max $0.10 per request
@@ -321,13 +321,13 @@ const result = await tracked.chat.completions.create({
           />
           <PricingCard
             name="Starter"
-            price="$19"
+            price="$9"
             features={["Optimize $500/mo AI costs", "30 days retention", "Redis caching", "Email alerts"]}
             cta="Start Free"
           />
           <PricingCard
             name="Pro"
-            price="$49"
+            price="$29"
             features={["Optimize $2k/mo AI costs", "90 days retention", "Prompt optimization", "Quality monitoring"]}
             cta="Start Free"
             popular

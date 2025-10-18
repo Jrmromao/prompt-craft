@@ -91,7 +91,7 @@ import OpenAI from 'openai';
 
 // Initialize SDK
 const promptCraft = new PromptCraft({
-  apiKey: process.env.PROMPTCRAFT_API_KEY, // From Settings → API Keys
+  apiKey: process.env.COSTLENS_API_KEY, // From Settings → API Keys
 });
 
 // Initialize OpenAI
@@ -117,7 +117,7 @@ import { PromptCraft } from '@promptcraft/sdk';
 import Anthropic from '@anthropic-ai/sdk';
 
 const promptCraft = new PromptCraft({
-  apiKey: process.env.PROMPTCRAFT_API_KEY,
+  apiKey: process.env.COSTLENS_API_KEY,
 });
 
 const anthropic = new Anthropic({
@@ -141,7 +141,7 @@ If you can't use the wrapper:
 
 ```typescript
 const promptCraft = new PromptCraft({
-  apiKey: process.env.PROMPTCRAFT_API_KEY,
+  apiKey: process.env.COSTLENS_API_KEY,
 });
 
 // After your AI call

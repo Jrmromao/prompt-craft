@@ -41,7 +41,7 @@ export default function AdvancedFeaturesPage() {
         Reduce API costs by up to 80% by caching identical requests:
       </p>
       <CodeBlock code={`const costlens = new CostLens({ 
-  apiKey: process.env.PROMPTCRAFT_API_KEY,
+  apiKey: process.env.COSTLENS_API_KEY,
   enableCache: true  // Enable caching globally
 });
 
@@ -73,7 +73,7 @@ costlens.clearCache();`} />
         Automatically retry failed requests with exponential backoff:
       </p>
       <CodeBlock code={`const costlens = new CostLens({ 
-  apiKey: process.env.PROMPTCRAFT_API_KEY,
+  apiKey: process.env.COSTLENS_API_KEY,
   maxRetries: 3  // Retry up to 3 times
 });
 
@@ -90,7 +90,7 @@ const result = await tracked.chat.completions.create({
         Add custom logic before/after API calls:
       </p>
       <CodeBlock code={`const costlens = new CostLens({
-  apiKey: process.env.PROMPTCRAFT_API_KEY,
+  apiKey: process.env.COSTLENS_API_KEY,
   middleware: [
     {
       // Run before API call

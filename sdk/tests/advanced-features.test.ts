@@ -207,14 +207,14 @@ describe('SDK Advanced LLM Features', () => {
       expect(mockClient.chat.completions.create).toHaveBeenCalled();
     });
 
-    it('should not apply smart routing to vision models', () => {
+    it('should not apply smart routing to vision models', async () => {
       const pc = new CostLens({
         apiKey: 'test',
         smartRouting: true,
       });
 
       const messages = [{ role: 'user', content: 'Simple question' }];
-      const result = (pc as any).selectOptimalModel('gpt-4-vision-preview', messages);
+      const result = await (pc as any).selectOptimalModel('gpt-4-vision-preview', messages);
       
       // Vision models should not be downgraded
       expect(result).toBe('gpt-4-vision-preview');

@@ -117,7 +117,7 @@ Base URL: `https://promptcraft.app/api`
 All API requests require authentication via API key in the Authorization header:
 
 ```
-Authorization: Bearer pc_your_api_key_here
+Authorization: Bearer cl_your_api_key_here
 ```
 
 ### Endpoints

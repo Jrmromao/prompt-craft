@@ -8,7 +8,7 @@ const openai = new OpenAI({
 });
 
 const costlens = new CostLens({
-  apiKey: process.env.PROMPTCRAFT_INTERNAL_API_KEY || 'internal',
+  apiKey: process.env.COSTLENS_INTERNAL_API_KEY || 'internal',
   baseUrl: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3001',
 });
 
