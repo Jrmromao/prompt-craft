@@ -229,21 +229,21 @@ export class PricingScraper {
   }
 
   /**
-   * Parse DeepSeek pricing (we know this is accurate from official docs)
+   * Parse DeepSeek pricing (official Jan 2025 rates)
    */
   private parseDeepSeekPricing($: cheerio.CheerioAPI, models: string[]): PricingData[] {
-    // DeepSeek pricing is well-documented, use known accurate rates
+    // DeepSeek pricing from official docs: https://api-docs.deepseek.com/quick_start/pricing
     return models.map(model => ({
       model,
       provider: 'deepseek',
-      inputCost: 0.28, // $0.28 per 1M tokens
-      outputCost: 0.42, // $0.42 per 1M tokens
-      averageCost: 0.35, // $0.35 per 1M tokens
+      inputCost: 0.14,  // $0.14 per 1M tokens
+      outputCost: 0.28, // $0.28 per 1M tokens
+      averageCost: 0.21, // $0.21 per 1M tokens
       cacheHit: true,
-      cacheHitCost: 0.028, // $0.028 per 1M tokens (cache hit)
+      cacheHitCost: 0.014, // $0.014 per 1M tokens (cache hit, 90% discount)
       metadata: { 
         source: 'deepseek_official_docs',
-        lastVerified: new Date().toISOString()
+        lastVerified: '2025-01-18'
       }
     }));
   }
