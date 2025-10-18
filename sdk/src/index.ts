@@ -202,36 +202,57 @@ export class CostLens {
     };
   }
 
-  private estimateCost(model: string, messages: any[]): number {
+  private async estimateCost(model: string, messages: any[]): Promise<number> {
     const estimatedTokens = messages.reduce((sum, m) => sum + (m.content?.length || 0) / 4, 0) * 1.5;
     
-    const pricing: Record<string, number> = {
+    try {
+      // Try to get pricing from database first
+      const response = await fetch(`${this.config.baseUrl}/api/pricing/scrape`);
+      if (response.ok) {
+        const data = await response.json() as { success: boolean; data?: any[] };
+        if (data.success && data.data) {
+          const pricingData = data.data.find((p: any) => 
+            p.model.toLowerCase().includes(model.toLowerCase()) ||
+            model.toLowerCase().includes(p.model.toLowerCase())
+          );
+          
+          if (pricingData) {
+            return (estimatedTokens / 1000000) * pricingData.averageCost;
+          }
+        }
+      }
+    } catch (error) {
+      console.warn(`[CostLens] Failed to fetch dynamic pricing for ${model}, using fallback`);
+    }
+
+    // Fallback to static pricing
+    const staticPricing: Record<string, number> = {
       // OpenAI 2025 (per 1M tokens, input + output average)
-      'gpt-4o': 0.00625,           // $2.50 input + $10 output = $6.25 avg
-      'gpt-4': 0.045,              // $30 input + $60 output = $45 avg (legacy)
-      'gpt-4-turbo': 0.02,         // $10 input + $30 output = $20 avg
-      'gpt-3.5-turbo': 0.001,      // $0.5 input + $1.5 output = $1 avg
+      'gpt-4o': 6.25,              // $2.50 input + $10 output = $6.25 avg
+      'gpt-4': 45.00,              // $30 input + $60 output = $45 avg (legacy)
+      'gpt-4-turbo': 20.00,        // $10 input + $30 output = $20 avg
+      'gpt-3.5-turbo': 1.00,       // $0.5 input + $1.5 output = $1 avg
       
       // Anthropic 2025 (per 1M tokens, input + output average)
-      'claude-3.5-sonnet': 0.003,  // $3 input + $3 output = $3 avg (25% price cut!)
-      'claude-3-opus': 0.045,      // $15 input + $75 output = $45 avg (legacy)
-      'claude-3-sonnet': 0.009,    // $3 input + $15 output = $9 avg (legacy)
-      'claude-3-haiku': 0.00075,   // $0.25 input + $1.25 output = $0.75 avg
+      'claude-3.5-sonnet': 3.00,   // $3 input + $3 output = $3 avg (25% price cut!)
+      'claude-3-opus': 45.00,      // $15 input + $75 output = $45 avg (legacy)
+      'claude-3-sonnet': 9.00,     // $3 input + $15 output = $9 avg (legacy)
+      'claude-3-haiku': 0.75,      // $0.25 input + $1.25 output = $0.75 avg
       
       // Google Gemini 2025 (per 1M tokens, input + output average)
-      'gemini-1.5-flash': 0.001,   // $1 input + $1 output = $1 avg (new 2025 pricing!)
-      'gemini-1.5-pro': 0.00125,   // $1.25 input + $5 output = $3.125 avg
+      'gemini-1.5-flash': 1.00,    // $1 input + $1 output = $1 avg (new 2025 pricing!)
+      'gemini-1.5-pro': 3.125,     // $1.25 input + $5 output = $3.125 avg
       
       // DeepSeek V3.2-Exp 2025 (per 1M tokens, input + output average)
       // Official pricing from DeepSeek API docs (September 2025)
-      'deepseek-v3': 0.00035,      // $0.28 input + $0.42 output = $0.35 avg (cache miss)
-      'deepseek-r1': 0.00035,      // $0.28 input + $0.42 output = $0.35 avg (cache miss)
-      'deepseek-chat': 0.00035,    // $0.28 input + $0.42 output = $0.35 avg (cache miss)
-      'deepseek-reasoner': 0.00035, // $0.28 input + $0.42 output = $0.35 avg (cache miss)
+      'deepseek-v3': 0.35,         // $0.28 input + $0.42 output = $0.35 avg (cache miss)
+      'deepseek-r1': 0.35,         // $0.28 input + $0.42 output = $0.35 avg (cache miss)
+      'deepseek-chat': 0.35,       // $0.28 input + $0.42 output = $0.35 avg (cache miss)
+      'deepseek-reasoner': 0.35,   // $0.28 input + $0.42 output = $0.35 avg (cache miss)
     };
 
-    const rate = Object.entries(pricing).find(([key]) => model.includes(key))?.[1] || 0.01;
-    return (estimatedTokens / 1000) * rate;
+    const rate = Object.entries(staticPricing).find(([key]) => model.includes(key))?.[1] || 1.00;
+    return (estimatedTokens / 1000000) * rate; // Convert to per-1M tokens
   }
 
   private async trackRun(data: TrackRunData): Promise<void> {
@@ -360,7 +381,7 @@ export class CostLens {
 
             // Cost limit check
             if (options?.maxCost || self.config.costLimit) {
-              const estimatedCost = self.estimateCost(params.model, params.messages);
+              const estimatedCost = await self.estimateCost(params.model, params.messages);
               const limit = options?.maxCost || self.config.costLimit || Infinity;
               if (estimatedCost > limit) {
                 throw new Error(`Estimated cost $${estimatedCost.toFixed(4)} exceeds limit $${limit}`);
@@ -436,7 +457,7 @@ export class CostLens {
                         messages: params.messages,
                         response: processedResult,
                         tokens: processedResult.usage?.total_tokens || 0,
-                        cost: self.estimateCost(currentModel, params.messages),
+                        cost: await self.estimateCost(currentModel, params.messages),
                         ttl: options?.cacheTTL || 3600,
                       }),
                     });
@@ -452,8 +473,8 @@ export class CostLens {
                 // Calculate savings if we routed to cheaper model
                 let savings = 0;
                 if (originalModel !== currentModel) {
-                  const requestedCost = self.estimateCost(originalModel, params.messages);
-                  const actualCost = self.estimateCost(currentModel, params.messages);
+                  const requestedCost = await self.estimateCost(originalModel, params.messages);
+                  const actualCost = await self.estimateCost(currentModel, params.messages);
                   savings = requestedCost - actualCost;
                 }
                 
@@ -567,7 +588,7 @@ export class CostLens {
           }
 
           if (options?.maxCost || self.config.costLimit) {
-            const estimatedCost = self.estimateCost(params.model, params.messages);
+            const estimatedCost = await self.estimateCost(params.model, params.messages);
             const limit = options?.maxCost || self.config.costLimit || Infinity;
             if (estimatedCost > limit) {
               throw new Error(`Estimated cost $${estimatedCost.toFixed(4)} exceeds limit $${limit}`);

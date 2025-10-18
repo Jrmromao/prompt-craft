@@ -8,6 +8,32 @@ datasource db {
 }
 
 // ============================================
+// PRICING MANAGEMENT
+// ============================================
+
+model ModelPricing {
+  id            String   @id @default(cuid())
+  model         String   @unique
+  provider      String   // openai, anthropic, google, deepseek, etc.
+  inputCost     Float    // per 1M tokens
+  outputCost    Float    // per 1M tokens
+  averageCost   Float    // calculated average
+  region        String?  // us-east, eu-west, etc.
+  cacheHit      Boolean  @default(false) // for models with cache pricing
+  cacheHitCost  Float?   // cache hit pricing
+  isActive      Boolean  @default(true)
+  lastUpdated   DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  source        String   @default("scraper") // scraper, manual, webhook
+  metadata      Json?    // additional pricing info
+
+  @@index([provider])
+  @@index([model])
+  @@index([isActive])
+  @@index([lastUpdated])
+}
+
+// ============================================
 // CORE USER & AUTH
 // ============================================
 
