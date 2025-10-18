@@ -134,7 +134,6 @@
     "pdf-lib": "^1.17.1",
     "postcss": "8.4.35",
     "react": "^19.2.0",
-    "react-beautiful-dnd": "^13.1.1",
     "react-day-picker": "^9.7.0",
     "react-dom": "^19.2.0",
     "react-dropzone": "^14.3.5",
