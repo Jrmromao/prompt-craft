@@ -24,7 +24,7 @@ export class PricingScraper {
   private providers = {
     openai: {
       name: 'OpenAI',
-      pricingUrl: 'https://openai.com/pricing',
+      pricingUrl: 'https://openai.com/api/pricing/',
       models: ['gpt-4o', 'gpt-4', 'gpt-4-turbo', 'gpt-3.5-turbo']
     },
     anthropic: {
