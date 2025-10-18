@@ -29,7 +29,7 @@ export class PricingScraper {
     },
     anthropic: {
       name: 'Anthropic',
-      pricingUrl: 'https://www.anthropic.com/pricing',
+      pricingUrl: 'https://www.claude.com/pricing',
       models: ['claude-3.5-sonnet', 'claude-3-opus', 'claude-3-sonnet', 'claude-3-haiku']
     },
     google: {
