@@ -34,7 +34,7 @@ export class PricingScraper {
     },
     google: {
       name: 'Google',
-      pricingUrl: 'https://ai.google.dev/pricing',
+      pricingUrl: 'https://ai.google.dev/gemini-api/docs/pricing',
       models: ['gemini-1.5-flash', 'gemini-1.5-pro']
     },
     deepseek: {
@@ -86,6 +86,12 @@ export class PricingScraper {
       return this.parseProviderPricing(providerKey, html, provider.models);
     } catch (error) {
       console.error(`[PricingScraper] Failed to fetch ${provider.name}:`, error);
+      
+      // Use hardcoded fallback for Google (anti-scraping protection)
+      if (providerKey === 'google') {
+        return this.parseGooglePricing(null as any, provider.models);
+      }
+      
       return [];
     }
   }
@@ -190,37 +196,27 @@ export class PricingScraper {
    * Parse Google pricing
    */
   private parseGooglePricing($: cheerio.CheerioAPI, models: string[]): PricingData[] {
-    const pricingData: PricingData[] = [];
+    // Fallback to hardcoded pricing (updated Jan 2025)
+    const hardcodedPricing: PricingData[] = [
+      {
+        model: 'gemini-1.5-flash',
+        provider: 'google',
+        inputCost: 0.075,  // $0.075 per 1M tokens
+        outputCost: 0.30,  // $0.30 per 1M tokens
+        averageCost: 0.1875,
+        metadata: { source: 'hardcoded_jan_2025' }
+      },
+      {
+        model: 'gemini-1.5-pro',
+        provider: 'google',
+        inputCost: 1.25,   // $1.25 per 1M tokens
+        outputCost: 5.00,  // $5.00 per 1M tokens
+        averageCost: 3.125,
+        metadata: { source: 'hardcoded_jan_2025' }
+      }
+    ];
     
-    // Google pricing patterns
-    $('table, .pricing-table, [class*="pricing"]').each((_, element) => {
-      const $table = $(element);
-      
-      $table.find('tr, .pricing-row').each((_, row) => {
-        const $row = $(row);
-        const text = $row.text().toLowerCase();
-        
-        models.forEach(model => {
-          if (text.includes(model.toLowerCase()) || text.includes(model.replace('-', ' '))) {
-            const inputCost = this.extractPrice($row, 'input');
-            const outputCost = this.extractPrice($row, 'output');
-            
-            if (inputCost > 0 && outputCost > 0) {
-              pricingData.push({
-                model,
-                provider: 'google',
-                inputCost,
-                outputCost,
-                averageCost: (inputCost + outputCost) / 2,
-                metadata: { source: 'google_pricing_page' }
-              });
-            }
-          }
-        });
-      });
-    });
-
-    return pricingData;
+    return hardcodedPricing;
   }
 
   /**
@@ -246,7 +242,7 @@ export class PricingScraper {
   /**
    * Extract price from table row
    */
-  private extractPrice($row: cheerio.Cheerio<cheerio.Element>, type: 'input' | 'output'): number {
+  private extractPrice($row: cheerio.Cheerio<any>, type: 'input' | 'output'): number {
     const text = $row.text();
     
     // Look for price patterns like $0.50, $1.25, etc.
@@ -309,7 +305,7 @@ export class PricingScraper {
       orderBy: { lastUpdated: 'desc' }
     });
 
-    return pricing.map(p => ({
+    return pricing.map((p: any) => ({
       model: p.model,
       provider: p.provider,
       inputCost: p.inputCost,
