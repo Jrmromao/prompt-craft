@@ -2,7 +2,7 @@
 
 ## Graceful Degradation
 
-The PromptCraft SDK is designed to **never break your application**, even if:
+The CostLens SDK is designed to **never break your application**, even if:
 - Your API key is invalid
 - Your API key expires
 - The PromptCraft service is down
@@ -28,13 +28,13 @@ When the API key is invalid, these features are automatically disabled:
 
 ```typescript
 // Invalid API key
-const promptcraft = new PromptCraft({ 
+const costLens = new CostLens({ 
   apiKey: 'invalid_key_123' 
 });
 
 // ✅ This still works perfectly
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-const wrapped = promptcraft.wrapOpenAI(openai);
+const wrapped = costLens.wrapOpenAI(openai);
 
 const response = await wrapped.chat.completions.create({
   model: 'gpt-4',
@@ -53,10 +53,10 @@ const response = await wrapped.chat.completions.create({
 You'll see helpful warnings (not errors):
 
 ```
-[PromptCraft] Warning: No API key provided. Tracking and optimization features will be disabled, but your app will continue to work.
-[PromptCraft] Invalid API key - tracking disabled. Your app will continue to work.
-[PromptCraft] Invalid API key - smart routing disabled
-[PromptCraft] Invalid API key - optimization disabled
+[CostLens] Warning: No API key provided. Tracking and optimization features will be disabled, but your app will continue to work.
+[CostLens] Invalid API key - tracking disabled. Your app will continue to work.
+[CostLens] Invalid API key - smart routing disabled
+[CostLens] Invalid API key - optimization disabled
 ```
 
 ## Network Failures
@@ -72,20 +72,20 @@ All network requests have timeouts and fail gracefully:
 
 ### 1. Always Provide an API Key (Even if Invalid)
 ```typescript
-const promptcraft = new PromptCraft({ 
-  apiKey: process.env.PROMPTCRAFT_API_KEY || 'none'
+const costLens = new CostLens({ 
+  apiKey: process.env.COSTLENS_API_KEY || 'none'
 });
 ```
 
 ### 2. Monitor Console Warnings
-Check your logs for `[PromptCraft]` warnings to detect issues.
+Check your logs for `[CostLens]` warnings to detect issues.
 
 ### 3. Test Without API Key
-Your app should work perfectly even without PromptCraft:
+Your app should work perfectly even without CostLens:
 
 ```typescript
 // This is safe
-const promptcraft = new PromptCraft({ apiKey: '' });
+const costLens = new CostLens({ apiKey: '' });
 ```
 
 ### 4. Handle Expired Keys
@@ -113,11 +113,11 @@ Only errors from your actual AI provider (OpenAI, Anthropic, etc.):
 - ✅ OpenAI rate limit → Throws error (expected)
 - ✅ Invalid model name → Throws error (expected)
 
-These are **your responsibility** to handle, not PromptCraft's.
+These are **your responsibility** to handle, not CostLens's.
 
 ## Summary
 
-**PromptCraft SDK = Zero Risk**
+**CostLens SDK = Zero Risk**
 
 - Invalid key? App works, features disabled
 - Service down? App works, features disabled

@@ -1,6 +1,7 @@
 import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
 import { NextResponse } from 'next/server';
 import { validateApiTokenEdge } from './lib/edge-token-validation';
+import * as Sentry from '@sentry/nextjs';
 
 // Public routes that don't require authentication
 const isPublicRoute = createRouteMatcher([
@@ -15,6 +16,8 @@ const isPublicRoute = createRouteMatcher([
   '/api/webhooks(.*)',
   '/api/health(.*)',
   '/api/blog(.*)',
+  '/api/test-error(.*)',
+  '/test-error',
 ]);
 
 
@@ -24,6 +27,13 @@ export default clerkMiddleware(async (auth, request) => {
   const isSignUpPage = request.nextUrl.pathname.startsWith('/sign-up');
   const hostname = request.headers.get('host') || '';
   const isApiSubdomain = hostname.startsWith('api.');
+
+  // Set user context for Sentry
+  if (userId) {
+    Sentry.setUser({ id: userId });
+  } else {
+    Sentry.setUser(null);
+  }
 
   // Handle API subdomain requests
   if (isApiSubdomain) {

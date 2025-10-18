@@ -114,6 +114,14 @@ const sentryWebpackPluginOptions = {
   automaticVercelMonitors: true,
 };
 
-// Temporarily disable Sentry for Next.js 15 compatibility
-module.exports = nextConfig;
-// module.exports = withSentryConfig(nextConfig, sentryWebpackPluginOptions);
+// Re-enable Sentry with Next.js 15 compatibility
+module.exports = withSentryConfig(nextConfig, {
+  ...sentryWebpackPluginOptions,
+  // Add Next.js 15 specific options
+  hideSourceMaps: true,
+  disableServerWebpackPlugin: false,
+  disableClientWebpackPlugin: false,
+  // Additional Next.js 15 compatibility options
+  widenClientFileUpload: true,
+  automaticVercelMonitors: true,
+});

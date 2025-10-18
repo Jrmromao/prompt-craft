@@ -28,16 +28,16 @@ export function rateLimit(
   if (record.count >= requests) {
     return NextResponse.json(
       { error: 'Too many requests. Please try again later.' },
-      { 
+      {
         status: 429,
         headers: {
           'Retry-After': String(Math.ceil((record.resetTime - now) / 1000)),
           'X-RateLimit-Limit': String(requests),
           'X-RateLimit-Remaining': '0',
           'X-RateLimit-Reset': String(record.resetTime),
-        }
+        },
       }
-    );
+    ) as any;
   }
 
   record.count++;

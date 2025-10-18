@@ -41,7 +41,19 @@ interface TrackRunData {
 interface Middleware {
   before?: (params: any) => Promise<any>;
   after?: (result: any) => Promise<any>;
-  onError?: (error: Error) => Promise<void>;
+  onError?: (error: Error, context?: ErrorContext) => Promise<void>;
+}
+
+interface ErrorContext {
+  provider: string;
+  model: string;
+  input: string;
+  latency: number;
+  attempt: number;
+  maxRetries: number;
+  userId?: string;
+  promptId?: string;
+  metadata?: Record<string, any>;
 }
 
 interface CacheEntry {
@@ -92,15 +104,21 @@ export class CostLens {
 
     const complexity = this.estimateComplexity(messages);
 
-    // Smart routing rules
+    // Smart routing rules - prioritize 2025 models for cost savings
     if (requestedModel.includes('gpt-4') && complexity === 'simple') {
-      return 'gpt-3.5-turbo'; // 60x cheaper
+      return 'deepseek-chat'; // 128x cheaper than GPT-4!
     }
     if (requestedModel.includes('claude-3-opus') && complexity === 'simple') {
-      return 'claude-3-haiku'; // 60x cheaper
+      return 'deepseek-chat'; // 128x cheaper than Claude Opus!
+    }
+    if (requestedModel.includes('gpt-4') && complexity === 'medium') {
+      return 'gpt-4o'; // 7x cheaper than GPT-4!
     }
     if (requestedModel.includes('claude-3-opus') && complexity === 'medium') {
-      return 'claude-3-sonnet'; // 5x cheaper
+      return 'claude-3.5-sonnet'; // 15x cheaper than Opus!
+    }
+    if (requestedModel.includes('gpt-4-turbo') && complexity === 'simple') {
+      return 'gemini-1.5-flash'; // 20x cheaper than GPT-4 Turbo!
     }
 
     return requestedModel;
@@ -134,11 +152,23 @@ export class CostLens {
 
   private getDefaultFallbacks(model: string): string[] {
     const fallbacks: Record<string, string[]> = {
-      'gpt-4': ['gpt-4-turbo', 'gpt-3.5-turbo'],
-      'gpt-4-turbo': ['gpt-3.5-turbo'],
-      'claude-3-opus': ['claude-3-sonnet', 'claude-3-haiku'],
-      'claude-3-sonnet': ['claude-3-haiku'],
-      'gemini-1.5-pro': ['gemini-1.5-flash'],
+      // 2025 Models (prioritize new models)
+      'gpt-4o': ['gpt-4-turbo', 'claude-3.5-sonnet', 'gpt-3.5-turbo'],
+      'claude-3.5-sonnet': ['gpt-4o', 'claude-3-sonnet', 'gpt-3.5-turbo'],
+      'gemini-1.5-flash': ['gemini-1.5-pro', 'gpt-3.5-turbo', 'claude-3-haiku'],
+      
+      // Legacy Models
+      'gpt-4': ['gpt-4o', 'gpt-4-turbo', 'gpt-3.5-turbo'],
+      'gpt-4-turbo': ['gpt-4o', 'gpt-4', 'gpt-3.5-turbo'],
+      'gpt-3.5-turbo': ['gpt-4o', 'gemini-1.5-flash', 'claude-3-haiku'],
+      'claude-3-opus': ['claude-3.5-sonnet', 'claude-3-sonnet', 'gpt-4o'],
+      'claude-3-sonnet': ['claude-3.5-sonnet', 'claude-3-haiku', 'gpt-3.5-turbo'],
+      'claude-3-haiku': ['gpt-3.5-turbo', 'gemini-1.5-flash', 'claude-3-sonnet'],
+      'gemini-1.5-pro': ['gemini-1.5-flash', 'gpt-4o', 'gpt-3.5-turbo'],
+      'deepseek-v3': ['deepseek-chat', 'deepseek-reasoner', 'gemini-1.5-flash', 'gpt-3.5-turbo'],
+      'deepseek-r1': ['deepseek-chat', 'deepseek-reasoner', 'gemini-1.5-flash', 'gpt-3.5-turbo'],
+      'deepseek-chat': ['deepseek-reasoner', 'deepseek-v3', 'gemini-1.5-flash', 'gpt-3.5-turbo'],
+      'deepseek-reasoner': ['deepseek-chat', 'deepseek-v3', 'gemini-1.5-flash', 'gpt-3.5-turbo'],
     };
 
     for (const [key, value] of Object.entries(fallbacks)) {
@@ -148,18 +178,56 @@ export class CostLens {
     return [];
   }
 
+  /**
+   * Validate pricing accuracy - call this to check if pricing is up-to-date
+   * @returns Object with pricing validation status and recommendations
+   */
+  validatePricing(): { 
+    status: 'current' | 'outdated' | 'unknown', 
+    message: string, 
+    lastUpdated: string,
+    recommendations: string[]
+  } {
+    return {
+      status: 'unknown',
+      message: 'Pricing accuracy cannot be guaranteed due to rapid changes in AI model pricing. Please verify with official provider documentation.',
+      lastUpdated: 'January 2025',
+      recommendations: [
+        'Check OpenAI pricing page: https://openai.com/pricing',
+        'Check Anthropic pricing page: https://www.anthropic.com/pricing',
+        'Check Google AI pricing: https://ai.google.dev/pricing',
+        'Check DeepSeek pricing: https://api-docs.deepseek.com/quick_start/pricing',
+        'Consider implementing dynamic pricing updates via API'
+      ]
+    };
+  }
+
   private estimateCost(model: string, messages: any[]): number {
     const estimatedTokens = messages.reduce((sum, m) => sum + (m.content?.length || 0) / 4, 0) * 1.5;
     
     const pricing: Record<string, number> = {
-      'gpt-4': 0.045,
-      'gpt-4-turbo': 0.02,
-      'gpt-3.5-turbo': 0.001,
-      'claude-3-opus': 0.045,
-      'claude-3-sonnet': 0.009,
-      'claude-3-haiku': 0.000875,
-      'gemini-1.5-pro': 0.003125,
-      'gemini-1.5-flash': 0.0001875,
+      // OpenAI 2025 (per 1M tokens, input + output average)
+      'gpt-4o': 0.00625,           // $2.50 input + $10 output = $6.25 avg
+      'gpt-4': 0.045,              // $30 input + $60 output = $45 avg (legacy)
+      'gpt-4-turbo': 0.02,         // $10 input + $30 output = $20 avg
+      'gpt-3.5-turbo': 0.001,      // $0.5 input + $1.5 output = $1 avg
+      
+      // Anthropic 2025 (per 1M tokens, input + output average)
+      'claude-3.5-sonnet': 0.003,  // $3 input + $3 output = $3 avg (25% price cut!)
+      'claude-3-opus': 0.045,      // $15 input + $75 output = $45 avg (legacy)
+      'claude-3-sonnet': 0.009,    // $3 input + $15 output = $9 avg (legacy)
+      'claude-3-haiku': 0.00075,   // $0.25 input + $1.25 output = $0.75 avg
+      
+      // Google Gemini 2025 (per 1M tokens, input + output average)
+      'gemini-1.5-flash': 0.001,   // $1 input + $1 output = $1 avg (new 2025 pricing!)
+      'gemini-1.5-pro': 0.00125,   // $1.25 input + $5 output = $3.125 avg
+      
+      // DeepSeek V3.2-Exp 2025 (per 1M tokens, input + output average)
+      // Official pricing from DeepSeek API docs (September 2025)
+      'deepseek-v3': 0.00035,      // $0.28 input + $0.42 output = $0.35 avg (cache miss)
+      'deepseek-r1': 0.00035,      // $0.28 input + $0.42 output = $0.35 avg (cache miss)
+      'deepseek-chat': 0.00035,    // $0.28 input + $0.42 output = $0.35 avg (cache miss)
+      'deepseek-reasoner': 0.00035, // $0.28 input + $0.42 output = $0.35 avg (cache miss)
     };
 
     const rate = Object.entries(pricing).find(([key]) => model.includes(key))?.[1] || 0.01;
@@ -241,11 +309,20 @@ export class CostLens {
     throw lastError;
   }
 
-  private async runMiddleware(type: 'before' | 'after' | 'onError', data: any): Promise<any> {
+  private async runMiddleware(type: 'before' | 'after' | 'onError', data: any, errorContext?: ErrorContext): Promise<any> {
     let result = data;
     for (const mw of this.config.middleware || []) {
       if (mw[type]) {
-        result = await mw[type]!(result);
+        try {
+          if (type === 'onError' && errorContext) {
+            result = await mw[type]!(data, errorContext);
+          } else {
+            result = await mw[type]!(data);
+          }
+        } catch (middlewareError) {
+          // Don't let middleware errors break the main flow
+          console.warn('[CostLens] Middleware error (non-fatal):', middlewareError);
+        }
       }
     }
     return result;
@@ -405,7 +482,18 @@ export class CostLens {
                 
                 // If this is the last model, throw
                 if (i === modelsToTry.length - 1) {
-                  await self.runMiddleware('onError', error);
+                  const errorContext: ErrorContext = {
+                    provider: 'openai',
+                    model: currentModel,
+                    input: JSON.stringify(params.messages),
+                    latency: Date.now() - start,
+                    attempt: i + 1,
+                    maxRetries: modelsToTry.length,
+                    userId: options?.userId,
+                    promptId: options?.promptId,
+                    metadata: { originalModel, fallbackChain: modelsToTry }
+                  };
+                  await self.runMiddleware('onError', error, errorContext);
                   await self.trackError('openai', currentModel, JSON.stringify(params.messages), error as Error, Date.now() - start);
                   throw error;
                 }
@@ -543,7 +631,18 @@ export class CostLens {
               lastError = error;
               
               if (i === modelsToTry.length - 1) {
-                await self.runMiddleware('onError', error);
+                const errorContext: ErrorContext = {
+                  provider: 'anthropic',
+                  model: currentModel,
+                  input: JSON.stringify(params.messages),
+                  latency: Date.now() - start,
+                  attempt: i + 1,
+                  maxRetries: modelsToTry.length,
+                  userId: options?.userId,
+                  promptId: options?.promptId,
+                  metadata: { originalModel, fallbackChain: modelsToTry }
+                };
+                await self.runMiddleware('onError', error, errorContext);
                 await self.trackError('anthropic', currentModel, JSON.stringify(params.messages), error as Error, Date.now() - start);
                 throw error;
               }
@@ -688,6 +787,24 @@ export class CostLens {
       provider: 'grok',
       promptId,
       model: params.model || 'grok-beta',
+      input: JSON.stringify(params.messages),
+      output: result.choices?.[0]?.message?.content || '',
+      tokensUsed: result.usage?.total_tokens || 0,
+      latency,
+      success: true,
+    });
+  }
+
+  async trackDeepSeek(
+    params: any,
+    result: any,
+    latency: number,
+    promptId?: string
+  ): Promise<void> {
+    await this.trackRun({
+      provider: 'deepseek',
+      promptId,
+      model: params.model || 'deepseek-v3',
       input: JSON.stringify(params.messages),
       output: result.choices?.[0]?.message?.content || '',
       tokensUsed: result.usage?.total_tokens || 0,

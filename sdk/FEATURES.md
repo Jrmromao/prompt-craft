@@ -1,4 +1,4 @@
-# PromptCraft SDK v2.0 - Advanced Features
+# CostLens SDK v2.0 - Advanced Features
 
 ## 🚀 What's New
 
@@ -12,7 +12,7 @@ await promptcraft.trackOpenAI(params, result, Date.now() - start);
 
 **After:**
 ```typescript
-const trackedOpenAI = promptcraft.wrapOpenAI(openai);
+const trackedOpenAI = costLens.wrapOpenAI(openai);
 const result = await trackedOpenAI.chat.completions.create(params);
 // ✅ Automatically tracked!
 ```
@@ -34,7 +34,7 @@ const result = await trackedOpenAI.chat.completions.create(
 ### 3. Auto-Retry with Exponential Backoff
 Automatically retry failed requests:
 ```typescript
-const promptcraft = new PromptCraft({
+const costLens = new CostLens({
   apiKey: 'key',
   maxRetries: 3 // Retry up to 3 times
 });
@@ -48,7 +48,7 @@ const promptcraft = new PromptCraft({
 ### 4. Middleware System
 Add custom logic to your API calls:
 ```typescript
-const promptcraft = new PromptCraft({
+const costLens = new CostLens({
   apiKey: 'key',
   middleware: [
     {
@@ -93,7 +93,7 @@ for await (const chunk of stream) {
 ### 6. Batch Tracking
 Track multiple calls efficiently:
 ```typescript
-await promptcraft.trackBatch([
+await costLens.trackBatch([
   { provider: 'openai', model: 'gpt-4', tokens: 100, latency: 500 },
   { provider: 'anthropic', model: 'claude-3', tokens: 150, latency: 600 }
 ]);
@@ -115,7 +115,7 @@ await promptcraft.trackBatch([
 ## 🔧 Configuration Options
 
 ```typescript
-interface PromptCraftConfig {
+interface CostLensConfig {
   apiKey: string;           // Required: Your API key
   baseUrl?: string;         // Optional: Custom endpoint
   enableCache?: boolean;    // Optional: Enable caching (default: false)
@@ -145,7 +145,7 @@ await promptcraft.trackOpenAI(params, result, Date.now() - start);
 **Option 2: Upgrade to wrappers (recommended)**
 ```typescript
 // v2.0 - much simpler
-const trackedOpenAI = promptcraft.wrapOpenAI(openai);
+const trackedOpenAI = costLens.wrapOpenAI(openai);
 const result = await trackedOpenAI.chat.completions.create(params);
 ```
 
