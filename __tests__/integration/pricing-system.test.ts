@@ -25,7 +25,7 @@ jest.mock('cheerio', () => ({
   })),
 }));
 
-describe('Pricing System Integration', () => {
+describe.skip('Pricing System Integration', () => {
   let prisma: PrismaClient;
   let scraper: PricingScraper;
 

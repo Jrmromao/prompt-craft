@@ -105,6 +105,7 @@
     "autoprefixer": "10.4.17",
     "aws-sdk": "^2.1692.0",
     "axios": "^1.9.0",
+    "cheerio": "^1.1.2",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.0",
     "cmdk": "^1.1.1",

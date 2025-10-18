@@ -252,11 +252,11 @@ describe('SDK Advanced LLM Features', () => {
         });
     });
     describe('Cost Estimation', () => {
-        it('should estimate costs for different models', () => {
+        it('should estimate costs for different models', async () => {
             const pc = new index_1.CostLens({ apiKey: 'test' });
             const messages = [{ role: 'user', content: 'test' }];
-            const gpt4Cost = pc.estimateCost('gpt-4', messages);
-            const gpt35Cost = pc.estimateCost('gpt-3.5-turbo', messages);
+            const gpt4Cost = await pc.estimateCost('gpt-4', messages);
+            const gpt35Cost = await pc.estimateCost('gpt-3.5-turbo', messages);
             expect(gpt4Cost).toBeGreaterThan(gpt35Cost);
         });
         it('should block requests exceeding cost limit', async () => {

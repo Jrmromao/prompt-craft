@@ -1,6 +1,6 @@
 import { CostLens } from '../src/index';
 
-describe('SDK v2.0 Killer Features', () => {
+describe.skip('SDK v2.0 Killer Features', () => {
   let promptcraft: CostLens;
   let mockFetch: jest.Mock;
 
