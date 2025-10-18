@@ -1,6 +1,6 @@
 {
   "name": "costlens",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Track and analyze AI API costs across OpenAI, Anthropic, and Claude. Real-time cost monitoring for developers.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
