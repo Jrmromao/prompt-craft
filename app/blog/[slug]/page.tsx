@@ -8,6 +8,7 @@ import path from 'path';
 import matter from 'gray-matter';
 import { marked } from 'marked';
 import { prisma } from '@/lib/prisma';
+import { sanitizeHtml } from '@/lib/utils/sanitize';
 
 interface Post {
   slug: string;
@@ -135,7 +136,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
     processedContent = processedContent.replace(/^#\s+.+$/m, '');
   }
 
-  const htmlContent = marked.parse(processedContent);
+  const htmlContent = sanitizeHtml(marked.parse(processedContent) as string);
 
   // Get related posts by tags
   const allPosts = getAllPosts();
